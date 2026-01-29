@@ -1,0 +1,272 @@
+<div class="container-fluid">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-24">
+    <div>
+      <h4 class="text-heading fw-semibold mb-8">Auditoría de Recompensas</h4>
+      <p class="text-gray-500 mb-0">
+        Historial completo de acciones y cambios en las recompensas
+      </p>
+    </div>
+    <div class="d-flex gap-8">
+      <button class="btn bg-gray-50 hover-bg-gray-100 text-heading px-16 py-8 rounded-8" (click)="exportarAuditoria()">
+        <i class="ph ph-download me-8"></i>
+        Exportar
+      </button>
+      <button class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8" (click)="actualizarDatos()">
+        <i class="ph ph-arrow-clockwise me-8"></i>
+        Actualizar
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros de Auditoría -->
+  <div class="card border-0 shadow-sm rounded-12 mb-24">
+    <div class="card-header bg-white border-0 p-24">
+      <h5 class="mb-0 text-heading fw-semibold">
+        <i class="ph ph-funnel me-8 text-main-600"></i>
+        Filtros de Auditoría
+      </h5>
+    </div>
+    <div class="card-body p-24 pt-0">
+    <div class="row g-16">
+      <div class="col-md-3">
+        <label class="form-label fw-medium">Buscar</label>
+        <input 
+          type="text" 
+          class="form-control" 
+          placeholder="Usuario, acción, detalles..."
+          [(ngModel)]="filtros.buscar"
+          (keyup.enter)="aplicarFiltros()"
+        >
+      </div>
+      <div class="col-md-2">
+        <label class="form-label fw-medium">Acción</label>
+        <select class="form-select" [(ngModel)]="filtros.accion">
+          <option value="">Todas</option>
+          <option *ngFor="let accion of tiposAccion" [value]="accion">
+            {{ accion | titlecase }}
+          </option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label fw-medium">Usuario</label>
+        <select class="form-select" [(ngModel)]="filtros.usuario_id">
+          <option value="">Todos</option>
+          <option *ngFor="let usuario of usuarios" [value]="usuario.id">
+            {{ usuario.nombre }}
+          </option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label fw-medium">Fecha Desde</label>
+        <input 
+          type="date" 
+          class="form-control" 
+          [(ngModel)]="filtros.fecha_desde"
+        >
+      </div>
+      <div class="col-md-2">
+        <label class="form-label fw-medium">Fecha Hasta</label>
+        <input 
+          type="date" 
+          class="form-control" 
+          [(ngModel)]="filtros.fecha_hasta"
+        >
+      </div>
+      <div class="col-md-1 d-flex align-items-end">
+        <div class="btn-group w-100">
+          <button class="btn bg-main-600 hover-bg-main-700 text-white px-12 py-8 rounded-8" (click)="aplicarFiltros()">
+            <i class="ph ph-magnifying-glass"></i>
+          </button>
+          <button class="btn bg-gray-50 hover-bg-gray-100 text-heading px-12 py-8 rounded-8" (click)="limpiarFiltros()">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <!-- Métricas Principales -->
+  <div class="row g-16 mb-24">
+    <div class="col-xl-3 col-md-6">
+      <div class="card border-0 shadow-sm rounded-12 bg-main-600 text-white">
+        <div class="card-body p-24">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="text-white-50 mb-8 fw-medium">Total Acciones</h6>
+              <h3 class="mb-0 fw-bold">{{ resumen?.total_acciones || 0 }}</h3>
+            </div>
+            <div class="flex-center w-48 h-48 bg-white bg-opacity-20 rounded-8">
+              <i class="ph ph-clock-clockwise text-xl text-white"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+      <div class="card border-0 shadow-sm rounded-12 bg-success-600 text-white">
+        <div class="card-body p-24">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="text-white-50 mb-8 fw-medium">Usuarios Activos</h6>
+              <h3 class="mb-0 fw-bold">{{ resumen?.usuarios_mas_activos?.length || 0 }}</h3>
+            </div>
+            <div class="flex-center w-48 h-48 bg-white bg-opacity-20 rounded-8">
+              <i class="ph ph-users text-xl text-white"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+      <div class="card border-0 shadow-sm rounded-12 bg-warning-600 text-white">
+        <div class="card-body p-24">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="text-white-50 mb-8 fw-medium">Recompensas Afectadas</h6>
+              <h3 class="mb-0 fw-bold">{{ resumen?.recompensas_mas_modificadas?.length || 0 }}</h3>
+            </div>
+            <div class="flex-center w-48 h-48 bg-white bg-opacity-20 rounded-8">
+              <i class="ph ph-gift text-xl text-white"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+      <div class="card border-0 shadow-sm rounded-12 bg-info-600 text-white">
+        <div class="card-body p-24">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="text-white-50 mb-8 fw-medium">Período</h6>
+              <h5 class="mb-0 fw-bold text-sm">{{ getPeriodoTexto() }}</h5>
+            </div>
+            <div class="flex-center w-48 h-48 bg-white bg-opacity-20 rounded-8">
+              <i class="ph ph-calendar text-xl text-white"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla de Auditoría -->
+  <div class="card border-0 shadow-sm rounded-12">
+    <div class="card-header bg-white border-0 p-24">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h5 class="mb-0 text-heading fw-semibold">
+            <i class="ph ph-list-bullets me-8 text-main-600"></i>
+            Historial de Acciones
+            <span class="badge bg-main-50 text-main-600 ms-8">{{ totalElements }}</span>
+          </h5>
+        </div>
+        <div class="d-flex align-items-center gap-8">
+          <span class="text-gray-500 text-sm">Mostrar:</span>
+          <select class="form-select form-select-sm" style="width: auto;" [(ngModel)]="pageSize" (change)="cargarAuditoria()">
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+            <option [value]="100">100</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-24 py-16 text-heading fw-semibold border-0">ID</th>
+              <th class="px-24 py-16 text-heading fw-semibold border-0">Fecha</th>
+              <th class="px-24 py-16 text-heading fw-semibold border-0">Usuario</th>
+              <th class="px-24 py-16 text-heading fw-semibold border-0">Acción</th>
+              <th class="px-24 py-16 text-heading fw-semibold border-0">Recompensa</th>
+              <th class="px-24 py-16 text-heading fw-semibold border-0">Detalles</th>
+              <th class="px-24 py-16 text-heading fw-semibold border-0">IP</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="loading">
+              <td colspan="7" class="px-24 py-48 text-center border-bottom border-gray-100">
+                <div class="spinner-border text-main-600" role="status">
+                  <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="mt-12 text-gray-500 mb-0">Cargando auditoría...</p>
+              </td>
+            </tr>
+            <tr *ngIf="!loading && auditoria.length === 0">
+              <td colspan="7" class="px-24 py-48 text-center border-bottom border-gray-100">
+                <i class="ph ph-clock-clockwise text-64 text-gray-300 mb-16"></i>
+                <h5 class="text-heading fw-semibold mb-8">No hay registros de auditoría</h5>
+                <p class="text-gray-500 mb-0">No se encontraron registros con los filtros aplicados.</p>
+              </td>
+            </tr>
+            <tr *ngFor="let registro of auditoria" class="border-bottom border-gray-100">
+              <td class="px-24 py-16">
+                <span class="text-heading fw-medium">#{{ registro.id }}</span>
+              </td>
+              <td class="px-24 py-16">
+                <div>
+                  <span class="text-heading fw-medium">{{ formatearFecha(registro.fecha_accion) }}</span>
+                  <br>
+                  <small class="text-gray-500">{{ formatearHora(registro.fecha_accion) }}</small>
+                </div>
+              </td>
+              <td class="px-24 py-16">
+                <div>
+                  <strong class="text-heading">{{ registro.usuario_nombre }}</strong>
+                  <br>
+                  <small class="text-gray-500">{{ registro.usuario_email }}</small>
+                </div>
+              </td>
+              <td class="px-24 py-16">
+                <span class="badge px-12 py-6 rounded-pill fw-medium" [ngClass]="getAccionClass(registro.accion)">
+                  {{ registro.accion | titlecase }}
+                </span>
+              </td>
+              <td class="px-24 py-16">
+                <span class="text-heading fw-medium">#{{ registro.recompensa_id }}</span>
+              </td>
+              <td class="px-24 py-16">
+                <span class="text-gray-500">{{ registro.detalles | slice:0:50 }}{{ registro.detalles.length > 50 ? '...' : '' }}</span>
+              </td>
+              <td class="px-24 py-16">
+                <small class="text-gray-500">{{ registro.ip_address }}</small>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Paginación -->
+    <div class="card-footer bg-gray-50 border-0 p-24" *ngIf="totalPages > 1">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="text-gray-500 text-sm">
+          Mostrando {{ (currentPage * pageSize) + 1 }} a {{ Math.min((currentPage + 1) * pageSize, totalElements) }} de {{ totalElements }} resultados
+        </div>
+        <nav>
+          <ul class="pagination pagination-sm mb-0">
+            <li class="page-item" [class.disabled]="currentPage === 0">
+              <button class="page-link rounded-8" (click)="previousPage()" [disabled]="currentPage === 0">
+                <i class="ph ph-caret-left"></i>
+              </button>
+            </li>
+            <li class="page-item" *ngFor="let page of getPages()" [class.active]="page === currentPage">
+              <button class="page-link rounded-8" (click)="goToPage(page)">
+                {{ page + 1 }}
+              </button>
+            </li>
+            <li class="page-item" [class.disabled]="currentPage === totalPages - 1">
+              <button class="page-link rounded-8" (click)="nextPage()" [disabled]="currentPage === totalPages - 1">
+                <i class="ph ph-caret-right"></i>
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+</div>

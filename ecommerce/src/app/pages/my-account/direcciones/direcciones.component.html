@@ -1,0 +1,147 @@
+<div class="border border-gray-100 hover-border-main-600 rounded-16 overflow-hidden bg-white transition-2">
+  <!-- ✅ Header de la sección -->
+  <div class="p-24 p-md-32 border-bottom border-gray-100 bg-main-50">
+    <div class="flex-between align-items-center gap-16 flex-wrap">
+      <div class="flex-align gap-16">
+        <div class="w-48 h-48 bg-main-600 text-white rounded-circle flex-center">
+          <i class="ph-bold ph-map-pin text-xl"></i>
+        </div>
+        <div>
+          <h4 class="mb-4 text-heading">Direcciones</h4>
+          <p class="text-gray-500 mb-0 text-sm">Gestiona tus direcciones de envío</p>
+        </div>
+      </div>
+      <button (click)="abrirModal('create')"
+              class="btn bg-main-600 hover-bg-main-800 text-white rounded-pill px-24 py-12 flex-align gap-8 transition-2">
+        <i class="ph-bold ph-plus"></i>
+        <span>Agregar dirección</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ✅ Contenido de direcciones dinámico -->
+  <div class="p-24 p-md-32">
+    <!-- Loading state -->
+    <div *ngIf="isLoadingDirecciones" class="text-center py-40">
+      <div class="spinner-border text-main-600" role="status">
+        <span class="visually-hidden">Cargando direcciones...</span>
+      </div>
+    </div>
+
+    <!-- Lista de direcciones -->
+    <div *ngIf="!isLoadingDirecciones && direcciones.length > 0">
+      <div *ngFor="let direccion of direcciones"
+           class="border border-gray-100 hover-border-main-600 rounded-16 p-20 flex-between align-items-center gap-16 transition-2 hover-shadow-sm mb-16">
+
+        <div class="flex-align gap-16 flex-grow-1">
+          <!-- Indicador de dirección principal -->
+          <div class="flex-shrink-0">
+            <div class="w-40 h-40 rounded-circle flex-center"
+                 [ngClass]="direccion.predeterminada ? 'bg-warning-50 text-warning-600' : 'bg-main-50 text-main-600'">
+              <i [class]="direccion.predeterminada ? 'ph-fill ph-star text-lg' : 'ph ph-map-pin text-lg'"></i>
+            </div>
+          </div>
+
+          <!-- Información de la dirección -->
+          <div class="flex-grow-1">
+            <div class="flex-align gap-12 mb-8">
+              <h6 class="mb-0 text-heading">{{ direccion.nombre_destinatario }}</h6>
+              <span *ngIf="direccion.predeterminada"
+                    class="bg-success-50 text-success-600 px-8 py-2 rounded-pill text-xs fw-medium">
+                Principal
+              </span>
+              <span *ngIf="!direccion.predeterminada"
+                    class="bg-gray-100 text-gray-600 px-8 py-2 rounded-pill text-xs fw-medium">
+                Secundaria
+              </span>
+            </div>
+            <p class="text-gray-700 mb-4 text-sm line-height-1-4">
+              {{ direccion.direccion_completa }}
+            </p>
+            <div class="flex-align gap-16 text-xs text-gray-500">
+              <span class="flex-align gap-4" *ngIf="direccion.ubigeo">
+                <i class="ph ph-map-pin"></i>
+                {{ direccion.ubigeo.distrito_nombre || direccion.ubigeo.distrito }}, {{ direccion.ubigeo.provincia_nombre || direccion.ubigeo.provincia }}, {{ direccion.ubigeo.departamento_nombre || direccion.ubigeo.departamento }}
+              </span>
+              <span class="flex-align gap-4" *ngIf="direccion.telefono">
+                <i class="ph ph-phone"></i>
+                {{ direccion.telefono }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="flex-align gap-8 flex-shrink-0">
+          <button *ngIf="!direccion.predeterminada"
+                  (click)="establecerPredeterminada(direccion)"
+                  class="w-40 h-40 bg-warning-50 text-warning-600 hover-bg-warning-600 hover-text-white rounded-circle flex-center transition-2"
+                  title="Establecer como principal">
+            <i class="ph-bold ph-star"></i>
+          </button>
+          <button (click)="abrirModal('edit', direccion)"
+                  class="w-40 h-40 bg-main-50 text-main-600 hover-bg-main-600 hover-text-white rounded-circle flex-center transition-2"
+                  title="Editar dirección">
+            <i class="ph-bold ph-pencil-simple"></i>
+          </button>
+          <button (click)="eliminarDireccion(direccion)"
+                  class="w-40 h-40 bg-danger-50 text-danger-600 hover-bg-danger-600 hover-text-white rounded-circle flex-center transition-2"
+                  title="Eliminar dirección">
+            <i class="ph-bold ph-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estado vacío -->
+    <div *ngIf="!isLoadingDirecciones && direcciones.length === 0" class="text-center py-60">
+      <div class="w-80 h-80 bg-gray-100 rounded-circle flex-center mx-auto mb-24">
+        <i class="ph ph-map-pin text-4xl text-gray-400"></i>
+      </div>
+      <h6 class="text-gray-500 mb-12">No tienes direcciones guardadas</h6>
+      <p class="text-gray-400 text-sm mb-24 max-w-300 mx-auto">
+        Agrega una dirección para facilitar tus compras y entregas
+      </p>
+      <button (click)="abrirModal('create')"
+              class="btn bg-main-600 hover-bg-main-800 text-white rounded-pill px-32 py-12 flex-align gap-8 mx-auto transition-2">
+        <i class="ph-bold ph-plus"></i>
+        <span>Agregar primera dirección</span>
+      </button>
+    </div>
+
+    <!-- ✅ Información adicional -->
+    <div class="mt-32 p-20 bg-color-one rounded-12">
+      <div class="flex-align gap-16 mb-16">
+        <div class="w-32 h-32 bg-main-600 text-white rounded-circle flex-center flex-shrink-0">
+          <i class="ph ph-info text-sm"></i>
+        </div>
+        <h6 class="mb-0 text-heading">Información importante</h6>
+      </div>
+      <ul class="list-inside ms-48">
+        <li class="text-gray-700 text-sm mb-8">
+          <i class="ph ph-check text-success-600 me-8"></i>
+          Puedes tener hasta 10 direcciones guardadas
+        </li>
+        <li class="mb-8">
+          <i class="ph ph-check text-success-600 me-8"></i>
+          La dirección principal se usará por defecto en tus compras
+        </li>
+        <li class="text-gray-700 text-sm mb-0">
+          <i class="ph ph-check text-success-600 me-8"></i>
+          Verifica que la información esté completa para evitar problemas de entrega
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de dirección -->
+<app-modal-direccion
+  *ngIf="showModal"
+  [show]="showModal"
+  [mode]="modalMode"
+  [direccion]="direccionEditando"
+  [departamentos]="departamentos"
+  (cerrar)="cerrarModal()"
+  (direccionGuardada)="onDireccionGuardada()">
+</app-modal-direccion>

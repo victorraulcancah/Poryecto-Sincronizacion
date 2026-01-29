@@ -1,0 +1,607 @@
+<!-- src/app/pages/register/register.component.html -->
+<!-- ========================= Breadcrumb Start =============================== -->
+<app-breadcrumb title="Registro" subtitle="Crear Cuenta"></app-breadcrumb>
+
+<!-- ========================= Breadcrumb End =============================== -->
+
+<!-- =============================== Register Section Start =========================== -->
+<section class="account py-80">
+  <div class="container container-lg">
+    <div class="row justify-content-center">
+      <!-- Register Card Start -->
+      <div class="col-xl-8 col-lg-10">
+        <div
+          class="border border-gray-100 hover-border-main-600 transition-1 rounded-16 px-24 py-40"
+        >
+          <h6 class="text-xl mb-32 text-center">Registro de Cliente</h6>
+
+          <!-- Mensaje de error -->
+          <div *ngIf="registerError" class="alert alert-danger mb-3">
+            {{ registerError }}
+          </div>
+
+          <!-- Mensaje de éxito -->
+          <div *ngIf="registerSuccess" class="alert alert-success mb-3">
+            {{ registerSuccess }}
+          </div>
+
+          <form [formGroup]="registerForm" (ngSubmit)="onRegister()">
+            <!-- Tipo de Documento y Número -->
+            <div class="row mb-24">
+              <div class="col-4">
+                <label
+                  for="tipoDocumento"
+                  class="text-neutral-900 text-lg mb-8 fw-medium"
+                >
+                  Tipo Doc. <span class="text-danger">*</span>
+                </label>
+                <select
+                  class="common-input"
+                  id="tipoDocumento"
+                  formControlName="tipo_documento_id"
+                  [ngClass]="{
+                    'is-invalid':
+                      registerTipoDocumento?.invalid &&
+                      registerTipoDocumento?.touched
+                  }"
+                >
+                  <option value="">Seleccionar</option>
+                  <option *ngFor="let tipo of tiposDocumento" [value]="tipo.id">
+                    {{ tipo.nombre }}
+                  </option>
+                </select>
+                <div
+                  *ngIf="
+                    registerTipoDocumento?.invalid &&
+                    registerTipoDocumento?.touched
+                  "
+                  class="text-danger mt-1"
+                >
+                  <small *ngIf="registerTipoDocumento?.errors?.['required']"
+                    >Selecciona un tipo</small
+                  >
+                </div>
+              </div>
+              <div class="col-8">
+                <label
+                  for="numeroDocumento"
+                  class="text-neutral-900 text-lg mb-8 fw-medium"
+                >
+                  Número de Documento <span class="text-danger">*</span>
+                </label>
+                <div class="position-relative">
+                  <input
+                    type="text"
+                    class="common-input"
+                    id="numeroDocumento"
+                    formControlName="numero_documento"
+                    placeholder="Número de documento"
+                    [ngClass]="{
+                      'is-invalid':
+                        (registerNumeroDocumento?.invalid &&
+                        registerNumeroDocumento?.touched) || documentoStatus === 'taken'
+                    }"
+                  />
+                  <!-- Indicadores de estado unificados -->
+                  <span class="position-absolute top-50 end-0 me-3 translate-middle-y">
+                    <span
+                      *ngIf="dniStatus === 'loading' || documentoStatus === 'checking'"
+                      class="spinner-border spinner-border-sm text-primary"
+                      role="status"
+                    ></span>
+                    <i
+                      *ngIf="dniStatus === 'success' && documentoStatus === 'available'"
+                      class="ph ph-check-circle text-success"
+                    ></i>
+                    <i
+                      *ngIf="dniStatus === 'error' || documentoStatus === 'taken'"
+                      class="ph ph-x-circle text-danger"
+                    ></i>
+                  </span>
+                </div>
+                
+                <!-- Mensajes de validación -->
+                <div
+                  *ngIf="
+                    registerNumeroDocumento?.invalid &&
+                    registerNumeroDocumento?.touched
+                  "
+                  class="text-danger mt-1"
+                >
+                  <small *ngIf="registerNumeroDocumento?.errors?.['required']"
+                    >El número es requerido</small
+                  >
+                </div>
+                
+                <!-- Mensajes de estado -->
+                <div *ngIf="documentoStatus === 'taken'" class="text-danger mt-1">
+                  <small>✗ Este documento ya está registrado</small>
+                </div>
+                <div *ngIf="dniStatus === 'success' && documentoStatus === 'available'" class="text-success mt-1">
+                  <small>✓ Documento válido y disponible</small>
+                </div>
+                <div *ngIf="dniStatus === 'success' && documentoStatus === 'idle'" class="text-success mt-1">
+                  <small>✓ Datos obtenidos automáticamente</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Nombres y Apellidos -->
+            <div class="row mb-24">
+              <div class="col-6">
+                <label
+                  for="nombres"
+                  class="text-neutral-900 text-lg mb-8 fw-medium"
+                >
+                  Nombres <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="text"
+                  class="common-input"
+                  id="nombres"
+                  formControlName="nombres"
+                  placeholder="Tus nombres"
+                  [ngClass]="{
+                    'is-invalid':
+                      registerNombres?.invalid && registerNombres?.touched,
+                    'bg-light': dniStatus === 'success'
+                  }"
+                  [readonly]="dniStatus === 'success'"
+                />
+                <div
+                  *ngIf="registerNombres?.invalid && registerNombres?.touched"
+                  class="text-danger mt-1"
+                >
+                  <small *ngIf="registerNombres?.errors?.['required']"
+                    >Los nombres son requeridos</small
+                  >
+                </div>
+              </div>
+              <div class="col-6">
+                <label
+                  for="apellidos"
+                  class="text-neutral-900 text-lg mb-8 fw-medium"
+                >
+                  Apellidos <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="text"
+                  class="common-input"
+                  id="apellidos"
+                  formControlName="apellidos"
+                  placeholder="Tus apellidos"
+                  [ngClass]="{
+                    'is-invalid':
+                      registerApellidos?.invalid && registerApellidos?.touched,
+                    'bg-light': dniStatus === 'success'
+                  }"
+                  [readonly]="dniStatus === 'success'"
+                />
+                <div
+                  *ngIf="
+                    registerApellidos?.invalid && registerApellidos?.touched
+                  "
+                  class="text-danger mt-1"
+                >
+                  <small *ngIf="registerApellidos?.errors?.['required']"
+                    >Los apellidos son requeridos</small
+                  >
+                </div>
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div class="mb-24">
+              <label
+                for="registerEmail"
+                class="text-neutral-900 text-lg mb-8 fw-medium"
+              >
+                Correo electrónico <span class="text-danger">*</span>
+              </label>
+              <div class="position-relative">
+                <input
+                  type="email"
+                  class="common-input"
+                  id="registerEmail"
+                  formControlName="email"
+                  placeholder="tu@email.com"
+                  [ngClass]="{
+                    'is-invalid': (registerEmail?.invalid && registerEmail?.touched) || emailStatus === 'taken'
+                  }"
+                />
+                <!-- Indicador de estado email -->
+                <span class="position-absolute top-50 end-0 me-3 translate-middle-y">
+                  <span
+                    *ngIf="emailStatus === 'checking'"
+                    class="spinner-border spinner-border-sm text-primary"
+                    role="status"
+                  ></span>
+                  <i
+                    *ngIf="emailStatus === 'available'"
+                    class="ph ph-check-circle text-success"
+                  ></i>
+                  <i
+                    *ngIf="emailStatus === 'taken'"
+                    class="ph ph-x-circle text-danger"
+                  ></i>
+                </span>
+              </div>
+
+              <!-- Mensajes de estado del email -->
+              <div *ngIf="emailStatus === 'taken'" class="text-danger mt-1">
+                <small>✗ Este correo ya está registrado</small>
+              </div>
+              <div *ngIf="emailStatus === 'available'" class="text-success mt-1">
+                <small>✓ Correo disponible</small>
+              </div>
+              
+              <!-- Mensajes de validación del email -->
+              <div
+                *ngIf="registerEmail?.invalid && registerEmail?.touched && emailStatus !== 'taken'"
+                class="text-danger mt-1"
+              >
+                <small *ngIf="registerEmail?.errors?.['required']"
+                  >El correo electrónico es requerido</small
+                >
+                <small *ngIf="registerEmail?.errors?.['email']"
+                  >Ingresa un correo electrónico válido</small
+                >
+              </div>
+            </div>
+
+            <!-- Teléfono -->
+            <div class="mb-24">
+              <label
+                for="telefono"
+                class="text-neutral-900 text-lg mb-8 fw-medium"
+              >
+                Teléfono
+              </label>
+              <input
+                type="tel"
+                class="common-input"
+                id="telefono"
+                formControlName="telefono"
+                placeholder="999 999 999"
+              />
+            </div>
+
+            <!-- Contraseña y Confirmación -->
+            <div class="row mb-24">
+              <div class="col-6">
+                <label
+                  for="registerPassword"
+                  class="text-neutral-900 text-lg mb-8 fw-medium"
+                >
+                  Contraseña <span class="text-danger">*</span>
+                </label>
+                <div class="position-relative">
+                  <input
+                    [type]="showRegisterPassword ? 'text' : 'password'"
+                    class="common-input"
+                    id="registerPassword"
+                    formControlName="password"
+                    placeholder="Mínimo 8 caracteres"
+                    [ngClass]="{
+                      'is-invalid':
+                        registerPassword?.invalid && registerPassword?.touched
+                    }"
+                  />
+                  <span
+                    class="toggle-password position-absolute top-50 inset-inline-end-0 me-16 translate-middle-y cursor-pointer"
+                    [class.ph-eye]="showRegisterPassword"
+                    [class.ph-eye-slash]="!showRegisterPassword"
+                    (click)="toggleRegisterPasswordVisibility()"
+                  ></span>
+                </div>
+                <div
+                  *ngIf="registerPassword?.invalid && registerPassword?.touched"
+                  class="text-danger mt-1"
+                >
+                  <small *ngIf="registerPassword?.errors?.['required']"
+                    >La contraseña es requerida</small
+                  >
+                  <small *ngIf="registerPassword?.errors?.['minlength']"
+                    >Mínimo 8 caracteres</small
+                  >
+                </div>
+              </div>
+              <div class="col-6">
+                <label
+                  for="passwordConfirmation"
+                  class="text-neutral-900 text-lg mb-8 fw-medium"
+                >
+                  Confirmar <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="password"
+                  class="common-input"
+                  id="passwordConfirmation"
+                  formControlName="password_confirmation"
+                  placeholder="Repetir contraseña"
+                  [ngClass]="{
+                    'is-invalid':
+                      registerPasswordConfirmation?.invalid &&
+                      registerPasswordConfirmation?.touched
+                  }"
+                />
+                <div
+                  *ngIf="
+                    registerPasswordConfirmation?.invalid &&
+                    registerPasswordConfirmation?.touched
+                  "
+                  class="text-danger mt-1"
+                >
+                  <small
+                    *ngIf="registerPasswordConfirmation?.errors?.['required']"
+                    >Confirma la contraseña</small
+                  >
+                </div>
+              </div>
+            </div>
+
+            <!-- Dirección (Opcional) -->
+            <div class="mb-24">
+              <label
+                for="direccion"
+                class="text-neutral-900 text-lg mb-8 fw-medium"
+              >
+                Dirección (Opcional)
+              </label>
+              <textarea
+                class="common-input"
+                id="direccion"
+                formControlName="direccion_completa"
+                placeholder="Dirección completa"
+                rows="2"
+              ></textarea>
+            </div>
+
+            <!-- Ubicación (Opcional) -->
+            <div class="row mb-24">
+              <div class="col-4">
+                <label
+                  for="departamento"
+                  class="text-neutral-900 text-lg mb-8 fw-medium"
+                >
+                  Departamento
+                </label>
+                <select
+                  class="common-input"
+                  id="departamento"
+                  formControlName="departamento_id"
+                >
+                  <option value="">Seleccionar</option>
+                  <option *ngFor="let dept of departamentos" [value]="dept.id">
+                    {{ dept.nombre }}
+                  </option>
+                </select>
+                <div *ngIf="isLoadingDepartamentos" class="text-muted mt-1">
+                  <small>Cargando departamentos...</small>
+                </div>
+              </div>
+
+              <div class="col-4">
+                <label
+                  for="provincia"
+                  class="text-neutral-900 text-lg mb-8 fw-medium"
+                >
+                  Provincia
+                </label>
+                <select
+                  class="common-input"
+                  id="provincia"
+                  formControlName="provincia_id"
+                  [disabled]="!registerForm.get('departamento_id')?.value"
+                >
+                  <option value="">Seleccionar</option>
+                  <option *ngFor="let prov of provincias" [value]="prov.id">
+                    {{ prov.nombre }}
+                  </option>
+                </select>
+                <div *ngIf="isLoadingProvincias" class="text-muted mt-1">
+                  <small>Cargando provincias...</small>
+                </div>
+              </div>
+
+              <div class="col-4">
+                <label
+                  for="distrito"
+                  class="text-neutral-900 text-lg mb-8 fw-medium"
+                >
+                  Distrito
+                </label>
+                <select
+                  class="common-input"
+                  id="distrito"
+                  formControlName="distrito_id"
+                  [disabled]="!registerForm.get('provincia_id')?.value"
+                >
+                  <option value="">Seleccionar</option>
+                  <option *ngFor="let dist of distritos" [value]="dist.id">
+                    {{ dist.nombre }}
+                  </option>
+                </select>
+                <div *ngIf="isLoadingDistritos" class="text-muted mt-1">
+                  <small>Cargando distritos...</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Campo oculto para ubigeo -->
+            <input type="hidden" formControlName="ubigeo" />
+
+           <!-- Puzzle CAPTCHA Start -->
+          <div *ngIf="showPuzzle" class="mb-24 text-center">
+            <style>
+              @keyframes fadeInScale {
+                0% {
+                  opacity: 0;
+                  transform: translate(-50%, -50%) scale(0.8);
+                }
+                100% {
+                  opacity: 1;
+                  transform: translate(-50%, -50%) scale(1);
+                }
+              }
+            </style>
+            <h6 class="fw-medium mb-3">Completa el captcha para registrarte</h6>
+            
+            <!-- Mensaje instructivo -->
+            <div style="background: linear-gradient(135deg, #e8f4fd 0%, #f0f8ff 100%); border: 2px dashed #1e3a8a; border-radius: 12px; padding: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(30, 58, 138, 0.1); max-width: 500px; margin-left: auto; margin-right: auto;">
+              <p style="margin: 0; color: #1e3a8a; font-weight: 500; font-size: 14px;">
+                <i class="ph ph-hand-grabbing" style="margin-right: 8px; color: #2563eb;"></i>
+                Arrastra las piezas de colores hacia los espacios grises para completar el rompecabezas
+              </p>
+            </div>
+            
+            <div class="puzzle-container d-inline-block" style="background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%); padding: 30px; border-radius: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.12); border: 1px solid #dee2e6; position: relative; overflow: visible;">
+              <!-- Tablero del Rompecabezas -->
+              <div class="puzzle-board" 
+                  style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; margin-bottom: 30px; padding: 15px; background: white; border-radius: 16px; box-shadow: inset 0 3px 12px rgba(0,0,0,0.08); border: 3px solid #1e3a8a; width: 340px; height: 340px; margin-left: -50px; margin-right: auto;">
+                <div *ngFor="let i of [0,1,2,3]" 
+                    class="puzzle-placeholder" 
+                    (dragover)="onDragOver($event)" 
+                    (dragleave)="onDragLeave($event)"
+                    (drop)="onDrop($event, i)"
+                    style="width: 150px; height: 150px; border: none; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); transition: all 0.3s ease; cursor: pointer; position: relative; overflow: hidden; border-radius: 8px;"
+                    [style.background]="puzzleBoard[i] ? 'transparent' : 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)'">
+                  <div *ngIf="!puzzleBoard[i]" style="color: #64748b; font-size: 18px; font-weight: 600; text-align: center; border: 2px dashed #94a3b8; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                    {{i + 1}}
+                  </div>
+                  <div *ngIf="puzzleBoard[i]" 
+                      class="puzzle-piece" 
+                      [ngStyle]="puzzleBoard[i].style"
+                      style="width: 150px; height: 150px; border: none; overflow: hidden; display: block; border-radius: 8px; background-size: 300px 300px !important; background-repeat: no-repeat;">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Botón para resetear el puzzle al costado del tablero -->
+              <!-- Botón para resetear el puzzle al costado del tablero -->
+              <div *ngIf="!puzzleSolved && puzzlePieces.length === 0" style="position: absolute; top: 50%; right: 20px; transform: translateY(-50%);">
+                <button type="button" 
+                        (click)="resetPuzzle()" 
+                        style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 500; cursor: pointer; font-size: 14px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); transition: all 0.3s ease;"
+                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(245, 158, 11, 0.4)'"
+                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(245, 158, 11, 0.3)'">
+                  <i class="ph ph-arrow-clockwise" style="margin-right: 6px;"></i>
+                  Reiniciar Puzzle
+                </button>
+              </div>
+              
+              <!-- Piezas Sueltas -->
+              <div class="puzzle-pieces-container" 
+                  style="display: flex; justify-content: center; gap: 12px; padding: 20px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%); border-radius: 16px; border: 2px solid #bfdbfe; flex-wrap: nowrap; align-items: center; max-width: 450px; margin-left: auto; margin-right: auto;">
+                <div *ngFor="let piece of puzzlePieces" 
+                    class="puzzle-piece" 
+                    draggable="true" 
+                    (dragstart)="onDragStart(piece)" 
+                    [ngStyle]="piece.style"
+                    style="width: 100px; height: 100px; border-radius: 12px; cursor: grab; transition: all 0.3s ease; box-shadow: 0 6px 20px rgba(30, 58, 138, 0.25); border: 3px solid rgba(255,255,255,0.9); overflow: hidden; flex-shrink: 0; background-size: 300px 300px !important; background-repeat: no-repeat;"
+                    onmouseover="this.style.transform='translateY(-6px) scale(1.08)'; this.style.boxShadow='0 12px 30px rgba(30, 58, 138, 0.35)'"
+                    onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 6px 20px rgba(30, 58, 138, 0.25)'"
+                    ondragstart="this.style.cursor='grabbing'; this.style.transform='scale(0.9)'; this.style.opacity='0.8'"
+                    ondragend="this.style.cursor='grab'; this.style.transform='scale(1)'; this.style.opacity='1'">
+                </div>
+              </div>
+            </div>
+                        
+            <!-- Indicador de progreso -->
+            <div *ngIf="!puzzleSolved && puzzlePieces.length < 4 && puzzlePieces.length !== 1" class="mt-3">
+              <div style="color: #1e3a8a; font-size: 16px; font-weight: 500; margin-bottom: 15px;">
+                <i class="ph ph-info" style="margin-right: 8px; color: #2563eb; font-size: 18px;"></i>
+                Continúa arrastrando las piezas restantes... ({{4 - puzzlePieces.length}}/4 colocadas)
+              </div>
+            </div>
+
+            <!-- Mensaje de error del Captcha flotante -->
+            <div *ngIf="puzzleError" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 350px;">
+              <div style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border: 3px solid #ef4444; border-radius: 16px; padding: 20px; box-shadow: 0 15px 35px rgba(239, 68, 68, 0.3); backdrop-filter: blur(10px); animation: fadeInScale 0.3s ease-out;">
+                <i class="ph ph-x-circle" style="color: #ef4444; font-size: 36px; margin-bottom: 10px; display: block; text-align: center;"></i>
+                <span style="color: #dc2626; font-weight: bold; font-size: 18px; display: block; text-align: center;">¡Captcha incorrecto!</span>
+                <p style="color: #b91c1c; font-size: 14px; margin: 8px 0 0 0; text-align: center;">Las piezas no están en el orden correcto. Inténtalo de nuevo.</p>
+              </div>
+            </div>
+
+            <!-- Overlay de fondo para el mensaje de error -->
+            <div *ngIf="puzzleError" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.4); border-radius: 20px; z-index: 999;"></div>
+
+          </div>
+          <!-- Puzzle CAPTCHA End -->
+
+          <!-- Puzzle CAPTCHA End -->
+
+          <!-- Indicador de éxito del puzzle -->
+          <div *ngIf="puzzleSolved && !showPuzzle" class="mb-24 text-center">
+            <div style="background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%); border: 3px solid #22c55e; border-radius: 16px; padding: 20px; max-width: 400px; margin-left: auto; margin-right: auto; box-shadow: 0 8px 25px rgba(34, 197, 94, 0.15);">
+              <i class="ph ph-check-circle" style="color: #22c55e; font-size: 48px; margin-bottom: 10px; display: block;"></i>
+              <span style="color: #15803d; font-weight: bold; font-size: 18px; display: block;">¡Verificación completada!</span>
+              <p style="color: #16a34a; font-size: 14px; margin: 8px 0 0 0;">Ya puedes proceder con el registro</p>
+            </div>
+          </div>
+
+            <!-- Botón de Registro con Google -->
+            <div class="mt-24">
+              <button
+                type="button"
+                class="btn d-flex align-items-center justify-content-center gap-2 w-100 border border-gray-300 rounded-12 py-12 hover-bg-main-50 transition-1"
+                (click)="loginWithGoogle()"
+              >
+                <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo" width="20" height="20" style="margin-right: 5px;">
+                <span class="fw-medium text-neutral-800"
+                  >Continuar con Google</span
+                >
+              </button>
+            </div>
+
+            <div class="my-24">
+              <p class="text-gray-500 text-sm">
+                Tus datos personales se utilizarán para procesar tu pedido,
+                mejorar tu experiencia en este sitio web y para otros fines
+                descritos en nuestra
+                <a routerLink="/privacy-policy" class="text-main-600 text-decoration-underline"
+                  >política de privacidad</a
+                >.
+              </p>
+            </div>
+
+            <div class="mt-24">
+              <button
+                type="submit"
+                class="btn btn-main py-18 px-40 w-100"
+                [disabled]="isLoading || registerForm.invalid || emailStatus === 'taken' || documentoStatus === 'taken' || (showPuzzle && !puzzleSolved)"
+              >
+                <span
+                  *ngIf="isLoading"
+                  class="spinner-border spinner-border-sm me-2"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
+                Crear Cuenta
+              </button>
+            </div>
+
+            <div class="mt-32 text-center">
+              <p class="text-gray-500 mb-0">
+                ¿Ya tienes una cuenta?
+                <a
+                  routerLink="/account"
+                  class="text-main-600 fw-semibold hover-text-decoration-underline"
+                >
+                  Inicia sesión aquí
+                </a>
+              </p>
+            </div>
+          </form>
+        </div>
+      </div>
+      <!-- Register Card End -->
+    </div>
+  </div>
+</section>
+<!-- =============================== Register Section End =========================== -->
+
+<!-- ========================== Shipping Section Start ============================ -->
+<app-shipping></app-shipping>
+<!-- ========================== Shipping Section End ============================ -->

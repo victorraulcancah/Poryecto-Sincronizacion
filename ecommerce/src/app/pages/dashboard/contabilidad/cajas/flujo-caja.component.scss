@@ -1,0 +1,64 @@
+// Este componente usa las clases globales de data-table
+// definidas en src/assets/sass/components/_data-table.scss
+
+:host {
+  display: block;
+}
+
+// Ajustes específicos para el contenedor de flujo de caja
+.modern-data-table {
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.card {
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  }
+}
+
+// Estilos para botones con hover
+.btn {
+  transition: all 0.2s ease;
+  
+  &.btn-primary {
+    background-color: #3b82f6 !important;
+    border-color: #3b82f6 !important;
+    color: white !important;
+    
+    &:hover {
+      background-color: #2563eb !important;
+      border-color: #2563eb !important;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+    }
+  }
+  
+  &.btn-outline-secondary {
+    background-color: white !important;
+    border-color: #d1d5db !important;
+    color: #6b7280 !important;
+    
+    &:hover {
+      background-color: #f3f4f6 !important;
+      border-color: #9ca3af !important;
+      color: #374151 !important;
+    }
+  }
+  
+  &.bg-main-600 {
+    background-color: #3b82f6 !important;
+    color: white !important;
+    border: none;
+    
+    &:hover {
+      background-color: #2563eb !important;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+    }
+  }
+}

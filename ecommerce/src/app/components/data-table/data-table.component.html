@@ -1,0 +1,210 @@
+<!-- Data Table Component -->
+<div class="card border-0 shadow-sm rounded-12">
+  <!-- Header con búsqueda y selección -->
+  <div class="card-header bg-white border-bottom px-24 py-16" *ngIf="!loading && filteredData.length > 0">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-12">
+      <!-- Búsqueda y selección -->
+      <div class="d-flex align-items-center gap-16">
+        <!-- Búsqueda -->
+        <div class="position-relative" *ngIf="config.showSearch">
+          <i class="ph ph-magnifying-glass position-absolute start-0 top-50 translate-middle-y ms-12 text-gray-400"></i>
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (input)="onSearchChange()"
+            class="form-control ps-40"
+            [placeholder]="config.searchPlaceholder"
+            style="min-width: 250px;">
+        </div>
+
+        <!-- Información de selección -->
+        <span class="text-sm text-gray-600">{{ getSelectionText() }}</span>
+
+        <!-- Botones de selección múltiple -->
+        <div class="d-flex align-items-center gap-8" *ngIf="selected.length > 0">
+          <ng-content select="[slot=selection-actions]"></ng-content>
+        </div>
+      </div>
+
+      <!-- Tamaño de página -->
+      <div class="d-flex align-items-center gap-8" *ngIf="config.showPagination">
+        <span class="text-sm fw-medium text-dark">Mostrando</span>
+        <select class="form-select form-select-sm border-gray-300"
+                style="width: auto; min-width: 60px; font-size: 0.875rem; padding: 4px 8px;"
+                [(ngModel)]="pageSize"
+                (change)="onPageSizeChange()">
+          <option [value]="size" *ngFor="let size of config.pageSizeOptions">{{ size }}</option>
+        </select>
+        <span class="text-sm fw-medium text-dark">por página</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-body p-0">
+    <!-- Loading state -->
+    <div *ngIf="loading" class="text-center py-40">
+      <div class="spinner-border text-main-600" role="status">
+        <span class="visually-hidden">{{ config.loadingMessage }}</span>
+      </div>
+      <p class="text-gray-500 mt-12 mb-0">{{ config.loadingMessage }}</p>
+    </div>
+
+    <!-- Tabla -->
+    <div class="table-responsive" *ngIf="!loading">
+      <table class="table table-hover mb-0 custom-data-table">
+        <thead class="table-header">
+          <tr>
+            <!-- Checkbox header -->
+            <th class="border-0 px-24 py-16" *ngIf="config.showSelection">
+              <div class="d-flex align-items-center gap-12">
+                <input type="checkbox" class="form-check-input"
+                       [checked]="isAllSelected()"
+                       (change)="toggleAllSelection($event)">
+                <span class="text-sm fw-semibold text-gray-700">{{ columns[0]?.label || 'Elemento' }}</span>
+              </div>
+            </th>
+
+            <!-- Columnas dinámicas -->
+            <th *ngFor="let column of columns.slice(config.showSelection ? 1 : 0)"
+                class="border-0 px-16 py-16"
+                [ngClass]="getColumnClasses(column)">
+              <span class="text-sm fw-semibold text-gray-700">{{ column.label }}</span>
+            </th>
+
+            <!-- Acciones -->
+            <th class="border-0 px-24 py-16 text-end" *ngIf="actions.length > 0">
+              <span class="text-sm fw-semibold text-gray-700">Acciones</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of paginatedData; trackBy: trackByIndex"
+              class="table-row"
+              [class.selected]="isSelected(item)">
+
+            <!-- Checkbox -->
+            <td class="px-24 py-16 align-middle" *ngIf="config.showSelection">
+              <div class="d-flex align-items-center gap-12">
+                <input type="checkbox" class="form-check-input"
+                       [checked]="isSelected(item)"
+                       (change)="toggleSelection(item, $event)">
+
+                <!-- Primera columna con checkbox -->
+                <div class="flex-grow-1">
+                  <ng-container [ngSwitch]="columns[0]?.template">
+                    <!-- Template Avatar -->
+                    <div *ngSwitchCase="'avatar'" class="d-flex align-items-center gap-12">
+                      <ng-content select="[slot=avatar]" [ngTemplateOutlet]="null" [ngTemplateOutletContext]="{$implicit: item}"></ng-content>
+                    </div>
+
+                    <!-- Template Custom -->
+                    <div *ngSwitchCase="'custom'">
+                      <ng-content select="[slot=custom-cell]" [ngTemplateOutlet]="null" [ngTemplateOutletContext]="{$implicit: item, column: columns[0]}"></ng-content>
+                    </div>
+
+                    <!-- Template Text por defecto -->
+                    <div *ngSwitchDefault>
+                      <span class="text-sm fw-medium text-dark">{{ getCellValue(item, columns[0]) }}</span>
+                    </div>
+                  </ng-container>
+                </div>
+              </div>
+            </td>
+
+            <!-- Columnas dinámicas -->
+            <td *ngFor="let column of columns.slice(config.showSelection ? 1 : 0)"
+                [ngClass]="getColumnClasses(column)">
+
+              <ng-container [ngSwitch]="column.template">
+                <!-- Template Badge -->
+                <span *ngSwitchCase="'badge'"
+                      class="badge text-xs fw-medium"
+                      [ngClass]="getCellValue(item, column)?.class || 'bg-gray-50 text-gray-600'">
+                  {{ getCellValue(item, column)?.text || getCellValue(item, column) }}
+                </span>
+
+                <!-- Template Custom -->
+                <div *ngSwitchCase="'custom'">
+                  <ng-content select="[slot=custom-cell]" [ngTemplateOutlet]="null" [ngTemplateOutletContext]="{$implicit: item, column: column}"></ng-content>
+                </div>
+
+                <!-- Template Text por defecto -->
+                <div *ngSwitchDefault>
+                  <span class="text-sm fw-medium text-dark">{{ getCellValue(item, column) }}</span>
+                </div>
+              </ng-container>
+            </td>
+
+            <!-- Acciones -->
+            <td class="px-24 py-16 align-middle text-end" *ngIf="actions.length > 0">
+              <div class="d-flex align-items-center justify-content-end gap-8">
+                <button *ngFor="let action of actions"
+                        class="w-32 h-32 rounded-circle flex-center transition-2"
+                        [ngClass]="action.color"
+                        [title]="action.label"
+                        (click)="executeAction(action, item)"
+                        [style.display]="action.visible && !action.visible(item) ? 'none' : 'flex'">
+                  <i [class]="action.icon"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación -->
+    <div class="px-24 py-16 border-top border-gray-100 bg-gray-50"
+         *ngIf="!loading && filteredData.length > 0 && config.showPagination">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="text-sm text-gray-600">
+          Mostrando {{ getStartRecord() }} a {{ getEndRecord() }} de {{ filteredData.length }} registros
+        </div>
+        <nav *ngIf="getTotalPages() > 1">
+          <ul class="pagination pagination-sm mb-0">
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <button class="page-link" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
+                <i class="ph ph-caret-left"></i>
+              </button>
+            </li>
+            <li class="page-item" *ngFor="let page of getPageNumbers()" [class.active]="page === currentPage">
+              <button class="page-link" (click)="goToPage(page)">{{ page }}</button>
+            </li>
+            <li class="page-item" [class.disabled]="currentPage === getTotalPages()">
+              <button class="page-link" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === getTotalPages()">
+                <i class="ph ph-caret-right"></i>
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Estado vacío -->
+    <div *ngIf="!loading && data.length === 0" class="text-center py-60">
+      <ng-content select="[slot=empty-state]">
+        <div class="w-80 h-80 bg-gray-50 text-gray-400 rounded-circle flex-center mx-auto mb-24">
+          <i class="ph ph-database text-3xl"></i>
+        </div>
+        <h5 class="text-heading mb-12">{{ config.emptyMessage }}</h5>
+      </ng-content>
+    </div>
+
+    <!-- Sin resultados de búsqueda -->
+    <div *ngIf="!loading && data.length > 0 && filteredData.length === 0" class="text-center py-60">
+      <ng-content select="[slot=no-results]">
+        <div class="w-80 h-80 bg-gray-50 text-gray-400 rounded-circle flex-center mx-auto mb-24">
+          <i class="ph ph-magnifying-glass text-3xl"></i>
+        </div>
+        <h5 class="text-heading mb-12">No se encontraron resultados</h5>
+        <p class="text-gray-500 mb-24 max-w-400 mx-auto">
+          Intenta cambiar los términos de búsqueda.
+        </p>
+        <button class="btn btn-outline-main btn-sm" (click)="searchTerm = ''; onSearchChange()">
+          <i class="ph ph-arrow-clockwise me-8"></i>
+          Limpiar búsqueda
+        </button>
+      </ng-content>
+    </div>
+  </div>
+</div>

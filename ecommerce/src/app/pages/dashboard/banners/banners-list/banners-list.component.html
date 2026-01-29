@@ -1,0 +1,198 @@
+  <div class="container-fluid">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-24">
+        <div>
+          <h4 class="text-heading fw-semibold mb-8"> Banners</h4>
+          <p class="text-gray-500 mb-0">Administra los banners del sitio web</p>
+        </div>
+        <div class="d-flex gap-12">
+          <!-- ✅ NUEVO: Botón para ir a Banners Horizontales -->
+          <button *ngIf="canCreate$"
+                  class="btn btn-outline-main-600 text-main-600 hover-bg-main-50 px-16 py-8 rounded-8"
+                  routerLink="/dashboard/banners/horizontales">
+            <i class="ph ph-rows me-8"></i>
+            Banners Horizontales
+          </button>
+
+          <button *ngIf="canCreate$" class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8"
+            data-bs-toggle="modal"
+            data-bs-target="#modalCrearBanner"
+            (click)="abrirNuevoModal()">
+              <i class="ph ph-plus me-8"></i>
+              Nuevo Banner
+          </button>
+        </div>
+      </div>
+
+      <!-- ✅ VISTA DE GALERÍA DE BANNERS -->
+      <div class="banners-gallery">
+        <!-- Header de información -->
+        <div class="d-flex justify-content-between align-items-center mb-24" *ngIf="!isLoading && banners.length > 0">
+          <div class="d-flex align-items-center gap-16">
+            <span class="text-sm text-gray-600">{{ banners.length }} banner(es) encontrado(s)</span>
+            <div class="d-flex align-items-center gap-8" *ngIf="selected.length > 0">
+              <button class="btn btn-sm btn-outline-danger px-12 py-6">
+                <i class="ph ph-trash me-4"></i>
+                Eliminar seleccionados ({{ selected.length }})
+              </button>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-8">
+            <span class="text-xs text-gray-500">Ordenados por posición</span>
+          </div>
+        </div>
+
+        <!-- Loading state -->
+        <div *ngIf="isLoading" class="row">
+          <div class="col-md-6 col-lg-4 mb-24" *ngFor="let item of [1,2,3,4]">
+            <div class="card border-0 shadow-sm rounded-12 overflow-hidden">
+              <div class="placeholder-glow">
+                <div class="placeholder" style="height: 200px; width: 100%;"></div>
+              </div>
+              <div class="card-body p-16">
+                <div class="placeholder-glow">
+                  <span class="placeholder col-8 mb-8"></span>
+                  <span class="placeholder col-4"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ✅ GALERÍA DE BANNERS -->
+        <div class="row" *ngIf="!isLoading && banners.length > 0">
+          <div class="col-md-6 col-xl-4 mb-24" *ngFor="let banner of banners">
+            <div class="banner-preview-card card border-0 shadow-sm rounded-12 overflow-hidden position-relative hover-shadow-lg transition-all"
+                 (mouseenter)="showOverlay($event)"
+                 (mouseleave)="hideOverlay($event)">
+
+              <!-- Badge de orden -->
+              <div class="position-absolute top-12 start-12 z-3">
+                <span class="badge bg-white text-dark fw-semibold px-8 py-4 rounded-pill shadow-sm">
+                  #{{ banner.orden }}
+                </span>
+              </div>
+
+              <!-- Badge de estado -->
+              <div class="position-absolute top-12 end-12 z-3">
+                <span class="badge fw-semibold px-8 py-4 rounded-pill"
+                      [class]="banner.activo ? 'bg-success text-white' : 'bg-danger text-white'">
+                  {{ banner.activo ? 'Activo' : 'Inactivo' }}
+                </span>
+              </div>
+
+              <!-- Imagen del banner -->
+              <div class="banner-preview-image position-relative overflow-hidden"
+                   style="height: 200px; background: #f8f9fa;">
+                <img *ngIf="banner.imagen_url"
+                     [src]="banner.imagen_url"
+                     [alt]="'Banner ' + banner.orden"
+                     class="w-100 h-100"
+                     style="object-fit: cover; object-position: center;">
+                <div *ngIf="!banner.imagen_url"
+                     class="w-100 h-100 d-flex align-items-center justify-content-center bg-gray-100">
+                  <i class="ph ph-image text-gray-400 text-4xl"></i>
+                </div>
+
+                <!-- Overlay con acciones -->
+                <div class="banner-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                     style="background: rgba(0,0,0,0.7); opacity: 0; transition: opacity 0.3s ease;">
+                  <div class="d-flex gap-8">
+                    <!-- Ver enlace -->
+                    <a [href]="banner.enlace_url" target="_blank"
+                       class="btn btn-sm text-white rounded-pill px-12 py-6 shadow-sm"
+                       style="background-color: var(--info-600); border: none;"
+                       title="Ver enlace">
+                      <i class="ph ph-arrow-square-out"></i>
+                    </a>
+
+                    <!-- Toggle estado -->
+                    <button *ngIf="canEdit$"
+                            class="btn btn-sm rounded-pill px-12 py-6 shadow-sm"
+                            [style]="banner.activo ?
+                              'background-color: var(--warning-600); color: var(--neutral-900); border: none;' :
+                              'background-color: var(--success-600); color: white; border: none;'"
+                            [title]="banner.activo ? 'Desactivar' : 'Activar'"
+                            (click)="toggleEstado(banner)">
+                      <i class="ph" [class]="banner.activo ? 'ph-eye-slash' : 'ph-eye'"></i>
+                    </button>
+
+                    <!-- Editar -->
+                    <button *ngIf="canEdit$"
+                            class="btn btn-sm text-white rounded-pill px-12 py-6 shadow-sm"
+                            style="background-color: var(--main-600); border: none;"
+                            title="Editar banner"
+                            (click)="editarBanner(banner)">
+                      <i class="ph ph-pencil"></i>
+                    </button>
+
+                    <!-- Eliminar -->
+                    <button *ngIf="canDelete$"
+                            class="btn btn-sm text-white rounded-pill px-12 py-6 shadow-sm"
+                            style="background-color: var(--danger-600); border: none;"
+                            title="Eliminar banner"
+                            (click)="eliminarBanner(banner.id)">
+                      <i class="ph ph-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Información del banner -->
+              <div class="card-body p-16">
+                <div class="d-flex align-items-center justify-content-between mb-8">
+                  <small class="text-main-600 fw-semibold">Banner {{ banner.orden }}</small>
+                  <small class="text-gray-500">
+                    <i class="ph ph-clock me-4"></i>
+                    {{ banner.created_at | date:'dd/MM/yyyy' }}
+                  </small>
+                </div>
+
+                <!-- URL de enlace -->
+                <div class="d-flex align-items-center gap-8 mb-8">
+                  <i class="ph ph-link text-gray-400"></i>
+                  <span class="text-sm text-gray-600 text-truncate"
+                        style="max-width: 200px;"
+                        [title]="banner.enlace_url">
+                    {{ banner.enlace_url }}
+                  </span>
+                </div>
+
+                <!-- Dimensiones de imagen (si está disponible) -->
+                <div class="d-flex align-items-center gap-8">
+                  <i class="ph ph-resize text-gray-400"></i>
+                  <span class="text-xs text-gray-500">
+                    Click para ver detalles
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty state mejorado -->
+        <div *ngIf="!isLoading && banners.length === 0" class="text-center py-60">
+          <div class="empty-state-icon mb-24">
+            <i class="ph ph-images text-gray-300" style="font-size: 4rem;"></i>
+          </div>
+          <h5 class="text-heading fw-semibold mb-12">¡Crea tu primer banner!</h5>
+          <p class="text-gray-500 mb-24 mx-auto" style="max-width: 400px;">
+            Los banners son perfectos para promocionar productos, ofertas especiales o dirigir tráfico a secciones importantes de tu tienda.
+          </p>
+          <button *ngIf="canCreate$"
+                  class="btn bg-main-600 hover-bg-main-700 text-white px-24 py-12 rounded-12"
+                  data-bs-toggle="modal"
+                  data-bs-target="#modalCrearBanner">
+            <i class="ph ph-plus me-8"></i>
+            Crear primer banner
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal para crear/editar banner -->
+      <app-banner-modal 
+        [banner]="bannerSeleccionado"
+        (bannerGuardado)="onBannerGuardado()"
+        (modalCerrado)="onModalCerrado()">
+      </app-banner-modal>
+    </div>

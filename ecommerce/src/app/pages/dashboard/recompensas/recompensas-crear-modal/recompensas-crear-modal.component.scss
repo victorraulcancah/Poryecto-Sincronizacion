@@ -1,0 +1,311 @@
+// Estilos mínimos para el modal de crear recompensa
+// Usa BaseModalComponent y variables globales del sistema
+
+:host {
+  display: block;
+}
+
+// Wizard Steps mejorado
+.wizard-step {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+  max-width: 120px;
+
+  &.disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  &:not(.disabled):hover {
+    transform: translateY(-3px);
+
+    .step-circle {
+      box-shadow: 0 4px 12px rgba(var(--main-600-rgb, 78, 115, 223), 0.3);
+    }
+  }
+
+  .step-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid;
+    background: white;
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+
+    &.bg-main-600 {
+      background-color: var(--main-600) !important;
+      border-color: var(--main-600) !important;
+    }
+
+    &.border-main-600 {
+      border-color: var(--main-600) !important;
+    }
+
+    &.border-gray-300 {
+      border-color: var(--gray-300) !important;
+    }
+  }
+
+  .step-label {
+    font-size: 0.75rem;
+    color: var(--gray-600);
+    transition: color 0.3s ease;
+    white-space: nowrap;
+  }
+
+  &.active .step-label {
+    color: var(--main-600);
+    font-weight: 600;
+  }
+
+  &.completed .step-label {
+    color: var(--success-600, #1cc88a);
+  }
+}
+
+// Progress bar mejorada
+.progress {
+  background-color: var(--gray-200);
+  border-radius: 3px;
+
+  .progress-bar {
+    transition: width 0.5s ease-in-out;
+    border-radius: 3px;
+  }
+}
+
+// Contenedor de pasos
+.steps-container {
+  min-height: 400px;
+}
+
+.step-content {
+  transition: opacity 0.3s ease;
+
+  &.d-none {
+    display: none !important;
+  }
+}
+
+// Usar las clases globales para cards
+.card {
+  .card-header {
+    &.bg-light-50 {
+      background-color: var(--light-50, #f8f9fa);
+    }
+  }
+}
+
+// Paneles de selección (2 columnas)
+.selection-panel {
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  overflow: hidden;
+
+  .panel-title {
+    background: var(--gray-50);
+    padding: 12px 16px;
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-bottom: 1px solid var(--gray-200);
+  }
+
+  .panel-content {
+    padding: 12px;
+    max-height: 350px;
+    overflow-y: auto;
+    min-height: 200px;
+  }
+}
+
+// Items de lista con checkbox
+.list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: var(--gray-50);
+  }
+
+  input[type="checkbox"] {
+    margin-top: 2px;
+    cursor: pointer;
+  }
+
+  .list-item-label {
+    flex: 1;
+    cursor: pointer;
+    margin: 0;
+
+    strong {
+      display: block;
+      font-size: 0.875rem;
+      margin-bottom: 2px;
+    }
+
+    small {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+    }
+  }
+}
+
+// Estado vacío
+.empty-selection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--gray-500);
+
+  i {
+    font-size: 3rem;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.875rem;
+  }
+}
+
+// Lista de seleccionados
+.selected-list {
+  .selected-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--main-50);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    font-size: 0.875rem;
+
+    i {
+      cursor: pointer;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+}
+
+// Resultados de búsqueda
+.search-results {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--gray-200);
+  border-radius: 6px;
+
+  .search-result-item {
+    padding: 10px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--gray-100);
+    transition: background 0.2s;
+
+    &:hover {
+      background: var(--gray-50);
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    strong {
+      display: block;
+      font-size: 0.875rem;
+    }
+
+    small {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+    }
+  }
+}
+
+
+
+// Items seleccionados
+.selected-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    font-weight: 500;
+
+    i {
+      font-size: 0.875rem;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .wizard-steps {
+    gap: 1rem !important;
+  }
+
+  .wizard-step .step-label {
+    font-size: 0.65rem;
+    max-width: 60px;
+  }
+
+  .step-circle {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .items-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+//
+ Estilos para modo solo lectura
+.disabled {
+  cursor: not-allowed !important;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  background-color: #f8f9fa !important;
+  cursor: not-allowed !important;
+}
+
+.search-result-item.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  
+  &:hover {
+    background-color: transparent !important;
+  }
+}

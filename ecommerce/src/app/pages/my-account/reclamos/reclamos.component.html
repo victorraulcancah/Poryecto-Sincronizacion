@@ -1,0 +1,46 @@
+<div class="border border-gray-100 hover-border-main-600 rounded-16 overflow-hidden bg-white transition-2">
+  <!-- Header de reclamos -->
+  <div class="p-24 p-md-32 border-bottom border-gray-100 bg-main-50">
+    <div class="flex-between align-items-center gap-16 flex-wrap">
+      <div class="flex-align gap-16">
+        <div class="w-48 h-48 bg-warning-600 text-white rounded-circle flex-center">
+          <i class="ph-bold ph-user-circle text-xl"></i>
+        </div>
+        <div>
+          <h4 class="mb-4 text-heading">Mis Reclamos</h4>
+          <p class="text-gray-500 mb-0 text-sm">Historial de reclamos y consultas</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido de reclamos -->
+  <div class="p-24 p-md-32">
+    <!-- Loading state -->
+    <div *ngIf="isLoadingReclamos" class="text-center py-40">
+      <div class="spinner-border text-warning-600" role="status">
+        <span class="visually-hidden">Cargando reclamos...</span>
+      </div>
+    </div>
+
+    <!-- Lista de reclamos -->
+    <div *ngIf="!isLoadingReclamos && reclamos.length > 0">
+      <div *ngFor="let reclamo of reclamos"
+           class="border border-gray-100 hover-border-warning-600 rounded-16 p-20 mb-16 transition-2 hover-shadow-sm">
+        <!-- Contenido del reclamo aquí -->
+        <p>{{ reclamo.asunto }}</p>
+      </div>
+    </div>
+
+    <!-- Estado vacío -->
+    <div *ngIf="!isLoadingReclamos && reclamos.length === 0" class="text-center py-60">
+      <div class="w-80 h-80 bg-gray-50 text-gray-400 rounded-circle flex-center mx-auto mb-24">
+        <i class="ph ph-user-circle text-3xl"></i>
+      </div>
+      <h5 class="text-heading mb-12">No tienes reclamos</h5>
+      <p class="text-gray-500 mb-24 max-w-400 mx-auto">
+        Si tienes algún problema con tu compra, puedes crear un reclamo aquí.
+      </p>
+    </div>
+  </div>
+</div>

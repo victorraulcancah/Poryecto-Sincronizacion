@@ -1,0 +1,264 @@
+<!-- src\app\components\chatbot\chatbot.component.html -->
+
+<!-- Botón flotante del chat -->
+<div class="chat-widget" [class.open]="isOpen">
+  <!-- Botón principal -->
+  <button 
+    class="chat-toggle-btn" 
+    (click)="toggleChat()"
+    [class.hidden]="isOpen"
+    aria-label="Abrir chat de ayuda">
+    <i class="ph ph-chat-circle-dots"></i>
+    <span class="chat-notification-badge" *ngIf="!isOpen">1</span>
+  </button>
+
+  <!-- Ventana del chat -->
+  <div class="chat-window" [class.open]="isOpen" [class.minimized]="isMinimized">
+    <!-- Header del chat -->
+    <div class="chat-header">
+      <div class="chat-header-info">
+        <div class="chat-avatar">
+          <i class="ph ph-robot"></i>
+        </div>
+        <div class="chat-details">
+          <h4>Asistente Virtual</h4>
+          <span class="chat-status">En línea</span>
+        </div>
+      </div>
+      <div class="chat-actions">
+        <button 
+          class="chat-action-btn" 
+          (click)="minimizeChat()" 
+          *ngIf="!isMinimized"
+          aria-label="Minimizar chat">
+          <i class="ph ph-minus"></i>
+        </button>
+        <button 
+          class="chat-action-btn" 
+          (click)="maximizeChat()" 
+          *ngIf="isMinimized"
+          aria-label="Maximizar chat">
+          <i class="ph ph-plus"></i>
+        </button>
+        <button 
+          class="chat-action-btn" 
+          (click)="closeChat()"
+          aria-label="Cerrar chat">
+          <i class="ph ph-x"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Cuerpo del chat -->
+    <div class="chat-body" *ngIf="!isMinimized">
+      <!-- Mensajes -->
+      <div class="chat-messages" #chatMessages>
+        <div 
+          *ngFor="let message of messages; trackBy: trackByMessageId" 
+          class="message"
+          [class.user-message]="message.isUser"
+          [class.bot-message]="!message.isUser">
+          
+          <div class="message-content">
+            <div class="message-text" [innerHTML]="message.text"></div>
+            <div class="message-time">
+              {{ message.timestamp | date:'HH:mm' }}
+            </div>
+          </div>
+
+          <!-- ✅ PRODUCTOS DINÁMICOS -->
+          <div class="products-showcase" *ngIf="!message.isUser && message.products && message.products.length > 0">
+            <div class="products-grid">
+              <div 
+                *ngFor="let product of message.products; trackBy: trackByProductId" 
+                class="product-card"
+                (click)="selectProduct(product)">
+                <div class="product-image">
+                  <img 
+                    [src]="product.imagen_principal || 'https://via.placeholder.com/150x150?text=Producto'" 
+                    [alt]="product.nombre"
+                    (error)="onImageError($event)">
+                  <div class="product-badge" *ngIf="product.is_on_sale">
+                    -{{ product.discount_percentage }}%
+                  </div>
+                </div>
+                <div class="product-info">
+                  <h6 class="product-name">{{ product.nombre }}</h6>
+                  <div class="product-price">
+                    <span class="current-price">S/ {{ product.precio | number:'1.2-2' }}</span>
+                    <span class="old-price" *ngIf="product.precio_oferta">
+                      S/ {{ product.precio_oferta | number:'1.2-2' }}
+                    </span>
+                  </div>
+                  <div class="product-category">{{ product.categoria }}</div>
+                  <div class="product-rating" *ngIf="product.rating">
+                    ⭐ {{ product.rating }} ({{ product.reviews_count }} reseñas)
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ✅ OFERTAS DINÁMICAS -->
+          <div class="offers-showcase" *ngIf="!message.isUser && message.offers && message.offers.length > 0">
+            <div class="offers-grid">
+              <div 
+                *ngFor="let offer of message.offers; trackBy: trackByOfferId" 
+                class="offer-card"
+                (click)="selectOffer(offer)">
+                <div class="offer-image">
+                  <img 
+                    [src]="offer.imagen_url || 'https://via.placeholder.com/150x150?text=Oferta'" 
+                    [alt]="offer.nombre"
+                    (error)="onImageError($event)">
+                  <div class="offer-badge">
+                    -{{ offer.descuento_porcentaje }}%
+                  </div>
+                  <div class="flash-sale-badge" *ngIf="offer.es_flash_sale">
+                    ⚡ FLASH SALE
+                  </div>
+                </div>
+                <div class="offer-info">
+                  <h6 class="offer-name">{{ offer.nombre }}</h6>
+                  <div class="offer-price">
+                    <span class="offer-current">S/ {{ offer.precio_oferta | number:'1.2-2' }}</span>
+                    <span class="offer-old">S/ {{ offer.precio_original | number:'1.2-2' }}</span>
+                  </div>
+                  <div class="offer-stock" *ngIf="offer.stock_oferta">
+                    Stock: {{ offer.stock_oferta - offer.vendidos_oferta }} disponibles
+                  </div>
+                  <div class="offer-category" *ngIf="offer.categoria">
+                    📂 {{ offer.categoria }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ✅ CATEGORÍAS DINÁMICAS -->
+          <div class="categories-showcase" *ngIf="!message.isUser && message.categories && message.categories.length > 0">
+            <div class="categories-grid">
+              <div 
+                *ngFor="let category of message.categories; trackBy: trackByCategoryId" 
+                class="category-card"
+                (click)="selectCategory(category)">
+                <div class="category-image">
+                  <img 
+                    [src]="category.imagen_url || 'https://via.placeholder.com/150x150?text=Categoría'" 
+                    [alt]="category.nombre"
+                    (error)="onImageError($event)">
+                </div>
+                <div class="category-info">
+                  <h6 class="category-name">{{ category.nombre }}</h6>
+                  <div class="category-count" *ngIf="category.productos_count">
+                    {{ category.productos_count }} productos
+                  </div>
+                  <div class="category-description" *ngIf="category.descripcion">
+                    {{ category.descripcion }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ✅ MARCAS DINÁMICAS -->
+          <div class="brands-showcase" *ngIf="!message.isUser && message.brands && message.brands.length > 0">
+            <div class="brands-grid">
+              <div 
+                *ngFor="let brand of message.brands; trackBy: trackByBrandId" 
+                class="brand-card"
+                (click)="selectBrand(brand)">
+                <div class="brand-image">
+                  <img 
+                    [src]="brand.imagen_url || 'https://via.placeholder.com/150x150?text=Marca'" 
+                    [alt]="brand.nombre"
+                    (error)="onImageError($event)">
+                </div>
+                <div class="brand-info">
+                  <h6 class="brand-name">{{ brand.nombre }}</h6>
+                  <div class="brand-count" *ngIf="brand.productos_count">
+                    {{ brand.productos_count }} productos
+                  </div>
+                  <div class="brand-description" *ngIf="brand.descripcion">
+                    {{ brand.descripcion }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Opciones del bot -->
+          <div class="message-options" *ngIf="!message.isUser && message.options && message.options.length > 0">
+            <button 
+              *ngFor="let option of message.options; trackBy: trackByOptionId"
+              class="option-btn"
+              (click)="selectOption(option)">
+              <span class="option-emoji" *ngIf="option.emoji">{{ option.emoji }}</span>
+              {{ option.text }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Indicador de escritura -->
+        <div class="message bot-message" *ngIf="isTyping">
+          <div class="message-content">
+            <div class="typing-indicator">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Estado de carga -->
+        <div class="message bot-message" *ngIf="isLoadingData">
+          <div class="message-content">
+            <div class="loading-message">
+              🔄 Cargando datos...
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input de mensaje -->
+      <div class="chat-input">
+        <div class="input-container">
+          <input 
+            type="text" 
+            [(ngModel)]="currentMessage"
+            (keypress)="onKeyPress($event)"
+            (input)="onInputChange()"
+            placeholder="Escribe tu mensaje..."
+            class="message-input"
+            #messageInput>
+          <button 
+            class="send-btn" 
+            (click)="sendMessage()"
+            [disabled]="!currentMessage.trim() || isTyping">
+            <i class="ph ph-paper-plane-tilt"></i>
+          </button>
+        </div>
+        
+        <!-- Sugerencias rápidas -->
+        <div class="quick-suggestions" *ngIf="showQuickSuggestions && quickSuggestions.length > 0">
+          <button 
+            *ngFor="let suggestion of quickSuggestions"
+            class="suggestion-btn"
+            (click)="selectQuickSuggestion(suggestion)">
+            {{ suggestion }}
+          </button>
+        </div>
+        
+        <!-- Botón de WhatsApp directo -->
+        <div class="whatsapp-direct">
+          <button 
+            class="whatsapp-btn"
+            (click)="openWhatsApp('Hola! Me gustaría obtener ayuda personalizada.')">
+            <i class="ph ph-whatsapp-logo"></i>
+            Hablar por WhatsApp
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

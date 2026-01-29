@@ -1,0 +1,319 @@
+<!-- Header -->
+<div class="border border-gray-100 rounded-16 overflow-hidden bg-white">
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <div class="flex-between align-items-center gap-16 flex-wrap">
+      <div>
+        <h4 class="mb-4 text-heading">Gestión de Recompensas</h4>
+        <p class="text-gray-500 mb-0 text-sm">
+          Administra y configura las recompensas para tus clientes
+        </p>
+      </div>
+      <button class="btn bg-main-600" (click)="crearRecompensa()">
+        <i class="ph ph-plus me-8"></i>
+        Nueva Recompensa
+      </button>
+
+      <!-- Modal de crear recompensa (común para ambos botones) -->
+      <app-recompensas-crear-modal 
+        *ngIf="mostrarModalCarrusel"
+        [mostrar]="mostrarModalCarrusel"
+        [modoSoloLectura]="modoSoloLectura"
+        [modoEdicion]="modoEdicion"
+        [recompensaId]="recompensaEditando?.id"
+        (cerrar)="cerrarModalCarrusel()"
+        (recompensaCreada)="onRecompensaCreada($event)">
+      </app-recompensas-crear-modal>
+    </div>
+  </div>
+
+  <!-- Filtros y Estadísticas -->
+  <div class="filter-section p-24 p-md-32">
+    <!-- Filtros -->
+    <div class="d-flex justify-content-between align-items-end flex-wrap gap-16 mb-20">
+      <!-- Filtros izquierda -->
+      <div class="d-flex align-items-end gap-12 flex-wrap flex-grow-1">
+        <!-- Filtro por Tipo -->
+        <div class="filter-group">
+          <label class="text-sm fw-medium text-neutral-600 mb-8 d-block">Tipo de Recompensa</label>
+          <select class="form-select" [(ngModel)]="filtros.tipo" (change)="onTipoChange()">
+            <option value="">Todos los tipos</option>
+            <option value="puntos">Sistema de Puntos</option>
+            <option value="descuento">Descuentos</option>
+            <option value="envio_gratis">Envío Gratis</option>
+            <option value="regalo">Productos de Regalo</option>
+          </select>
+        </div>
+
+        <!-- Filtro por Estado -->
+        <div class="filter-group">
+          <label class="text-sm fw-medium text-neutral-600 mb-8 d-block">Estado</label>
+          <select class="form-select" [(ngModel)]="filtros.estado" (change)="onEstadoChange()">
+            <option value="">Todos los estados</option>
+            <option value="activa">Activas</option>
+            <option value="pausada">Pausadas</option>
+            <option value="programada">Programadas</option>
+            <option value="expirada">Expiradas</option>
+            <option value="cancelada">Canceladas</option>
+          </select>
+        </div>
+
+        <!-- Filtro por Vigencia -->
+        <div class="filter-group" *ngIf="filtrosExpandidos">
+          <label class="text-sm fw-medium text-neutral-600 mb-8 d-block">Vigencia</label>
+          <select class="form-select" [(ngModel)]="filtros.vigente" (change)="onVigenciaChange()">
+            <option value="">Todas</option>
+            <option value="true">Vigentes</option>
+            <option value="false">No vigentes</option>
+          </select>
+        </div>
+        
+        <!-- Botón para limpiar filtros -->
+        <button *ngIf="tieneFiltrosActivos()"
+          class="btn btn-outline-danger btn-sm ms-auto align-self-end"
+          (click)="limpiarFiltros()">
+          <i class="ph ph-x me-2"></i>
+          Limpiar filtros
+        </button>
+      </div>
+
+      <!-- Buscador -->
+      <div class="flex-grow-1" style="min-width: 300px">
+        <app-search-input
+          label="Buscar Recompensas"
+          placeholder="Buscar por nombre, descripción o código..."
+          [(ngModel)]="searchValue"
+          (valueChange)="onBuscarChange()"
+          (clear)="onBuscarChange()">
+        </app-search-input>
+      </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-12 mt-4">
+      <div class="d-flex align-items-center gap-16">
+        <div class="stats-badge">
+          <i class="ph ph-gift me-2"></i>
+          <span class="text-sm fw-medium">{{ recompensas.length }} recompensas mostradas</span>
+        </div>
+        <div class="stats-badge stats-badge--active" *ngIf="recompensas.length > 0">
+          <i class="ph ph-check-circle me-2"></i>
+          <span class="text-sm fw-medium">{{ getRecompensasActivas() }} activas</span>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-8 flex-wrap">
+        <span class="text-sm fw-medium text-neutral-600">Total en sistema:</span>
+        <span class="badge bg-main-50 text-main-600 px-12 py-6 fw-semibold">{{ totalElements }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla Moderna usando clases globales -->
+  <div class="modern-data-table">
+    <!-- Header compacto -->
+    <div class="modern-data-table__header" *ngIf="!loading && recompensas.length > 0">
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="table-info">{{ recompensas.length }} recompensas encontradas</span>
+        <div class="d-flex align-items-center gap-2">
+          <span style="font-size: var(--font-xs); color: var(--gray-500)">Filas:</span>
+          <select class="page-size-selector" [(ngModel)]="pageSize" (change)="cargarRecompensas()">
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+            <option [value]="100">100</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading state -->
+    <div *ngIf="loading" class="modern-data-table__loading">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="loading-text">Cargando recompensas...</p>
+    </div>
+
+    <!-- Tabla moderna -->
+    <div class="modern-data-table__container" *ngIf="!loading">
+      <table class="table table-borderless mb-0">
+        <thead>
+          <tr>
+            <th>RECOMPENSA</th>
+            <th class="d-none d-lg-table-cell">TIPO</th>
+            <th>ESTADO</th>
+            <th class="d-none d-md-table-cell">VIGENCIA</th>
+            <th class="text-end">ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let recompensa of recompensas; trackBy: trackByRecompensaId">
+            <!-- Recompensa -->
+            <td>
+              <div class="client-info__name" [title]="recompensa.nombre">
+                {{ recompensa.nombre }}
+              </div>
+              <div class="client-info__subtitle" *ngIf="recompensa.descripcion" [title]="recompensa.descripcion">
+                {{ recompensa.descripcion }}
+              </div>
+            </td>
+
+            <!-- Tipo -->
+            <td class="d-none d-lg-table-cell">
+              <span class="type-badge type-badge--default" *ngIf="recompensa.tipo">
+                {{ recompensa.tipo | titlecase }}
+              </span>
+            </td>
+
+            <!-- Estado -->
+            <td>
+              <app-status-badge [status]="recompensa.estado"></app-status-badge>
+            </td>
+
+            <!-- Vigencia -->
+            <td class="d-none d-md-table-cell">
+              <div class="text-sm text-gray-700">{{ recompensa.fecha_inicio | date:'dd/MM/yyyy' }}</div>
+              <div class="text-xs text-gray-500">hasta {{ recompensa.fecha_fin | date:'dd/MM/yyyy' }}</div>
+            </td>
+
+            <!-- Acciones -->
+            <td class="text-end">
+              <div class="action-buttons">
+                <button class="action-buttons__btn action-buttons__btn--view" (click)="verDetalle(recompensa)"
+                  title="Ver detalle">
+                  <i class="ph ph-eye"></i>
+                </button>
+                <button class="action-buttons__btn action-buttons__btn--edit" (click)="editarRecompensa(recompensa)"
+                  title="Editar recompensa">
+                  <i class="ph ph-pencil"></i>
+                </button>
+                <div class="dropdown" style="display: inline-block;">
+                  <button class="action-buttons__btn action-buttons__btn--delete dropdown-toggle" type="button"
+                    id="dropdownMenuButton{{ recompensa.id }}" data-bs-toggle="dropdown" aria-expanded="false"
+                    title="Más opciones">
+                    <i class="ph ph-dots-three-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end" [attr.aria-labelledby]="'dropdownMenuButton' + recompensa.id">
+                    <li>
+                      <a class="dropdown-item" href="javascript:void(0)" (click)="duplicarRecompensa(recompensa)">
+                        <i class="ph ph-copy me-2"></i>
+                        Duplicar
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="javascript:void(0)"
+                        (click)="cambiarEstadoRecompensa(recompensa)">
+                        <i class="ph me-2"
+                          [ngClass]="recompensa.estado === 'activa' ? 'ph-pause' : 'ph-play'"></i>
+                        {{ recompensa.estado === 'activa' ? 'Pausar' : 'Activar' }}
+                      </a>
+                    </li>
+                    <li>
+                      <hr class="dropdown-divider">
+                    </li>
+                    <li>
+                      <a class="dropdown-item text-danger" href="javascript:void(0)"
+                        (click)="eliminarRecompensa(recompensa)">
+                        <i class="ph ph-trash me-2"></i>
+                        Eliminar
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación moderna -->
+    <div class="modern-data-table__pagination" *ngIf="!loading && recompensas.length > 0 && totalPages > 1">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="pagination-info">
+          Mostrando {{ (currentPage * pageSize) + 1 }} a
+          {{ Math.min((currentPage + 1) * pageSize, totalElements) }} de
+          {{ totalElements }} registros
+        </div>
+        <nav>
+          <ul class="pagination-controls">
+            <li [class.disabled]="currentPage === 0">
+              <button (click)="previousPage()" [disabled]="currentPage === 0">
+                <i class="ph ph-caret-left"></i>
+              </button>
+            </li>
+            <li *ngFor="let page of getPages()" [class.active]="page === currentPage">
+              <button (click)="goToPage(page)">{{ page + 1 }}</button>
+            </li>
+            <li [class.disabled]="currentPage === totalPages - 1">
+              <button (click)="nextPage()" [disabled]="currentPage === totalPages - 1">
+                <i class="ph ph-caret-right"></i>
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Estado vacío -->
+    <div *ngIf="!loading && recompensas.length === 0 && !filtros.buscar && !filtros.tipo && !filtros.estado"
+      class="empty-state">
+      <div class="empty-state__icon">
+        <i class="ph ph-gift"></i>
+      </div>
+      <h5 class="empty-state__title">No hay recompensas registradas</h5>
+      <p class="empty-state__description">
+        Las recompensas aparecerán aquí cuando las agregues al sistema.
+      </p>
+      <button class="btn btn-primary" (click)="crearRecompensa()">
+        <i class="ph ph-plus me-8"></i>
+        Agregar primera recompensa
+      </button>
+    </div>
+
+    <!-- Sin resultados de búsqueda -->
+    <div *ngIf="!loading && recompensas.length === 0 && (filtros.buscar || filtros.tipo || filtros.estado)"
+      class="empty-state">
+      <div class="empty-state__icon">
+        <i class="ph ph-magnifying-glass"></i>
+      </div>
+      <h5 class="empty-state__title">No se encontraron resultados</h5>
+      <p class="empty-state__description">
+        Intenta cambiar los filtros para encontrar las recompensas que buscas.
+      </p>
+      <button class="btn btn-outline-primary mt-3" (click)="limpiarFiltros()">
+        <i class="ph ph-arrow-counter-clockwise me-8"></i>
+        Limpiar filtros
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal de confirmación para eliminar -->
+<div class="modal fade" [class.show]="mostrarModalConfirmacion" [style.display]="mostrarModalConfirmacion ? 'block' : 'none'" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">
+          <i class="ph ph-warning me-2"></i>
+          Confirmar Eliminación
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="cerrarModalConfirmacion()"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-0">¿Estás seguro de que deseas eliminar la recompensa <strong>{{ recompensaSeleccionada?.nombre }}</strong>?</p>
+        <p class="text-muted small mt-2 mb-0">Esta acción cancelará la recompensa y no se podrá deshacer.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cerrarModalConfirmacion()" [disabled]="loading">
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-danger" (click)="confirmarEliminacion()" [disabled]="loading">
+          <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+          Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div *ngIf="mostrarModalConfirmacion" class="modal-backdrop fade show"></div>

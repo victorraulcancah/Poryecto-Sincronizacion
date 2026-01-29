@@ -1,0 +1,155 @@
+.historial-container {
+      padding: 20px;
+      min-height: 100vh;
+      background: #f8f9fa;
+    }
+
+    .page-header {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .page-header h1 {
+      margin: 0 0 8px 0;
+      font-size: 24px;
+      color: #333;
+    }
+
+    .page-header h1 i {
+      margin-right: 12px;
+      color: #007bff;
+    }
+
+    .page-header p {
+      margin: 0;
+      color: #6c757d;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .stat-icon {
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, #28a745, #1e7e34);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 20px;
+    }
+
+    .stat-icon.rating {
+      background: linear-gradient(135deg, #fd7e14, #e55a00);
+    }
+
+    .stat-content h3 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 700;
+      color: #333;
+    }
+
+    .stat-content p {
+      margin: 4px 0 0 0;
+      color: #6c757d;
+      font-size: 14px;
+    }
+
+    .historial-list {
+      display: grid;
+      gap: 16px;
+    }
+
+    .entrega-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    .entrega-header {
+      background: linear-gradient(135deg, #28a745, #1e7e34);
+      color: white;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .entrega-info h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .fecha {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    .entrega-monto {
+      text-align: right;
+    }
+
+    .monto {
+      display: block;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .estado-badge {
+      background: rgba(255,255,255,0.2);
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .entrega-details {
+      padding: 20px;
+    }
+
+    .entrega-details p {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .rating {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .stars {
+      display: flex;
+      gap: 2px;
+    }
+
+    .stars i {
+      color: #ffc107;
+      font-size: 12px;
+    }

@@ -1,0 +1,509 @@
+<!-- Breadcrumb -->
+<app-breadcrumb title="Libro de Reclamaciones" subtitle="Formulario de Reclamos"></app-breadcrumb>
+
+<!-- Claimbook Section -->
+<section class="claimbook py-80">
+  <div class="container container-lg">
+    
+    <!-- Header del formulario -->
+    <div class="row justify-content-center mb-40">
+      <div class="col-lg-10">
+        <div class="claimbook-header bg-main-600 text-white p-24 rounded-12 text-center">
+          <h2 class="text-white fw-bold mb-16">{{ companyInfo.name }}</h2>
+          <p class="mb-8">RUC N°: {{ companyInfo.ruc }}</p>
+          <p class="mb-16">{{ companyInfo.address }}</p>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="bg-white bg-opacity-20 p-16 rounded-8">
+                <h5 class="text-main-600 fw-semibold mb-8">LIBRO DE RECLAMACIONES</h5>
+                <p class="text-main-600 text-sm mb-0">FECHA: {{ currentDate }}</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="bg-white bg-opacity-20 p-16 rounded-8">
+                <h5 class="text-main-600 fw-semibold mb-8">HOJA DE RECLAMACIÓN</h5>
+                <p class="text-main-600 text-sm mb-0">N°: {{ claimNumber }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulario -->
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <form [formGroup]="claimbookForm" (ngSubmit)="onSubmit()" class="claimbook-form">
+          
+          <!-- Información de la empresa -->
+          <div class="form-section bg-gray-50 p-24 rounded-12 mb-32">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-16">
+                  <label class="form-label fw-semibold text-heading">NEGOCIO:</label>
+                  <input type="text" class="form-control" [value]="companyInfo.name" readonly>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-16">
+                  <label class="form-label fw-semibold text-heading">TIENDA:</label>
+                  <input type="text" class="form-control" [value]="companyInfo.store" readonly>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 1. Identificación del consumidor reclamante -->
+          <div class="form-section border border-gray-200 p-24 rounded-12 mb-32">
+            <h4 class="section-title text-heading fw-bold mb-24">
+              <span class="badge bg-main-600 text-white me-12">1</span>
+              IDENTIFICACIÓN DEL CONSUMIDOR RECLAMANTE
+            </h4>
+            
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-20">
+                  <label class="form-label fw-semibold text-heading">NOMBRE: <span class="text-danger">*</span></label>
+                  <input 
+                    type="text" 
+                    class="form-control"
+                    formControlName="consumidor_nombre"
+                    [class.is-invalid]="isFieldInvalid('consumidor_nombre')"
+                    placeholder="Ingrese su nombre completo">
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('consumidor_nombre')">
+                    {{ getFieldError('consumidor_nombre') }}
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-20">
+                  <label class="form-label fw-semibold text-heading">DNI / CE: <span class="text-danger">*</span></label>
+                  <input 
+                    type="text" 
+                    class="form-control"
+                    formControlName="consumidor_dni"
+                    [class.is-invalid]="isFieldInvalid('consumidor_dni')"
+                    placeholder="12345678"
+                    maxlength="8">
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('consumidor_dni')">
+                    {{ getFieldError('consumidor_dni') }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-12">
+                <div class="mb-20">
+                  <label class="form-label fw-semibold text-heading">DOMICILIO: <span class="text-danger">*</span></label>
+                  <input 
+                    type="text" 
+                    class="form-control"
+                    formControlName="consumidor_direccion"
+                    [class.is-invalid]="isFieldInvalid('consumidor_direccion')"
+                    placeholder="Ingrese su dirección completa">
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('consumidor_direccion')">
+                    {{ getFieldError('consumidor_direccion') }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-20">
+                  <label class="form-label fw-semibold text-heading">TELÉFONO: <span class="text-danger">*</span></label>
+                  <input 
+                    type="text" 
+                    class="form-control"
+                    formControlName="consumidor_telefono"
+                    [class.is-invalid]="isFieldInvalid('consumidor_telefono')"
+                    placeholder="987654321"
+                    maxlength="9">
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('consumidor_telefono')">
+                    {{ getFieldError('consumidor_telefono') }}
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-20">
+                  <label class="form-label fw-semibold text-heading">EMAIL: <span class="text-danger">*</span></label>
+                  <input 
+                    type="email" 
+                    class="form-control"
+                    formControlName="consumidor_email"
+                    [class.is-invalid]="isFieldInvalid('consumidor_email')"
+                    placeholder="ejemplo@correo.com">
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('consumidor_email')">
+                    {{ getFieldError('consumidor_email') }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Menor de edad -->
+            <div class="row">
+              <div class="col-12">
+                <div class="form-check mb-20">
+                  <input 
+                    class="form-check-input" 
+                    type="checkbox" 
+                    formControlName="es_menor_edad"
+                    id="isMinor">
+                  <label class="form-check-label fw-medium" for="isMinor">
+                    MENOR DE EDAD (LLENAR INFORMACIÓN DEL APODERADO)
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Datos del apoderado (si es menor de edad) -->
+            <div *ngIf="claimbookForm.get('es_menor_edad')?.value" class="guardian-section bg-warning-50 p-20 rounded-8">
+              <h6 class="text-warning-700 fw-semibold mb-16">DATOS DEL APODERADO</h6>
+              
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-20">
+                    <label class="form-label fw-semibold text-heading">NOMBRE: <span class="text-danger">*</span></label>
+                    <input 
+                      type="text" 
+                      class="form-control"
+                      formControlName="apoderado_nombre"
+                      [class.is-invalid]="isFieldInvalid('apoderado_nombre')"
+                      placeholder="Nombre del apoderado">
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid('apoderado_nombre')">
+                      {{ getFieldError('apoderado_nombre') }}
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-20">
+                    <label class="form-label fw-semibold text-heading">DNI / CE: <span class="text-danger">*</span></label>
+                    <input 
+                      type="text" 
+                      class="form-control"
+                      formControlName="apoderado_dni"
+                      [class.is-invalid]="isFieldInvalid('apoderado_dni')"
+                      placeholder="12345678"
+                      maxlength="8">
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid('apoderado_dni')">
+                      {{ getFieldError('apoderado_dni') }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-12">
+                  <div class="mb-20">
+                    <label class="form-label fw-semibold text-heading">DOMICILIO: <span class="text-danger">*</span></label>
+                    <input 
+                      type="text" 
+                      class="form-control"
+                      formControlName="apoderado_direccion"
+                      [class.is-invalid]="isFieldInvalid('apoderado_direccion')"
+                      placeholder="Dirección del apoderado">
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid('apoderado_direccion')">
+                      {{ getFieldError('apoderado_direccion') }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-20">
+                    <label class="form-label fw-semibold text-heading">TELÉFONO: <span class="text-danger">*</span></label>
+                    <input 
+                      type="text" 
+                      class="form-control"
+                      formControlName="apoderado_telefono"
+                      [class.is-invalid]="isFieldInvalid('apoderado_telefono')"
+                      placeholder="987654321"
+                      maxlength="9">
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid('apoderado_telefono')">
+                      {{ getFieldError('apoderado_telefono') }}
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-20">
+                    <label class="form-label fw-semibold text-heading">EMAIL: <span class="text-danger">*</span></label>
+                    <input 
+                      type="email" 
+                      class="form-control"
+                      formControlName="apoderado_email"
+                      [class.is-invalid]="isFieldInvalid('apoderado_email')"
+                      placeholder="apoderado@correo.com">
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid('apoderado_email')">
+                      {{ getFieldError('apoderado_email') }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Identificación del bien contratado -->
+          <div class="form-section border border-gray-200 p-24 rounded-12 mb-32">
+            <h4 class="section-title text-heading fw-bold mb-24">
+              <span class="badge bg-main-600 text-white me-12">2</span>
+              IDENTIFICACIÓN DEL BIEN CONTRATADO
+            </h4>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-20">
+                  <label class="form-label fw-semibold text-heading">TIPO: <span class="text-danger">*</span></label>
+                  <div class="d-flex gap-24">
+                    <div class="form-check">
+                      <input 
+                        class="form-check-input" 
+                        type="radio" 
+                        formControlName="tipo_bien"
+                        value="producto"
+                        id="producto">
+                      <label class="form-check-label" for="producto">
+                        PRODUCTO
+                      </label>
+                    </div>
+                    <div class="form-check">
+                      <input 
+                        class="form-check-input" 
+                        type="radio" 
+                        formControlName="tipo_bien"
+                        value="servicio"
+                        id="servicio">
+                      <label class="form-check-label" for="servicio">
+                        SERVICIO
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-20">
+                  <label class="form-label fw-semibold text-heading">MONTO RECLAMADO: <span class="text-danger">*</span></label>
+                  <div class="input-group">
+                    <span class="input-group-text">S/</span>
+                    <input 
+                      type="number" 
+                      class="form-control"
+                      formControlName="monto_reclamado"
+                      [class.is-invalid]="isFieldInvalid('monto_reclamado')"
+                      placeholder="0.00"
+                      min="0"
+                      step="0.01">
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid('monto_reclamado')">
+                      {{ getFieldError('monto_reclamado') }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-12">
+                <div class="mb-20">
+                  <label class="form-label fw-semibold text-heading">DESCRIPCIÓN: <span class="text-danger">*</span></label>
+                  <textarea 
+                    class="form-control"
+                    formControlName="descripcion_bien"
+                    [class.is-invalid]="isFieldInvalid('descripcion_bien')"
+                    rows="3"
+                    placeholder="Describa detalladamente el producto o servicio objeto del reclamo"></textarea>
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('descripcion_bien')">
+                    {{ getFieldError('descripcion_bien') }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Detalle de la reclamación -->
+          <div class="form-section border border-gray-200 p-24 rounded-12 mb-32">
+            <h4 class="section-title text-heading fw-bold mb-24">
+              <span class="badge bg-main-600 text-white me-12">3</span>
+              DETALLE DE LA RECLAMACIÓN Y PEDIDO DEL CONSUMIDOR
+            </h4>
+
+            <div class="row">
+              <div class="col-12">
+                <div class="mb-20">
+                  <label class="form-label fw-semibold text-heading">TIPO DE SOLICITUD: <span class="text-danger">*</span></label>
+                  <div class="d-flex gap-24">
+                    <div class="form-check">
+                      <input 
+                        class="form-check-input" 
+                        type="radio" 
+                        formControlName="tipo_solicitud"
+                        value="reclamo"
+                        id="reclamo">
+                      <label class="form-check-label" for="reclamo">
+                        <strong>RECLAMO</strong>
+                      </label>
+                    </div>
+                    <div class="form-check">
+                      <input 
+                        class="form-check-input" 
+                        type="radio" 
+                        formControlName="tipo_solicitud"
+                        value="queja"
+                        id="queja">
+                      <label class="form-check-label" for="queja">
+                        <strong>QUEJA</strong>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-12">
+                <div class="mb-20">
+                  <label class="form-label fw-semibold text-heading">DETALLE: <span class="text-danger">*</span></label>
+                  <textarea 
+                    class="form-control"
+                    formControlName="detalle_reclamo"
+                    [class.is-invalid]="isFieldInvalid('detalle_reclamo')"
+                    rows="4"
+                    placeholder="Describa detalladamente su reclamo o queja"></textarea>
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('detalle_reclamo')">
+                    {{ getFieldError('detalle_reclamo') }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-12">
+                <div class="mb-20">
+                  <label class="form-label fw-semibold text-heading">PEDIDO DEL CONSUMIDOR: <span class="text-danger">*</span></label>
+                  <textarea 
+                    class="form-control"
+                    formControlName="pedido_consumidor"
+                    [class.is-invalid]="isFieldInvalid('pedido_consumidor')"
+                    rows="3"
+                    placeholder="Indique qué solicita como solución a su reclamo"></textarea>
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('pedido_consumidor')">
+                    {{ getFieldError('pedido_consumidor') }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Observaciones del proveedor -->
+          <div class="form-section border border-gray-200 p-24 rounded-12 mb-32">
+            <h4 class="section-title text-heading fw-bold mb-24">
+              <span class="badge bg-secondary text-white me-12">4</span>
+              OBSERVACIONES Y ACCIONES ADOPTADAS POR EL PROVEEDOR
+            </h4>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-20">
+                  <label class="form-label fw-semibold text-heading">FECHA DE COMUNICACIÓN DE LA RESPUESTA:</label>
+                  <input 
+                    type="date" 
+                    class="form-control"
+                    formControlName="fecha_respuesta"
+                    placeholder="dd/mm/aaaa">
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-12">
+                <div class="mb-20">
+                  <label class="form-label fw-semibold text-heading">RESPUESTA:</label>
+                  <textarea 
+                    class="form-control bg-gray-50"
+                    formControlName="respuesta_proveedor"
+                    rows="4"
+                    placeholder="Este campo será completado por el proveedor"
+                    readonly></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Información legal -->
+            <div class="legal-info bg-info-50 p-16 rounded-8">
+              <div class="row">
+                <div class="col-md-6">
+                  <p class="text-sm text-info-700 mb-8">
+                    <strong>RECLAMO:</strong> Disconformidad relacionada a los productos o servicios.
+                  </p>
+                </div>
+                <div class="col-md-6">
+                  <p class="text-sm text-info-700 mb-8">
+                    <strong>QUEJA:</strong> Disconformidad no relacionada a los productos o servicios, o malestar o descontento respecto a la atención al público.
+                  </p>
+                </div>
+              </div>
+              <hr class="my-12">
+              <p class="text-xs text-info-600 mb-8">
+                * La formulación del reclamo no impide acudir a otras vías de solución de controversias ni es requisito previo para interponer una denuncia ante el INDECOPI.
+              </p>
+              <p class="text-xs text-info-600 mb-0">
+                * El proveedor deberá dar respuesta a los reclamos y las quejas que se consignen en un plazo no mayor a quince (30) días calendario, improrrogables.
+              </p>
+            </div>
+          </div>
+
+          <!-- Términos y condiciones -->
+          <div class="form-section border border-gray-200 p-24 rounded-12 mb-32">
+            <div class="form-check">
+              <input 
+                class="form-check-input" 
+                type="checkbox" 
+                formControlName="acceptTerms"
+                [class.is-invalid]="isFieldInvalid('acceptTerms')"
+                id="acceptTerms">
+              <label class="form-check-label" for="acceptTerms">
+                <span class="text-danger">*</span> Acepto que la información proporcionada es veraz y autorizo el tratamiento de mis datos personales para el procesamiento de este reclamo, de acuerdo con la Ley de Protección de Datos Personales.
+              </label>
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('acceptTerms')">
+                Debe aceptar los términos y condiciones
+              </div>
+            </div>
+          </div>
+
+          <!-- Botones de acción -->
+          <div class="form-actions d-flex justify-content-center gap-16 flex-wrap">
+            <button 
+              type="button" 
+              class="btn bg-gray-100 hover-bg-gray-200 text-gray-700 px-32 py-12 rounded-8"
+              (click)="clearForm()"
+              [disabled]="isSubmitting">
+              <i class="ph ph-eraser me-8"></i>
+              Limpiar
+            </button>
+            
+            <button 
+              type="button" 
+              class="btn bg-info-100 hover-bg-info-200 text-info-700 px-32 py-12 rounded-8"
+              (click)="printForm()"
+              [disabled]="isSubmitting">
+              <i class="ph ph-printer me-8"></i>
+              Imprimir
+            </button>
+            
+            <button 
+              type="submit" 
+              class="btn btn-main px-32 py-12 rounded-8"
+              [disabled]="isSubmitting || claimbookForm.invalid">
+              <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-8"></span>
+              <i *ngIf="!isSubmitting" class="ph ph-paper-plane-tilt me-8"></i>
+              {{ isSubmitting ? 'Enviando...' : 'Enviar Reclamo' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Shipping Section -->
+<app-shipping></app-shipping>

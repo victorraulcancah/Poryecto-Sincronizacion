@@ -1,0 +1,65 @@
+<div
+  class="popup-cliente"
+  [class.blur-backdrop]="blurBackdrop()"
+  [class.position-center]="position() === 'center'"
+  [class.position-bottom-right]="position() === 'bottom-right'"
+  [class.position-top-center]="position() === 'top-center'"
+  [class.position-bottom-center]="position() === 'bottom-center'"
+  (click)="onBackdropClick($event)">
+
+  <div
+    class="popup-card"
+    [class.size-small]="size() === 'small'"
+    [class.size-medium]="size() === 'medium'"
+    [class.size-large]="size() === 'large'"
+    [class.size-fullscreen]="size() === 'fullscreen'"
+    [class.theme-light]="theme() === 'light'"
+    [class.theme-dark]="theme() === 'dark'"
+    [class.theme-gradient]="theme() === 'gradient'"
+    [class.animation-fade]="animation() === 'fade'"
+    [class.animation-slide]="animation() === 'slide'"
+    [class.animation-zoom]="animation() === 'zoom'">
+
+    <button
+      class="close"
+      *ngIf="popup.mostrar_cerrar"
+      (click)="onClose()"
+      aria-label="Cerrar popup">
+      ×
+    </button>
+
+    <div
+      *ngIf="imagenUrl() && !imageError()"
+      class="popup-image-container"
+      [class.loading]="!imageLoaded()"
+      [class.ratio-16-9]="aspectRatio() === '16-9'"
+      [class.ratio-4-3]="aspectRatio() === '4-3'"
+      [class.ratio-1-1]="aspectRatio() === '1-1'"
+      [class.ratio-auto]="aspectRatio() === 'auto'"
+      [class.size-small]="size() === 'small'"
+      [class.size-medium]="size() === 'medium'"
+      [class.size-large]="size() === 'large'"
+      [class.size-fullscreen]="size() === 'fullscreen'">
+      <img
+        class="popup-image"
+        [class.hidden]="!imageLoaded()"
+        [src]="imagenUrl()"
+        [alt]="popup.titulo"
+        (load)="onImageLoad()"
+        (error)="onImageError()" />
+    </div>
+
+    <div class="popup-content">
+      <h3>{{ popup.titulo }}</h3>
+      <p *ngIf="popup.descripcion">{{ popup.descripcion }}</p>
+      <a
+        class="action"
+        [href]="popup.url_destino || ('/recompensas/' + popup.recompensa_id)"
+        (click)="onView()">
+        {{ popup.texto_boton || 'Ver promoción' }}
+      </a>
+    </div>
+  </div>
+</div>
+
+

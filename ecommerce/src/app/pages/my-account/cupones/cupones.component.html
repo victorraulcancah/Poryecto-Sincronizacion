@@ -1,0 +1,196 @@
+<div class="cupones-container">
+  <!-- Título -->
+  <div class="d-flex justify-content-between align-items-center mb-24">
+    <h4 class="mb-0 fw-semibold text-heading">
+      <i class="ph ph-ticket me-8 text-main-600"></i>
+      Mis Cupones
+    </h4>
+  </div>
+
+  <!-- Pestañas -->
+  <div class="d-flex gap-8 mb-24" role="tablist">
+    <button
+      class="btn px-24 py-12 rounded-8 fw-medium border-0 transition-2"
+      [class.btn-main]="activeTab === 'disponibles'"
+      [class.bg-gray-100]="activeTab !== 'disponibles'"
+      [class.text-gray-600]="activeTab !== 'disponibles'"
+      (click)="cambiarTab('disponibles')"
+      type="button">
+      <i class="ph ph-gift me-8"></i>
+      Disponibles ({{ cuponesDisponibles.length }})
+    </button>
+    <button
+      class="btn px-24 py-12 rounded-8 fw-medium border-0 transition-2"
+      [class.btn-main]="activeTab === 'usados'"
+      [class.bg-gray-100]="activeTab !== 'usados'"
+      [class.text-gray-600]="activeTab !== 'usados'"
+      (click)="cambiarTab('usados')"
+      type="button">
+      <i class="ph ph-check-circle me-8"></i>
+      Usados ({{ cuponesUsados.length }})
+    </button>
+  </div>
+
+  <!-- Contenido de las pestañas -->
+  <div class="tab-content">
+    <!-- Cupones Disponibles -->
+    <div *ngIf="activeTab === 'disponibles'" class="tab-pane active">
+      <!-- Loading -->
+      <div *ngIf="isLoadingDisponibles" class="text-center py-60">
+        <div class="spinner-border text-main-600" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+      </div>
+
+      <!-- Sin cupones -->
+      <div *ngIf="!isLoadingDisponibles && cuponesDisponibles.length === 0" class="text-center py-60">
+        <i class="ph ph-ticket text-gray-400" style="font-size: 4rem;"></i>
+        <p class="text-gray-600 mt-16 mb-8">No tienes cupones disponibles</p>
+        <p class="text-sm text-gray-500">Los cupones que agregues aparecerán aquí</p>
+      </div>
+
+      <!-- Lista de cupones disponibles -->
+      <div *ngIf="!isLoadingDisponibles && cuponesDisponibles.length > 0" class="row g-20">
+        <div *ngFor="let cupon of cuponesDisponibles" class="col-md-6">
+          <div class="card border-0 shadow-sm rounded-12 overflow-hidden hover-shadow-lg transition-2">
+            <div class="card-body p-20">
+              <!-- Header del cupón -->
+              <div class="d-flex justify-content-between align-items-start mb-16">
+                <div>
+                  <h5 class="mb-4 fw-bold text-heading">{{ cupon.titulo }}</h5>
+                  <p class="text-sm text-gray-600 mb-0" *ngIf="cupon.descripcion">
+                    {{ cupon.descripcion }}
+                  </p>
+                </div>
+                <span
+                  *ngIf="estaPorVencer(cupon.fecha_fin)"
+                  class="badge bg-warning-50 text-warning-600 px-12 py-6 rounded-pill">
+                  <i class="ph ph-warning me-4"></i>
+                  Por vencer
+                </span>
+              </div>
+
+              <!-- Descuento -->
+              <div class="bg-main-50 rounded-8 p-16 mb-16 text-center">
+                <div class="text-main-600 fw-bold" style="font-size: 2rem;">
+                  <ng-container *ngIf="cupon.tipo_descuento === 'porcentaje'">
+                    {{ cupon.valor_descuento }}%
+                  </ng-container>
+                  <ng-container *ngIf="cupon.tipo_descuento === 'cantidad_fija'">
+                    S/ {{ cupon.valor_descuento }}
+                  </ng-container>
+                </div>
+                <div class="text-sm text-gray-600">DE DESCUENTO</div>
+              </div>
+
+              <!-- Código del cupón -->
+              <div class="d-flex align-items-center gap-8 bg-gray-50 rounded-8 p-12 mb-16">
+                <div class="flex-grow-1">
+                  <div class="text-xs text-gray-500 mb-4">CÓDIGO</div>
+                  <div class="fw-bold text-heading font-monospace">{{ cupon.codigo }}</div>
+                </div>
+                <button
+                  class="btn btn-sm btn-main px-16 py-8 rounded-6"
+                  (click)="copiarCodigo(cupon.codigo)">
+                  <i class="ph ph-copy"></i>
+                </button>
+              </div>
+
+              <!-- Información adicional -->
+              <div class="border-top pt-12">
+                <div class="d-flex justify-content-between text-sm mb-8" *ngIf="cupon.compra_minima">
+                  <span class="text-gray-500">Compra mínima:</span>
+                  <span class="fw-medium">S/ {{ cupon.compra_minima }}</span>
+                </div>
+                <div class="d-flex justify-content-between text-sm mb-8">
+                  <span class="text-gray-500">Válido hasta:</span>
+                  <span class="fw-medium">{{ formatearFecha(cupon.fecha_fin) }}</span>
+                </div>
+                <div class="d-flex justify-content-between text-sm" *ngIf="getDiasRestantes(cupon.fecha_fin) > 0">
+                  <span class="text-gray-500">Días restantes:</span>
+                  <span
+                    class="fw-medium"
+                    [class.text-warning-600]="estaPorVencer(cupon.fecha_fin)"
+                    [class.text-success-600]="!estaPorVencer(cupon.fecha_fin)">
+                    {{ getDiasRestantes(cupon.fecha_fin) }} días
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cupones Usados -->
+    <div *ngIf="activeTab === 'usados'" class="tab-pane active">
+      <!-- Loading -->
+      <div *ngIf="isLoadingUsados" class="text-center py-60">
+        <div class="spinner-border text-main-600" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+      </div>
+
+      <!-- Sin cupones -->
+      <div *ngIf="!isLoadingUsados && cuponesUsados.length === 0" class="text-center py-60">
+        <i class="ph ph-check-circle text-gray-400" style="font-size: 4rem;"></i>
+        <p class="text-gray-600 mt-16 mb-8">No has usado ningún cupón</p>
+        <p class="text-sm text-gray-500">Los cupones que uses aparecerán aquí</p>
+      </div>
+
+      <!-- Lista de cupones usados -->
+      <div *ngIf="!isLoadingUsados && cuponesUsados.length > 0" class="row g-20">
+        <div *ngFor="let cupon of cuponesUsados" class="col-md-6">
+          <div class="card border-0 shadow-sm rounded-12 overflow-hidden opacity-75">
+            <div class="card-body p-20">
+              <!-- Header del cupón -->
+              <div class="d-flex justify-content-between align-items-start mb-16">
+                <div>
+                  <h5 class="mb-4 fw-bold text-heading">{{ cupon.titulo }}</h5>
+                  <p class="text-sm text-gray-600 mb-0" *ngIf="cupon.descripcion">
+                    {{ cupon.descripcion }}
+                  </p>
+                </div>
+                <span class="badge bg-gray-100 text-gray-600 px-12 py-6 rounded-pill">
+                  <i class="ph ph-check-circle me-4"></i>
+                  Usado
+                </span>
+              </div>
+
+              <!-- Descuento aplicado -->
+              <div class="bg-gray-50 rounded-8 p-16 mb-16 text-center">
+                <div class="text-gray-600 fw-bold" style="font-size: 2rem;">
+                  <ng-container *ngIf="cupon.tipo_descuento === 'porcentaje'">
+                    {{ cupon.valor_descuento }}%
+                  </ng-container>
+                  <ng-container *ngIf="cupon.tipo_descuento === 'cantidad_fija'">
+                    S/ {{ cupon.valor_descuento }}
+                  </ng-container>
+                </div>
+                <div class="text-sm text-gray-500">DESCUENTO APLICADO</div>
+              </div>
+
+              <!-- Código del cupón -->
+              <div class="bg-gray-50 rounded-8 p-12 mb-16 text-center">
+                <div class="text-xs text-gray-500 mb-4">CÓDIGO</div>
+                <div class="fw-bold text-heading font-monospace">{{ cupon.codigo }}</div>
+              </div>
+
+              <!-- Información del uso -->
+              <div class="border-top pt-12">
+                <div class="d-flex justify-content-between text-sm mb-8" *ngIf="cupon.descuento_aplicado">
+                  <span class="text-gray-500">Ahorro obtenido:</span>
+                  <span class="fw-medium text-success-600">S/ {{ cupon.descuento_aplicado }}</span>
+                </div>
+                <div class="d-flex justify-content-between text-sm" *ngIf="cupon.fecha_uso">
+                  <span class="text-gray-500">Usado el:</span>
+                  <span class="fw-medium">{{ formatearFecha(cupon.fecha_uso) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

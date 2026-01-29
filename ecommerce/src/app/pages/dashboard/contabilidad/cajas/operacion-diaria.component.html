@@ -1,0 +1,265 @@
+<!-- Contenedor Principal -->
+<div class="border border-gray-100 rounded-16 overflow-hidden bg-white">
+  <!-- Header -->
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <button class="btn btn-outline-secondary btn-sm mb-3" (click)="volver()" 
+            style="padding: 6px 12px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;">
+      <i class="ph ph-arrow-left"></i>
+      <span>Volver</span>
+    </button>
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <h4 class="mb-4 text-heading" style="font-size: 20px;">
+          Operación de Caja
+          <span *ngIf="caja" class="text-muted" style="font-size: 16px;">- {{ caja.nombre }}</span>
+        </h4>
+        <p class="text-gray-500 mb-0 text-sm">
+          Registra transacciones y gestiona la caja del día
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="modern-data-table__loading">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="loading-text">Cargando operación...</p>
+  </div>
+
+  <!-- Contenido Principal -->
+  <div *ngIf="!loading && caja && movimiento">
+    <!-- Resumen del Día -->
+    <div class="p-24 p-md-32 border-bottom border-gray-100">
+      <div class="row g-3">
+        <div class="col-md-3">
+          <div class="card border-0 shadow-sm bg-neutral-50 h-100">
+            <div class="card-body">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="ph ph-wallet text-neutral-600" style="font-size: 1.5rem;"></i>
+                <small class="text-muted text-sm">Monto Inicial</small>
+              </div>
+              <h4 class="mb-0">S/ {{ movimiento.monto_inicial | number:'1.2-2' }}</h4>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="card border-0 shadow-sm bg-success-50 h-100">
+            <div class="card-body">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="ph ph-arrow-up text-success-600" style="font-size: 1.5rem;"></i>
+                <small class="text-muted text-sm">Total Ingresos</small>
+              </div>
+              <h4 class="mb-0 text-success-600">S/ {{ resumen?.total_ingresos | number:'1.2-2' }}</h4>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="card border-0 shadow-sm bg-danger-50 h-100">
+            <div class="card-body">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="ph ph-arrow-down text-danger-600" style="font-size: 1.5rem;"></i>
+                <small class="text-muted text-sm">Total Egresos</small>
+              </div>
+              <h4 class="mb-0 text-danger-600">S/ {{ resumen?.total_egresos | number:'1.2-2' }}</h4>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="card border-0 shadow-sm bg-primary-50 h-100">
+            <div class="card-body">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="ph ph-currency-circle-dollar text-primary-600" style="font-size: 1.5rem;"></i>
+                <small class="text-muted text-sm">Saldo Actual</small>
+              </div>
+              <h4 class="mb-0 text-primary-600">S/ {{ saldoActual | number:'1.2-2' }}</h4>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="p-24 p-md-32 border-bottom border-gray-100">
+      <div class="d-flex gap-2 flex-wrap">
+        <button class="btn btn-primary" (click)="mostrarModalTransaccion = true"
+                style="padding: 10px 20px; font-size: 14px; display: inline-flex; align-items: center; gap: 8px;">
+          <i class="ph ph-plus-circle"></i>
+          <span>Registrar Transacción</span>
+        </button>
+        <button class="btn btn-danger" (click)="mostrarModalCerrar = true"
+                style="padding: 10px 20px; font-size: 14px; display: inline-flex; align-items: center; gap: 8px;">
+          <i class="ph ph-lock"></i>
+          <span>Cerrar Caja</span>
+        </button>
+        <button class="btn btn-outline-secondary ms-auto" (click)="cargarTransacciones()"
+                style="padding: 10px 20px; font-size: 14px; display: inline-flex; align-items: center; gap: 8px;">
+          <i class="ph ph-arrow-clockwise"></i>
+          <span>Actualizar</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Transacciones del Día -->
+    <div class="modern-data-table">
+      <div class="modern-data-table__header">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="mb-0" style="font-size: 16px; font-weight: 600;">
+            <i class="ph ph-receipt me-2"></i>
+            Transacciones del Día
+          </h5>
+          <span class="badge bg-neutral-100 text-neutral-600">
+            {{ transacciones.length }} transacciones
+          </span>
+        </div>
+      </div>
+
+      <div *ngIf="transacciones.length === 0" class="empty-state">
+        <div class="empty-state__icon">
+          <i class="ph ph-receipt"></i>
+        </div>
+        <h5 class="empty-state__title">No hay transacciones registradas</h5>
+        <p class="empty-state__description">
+          Las transacciones del día aparecerán aquí.
+        </p>
+      </div>
+
+      <div *ngIf="transacciones.length > 0" class="modern-data-table__container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>HORA</th>
+              <th>TIPO</th>
+              <th>CATEGORÍA</th>
+              <th>MONTO</th>
+              <th>MÉTODO</th>
+              <th>DESCRIPCIÓN</th>
+              <th class="text-end">ACCIONES</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let tx of transacciones">
+              <td>
+                <div class="date-info">
+                  <div class="date-info__main">{{ tx.created_at | date:'HH:mm' }}</div>
+                </div>
+              </td>
+              <td>
+                <span class="type-badge" 
+                      [ngClass]="tx.tipo === 'INGRESO' ? 'type-badge--manual' : 'type-badge--default'">
+                  <i class="ph" [ngClass]="tx.tipo === 'INGRESO' ? 'ph-arrow-up' : 'ph-arrow-down'"></i>
+                  {{ tx.tipo }}
+                </span>
+              </td>
+              <td>
+                <span class="client-info__subtitle">{{ tx.categoria }}</span>
+              </td>
+              <td>
+                <div class="product-price-info">
+                  <div class="price-sale" 
+                       [ngClass]="tx.tipo === 'INGRESO' ? 'text-success-600' : 'text-danger-600'">
+                    S/ {{ tx.monto | number:'1.2-2' }}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="client-info__subtitle">{{ tx.metodo_pago }}</span>
+              </td>
+              <td>
+                <div class="client-info">
+                  <div class="client-info__name">{{ tx.descripcion || '-' }}</div>
+                  <div class="client-info__subtitle" *ngIf="tx.referencia">
+                    Ref: {{ tx.referencia }}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <button class="action-buttons__btn action-buttons__btn--delete" 
+                          (click)="anularTransaccion(tx)" 
+                          title="Anular">
+                    <i class="ph ph-x"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Aperturar -->
+<div class="modal fade" [class.show]="mostrarModalApertura" [style.display]="mostrarModalApertura ? 'block' : 'none'">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header" style="background: hsl(var(--success-600)); color: white;">
+        <h5 class="modal-title">
+          <i class="ph ph-lock-open me-2"></i>
+          Aperturar Caja
+        </h5>
+        <button type="button" class="btn-close" style="filter: brightness(0) invert(1);"
+          (click)="mostrarModalApertura = false"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-info d-flex align-items-start gap-2">
+          <i class="ph ph-info text-info-600" style="font-size: 1.5rem;"></i>
+          <div>
+            <strong>Apertura de Caja</strong><br>
+            <small>Ingresa el monto inicial con el que comenzarás el día</small>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Monto Inicial <span class="text-danger">*</span></label>
+          <div class="input-group">
+            <span class="input-group-text">
+              <i class="ph ph-currency-circle-dollar"></i>
+            </span>
+            <input type="number" class="form-control" [(ngModel)]="montoInicial" 
+                   placeholder="0.00" step="0.01" min="0">
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Observaciones</label>
+          <div class="position-relative">
+            <i class="ph ph-note position-absolute" 
+               style="left: 12px; top: 12px; color: var(--gray-400);"></i>
+            <textarea class="form-control" rows="3" [(ngModel)]="observacionesApertura"
+                      style="padding-left: 40px;"
+                      placeholder="Ej: Apertura del día"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="mostrarModalApertura = false" [disabled]="procesando">
+          Cancelar
+        </button>
+        <button class="btn btn-success" (click)="aperturar()" [disabled]="procesando || montoInicial < 0">
+          <span *ngIf="procesando" class="spinner-border spinner-border-sm me-2"></span>
+          {{ procesando ? 'Aperturando...' : 'Aperturar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div *ngIf="mostrarModalApertura" class="modal-backdrop fade show"></div>
+
+<!-- Modal Registrar Transacción -->
+<app-transaccion-modal 
+  [(visible)]="mostrarModalTransaccion" 
+  [procesando]="procesando"
+  (onRegistrar)="registrarTransaccion($event)">
+</app-transaccion-modal>
+
+<!-- Modal Cerrar Caja -->
+<app-cerrar-caja-modal 
+  [(visible)]="mostrarModalCerrar" 
+  [saldoSistema]="saldoActual" 
+  [procesando]="procesando"
+  (onCerrar)="cerrarCaja($event)">
+</app-cerrar-caja-modal>

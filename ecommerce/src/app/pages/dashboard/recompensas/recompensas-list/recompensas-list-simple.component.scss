@@ -1,0 +1,35 @@
+// Usa clases globales de data-table
+:host { display: block; }
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+
+  &__btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    transition: all 0.2s;
+    
+    &--view {
+      background: var(--main-50);
+      color: var(--main-600);
+      &:hover { background: var(--main-100); }
+    }
+
+    &--edit {
+      background: var(--warning-50);
+      color: var(--warning-600);
+      &:hover { background: var(--warning-100); }
+    }
+
+    &--more {
+      background: var(--neutral-50);
+      color: var(--neutral-600);
+      &:hover { background: var(--neutral-100); }
+    }
+  }
+
+  .dropdown-toggle::after { display: none; }
+}

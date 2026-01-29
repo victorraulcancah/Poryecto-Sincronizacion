@@ -1,0 +1,141 @@
+<div class="modal fade" id="modalCrearBannerOferta" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <!-- Header -->
+      <div class="modal-header bg-main-600">
+        <h5 class="modal-title text-white">
+          <i class="ph ph-image me-8"></i>
+          {{ esEdicion ? 'Editar Banner Oferta' : 'Nuevo Banner Oferta' }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="cerrarModal()"></button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        <form [formGroup]="bannerForm">
+          <div class="row g-16">
+
+            <!-- Columna izquierda: Preview imagen -->
+            <div class="col-md-5">
+              <div class="image-upload-section">
+                <label class="form-label fw-semibold">
+                  Imagen del Banner <span class="text-danger">*</span>
+                </label>
+
+                <!-- Preview -->
+                <div class="image-preview-container">
+                  <div class="image-preview"
+                       [style.background-image]="imagenPreview ? 'url(' + imagenPreview + ')' : 'none'"
+                       [class.has-image]="imagenPreview">
+                    <div class="placeholder" *ngIf="!imagenPreview">
+                      <i class="ph ph-image text-gray-400 text-6xl mb-8"></i>
+                      <p class="text-gray-500 text-sm mb-0">Vista previa de la imagen</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Input file -->
+                <div class="mt-12">
+                  <label class="btn bg-main-600 hover-bg-main-700 text-white w-100">
+                    <i class="ph ph-upload me-8"></i>
+                    {{ imagenPreview ? 'Cambiar imagen' : 'Seleccionar imagen' }}
+                    <input type="file"
+                           accept="image/jpeg,image/png,image/webp,image/gif"
+                           (change)="onImagenSelected($event)"
+                           class="d-none">
+                  </label>
+                  <small class="text-gray-500 d-block mt-8">
+                    <strong>Dimensiones recomendadas:</strong> 1734 x 2862 px<br>
+                    Formatos: JPG, PNG, WEBP, GIF (máx. 10MB)
+                  </small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Columna derecha: Configuración -->
+            <div class="col-md-7">
+
+              <!-- Tipo de Banner -->
+              <div class="mb-16">
+                <label class="form-label fw-semibold">
+                  Tipo de Banner <span class="text-danger">*</span>
+                </label>
+                <select class="form-select" formControlName="tipo">
+                  <option value="especiales">Ofertas Especiales</option>
+                  <option value="semana">Oferta de la Semana</option>
+                </select>
+                <small class="text-gray-500">
+                  Selecciona dónde se mostrará este banner en el index
+                </small>
+              </div>
+
+              <!-- Prioridad -->
+              <div class="mb-16">
+                <label class="form-label fw-semibold">
+                  Prioridad <span class="text-danger">*</span>
+                </label>
+                <input type="number"
+                       class="form-control"
+                       formControlName="prioridad"
+                       min="0"
+                       placeholder="Ej: 1, 2, 3...">
+                <small class="text-gray-500">
+                  Mayor prioridad = se muestra primero
+                </small>
+              </div>
+
+              <!-- Estado -->
+              <div class="mb-16">
+                <label class="form-label fw-semibold d-block mb-8">Estado</label>
+                <div class="form-check form-switch">
+                  <input class="form-check-input"
+                         type="checkbox"
+                         formControlName="activo"
+                         id="switchActivo">
+                  <label class="form-check-label" for="switchActivo">
+                    {{ bannerForm.value.activo ? 'Activo' : 'Inactivo' }}
+                  </label>
+                </div>
+                <small class="text-gray-500">
+                  Solo los banners activos se mostrarán en el index
+                </small>
+              </div>
+
+              <!-- Info adicional -->
+              <div class="alert alert-info d-flex align-items-start gap-8 mb-0">
+                <i class="ph ph-info text-info-600 text-xl mt-2"></i>
+                <div class="text-sm">
+                  <strong>Nota:</strong> Después de crear el banner, podrás agregar productos que se mostrarán sobre la imagen.
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer">
+        <button type="button"
+                class="btn bg-gray-100 hover-bg-gray-200 text-gray-700"
+                (click)="cerrarModal()"
+                [disabled]="isSubmitting">
+          Cancelar
+        </button>
+        <button type="button"
+                class="btn bg-main-600 hover-bg-main-700 text-white"
+                (click)="guardar()"
+                [disabled]="isSubmitting">
+          <span *ngIf="!isSubmitting">
+            <i class="ph ph-check me-8"></i>
+            {{ esEdicion ? 'Actualizar' : 'Crear' }} Banner
+          </span>
+          <span *ngIf="isSubmitting">
+            <span class="spinner-border spinner-border-sm me-8"></span>
+            Guardando...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,343 @@
+<div class="recompensas-configuracion-envios">
+  <div class="row">
+    <!-- Formulario de Configuración -->
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-shipping-fast me-2 text-primary"></i>
+            Configuración de Envíos Gratis
+          </h5>
+        </div>
+        <div class="card-body">
+          <form [formGroup]="configuracionForm" (ngSubmit)="guardarConfiguracion()">
+            <div class="row g-3">
+              <!-- Compra Mínima -->
+              <div class="col-md-6">
+                <label class="form-label">Compra Mínima (S/) *</label>
+                <input 
+                  type="number" 
+                  class="form-control" 
+                  formControlName="minimo_compra"
+                  min="0"
+                  step="0.01"
+                >
+                <div class="form-text">Monto mínimo para envío gratis</div>
+              </div>
+
+              <!-- Costo de Envío Gratis -->
+              <div class="col-md-6">
+                <label class="form-label">Costo de Envío Gratis (S/)</label>
+                <input 
+                  type="number" 
+                  class="form-control" 
+                  formControlName="costo_envio_gratis"
+                  min="0"
+                  step="0.01"
+                >
+                <div class="form-text">Costo que se cubre con el envío gratis</div>
+              </div>
+
+              <!-- Opción: Todas las Zonas -->
+              <div class="col-12">
+                <div class="card bg-light">
+                  <div class="card-body">
+                    <div class="form-check">
+                      <input 
+                        class="form-check-input" 
+                        type="checkbox" 
+                        formControlName="todas_las_zonas"
+                        id="todasLasZonas"
+                        (change)="seleccionarTodasLasZonas()"
+                      >
+                      <label class="form-check-label" for="todasLasZonas">
+                        <strong>Aplicar a todas las zonas del país</strong>
+                      </label>
+                    </div>
+                    <div class="form-text">Si está marcado, el envío gratis aplicará a todo el territorio nacional</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Opciones de Cobertura (solo si no es todas las zonas) -->
+              <div class="col-12" *ngIf="!getTodasLasZonas()">
+                <div class="card bg-light">
+                  <div class="card-body">
+                    <h6 class="card-title">Cobertura Específica</h6>
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <div class="form-check">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            formControlName="incluir_lima"
+                            id="incluirLima"
+                          >
+                          <label class="form-check-label" for="incluirLima">
+                            Incluir Lima Metropolitana
+                          </label>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="form-check">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            formControlName="incluir_provincias"
+                            id="incluirProvincias"
+                          >
+                          <label class="form-check-label" for="incluirProvincias">
+                            Incluir Provincias
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Búsqueda de Zonas Específicas -->
+              <div class="col-12" *ngIf="!getTodasLasZonas()">
+                <div class="card">
+                  <div class="card-header">
+                    <h6 class="card-title mb-0">Búsqueda de Zonas Específicas</h6>
+                  </div>
+                  <div class="card-body">
+                    <div class="row g-3">
+                      <!-- Filtros de Búsqueda -->
+                      <div class="col-md-4">
+                        <label class="form-label">Departamento</label>
+                        <select 
+                          class="form-select" 
+                          [(ngModel)]="filtroDepartamento"
+                          [ngModelOptions]="{standalone: true}"
+                          (change)="cargarProvincias(filtroDepartamento)"
+                        >
+                          <option value="">Todos</option>
+                          <option *ngFor="let dept of departamentos" [value]="dept">
+                            {{ dept }}
+                          </option>
+                        </select>
+                      </div>
+
+                      <div class="col-md-4">
+                        <label class="form-label">Provincia</label>
+                        <select 
+                          class="form-select" 
+                          [(ngModel)]="filtroProvincia"
+                          [ngModelOptions]="{standalone: true}"
+                          (change)="cargarDistritos(filtroProvincia)"
+                        >
+                          <option value="">Todas</option>
+                          <option *ngFor="let prov of provincias" [value]="prov">
+                            {{ prov }}
+                          </option>
+                        </select>
+                      </div>
+
+                      <div class="col-md-4">
+                        <label class="form-label">Distrito</label>
+                        <select 
+                          class="form-select" 
+                          [(ngModel)]="filtroDistrito"
+                          [ngModelOptions]="{standalone: true}"
+                        >
+                          <option value="">Todos</option>
+                          <option *ngFor="let dist of distritos" [value]="dist">
+                            {{ dist }}
+                          </option>
+                        </select>
+                      </div>
+
+                      <div class="col-md-8">
+                        <label class="form-label">Buscar por nombre</label>
+                        <input 
+                          type="text" 
+                          class="form-control" 
+                          [(ngModel)]="terminoBusqueda"
+                          [ngModelOptions]="{standalone: true}"
+                          placeholder="Nombre de zona, distrito, etc."
+                        >
+                      </div>
+
+                      <div class="col-md-4">
+                        <label class="form-label">&nbsp;</label>
+                        <button 
+                          type="button" 
+                          class="btn btn-outline-primary w-100"
+                          (click)="buscarZonas()"
+                        >
+                          <i class="fas fa-search me-2"></i>
+                          Buscar Zonas
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Resultados de Búsqueda -->
+                    <div *ngIf="zonasDisponibles.length > 0" class="mt-3">
+                      <h6>Zonas Disponibles</h6>
+                      <div class="table-responsive">
+                        <table class="table table-sm">
+                          <thead>
+                            <tr>
+                              <th>Zona</th>
+                              <th>Ubicación</th>
+                              <th>Costo Envío</th>
+                              <th>Acción</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr *ngFor="let zona of zonasDisponibles">
+                              <td>{{ zona.nombre }}</td>
+                              <td>{{ zona.departamento }}, {{ zona.provincia }}, {{ zona.distrito }}</td>
+                              <td>S/ {{ zona.costo_envio | number:'1.2-2' }}</td>
+                              <td>
+                                <button 
+                                  type="button" 
+                                  class="btn btn-sm btn-outline-success"
+                                  (click)="agregarZona(zona)"
+                                  [disabled]="isZonaSeleccionada(zona.id)"
+                                >
+                                  <i class="fas fa-plus"></i>
+                                </button>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Zonas Seleccionadas -->
+              <div class="col-12" *ngIf="zonasSeleccionadas.length > 0">
+                <div class="card">
+                  <div class="card-header">
+                    <h6 class="card-title mb-0">
+                      Zonas Seleccionadas ({{ getZonasSeleccionadasCount() }})
+                    </h6>
+                  </div>
+                  <div class="card-body">
+                    <div class="row g-2">
+                      <div *ngFor="let zona of zonasSeleccionadas" class="col-md-6">
+                        <div class="alert alert-info d-flex justify-content-between align-items-center">
+                          <div>
+                            <strong>{{ zona.nombre }}</strong><br>
+                            <small>{{ zona.departamento }}, {{ zona.provincia }}, {{ zona.distrito }}</small>
+                          </div>
+                          <button 
+                            type="button" 
+                            class="btn btn-sm btn-outline-danger"
+                            (click)="removerZona(zona.id)"
+                          >
+                            <i class="fas fa-times"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Botones de Acción -->
+              <div class="col-12">
+                <div class="d-flex gap-2">
+                  <button 
+                    type="submit" 
+                    class="btn btn-primary"
+                    [disabled]="configuracionForm.invalid || loading"
+                  >
+                    <i class="fas fa-save me-2"></i>
+                    <span *ngIf="!loading">Guardar Configuración</span>
+                    <span *ngIf="loading">Guardando...</span>
+                  </button>
+                  
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-info"
+                    (click)="validarEnvio()"
+                    [disabled]="configuracionForm.invalid || loading"
+                  >
+                    <i class="fas fa-check-circle me-2"></i>
+                    Validar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estadísticas de Cobertura -->
+    <div class="col-lg-4">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-chart-pie me-2 text-success"></i>
+            Estadísticas de Cobertura
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-12">
+              <div class="text-center">
+                <div class="h3 mb-0" [ngClass]="getCoberturaClass()">
+                  {{ estadisticasCobertura.porcentaje_cobertura }}%
+                </div>
+                <div class="text-muted">{{ getCoberturaTexto() }}</div>
+              </div>
+            </div>
+
+            <div class="col-6">
+              <div class="text-center">
+                <div class="h5 mb-0 text-primary">{{ estadisticasCobertura.zonas_cubiertas }}</div>
+                <small class="text-muted">Zonas Cubiertas</small>
+              </div>
+            </div>
+
+            <div class="col-6">
+              <div class="text-center">
+                <div class="h5 mb-0 text-info">{{ estadisticasCobertura.total_zonas }}</div>
+                <small class="text-muted">Total Zonas</small>
+              </div>
+            </div>
+
+            <div class="col-6">
+              <div class="text-center">
+                <div class="h5 mb-0 text-warning">{{ estadisticasCobertura.departamentos_cubiertos }}</div>
+                <small class="text-muted">Departamentos</small>
+              </div>
+            </div>
+
+            <div class="col-6">
+              <div class="text-center">
+                <div class="h5 mb-0 text-success">{{ estadisticasCobertura.provincias_cubiertas }}</div>
+                <small class="text-muted">Provincias</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Barra de Progreso -->
+          <div class="mt-3">
+            <div class="progress">
+              <div 
+                class="progress-bar" 
+                [ngClass]="getCoberturaClass()"
+                [style.width.%]="estadisticasCobertura.porcentaje_cobertura"
+                role="progressbar"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mensaje de Error -->
+  <div *ngIf="error" class="alert alert-danger mt-3">
+    <i class="fas fa-exclamation-circle me-2"></i>
+    {{ error }}
+  </div>
+</div>

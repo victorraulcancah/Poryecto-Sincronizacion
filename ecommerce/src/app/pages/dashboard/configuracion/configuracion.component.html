@@ -1,0 +1,321 @@
+<!-- Header -->
+<div class="border border-gray-100 rounded-16 overflow-hidden bg-white">
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <div class="flex-between align-items-center gap-16 flex-wrap">
+      <div>
+        <h4 class="mb-4 text-heading">Gestión de Menús del Sistema</h4>
+        <p class="text-gray-500 mb-0 text-sm">
+          Configura los enlaces que aparecen en el header, footer o sidebar de tu sitio
+        </p>
+      </div>
+      <button class="btn bg-main-600" (click)="openModal()">
+        <i class="ph ph-plus me-8"></i>
+        Nuevo Menú
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros de Tipo y Estadísticas -->
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-12">
+      <!-- Filtro de tipo -->
+      <div class="d-flex align-items-center gap-12">
+        <span class="text-sm text-gray-600">Tipo de menú:</span>
+        <div class="btn-group btn-group-sm" role="group">
+          <button
+            type="button"
+            class="btn"
+            [ngClass]="tipoActual === 'header' ? 'btn-main-600' : 'btn-outline-gray-300'"
+            (click)="cambiarTipo('header')"
+          >
+            <i class="ph ph-navigation-arrow me-6"></i>Header
+          </button>
+          <button
+            type="button"
+            class="btn"
+            [ngClass]="tipoActual === 'footer' ? 'btn-main-600' : 'btn-outline-gray-300'"
+            (click)="cambiarTipo('footer')"
+          >
+            <i class="ph ph-align-bottom me-6"></i>Footer
+          </button>
+          <button
+            type="button"
+            class="btn"
+            [ngClass]="tipoActual === 'sidebar' ? 'btn-main-600' : 'btn-outline-gray-300'"
+            (click)="cambiarTipo('sidebar')"
+          >
+            <i class="ph ph-sidebar me-6"></i>Sidebar
+          </button>
+        </div>
+      </div>
+
+      <!-- Estadísticas -->
+      <div class="d-flex align-items-center gap-4">
+        <span class="text-sm fw-medium text-dark">Total:</span>
+        <span class="badge bg-main-50 text-main-600">{{ menus.length }}</span>
+        <span class="text-sm fw-medium text-dark">Visibles:</span>
+        <span class="badge bg-success-50 text-success-600">{{ menusVisibles }}</span>
+        <span class="text-sm fw-medium text-dark">Ocultos:</span>
+        <span class="badge bg-danger-50 text-danger-600">{{ menusOcultos }}</span>
+        <span class="text-sm fw-medium text-dark">Principales:</span>
+        <span class="badge bg-info-50 text-info-600">{{ menusPrincipales }}</span>
+        <span class="text-sm fw-medium text-dark">Submenús:</span>
+        <span class="badge bg-warning-50 text-warning-600">{{ submenus }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla Moderna -->
+  <div class="modern-data-table">
+    <!-- Loading state -->
+    <div *ngIf="isLoading" class="modern-data-table__loading">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="loading-text">Cargando menús...</p>
+    </div>
+
+    <!-- Empty state -->
+    <div *ngIf="!isLoading && menus.length === 0" class="text-center py-5">
+      <i class="ph ph-list text-gray-300" style="font-size: 4rem"></i>
+      <p class="text-gray-500 mt-3">No hay menús registrados para {{ tipoActual }}</p>
+      <button class="btn bg-main-600 btn-sm mt-2" (click)="openModal()">
+        <i class="ph ph-plus me-2"></i>Crear Primer Menú
+      </button>
+    </div>
+
+    <!-- Tabla moderna -->
+    <div class="modern-data-table__container" *ngIf="!isLoading && menus.length > 0">
+      <table class="table table-borderless mb-0">
+        <thead>
+          <tr>
+            <th>ORDEN</th>
+            <th>NOMBRE</th>
+            <th>URL</th>
+            <th>TIPO</th>
+            <th>MENÚ PADRE</th>
+            <th>ESTADO</th>
+            <th class="text-end">ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let menu of menus">
+            <td>
+              <span class="badge bg-neutral-50 text-neutral-600">{{ menu.orden }}</span>
+            </td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <span class="fw-medium">{{ menu.nombre }}</span>
+                <span *ngIf="menu.tiene_hijos" class="badge bg-info-50 text-info-600 text-xs">
+                  Con submenús
+                </span>
+              </div>
+            </td>
+            <td>
+              <code class="bg-neutral-50 px-2 py-1 rounded text-xs">{{ menu.url }}</code>
+            </td>
+            <td>
+              <span class="badge bg-purple-50 text-purple-600">{{ menu.tipo }}</span>
+            </td>
+            <td>
+              <span *ngIf="menu.padre_nombre" class="text-sm text-gray-600">
+                <i class="ph ph-arrow-bend-down-right me-1"></i>
+                {{ menu.padre_nombre }}
+              </span>
+              <span *ngIf="!menu.padre_nombre" class="text-gray-400 text-xs">—</span>
+            </td>
+            <td>
+              <span
+                class="badge"
+                [ngClass]="menu.visible ? 'bg-success-50 text-success-600' : 'bg-danger-50 text-danger-600'"
+              >
+                {{ menu.visible ? 'Visible' : 'Oculto' }}
+              </span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button
+                  class="action-buttons__btn action-buttons__btn--edit"
+                  (click)="openModal(menu)"
+                  title="Editar"
+                >
+                  <i class="ph ph-pencil"></i>
+                </button>
+                <button
+                  class="action-buttons__btn"
+                  [ngClass]="menu.visible ? 'action-buttons__btn--warning' : 'action-buttons__btn--success'"
+                  (click)="toggleVisibilidad(menu.id!)"
+                  [title]="menu.visible ? 'Ocultar' : 'Mostrar'"
+                >
+                  <i class="ph" [ngClass]="menu.visible ? 'ph-eye-slash' : 'ph-eye'"></i>
+                </button>
+                <button
+                  class="action-buttons__btn action-buttons__btn--delete"
+                  (click)="eliminar(menu.id!)"
+                  title="Eliminar"
+                  [disabled]="menu.tiene_hijos"
+                >
+                  <i class="ph ph-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div
+  class="modal fade"
+  [class.show]="showModal"
+  [style.display]="showModal ? 'block' : 'none'"
+  tabindex="-1"
+>
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-lg rounded-12">
+      <div class="modal-header bg-main-50 border-bottom border-gray-100 px-24 py-16">
+        <h5 class="modal-title fw-semibold text-heading">
+          <i class="ph ph-list me-2 text-main-600"></i>
+          {{ isEditMode ? 'Editar' : 'Nuevo' }} Menú
+        </h5>
+        <button type="button" class="btn-close" (click)="closeModal()"></button>
+      </div>
+      <form [formGroup]="menuForm" (ngSubmit)="onSubmit()">
+        <div class="modal-body px-24 py-20">
+          <div class="row">
+            <!-- Nombre -->
+            <div class="col-md-6 mb-16">
+              <label class="form-label fw-semibold text-sm text-heading mb-8">
+                Nombre <span class="text-danger-600">*</span>
+              </label>
+              <input
+                type="text"
+                class="form-control radius-8 border-gray-200"
+                formControlName="nombre"
+                placeholder="Ej: Hogar, Productos"
+                [class.is-invalid]="menuForm.get('nombre')?.invalid && menuForm.get('nombre')?.touched"
+              />
+              <div
+                *ngIf="menuForm.get('nombre')?.invalid && menuForm.get('nombre')?.touched"
+                class="text-danger-600 text-xs mt-4"
+              >
+                El nombre es requerido
+              </div>
+            </div>
+
+            <!-- URL -->
+            <div class="col-md-6 mb-16">
+              <label class="form-label fw-semibold text-sm text-heading mb-8">
+                URL <span class="text-danger-600">*</span>
+              </label>
+              <input
+                type="text"
+                class="form-control radius-8 border-gray-200"
+                formControlName="url"
+                placeholder="Ej: /shop, /contact"
+                [class.is-invalid]="menuForm.get('url')?.invalid && menuForm.get('url')?.touched"
+              />
+              <small class="text-gray-500 text-xs">
+                URL relativa (/shop) o absoluta (https://...)
+              </small>
+              <div
+                *ngIf="menuForm.get('url')?.invalid && menuForm.get('url')?.touched"
+                class="text-danger-600 text-xs mt-4"
+              >
+                La URL es requerida
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <!-- Orden -->
+            <div class="col-md-6 mb-16">
+              <label class="form-label fw-semibold text-sm text-heading mb-8">
+                Orden <span class="text-danger-600">*</span>
+              </label>
+              <input
+                type="number"
+                class="form-control radius-8 border-gray-200"
+                formControlName="orden"
+                min="0"
+                placeholder="1"
+              />
+              <small class="text-gray-500 text-xs">Orden de visualización</small>
+            </div>
+
+            <!-- Target -->
+            <div class="col-md-6 mb-16">
+              <label class="form-label fw-semibold text-sm text-heading mb-8">
+                Abrir en <span class="text-danger-600">*</span>
+              </label>
+              <select class="form-select radius-8 border-gray-200" formControlName="target">
+                <option value="_self">Misma ventana</option>
+                <option value="_blank">Nueva ventana</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <!-- Tipo -->
+            <div class="col-md-6 mb-16">
+              <label class="form-label fw-semibold text-sm text-heading mb-8">
+                Tipo <span class="text-danger-600">*</span>
+              </label>
+              <select class="form-select radius-8 border-gray-200" formControlName="tipo">
+                <option value="header">Header</option>
+                <option value="footer">Footer</option>
+                <option value="sidebar">Sidebar</option>
+              </select>
+            </div>
+
+            <!-- Menú Padre -->
+            <div class="col-md-6 mb-16">
+              <label class="form-label fw-semibold text-sm text-heading mb-8">
+                Menú Padre <span class="text-gray-500">(Opcional)</span>
+              </label>
+              <select class="form-select radius-8 border-gray-200" formControlName="padre_id">
+                <option [value]="null">Es un menú principal</option>
+                <option *ngFor="let menuPadre of menusParaPadre" [value]="menuPadre.id">
+                  {{ menuPadre.nombre }}
+                </option>
+              </select>
+              <small class="text-gray-500 text-xs">
+                Deja vacío para menú principal, o selecciona para crear un submenú
+              </small>
+            </div>
+          </div>
+
+          <!-- Visible -->
+          <div class="mb-16">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" formControlName="visible" id="visibleCheck" />
+              <label class="form-check-label fw-medium text-sm" for="visibleCheck">
+                Visible en el sitio
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button
+            type="button"
+            class="btn bg-gray-100 hover-bg-gray-200 text-gray-600 px-16 py-8 rounded-8"
+            (click)="closeModal()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8"
+            [disabled]="menuForm.invalid"
+          >
+            <i class="ph ph-check me-8"></i>
+            {{ isEditMode ? 'Actualizar' : 'Crear' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade" [class.show]="showModal" *ngIf="showModal"></div>

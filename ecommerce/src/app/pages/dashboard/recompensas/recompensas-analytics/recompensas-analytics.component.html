@@ -1,0 +1,767 @@
+<div class="container-fluid">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-24">
+    <div>
+      <h4 class="text-heading fw-semibold mb-8">Analytics de Recompensas</h4>
+      <p class="text-gray-500 mb-0">
+        Análisis detallado del rendimiento y efectividad de las recompensas
+      </p>
+    </div>
+    <div class="d-flex gap-8">
+      <div class="dropdown">
+        <button class="btn bg-gray-50 hover-bg-gray-100 text-heading px-16 py-8 rounded-8 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+          <i class="ph ph-calendar me-8"></i>
+          {{ periodoSeleccionado }}
+        </button>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" (click)="cambiarPeriodo('7_dias')">Últimos 7 días</a></li>
+          <li><a class="dropdown-item" (click)="cambiarPeriodo('30_dias')">Últimos 30 días</a></li>
+          <li><a class="dropdown-item" (click)="cambiarPeriodo('90_dias')">Últimos 90 días</a></li>
+          <li><a class="dropdown-item" (click)="cambiarPeriodo('este_mes')">Este mes</a></li>
+          <li><a class="dropdown-item" (click)="cambiarPeriodo('mes_anterior')">Mes anterior</a></li>
+          <li><a class="dropdown-item" (click)="cambiarPeriodo('este_ano')">Este año</a></li>
+        </ul>
+      </div>
+      <button class="btn bg-gray-50 hover-bg-gray-100 text-heading px-16 py-8 rounded-8" (click)="exportarReporte()">
+        <i class="ph ph-download me-8"></i>
+        Exportar
+      </button>
+      <button class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8" (click)="actualizarDatos()">
+        <i class="ph ph-arrow-clockwise me-8"></i>
+        Actualizar
+      </button>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="card border-0 shadow-sm rounded-12 mb-24">
+    <div class="card-body p-0">
+      <nav class="nav nav-tabs border-0" id="analyticsTabs" role="tablist">
+        <button
+          class="nav-link px-24 py-16 border-0 text-heading fw-medium"
+          [class.active]="activeTab === 'resumen'"
+          (click)="cambiarTab('resumen')"
+          type="button"
+        >
+          <i class="ph ph-chart-line me-8"></i>
+          Resumen
+          <span class="badge bg-main-50 text-main-600 ms-8">{{ resumenEjecutivo.total_recompensas }}</span>
+        </button>
+        <button
+          class="nav-link px-24 py-16 border-0 text-heading fw-medium"
+          [class.active]="activeTab === 'analisis'"
+          (click)="cambiarTab('analisis')"
+          type="button"
+        >
+          <i class="ph ph-chart-bar me-8"></i>
+          Análisis Detallado
+        </button>
+        <button
+          class="nav-link px-24 py-16 border-0 text-heading fw-medium"
+          [class.active]="activeTab === 'reportes'"
+          (click)="cambiarTab('reportes')"
+          type="button"
+        >
+          <i class="ph ph-file-text me-8"></i>
+          Reportes
+        </button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Tab Content -->
+  <div class="tab-content">
+    <!-- Tab Resumen -->
+    <div *ngIf="activeTab === 'resumen'" class="tab-pane fade" [class.show]="activeTab === 'resumen'" [class.active]="activeTab === 'resumen'">
+      <!-- Métricas Principales -->
+      <div class="row g-16 mb-24">
+        <div class="col-xl-3 col-md-6">
+          <div class="card border-0 shadow-sm rounded-12 bg-main-600 text-white">
+            <div class="card-body p-24">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 class="text-white-50 mb-8 fw-medium">Recompensas Activas</h6>
+                  <h3 class="mb-0 fw-bold">{{ resumenEjecutivo.total_recompensas }}</h3>
+                </div>
+                <div class="flex-center w-48 h-48 bg-white bg-opacity-20 rounded-8">
+                  <i class="ph ph-gift text-xl text-white"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+          <div class="card border-0 shadow-sm rounded-12 bg-success-600 text-white">
+            <div class="card-body p-24">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 class="text-white-50 mb-8 fw-medium">Clientes Beneficiados</h6>
+                  <h3 class="mb-0 fw-bold">{{ resumenEjecutivo.clientes_beneficiados }}</h3>
+                </div>
+                <div class="flex-center w-48 h-48 bg-white bg-opacity-20 rounded-8">
+                  <i class="ph ph-users text-xl text-white"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+          <div class="card border-0 shadow-sm rounded-12 bg-warning-600 text-white">
+            <div class="card-body p-24">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 class="text-white-50 mb-8 fw-medium">Valor Total Beneficios</h6>
+                  <h3 class="mb-0 fw-bold">{{ resumenEjecutivo.valor_total | currency:'PEN':'symbol':'1.0-0' }}</h3>
+                </div>
+                <div class="flex-center w-48 h-48 bg-white bg-opacity-20 rounded-8">
+                  <i class="ph ph-coins text-xl text-white"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+          <div class="card border-0 shadow-sm rounded-12 bg-info-600 text-white">
+            <div class="card-body p-24">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 class="text-white-50 mb-8 fw-medium">Tasa de Conversión</h6>
+                  <h3 class="mb-0 fw-bold">{{ resumenEjecutivo.tasa_conversion }}%</h3>
+                </div>
+                <div class="flex-center w-48 h-48 bg-white bg-opacity-20 rounded-8">
+                  <i class="ph ph-chart-line text-xl text-white"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráficos Principales -->
+      <div class="row g-16 mb-24">
+        <div class="col-xl-8">
+          <div class="card border-0 shadow-sm rounded-12">
+            <div class="card-header bg-white border-0 p-24">
+              <h5 class="mb-0 text-heading fw-semibold">
+                <i class="ph ph-chart-area me-8 text-main-600"></i>
+                Rendimiento de Recompensas
+              </h5>
+            </div>
+            <div class="card-body p-24">
+              <div class="chart-container">
+                <canvas #rendimientoChart></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-4">
+          <div class="card border-0 shadow-sm rounded-12">
+            <div class="card-header bg-white border-0 p-24">
+              <h5 class="mb-0 text-heading fw-semibold">
+                <i class="ph ph-chart-pie me-8 text-main-600"></i>
+                Distribución por Tipo
+              </h5>
+            </div>
+            <div class="card-body p-24">
+              <div class="chart-container">
+                <canvas #distribucionChart></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Tab Análisis Detallado -->
+    <div *ngIf="activeTab === 'analisis'" class="tab-pane fade" [class.show]="activeTab === 'analisis'" [class.active]="activeTab === 'analisis'">
+
+      <!-- Sub-Navigation para Análisis Detallado -->
+      <div class="card border-0 shadow-sm rounded-12 mb-24">
+        <div class="card-body p-0">
+          <nav class="nav nav-pills gap-8 p-16" role="tablist">
+            <button
+              class="nav-link px-16 py-8 rounded-8 fw-medium"
+              [class.active]="analisisSubTab === 'recompensas'"
+              (click)="cambiarAnalisisSubTab('recompensas')"
+              type="button"
+            >
+              <i class="ph ph-trophy me-8"></i>
+              Recompensas
+            </button>
+            <button
+              class="nav-link px-16 py-8 rounded-8 fw-medium"
+              [class.active]="analisisSubTab === 'clientes'"
+              (click)="cambiarAnalisisSubTab('clientes')"
+              type="button"
+            >
+              <i class="ph ph-users me-8"></i>
+              Clientes
+            </button>
+            <button
+              class="nav-link px-16 py-8 rounded-8 fw-medium"
+              [class.active]="analisisSubTab === 'productos'"
+              (click)="cambiarAnalisisSubTab('productos')"
+              type="button"
+            >
+              <i class="ph ph-package me-8"></i>
+              Productos
+            </button>
+            <button
+              class="nav-link px-16 py-8 rounded-8 fw-medium"
+              [class.active]="analisisSubTab === 'tendencias'"
+              (click)="cambiarAnalisisSubTab('tendencias')"
+              type="button"
+            >
+              <i class="ph ph-chart-line me-8"></i>
+              Tendencias
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      <!-- Top Recompensas -->
+      <div *ngIf="analisisSubTab === 'recompensas'">
+      <div class="row g-16 mb-32">
+        <div class="col-12">
+          <div class="card border-0 shadow-sm rounded-12">
+            <div class="card-header bg-white border-0 p-24">
+              <h5 class="mb-0 text-heading fw-semibold">
+                <i class="ph ph-trophy me-8 text-main-600"></i>
+                Top Recompensas
+              </h5>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th class="px-24 py-16 text-heading fw-semibold border-0">Recompensa</th>
+                      <th class="px-24 py-16 text-heading fw-semibold border-0">Tipo</th>
+                      <th class="px-24 py-16 text-heading fw-semibold border-0">Aplicaciones</th>
+                      <th class="px-24 py-16 text-heading fw-semibold border-0">Conversión</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let recompensa of topRecompensas" class="border-bottom border-gray-100">
+                      <td class="px-24 py-16">
+                        <div>
+                          <strong class="text-heading">{{ recompensa.nombre }}</strong>
+                          <br>
+                          <small class="text-gray-500">ID: {{ recompensa.id }}</small>
+                        </div>
+                      </td>
+                      <td class="px-24 py-16">
+                        <span class="badge bg-main-50 text-main-600 px-12 py-6 rounded-pill fw-medium">{{ recompensa.tipo | titlecase }}</span>
+                      </td>
+                      <td class="px-24 py-16">
+                        <span class="text-heading fw-semibold">{{ recompensa.aplicaciones }}</span>
+                      </td>
+                      <td class="px-24 py-16">
+                        <div class="d-flex align-items-center">
+                          <div class="progress me-12" style="width: 60px; height: 8px;">
+                            <div class="progress-bar bg-main-600" [style.width.%]="recompensa.conversion_rate"></div>
+                          </div>
+                          <span class="text-sm text-heading">{{ recompensa.conversion_rate }}%</span>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+
+      <!-- Clientes Más Activos -->
+      <div *ngIf="analisisSubTab === 'clientes'">
+      <div class="row g-16 mb-32">
+        <div class="col-12">
+          <div class="card border-0 shadow-sm rounded-12">
+            <div class="card-header bg-white border-0 p-24">
+              <h5 class="mb-0 text-heading fw-semibold">
+                <i class="ph ph-users me-8 text-main-600"></i>
+                Clientes Más Activos
+              </h5>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th class="px-24 py-16 text-heading fw-semibold border-0">Cliente</th>
+                      <th class="px-24 py-16 text-heading fw-semibold border-0">Email</th>
+                      <th class="px-24 py-16 text-heading fw-semibold border-0">Recompensas</th>
+                      <th class="px-24 py-16 text-heading fw-semibold border-0">Valor Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let cliente of clientesActivos" class="border-bottom border-gray-100">
+                      <td class="px-24 py-16">
+                        <div>
+                          <strong class="text-heading">{{ cliente.nombre }}</strong>
+                          <br>
+                          <small class="text-gray-500">ID: {{ cliente.id }}</small>
+                        </div>
+                      </td>
+                      <td class="px-24 py-16">
+                        <span class="text-heading">{{ cliente.email }}</span>
+                      </td>
+                      <td class="px-24 py-16">
+                        <span class="text-heading fw-semibold">{{ cliente.total_recompensas }}</span>
+                      </td>
+                      <td class="px-24 py-16">
+                        <span class="text-heading fw-semibold">{{ cliente.valor_beneficios | currency:'PEN':'symbol':'1.0-0' }}</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+
+      <!-- Gráficos de Análisis / Tendencias -->
+      <div *ngIf="analisisSubTab === 'tendencias'">
+      <div class="row g-16 mb-32">
+        <div class="col-xl-6">
+          <div class="card border-0 shadow-sm rounded-12">
+            <div class="card-header bg-white border-0 p-24">
+              <h5 class="mb-0 text-heading fw-semibold">
+                <i class="ph ph-chart-line me-8 text-main-600"></i>
+                Tendencias de Uso
+              </h5>
+            </div>
+            <div class="card-body p-24">
+              <div class="chart-container">
+                <canvas #tendenciasChart></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-6">
+          <div class="card border-0 shadow-sm rounded-12">
+            <div class="card-header bg-white border-0 p-24">
+              <h5 class="mb-0 text-heading fw-semibold">
+                <i class="ph ph-chart-bar me-8 text-main-600"></i>
+                Comparativa Mensual
+              </h5>
+            </div>
+            <div class="card-body p-24">
+              <div class="chart-container">
+                <canvas #comparativaChart></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comparativas -->
+      <div class="row g-16 mb-32" *ngIf="comparativas">
+        <div class="col-12">
+          <div class="card border-0 shadow-sm rounded-12">
+            <div class="card-header bg-white border-0 p-24">
+              <h5 class="mb-0 text-heading fw-semibold">
+                <i class="ph ph-trend-up me-8 text-main-600"></i>
+                Comparativa vs Mes Anterior
+              </h5>
+            </div>
+            <div class="card-body p-24">
+              <div class="row g-16">
+                <div class="col-md-4">
+                  <div class="text-center">
+                    <h6 class="text-gray-500 mb-8">Aplicaciones</h6>
+                    <h3 class="text-success-600 fw-bold mb-4">{{ comparativas.periodo_actual.aplicaciones }}</h3>
+                    <span class="badge bg-success-50 text-success-600 px-12 py-6 rounded-pill">
+                      <i class="ph ph-arrow-up me-4" *ngIf="comparativas.comparativa.aplicaciones.tendencia === 'creciente'"></i>
+                      <i class="ph ph-arrow-down me-4" *ngIf="comparativas.comparativa.aplicaciones.tendencia === 'decreciente'"></i>
+                      {{ comparativas.comparativa.aplicaciones.porcentaje_cambio }}%
+                    </span>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="text-center">
+                    <h6 class="text-gray-500 mb-8">Clientes</h6>
+                    <h3 class="text-main-600 fw-bold mb-4">{{ comparativas.periodo_actual.clientes }}</h3>
+                    <span class="badge bg-main-50 text-main-600 px-12 py-6 rounded-pill">
+                      <i class="ph ph-arrow-up me-4" *ngIf="comparativas.comparativa.clientes.tendencia === 'creciente'"></i>
+                      <i class="ph ph-arrow-down me-4" *ngIf="comparativas.comparativa.clientes.tendencia === 'decreciente'"></i>
+                      {{ comparativas.comparativa.clientes.porcentaje_cambio }}%
+                    </span>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="text-center">
+                    <h6 class="text-gray-500 mb-8">Valor Beneficios</h6>
+                    <h3 class="text-warning-600 fw-bold mb-4">{{ comparativas.periodo_actual.valor_beneficios | currency:'PEN':'symbol':'1.0-0' }}</h3>
+                    <span class="badge bg-warning-50 text-warning-600 px-12 py-6 rounded-pill">
+                      <i class="ph ph-arrow-up me-4" *ngIf="comparativas.comparativa.valor_beneficios.tendencia === 'creciente'"></i>
+                      <i class="ph ph-arrow-down me-4" *ngIf="comparativas.comparativa.valor_beneficios.tendencia === 'decreciente'"></i>
+                      {{ comparativas.comparativa.valor_beneficios.porcentaje_cambio }}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+
+      <!-- Análisis por Productos -->
+      <div *ngIf="analisisSubTab === 'productos'">
+      <div class="row g-16 mb-32">
+        <div class="col-12">
+          <div class="card border-0 shadow-sm rounded-12">
+            <div class="card-header bg-white border-0 p-24">
+              <h5 class="mb-0 text-heading fw-semibold">
+                <i class="ph ph-package me-8 text-main-600"></i>
+                Análisis por Productos
+              </h5>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th class="px-24 py-16 text-heading fw-semibold border-0">Producto</th>
+                      <th class="px-24 py-16 text-heading fw-semibold border-0">Categoría</th>
+                      <th class="px-24 py-16 text-heading fw-semibold border-0">Recompensas Asociadas</th>
+                      <th class="px-24 py-16 text-heading fw-semibold border-0">Ventas con Recompensa</th>
+                      <th class="px-24 py-16 text-heading fw-semibold border-0">Impacto en Ventas</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let producto of productosAnalisis" class="border-bottom border-gray-100">
+                      <td class="px-24 py-16">
+                        <div>
+                          <strong class="text-heading">{{ producto.producto }}</strong>
+                          <br>
+                          <small class="text-gray-500">{{ producto.categoria }}</small>
+                        </div>
+                      </td>
+                      <td class="px-24 py-16">
+                        <span class="badge bg-secondary-50 text-secondary-600 px-12 py-6 rounded-pill fw-medium">{{ producto.categoria }}</span>
+                      </td>
+                      <td class="px-24 py-16">
+                        <span class="text-heading fw-semibold">{{ producto.metricas.veces_recompensado }}</span>
+                      </td>
+                      <td class="px-24 py-16">
+                        <span class="text-heading fw-semibold">{{ producto.metricas.valor_total_recompensado | currency:'PEN':'symbol':'1.0-0' }}</span>
+                      </td>
+                      <td class="px-24 py-16">
+                        <div class="d-flex align-items-center">
+                          <div class="progress me-12" style="width: 80px; height: 8px;">
+                            <div class="progress-bar bg-success-600" [style.width.%]="producto.metricas.conversion_rate"></div>
+                          </div>
+                          <span class="text-sm text-heading">{{ producto.metricas.conversion_rate }}%</span>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+
+    </div>
+
+    <!-- Tab Reportes -->
+    <div *ngIf="activeTab === 'reportes'" class="tab-pane fade" [class.show]="activeTab === 'reportes'" [class.active]="activeTab === 'reportes'">
+
+      <!-- Sub-Navigation para Reportes -->
+      <div class="card border-0 shadow-sm rounded-12 mb-24">
+        <div class="card-body p-0">
+          <nav class="nav nav-pills gap-8 p-16" role="tablist">
+            <button
+              class="nav-link px-16 py-8 rounded-8 fw-medium"
+              [class.active]="reportesSubTab === 'segmentos'"
+              (click)="cambiarReportesSubTab('segmentos')"
+              type="button"
+            >
+              <i class="ph ph-users-three me-8"></i>
+              Segmentos
+            </button>
+            <button
+              class="nav-link px-16 py-8 rounded-8 fw-medium"
+              [class.active]="reportesSubTab === 'rendimiento'"
+              (click)="cambiarReportesSubTab('rendimiento')"
+              type="button"
+            >
+              <i class="ph ph-chart-pie me-8"></i>
+              Rendimiento
+            </button>
+            <button
+              class="nav-link px-16 py-8 rounded-8 fw-medium"
+              [class.active]="reportesSubTab === 'alertas'"
+              (click)="cambiarReportesSubTab('alertas')"
+              type="button"
+            >
+              <i class="ph ph-warning me-8"></i>
+              Alertas
+            </button>
+            <button
+              class="nav-link px-16 py-8 rounded-8 fw-medium"
+              [class.active]="reportesSubTab === 'categorias'"
+              (click)="cambiarReportesSubTab('categorias')"
+              type="button"
+            >
+              <i class="ph ph-tag me-8"></i>
+              Categorías
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      <!-- Análisis por Segmentos -->
+      <div *ngIf="reportesSubTab === 'segmentos'">
+      <div class="row g-16 mb-32">
+        <div class="col-12">
+          <div class="card border-0 shadow-sm rounded-12">
+            <div class="card-header bg-white border-0 p-24">
+              <h5 class="mb-0 text-heading fw-semibold">
+                <i class="ph ph-layers me-8 text-main-600"></i>
+                Análisis por Segmentos de Clientes
+              </h5>
+            </div>
+            <div class="card-body p-24">
+              <div class="row g-16">
+                <div class="col-md-4" *ngFor="let segmento of segmentosAnalisis">
+                  <div class="card border border-gray-200 rounded-12">
+                    <div class="card-body p-24 text-center">
+                      <h6 class="card-title text-heading fw-semibold mb-16">{{ segmento.segmento }}</h6>
+                      <div class="mb-16">
+                        <span class="badge bg-main-50 text-main-600 px-12 py-6 rounded-pill fw-medium">{{ segmento.metricas.total_clientes }} clientes</span>
+                      </div>
+                      <div class="mb-16">
+                        <strong class="text-heading fw-bold text-xl">{{ segmento.metricas.aplicaciones }}</strong>
+                        <br>
+                        <small class="text-gray-500">aplicaciones</small>
+                      </div>
+                      <div class="mb-16">
+                        <strong class="text-heading fw-bold text-xl">{{ segmento.metricas.conversion_rate }}%</strong>
+                        <br>
+                        <small class="text-gray-500">tasa de conversión</small>
+                      </div>
+                      <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-main-600" [style.width.%]="segmento.metricas.conversion_rate"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+
+      <!-- Reportes de Rendimiento -->
+      <div *ngIf="reportesSubTab === 'rendimiento'">
+      <div class="row g-16 mb-32">
+        <div class="col-xl-6">
+          <div class="card border-0 shadow-sm rounded-12">
+            <div class="card-header bg-white border-0 p-24">
+              <h5 class="mb-0 text-heading fw-semibold">
+                <i class="ph ph-chart-pie me-8 text-main-600"></i>
+                Distribución por Tipo de Recompensa
+              </h5>
+            </div>
+            <div class="card-body p-24">
+              <div class="chart-container">
+                <canvas #distribucionTipoChart></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-6">
+          <div class="card border-0 shadow-sm rounded-12">
+            <div class="card-header bg-white border-0 p-24">
+              <h5 class="mb-0 text-heading fw-semibold">
+                <i class="ph ph-calendar me-8 text-main-600"></i>
+                Actividad por Día de la Semana
+              </h5>
+            </div>
+            <div class="card-body p-24">
+              <div class="chart-container">
+                <canvas #actividadSemanalChart></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+
+      <!-- Alertas y Recomendaciones -->
+      <div *ngIf="reportesSubTab === 'alertas'">
+      <div class="row g-16 mb-32">
+        <div class="col-md-6">
+          <div class="card border-0 shadow-sm rounded-12 border-warning">
+            <div class="card-header bg-warning-50 border-0 p-24">
+              <h5 class="mb-0 text-heading fw-semibold">
+                <i class="ph ph-warning me-8 text-warning-600"></i>
+                Alertas del Sistema
+              </h5>
+            </div>
+            <div class="card-body p-24">
+              <div *ngFor="let alerta of alertas" class="alert alert-warning alert-dismissible fade show mb-16" role="alert">
+                <strong class="text-warning-800">{{ alerta.titulo }}</strong>
+                <p class="mb-0 text-warning-700">{{ alerta.mensaje }}</p>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card border-0 shadow-sm rounded-12 border-info">
+            <div class="card-header bg-info-50 border-0 p-24">
+              <h5 class="mb-0 text-heading fw-semibold">
+                <i class="ph ph-lightbulb me-8 text-info-600"></i>
+                Recomendaciones
+              </h5>
+            </div>
+            <div class="card-body p-24">
+              <div *ngFor="let recomendacion of recomendaciones" class="alert alert-info alert-dismissible fade show mb-16" role="alert">
+                <strong class="text-info-800">{{ recomendacion.titulo }}</strong>
+                <p class="mb-0 text-info-700">{{ recomendacion.descripcion }}</p>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notificaciones Recientes -->
+      <div class="row g-16 mb-32" *ngIf="reportesSubTab === 'alertas'">
+        <div class="col-12">
+          <div class="card border-0 shadow-sm rounded-12">
+            <div class="card-header bg-white border-0 p-24">
+              <h5 class="mb-0 text-heading fw-semibold">
+                <i class="ph ph-bell me-8 text-main-600"></i>
+                Notificaciones Recientes
+              </h5>
+            </div>
+            <div class="card-body p-24">
+              <div *ngFor="let notificacion of notificaciones" class="alert alert-{{ notificacion.tipo }} alert-dismissible fade show mb-16" role="alert">
+                <div class="d-flex align-items-center">
+                  <div class="flex-shrink-0 me-16">
+                    <i class="ph ph-{{ notificacion.tipo === 'success' ? 'check-circle' : notificacion.tipo === 'warning' ? 'warning-circle' : 'info' }} text-{{ notificacion.tipo === 'success' ? 'success' : notificacion.tipo === 'warning' ? 'warning' : 'info' }}-600"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                    <strong class="text-{{ notificacion.tipo === 'success' ? 'success' : notificacion.tipo === 'warning' ? 'warning' : 'info' }}-800">{{ notificacion.titulo }}</strong>
+                    <p class="mb-0 text-{{ notificacion.tipo === 'success' ? 'success' : notificacion.tipo === 'warning' ? 'warning' : 'info' }}-700">{{ notificacion.mensaje }}</p>
+                    <small class="text-gray-500">{{ notificacion.fecha }}</small>
+                  </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+
+      <!-- Top Categorías -->
+      <div *ngIf="reportesSubTab === 'categorias'">
+      <div class="row g-16 mb-32">
+        <div class="col-12">
+          <div class="card border-0 shadow-sm rounded-12">
+            <div class="card-header bg-white border-0 p-24">
+              <h5 class="mb-0 text-heading fw-semibold">
+                <i class="ph ph-tag me-8 text-main-600"></i>
+                Top Categorías por Aplicaciones
+              </h5>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th class="px-24 py-16 text-heading fw-semibold border-0">Categoría</th>
+                      <th class="px-24 py-16 text-heading fw-semibold border-0">Aplicaciones</th>
+                      <th class="px-24 py-16 text-heading fw-semibold border-0">Tasa de Conversión</th>
+                      <th class="px-24 py-16 text-heading fw-semibold border-0">Rendimiento</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let categoria of metricasAdicionales.top_categorias" class="border-bottom border-gray-100">
+                      <td class="px-24 py-16">
+                        <div>
+                          <strong class="text-heading">{{ categoria.categoria }}</strong>
+                        </div>
+                      </td>
+                      <td class="px-24 py-16">
+                        <span class="text-heading fw-semibold">{{ categoria.aplicaciones }}</span>
+                      </td>
+                      <td class="px-24 py-16">
+                        <span class="text-heading fw-semibold">{{ categoria.conversion_rate }}%</span>
+                      </td>
+                      <td class="px-24 py-16">
+                        <div class="d-flex align-items-center">
+                          <div class="progress me-12" style="width: 80px; height: 8px;">
+                            <div class="progress-bar bg-main-600" [style.width.%]="categoria.conversion_rate"></div>
+                          </div>
+                          <span class="text-sm text-heading">{{ categoria.conversion_rate }}%</span>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumen Ejecutivo -->
+      <div class="row g-16">
+        <div class="col-12">
+          <div class="card border-0 shadow-sm rounded-12">
+            <div class="card-header bg-white border-0 p-24">
+              <h5 class="mb-0 text-heading fw-semibold">
+                <i class="ph ph-file-text me-8 text-main-600"></i>
+                Resumen Ejecutivo
+              </h5>
+            </div>
+            <div class="card-body p-24">
+              <div class="row g-16">
+                <div class="col-md-3">
+                  <div class="text-center">
+                    <h3 class="text-main-600 fw-bold mb-8">{{ resumenEjecutivo.total_recompensas }}</h3>
+                    <p class="text-gray-500 mb-0">Total Recompensas</p>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="text-center">
+                    <h3 class="text-success-600 fw-bold mb-8">{{ resumenEjecutivo.clientes_beneficiados }}</h3>
+                    <p class="text-gray-500 mb-0">Clientes Beneficiados</p>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="text-center">
+                    <h3 class="text-warning-600 fw-bold mb-8">{{ resumenEjecutivo.valor_total | currency:'PEN':'symbol':'1.0-0' }}</h3>
+                    <p class="text-gray-500 mb-0">Valor Total</p>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="text-center">
+                    <h3 class="text-info-600 fw-bold mb-8">{{ resumenEjecutivo.tasa_conversion }}%</h3>
+                    <p class="text-gray-500 mb-0">Tasa de Conversión</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

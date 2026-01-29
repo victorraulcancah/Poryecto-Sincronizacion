@@ -1,0 +1,42 @@
+# robots.txt para MAGUS Ecommerce
+# https://magus-ecommerce.com/robots.txt
+
+User-agent: *
+Allow: /
+Disallow: /dashboard/
+Disallow: /my-account/
+Disallow: /cart
+Disallow: /checkout
+Disallow: /account
+Disallow: /api/
+
+# Permitir crawling de páginas de productos
+Allow: /product/
+Allow: /shop/
+Allow: /index
+
+# Sitemap
+Sitemap: https://magus-ecommerce.com/sitemap.xml
+
+# Configuración específica para Google
+User-agent: Googlebot
+Allow: /
+Disallow: /dashboard/
+Disallow: /my-account/
+Disallow: /cart
+Disallow: /checkout
+
+# Configuración para Bingbot
+User-agent: Bingbot
+Allow: /
+Disallow: /dashboard/
+Disallow: /my-account/
+
+# Prevenir indexación de archivos específicos
+Disallow: /*.json$
+Disallow: /*.xml$
+Disallow: /assets/
+Allow: /assets/images/
+
+# Crawl delay (opcional, solo si necesitas limitar)
+# Crawl-delay: 1

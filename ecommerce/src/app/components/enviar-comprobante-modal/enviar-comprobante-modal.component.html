@@ -1,0 +1,109 @@
+<div class="modal-overlay" (click)="onCerrar()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="modal-header">
+      <div class="header-content">
+        <div class="header-icon">
+          <i class="ph ph-paper-plane-tilt"></i>
+        </div>
+        <div class="header-text">
+          <h5>Enviar Comprobante</h5>
+          <small *ngIf="comprobante">{{ comprobante.numero_completo }}</small>
+        </div>
+      </div>
+      <button class="btn-close" (click)="onCerrar()">
+        <i class="ph ph-x"></i>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="modal-body">
+      <!-- Información del comprobante -->
+      <div class="comprobante-info" *ngIf="comprobante">
+        <div class="info-row">
+          <span class="label">Comprobante:</span>
+          <span class="value">{{ comprobante.numero_completo }}</span>
+        </div>
+        <div class="info-row" *ngIf="comprobante.cliente_razon_social">
+          <span class="label">Cliente:</span>
+          <span class="value">{{ comprobante.cliente_razon_social }}</span>
+        </div>
+        <div class="info-row" *ngIf="comprobante.importe_total">
+          <span class="label">Total:</span>
+          <span class="value">S/ {{ comprobante.importe_total | number:'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <!-- Selector de tipo de envío -->
+      <div class="form-group">
+        <label>Enviar por:</label>
+        <div class="tipo-envio-selector">
+          <button 
+            type="button"
+            class="tipo-btn"
+            [class.active]="tipoEnvio === 'email'"
+            (click)="tipoEnvio = 'email'; onTipoEnvioChange()">
+            <i class="ph ph-envelope"></i>
+            <span>Email</span>
+          </button>
+          <button 
+            type="button"
+            class="tipo-btn"
+            [class.active]="tipoEnvio === 'whatsapp'"
+            (click)="tipoEnvio = 'whatsapp'; onTipoEnvioChange()">
+            <i class="ph ph-whatsapp-logo"></i>
+            <span>WhatsApp</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Campo Email -->
+      <div class="form-group" *ngIf="tipoEnvio === 'email'">
+        <label>Email del cliente *</label>
+        <input 
+          type="email" 
+          class="form-control" 
+          [(ngModel)]="email"
+          placeholder="cliente@ejemplo.com"
+          [class.invalid]="email && !esEmailValido(email)">
+        <small class="help-text">Se enviará el comprobante en formato PDF</small>
+      </div>
+
+      <!-- Campo Teléfono -->
+      <div class="form-group" *ngIf="tipoEnvio === 'whatsapp'">
+        <label>Teléfono (WhatsApp) *</label>
+        <input 
+          type="tel" 
+          class="form-control" 
+          [(ngModel)]="telefono"
+          placeholder="+51987654321">
+        <small class="help-text">Incluir código de país (+51 para Perú)</small>
+      </div>
+
+      <!-- Mensaje personalizado -->
+      <div class="form-group">
+        <label>Mensaje personalizado (opcional)</label>
+        <textarea 
+          class="form-control" 
+          [(ngModel)]="mensaje"
+          rows="4"
+          placeholder="Mensaje adicional para el cliente..."></textarea>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="onCerrar()">
+        Cancelar
+      </button>
+      <button 
+        class="btn btn-primary"
+        [disabled]="!puedeEnviar || enviando"
+        (click)="onEnviar()">
+        <i class="ph ph-paper-plane-tilt" *ngIf="!enviando"></i>
+        <i class="ph ph-spinner ph-spin" *ngIf="enviando"></i>
+        <span>{{ enviando ? 'Enviando...' : 'Enviar' }}</span>
+      </button>
+    </div>
+  </div>
+</div>

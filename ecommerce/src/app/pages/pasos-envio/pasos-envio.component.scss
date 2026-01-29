@@ -1,0 +1,95 @@
+// Pasos de Envío - Reutilizando estilos del proyecto
+
+.shipping-steps {
+  background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+  padding-top: 80px; // Espacio para el navbar fijo
+}
+
+.step-card {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--main-600), var(--main-400));
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+  }
+
+  &:hover::before {
+    transform: scaleX(1);
+  }
+}
+
+.step-number {
+  font-family: 'Inter', sans-serif;
+  box-shadow: 0 4px 12px rgba(var(--main-600-rgb), 0.3);
+}
+
+.step-image {
+  img {
+    transition: transform 0.3s ease;
+  }
+
+  &:hover img {
+    transform: scale(1.05);
+  }
+}
+
+.timeline-connector {
+  .timeline-line {
+    background: linear-gradient(90deg, var(--main-200), var(--main-600), var(--main-200));
+  }
+
+  .timeline-dot {
+    box-shadow: 0 0 0 4px rgba(var(--main-600-rgb), 0.2);
+  }
+}
+
+.cta-section {
+  .bg-main-50 {
+    background: linear-gradient(135deg, var(--main-50), var(--main-100));
+  }
+}
+
+// Responsive
+@media (max-width: 991px) {
+  .step-card {
+    margin-bottom: 24px;
+  }
+}
+
+// Loading spinner
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+  border-width: 0.3em;
+}
+
+// Animations
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+[data-aos="fade-up"] {
+  animation: fadeInUp 0.6s ease-out;
+}

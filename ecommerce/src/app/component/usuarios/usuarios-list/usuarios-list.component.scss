@@ -1,0 +1,106 @@
+// src/app/component/usuarios/usuarios-list/usuarios-list.component.scss
+// Este componente usa las clases globales de data-table
+// definidas en src/assets/sass/components/_data-table.scss
+
+// Solo estilos específicos para usuarios
+:host {
+  display: block;
+}
+
+// Fix para el tamaño de las imágenes de avatar
+.table-avatar__img {
+  width: 40px !important;
+  height: 40px !important;
+  object-fit: cover !important;
+  border-radius: 50% !important;
+}
+
+// Estilos específicos para badges de rol
+.type-badge {
+  font-size: var(--font-xs);
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 12px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &.badge-admin {
+    background-color: var(--danger-50);
+    color: var(--danger-600);
+  }
+
+  &.badge-vendedor {
+    background-color: var(--warning-50);
+    color: var(--warning-600);
+  }
+
+  &.badge-cliente {
+    background-color: var(--info-50);
+    color: var(--info-600);
+  }
+
+  &.badge-default {
+    background-color: var(--gray-50);
+    color: var(--gray-600);
+  }
+}
+
+
+// Estilos específicos para botones de toggle de estado
+.toggle-button {
+  width: 32px;
+  height: 20px;
+  border: none;
+  border-radius: 10px;
+  background-color: var(--gray-300);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0;
+
+  i {
+    font-size: 16px;
+    color: var(--gray-600);
+    transition: all 0.3s ease;
+  }
+
+  &.toggle-button--active {
+    background-color: var(--success-500);
+
+    i {
+      color: white;
+    }
+  }
+
+  &:hover {
+    transform: scale(1.05);
+  }
+}
+
+// Estilos específicos para estados
+.status-badge {
+  font-size: var(--font-xs);
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 12px;
+  min-width: 60px;
+  text-align: center;
+
+  &--active {
+    background-color: var(--success-50);
+    color: var(--success-600);
+  }
+
+  &--inactive {
+    background-color: var(--danger-50);
+    color: var(--danger-600);
+  }
+}
+
+// MARGEN PARA EL ÚLTIMO ITEM DE LA TABLA
+::ng-deep .modern-data-table .table tbody tr:last-child td {
+  padding-bottom: 24px !important;
+}

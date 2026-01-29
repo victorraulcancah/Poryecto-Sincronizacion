@@ -1,0 +1,113 @@
+<!-- src\app\layouts\main-layouts\footer\footer.component.html -->
+<!-- ==================== Footer Start Here ==================== -->
+<footer class="footer py-60 bg-azul-oscuro">
+    <div class="container container-lg">
+        <div class="row align-items-start">
+            <!-- Logo y información de contacto -->
+            <div class="col-lg-3 col-md-6 mb-40" data-aos="fade-up" data-aos-duration="200">
+                <div class="footer-item__logo mb-24">
+                    <a [routerLink]="['/']">
+                        <img [src]="empresaInfo.logo_url || '/assets/images/logo/logo3.png'"
+                             [alt]="empresaInfo.nombre_empresa"
+                             class="img-fluid">
+                    </a>
+                </div>
+
+                <div class="mb-24">
+                    <p class="text-white mb-16 fw-medium">
+                        Escríbenos a: {{ empresaInfo.email }}
+                    </p>
+                    <p class="text-white mb-8" *ngIf="empresaInfo.telefono">
+                        Teléfono: {{ empresaInfo.telefono }}
+                    </p>
+                    <p class="text-white mb-8" *ngIf="empresaInfo.celular">
+                        Celular: {{ empresaInfo.celular }}
+                    </p>
+                    <p class="text-white mb-16" *ngIf="empresaInfo.horario_atencion">
+                        {{ empresaInfo.horario_atencion }}
+                    </p>
+                </div>
+
+                <!-- Redes sociales dinámicas -->
+                <div class="d-flex gap-12" *ngIf="socialLinks.length > 0">
+                    <a *ngFor="let social of socialLinks"
+                       [href]="social.url"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="w-36 h-36 rounded-circle bg-opacity-10 hover-bg-danger-10 d-flex align-items-center justify-content-center text-white hover-text-white transition-all">
+                        <i [class]="social.icon" class="text-lg"></i>
+                    </a>
+                </div>
+
+                <!-- Desarrollado por -->
+                <div class="mt-24 d-flex align-items-center gap-8">
+                    <span class="text-white text-sm">DESARROLLADO POR:</span>
+                    <img src="/assets/images/logo/logo2.png" alt="MAGUS" class="img-fluid" style="height: 24px;">
+                </div>
+            </div>
+
+            <!-- Secciones de enlaces -->
+            <div class="col-lg-6 col-md-6">
+                <div class="row">
+                    <div *ngFor="let section of footerSections; let i = index" 
+                         class="col-md-4 mb-32" 
+                         [attr.data-aos]="'fade-up'"
+                         [attr.data-aos-duration]="(i + 2) * 200">
+                        <h6 class="footer-item__title text-danger-10 fw-semibold mb-20 text-uppercase">{{ section.title }}</h6>
+                        <ul class="footer-menu list-unstyled">
+                            <li *ngFor="let link of section.links" class="mb-8">
+                                <a [routerLink]="link.route" 
+                                   class="text-white hover-text-danger-20 text-sm transition-all text-decoration-none">
+                                    {{ link.label }}
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Suscripción y métodos de pago -->
+            <div class="col-lg-3 col-md-12 mb-40" data-aos="fade-up" data-aos-duration="1000">
+                <!-- ✅ SECCIÓN DE SUSCRIPCIÓN COMENTADA -->
+                <!-- <h6 class="footer-item__title text-danger-10 fw-semibold mb-20 text-uppercase">Suscríbete a nuestras promociones</h6> -->
+
+                <!-- Formulario de suscripción -->
+                <!-- <div class="newsletter-form mb-24">
+                    <div class="input-group">
+                        <input type="email"
+                               class="form-control bg-white border-0 px-16 py-12 text-sm"
+                               placeholder="Ingresa tu correo"
+                               [(ngModel)]="emailSuscripcion">
+                        <button class="btn bg-danger-10 hover-bg-danger-20 text-white px-20 border-0"
+                                type="button"
+                                (click)="suscribirse()">
+                            Enviar
+                        </button>
+                    </div>
+                </div> -->
+
+              <!-- Libro de reclamaciones -->
+<div class="mb-24">
+  <a [routerLink]="['/claimbook']" class="d-flex align-items-center gap-8 text-white hover-text-danger-10 text-decoration-none">
+    <i class="ph ph-book text-lg"></i>
+    <span class="text-sm">Libro de reclamaciones</span>
+  </a>
+</div>
+
+
+                <!-- Métodos de pago -->
+                <div>
+                    <h6 class="text-white fw-medium mb-16 text-sm">Métodos de pago</h6>
+                    <div class="d-flex flex-wrap gap-8">
+                        <img *ngFor="let method of paymentMethods" 
+                             [src]="method.image" 
+                             [alt]="method.name"
+                             class="payment-method-img"
+                             style="height: 32px; width: auto; object-fit: contain;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+<!-- ==================== Footer End Here ==================== -->

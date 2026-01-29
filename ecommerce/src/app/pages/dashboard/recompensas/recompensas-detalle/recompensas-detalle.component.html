@@ -1,0 +1,598 @@
+<div class="container-fluid">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
+          <p class="mt-3 mb-0">Cargando detalles de la recompensa...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="row">
+    <div class="col-12">
+      <div class="alert alert-warning" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        {{ error }}
+        <p class="mb-0 mt-2">
+          <small>Se están mostrando datos de ejemplo para demostrar la funcionalidad.</small>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!loading">
+    <!-- Navegación entre Submódulos -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h6 class="card-title mb-0">
+              <i class="fas fa-cogs me-2"></i>
+              Configuración de Recompensa
+            </h6>
+          </div>
+          <div class="card-body">
+            <div class="row g-2">
+              <div class="col-md-2">
+                <a 
+                  [routerLink]="['/dashboard/recompensas', recompensa.id, 'segmentos']"
+                  class="btn btn-outline-primary w-100"
+                  title="Configurar Segmentos y Clientes"
+                >
+                  <i class="fas fa-users d-block mb-1"></i>
+                  <small>Segmentos</small>
+                </a>
+              </div>
+              <div class="col-md-2">
+                <a 
+                  [routerLink]="['/dashboard/recompensas', recompensa.id, 'productos']"
+                  class="btn btn-outline-success w-100"
+                  title="Configurar Productos y Categorías"
+                >
+                  <i class="fas fa-box d-block mb-1"></i>
+                  <small>Productos</small>
+                </a>
+              </div>
+              <div class="col-md-2">
+                <a 
+                  [routerLink]="['/dashboard/recompensas', recompensa.id, 'puntos']"
+                  class="btn btn-outline-warning w-100"
+                  title="Configurar Sistema de Puntos"
+                >
+                  <i class="fas fa-coins d-block mb-1"></i>
+                  <small>Puntos</small>
+                </a>
+              </div>
+              <div class="col-md-2">
+                <a 
+                  [routerLink]="['/dashboard/recompensas', recompensa.id, 'descuentos']"
+                  class="btn btn-outline-info w-100"
+                  title="Configurar Descuentos"
+                >
+                  <i class="fas fa-percentage d-block mb-1"></i>
+                  <small>Descuentos</small>
+                </a>
+              </div>
+              <div class="col-md-2">
+                <a 
+                  [routerLink]="['/dashboard/recompensas', recompensa.id, 'envios']"
+                  class="btn btn-outline-secondary w-100"
+                  title="Configurar Envíos Gratis"
+                >
+                  <i class="fas fa-shipping-fast d-block mb-1"></i>
+                  <small>Envíos</small>
+                </a>
+              </div>
+              <div class="col-md-2">
+                <a 
+                  [routerLink]="['/dashboard/recompensas', recompensa.id, 'regalos']"
+                  class="btn btn-outline-danger w-100"
+                  title="Configurar Regalos"
+                >
+                  <i class="fas fa-gift d-block mb-1"></i>
+                  <small>Regalos</small>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Header con información básica -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <h4 class="mb-2">{{ recompensa?.nombre }}</h4>
+              <div class="d-flex align-items-center gap-3 mb-3">
+                <span class="badge bg-primary fs-6">{{ recompensa?.tipo | titlecase }}</span>
+                <span class="badge" [ngClass]="getEstadoBadgeClass(recompensa?.estado)">
+                  {{ recompensa?.estado | titlecase }}
+                </span>
+                <span class="text-muted">
+                  <i class="fas fa-calendar me-1"></i>
+                  {{ recompensa?.fecha_inicio | date:'dd/MM/yyyy' }} - {{ recompensa?.fecha_fin | date:'dd/MM/yyyy' }}
+                </span>
+              </div>
+              <p class="text-muted mb-0">{{ recompensa?.descripcion }}</p>
+            </div>
+            <div class="text-end">
+              <button class="btn btn-outline-primary me-2" (click)="editarRecompensa()">
+                <i class="fas fa-edit me-1"></i>
+                Editar
+              </button>
+              <button class="btn btn-outline-secondary" (click)="volverALista()">
+                <i class="fas fa-arrow-left me-1"></i>
+                Volver
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs de navegación -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+          <ul class="nav nav-tabs card-header-tabs" id="recompensaDetailTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="base-tab" data-bs-toggle="tab" data-bs-target="#base" type="button" role="tab">
+                <i class="fas fa-info-circle me-2"></i>
+                1.1 Base
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="segmentacion-tab" data-bs-toggle="tab" data-bs-target="#segmentacion" type="button" role="tab">
+                <i class="fas fa-users me-2"></i>
+                1.2 Segmentación
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="productos-tab" data-bs-toggle="tab" data-bs-target="#productos" type="button" role="tab">
+                <i class="fas fa-box me-2"></i>
+                1.3 Productos
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="configuracion-tab" data-bs-toggle="tab" data-bs-target="#configuracion" type="button" role="tab">
+                <i class="fas fa-cog me-2"></i>
+                1.4 Configuración
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="activacion-tab" data-bs-toggle="tab" data-bs-target="#activacion" type="button" role="tab">
+                <i class="fas fa-rocket me-2"></i>
+                1.5 Activación
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <div class="card-body">
+          <div class="tab-content" id="recompensaDetailTabsContent">
+            
+            <!-- Tab 1.1: Base -->
+            <div class="tab-pane fade show active" id="base" role="tabpanel">
+              <div class="row">
+                <div class="col-md-6">
+                  <h6 class="mb-3">
+                    <i class="fas fa-database me-2 text-primary"></i>
+                    Tabla: recompensas
+                  </h6>
+                  <div class="table-responsive">
+                    <table class="table table-sm">
+                      <tbody>
+                        <tr>
+                          <td><strong>ID:</strong></td>
+                          <td>{{ recompensa?.id }}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>nombre:</strong></td>
+                          <td>{{ recompensa?.nombre }}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>descripcion:</strong></td>
+                          <td>{{ recompensa?.descripcion }}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>tipo:</strong></td>
+                          <td>{{ recompensa?.tipo }}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>fecha_inicio:</strong></td>
+                          <td>{{ recompensa?.fecha_inicio | date:'yyyy-MM-dd' }}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>fecha_fin:</strong></td>
+                          <td>{{ recompensa?.fecha_fin | date:'yyyy-MM-dd' }}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>estado:</strong></td>
+                          <td>{{ recompensa?.estado }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <h6 class="mb-3">
+                    <i class="fas fa-check-circle me-2 text-success"></i>
+                    Validaciones Aplicadas
+                  </h6>
+                  <ul class="list-unstyled">
+                    <li class="mb-2">
+                      <i class="fas fa-check text-success me-2"></i>
+                      Fecha inicio ≥ hoy
+                    </li>
+                    <li class="mb-2">
+                      <i class="fas fa-check text-success me-2"></i>
+                      Fecha fin > fecha inicio
+                    </li>
+                    <li class="mb-2">
+                      <i class="fas fa-check text-success me-2"></i>
+                      Nombre único para fechas solapadas
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 1.2: Segmentación -->
+            <div class="tab-pane fade" id="segmentacion" role="tabpanel">
+              <div class="row">
+                <div class="col-md-6">
+                  <h6 class="mb-3">
+                    <i class="fas fa-database me-2 text-primary"></i>
+                    Tabla: recompensas_clientes
+                  </h6>
+                  <div class="table-responsive" *ngIf="configuracion?.clientes?.length > 0">
+                    <table class="table table-sm">
+                      <thead>
+                        <tr>
+                          <th>ID</th>
+                          <th>Segmento</th>
+                          <th>Cliente Específico</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let cliente of configuracion.clientes">
+                          <td>{{ cliente.id }}</td>
+                          <td>{{ cliente.segmento_nombre }}</td>
+                          <td>
+                            <span class="badge bg-info" *ngIf="cliente.es_cliente_especifico">
+                              {{ cliente.cliente?.nombre }}
+                            </span>
+                            <span class="text-muted" *ngIf="!cliente.es_cliente_especifico">-</span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="alert alert-info" *ngIf="!configuracion?.clientes?.length">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Todos los clientes (tabla vacía)
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <h6 class="mb-3">
+                    <i class="fas fa-chart-pie me-2 text-info"></i>
+                    Resumen de Segmentación
+                  </h6>
+                  <div class="card bg-light">
+                    <div class="card-body">
+                      <p><strong>Tipo:</strong> {{ getTipoSegmentacion() }}</p>
+                      <p><strong>Total registros:</strong> {{ configuracion?.clientes?.length || 0 }}</p>
+                      <p><strong>Clientes elegibles:</strong> {{ getTotalClientesElegibles() }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 1.3: Productos -->
+            <div class="tab-pane fade" id="productos" role="tabpanel">
+              <div class="row">
+                <div class="col-md-6">
+                  <h6 class="mb-3">
+                    <i class="fas fa-database me-2 text-primary"></i>
+                    Tabla: recompensas_productos
+                  </h6>
+                  <div class="table-responsive" *ngIf="configuracion?.productos?.length > 0">
+                    <table class="table table-sm">
+                      <thead>
+                        <tr>
+                          <th>ID</th>
+                          <th>Tipo</th>
+                          <th>Elemento</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let producto of configuracion.productos">
+                          <td>{{ producto.id }}</td>
+                          <td>
+                            <span class="badge bg-primary" *ngIf="producto.tipo_elemento === 'producto'">Producto</span>
+                            <span class="badge bg-success" *ngIf="producto.tipo_elemento === 'categoria'">Categoría</span>
+                          </td>
+                          <td>{{ producto.nombre_elemento }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="alert alert-info" *ngIf="!configuracion?.productos?.length">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Todos los productos (tabla vacía)
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <h6 class="mb-3">
+                    <i class="fas fa-chart-pie me-2 text-info"></i>
+                    Resumen de Productos
+                  </h6>
+                  <div class="card bg-light">
+                    <div class="card-body">
+                      <p><strong>Tipo:</strong> {{ getTipoProductos() }}</p>
+                      <p><strong>Total registros:</strong> {{ configuracion?.productos?.length || 0 }}</p>
+                      <p><strong>Productos elegibles:</strong> {{ getTotalProductosElegibles() }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 1.4: Configuración -->
+            <div class="tab-pane fade" id="configuracion" role="tabpanel">
+              <div class="row">
+                <div class="col-12">
+                  <h6 class="mb-3">
+                    <i class="fas fa-database me-2 text-primary"></i>
+                    Tabla: recompensas_{{ recompensa?.tipo }}
+                  </h6>
+                </div>
+              </div>
+
+              <!-- Configuración de Puntos -->
+              <div *ngIf="recompensa?.tipo === 'puntos'" class="row">
+                <div class="col-md-6">
+                  <div class="table-responsive" *ngIf="configuracion?.puntos?.length > 0">
+                    <table class="table table-sm">
+                      <thead>
+                        <tr>
+                          <th>Campo</th>
+                          <th>Valor</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let punto of configuracion.puntos">
+                          <td>puntos_por_compra</td>
+                          <td>{{ punto.puntos_por_compra || 0 }}</td>
+                        </tr>
+                        <tr *ngFor="let punto of configuracion.puntos">
+                          <td>puntos_por_monto</td>
+                          <td>{{ punto.puntos_por_monto || 0 }}</td>
+                        </tr>
+                        <tr *ngFor="let punto of configuracion.puntos">
+                          <td>puntos_registro</td>
+                          <td>{{ punto.puntos_registro || 0 }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="card bg-light">
+                    <div class="card-body">
+                      <h6>Validaciones</h6>
+                      <ul class="mb-0">
+                        <li>Todos los valores ≥ 0</li>
+                        <li>Al menos un campo > 0</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Configuración de Descuentos -->
+              <div *ngIf="recompensa?.tipo === 'descuento'" class="row">
+                <div class="col-md-6">
+                  <div class="table-responsive" *ngIf="configuracion?.descuentos?.length > 0">
+                    <table class="table table-sm">
+                      <thead>
+                        <tr>
+                          <th>Campo</th>
+                          <th>Valor</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let descuento of configuracion.descuentos">
+                          <td>tipo_descuento</td>
+                          <td>{{ descuento.tipo_descuento }}</td>
+                        </tr>
+                        <tr *ngFor="let descuento of configuracion.descuentos">
+                          <td>valor_descuento</td>
+                          <td>{{ descuento.valor_descuento }}</td>
+                        </tr>
+                        <tr *ngFor="let descuento of configuracion.descuentos">
+                          <td>compra_minima</td>
+                          <td>{{ descuento.compra_minima || 0 }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="card bg-light">
+                    <div class="card-body">
+                      <h6>Validaciones</h6>
+                      <ul class="mb-0">
+                        <li>Si porcentaje: valor_descuento ≤ 100</li>
+                        <li>Si cantidad fija: valor_descuento > 0</li>
+                        <li>compra_minima ≥ 0</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Configuración de Envíos -->
+              <div *ngIf="recompensa?.tipo === 'envio_gratis'" class="row">
+                <div class="col-md-6">
+                  <div class="table-responsive" *ngIf="configuracion?.envios?.length > 0">
+                    <table class="table table-sm">
+                      <thead>
+                        <tr>
+                          <th>Campo</th>
+                          <th>Valor</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let envio of configuracion.envios">
+                          <td>minimo_compra</td>
+                          <td>{{ envio.minimo_compra || 0 }}</td>
+                        </tr>
+                        <tr *ngFor="let envio of configuracion.envios">
+                          <td>zonas_aplicables</td>
+                          <td>{{ envio.zonas_aplicables || 'Todas las zonas' }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="card bg-light">
+                    <div class="card-body">
+                      <h6>Validaciones</h6>
+                      <ul class="mb-0">
+                        <li>minimo_compra ≥ 0</li>
+                        <li>Si zonas_aplicables, validar formato JSON correcto</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Configuración de Regalos -->
+              <div *ngIf="recompensa?.tipo === 'regalo'" class="row">
+                <div class="col-md-6">
+                  <div class="table-responsive" *ngIf="configuracion?.regalos?.length > 0">
+                    <table class="table table-sm">
+                      <thead>
+                        <tr>
+                          <th>Campo</th>
+                          <th>Valor</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let regalo of configuracion.regalos">
+                          <td>producto_regalo_id</td>
+                          <td>{{ regalo.producto_regalo_id }}</td>
+                        </tr>
+                        <tr *ngFor="let regalo of configuracion.regalos">
+                          <td>compra_minima</td>
+                          <td>{{ regalo.compra_minima || 0 }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="card bg-light">
+                    <div class="card-body">
+                      <h6>Validaciones</h6>
+                      <ul class="mb-0">
+                        <li>producto_regalo_id debe existir en tabla productos</li>
+                        <li>compra_minima ≥ 0</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 1.5: Activación -->
+            <div class="tab-pane fade" id="activacion" role="tabpanel">
+              <div class="row">
+                <div class="col-md-6">
+                  <h6 class="mb-3">
+                    <i class="fas fa-rocket me-2 text-primary"></i>
+                    Estado de Activación
+                  </h6>
+                  <div class="card">
+                    <div class="card-body">
+                      <div class="d-flex align-items-center mb-3">
+                        <span class="badge fs-6 me-3" [ngClass]="getEstadoBadgeClass(recompensa?.estado)">
+                          {{ recompensa?.estado | titlecase }}
+                        </span>
+                        <span class="text-muted">Estado actual</span>
+                      </div>
+                      
+                      <div class="mb-3" *ngIf="recompensa?.estado === 'borrador'">
+                        <button class="btn btn-success" (click)="activarRecompensa()">
+                          <i class="fas fa-play me-2"></i>
+                          Activar Recompensa
+                        </button>
+                      </div>
+                      
+                      <div class="mb-3" *ngIf="recompensa?.estado === 'activa'">
+                        <button class="btn btn-warning me-2" (click)="pausarRecompensa()">
+                          <i class="fas fa-pause me-2"></i>
+                          Pausar
+                        </button>
+                        <button class="btn btn-danger" (click)="desactivarRecompensa()">
+                          <i class="fas fa-stop me-2"></i>
+                          Desactivar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <h6 class="mb-3">
+                    <i class="fas fa-chart-line me-2 text-info"></i>
+                    Historial Reciente
+                  </h6>
+                  <div class="table-responsive" *ngIf="historialReciente && historialReciente.length > 0">
+                    <table class="table table-sm">
+                      <thead>
+                        <tr>
+                          <th>Cliente</th>
+                          <th>Beneficio</th>
+                          <th>Fecha</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let historial of historialReciente">
+                          <td>{{ historial.cliente }}</td>
+                          <td>{{ historial.beneficio_aplicado }}</td>
+                          <td>{{ historial.fecha_aplicacion | date:'dd/MM/yyyy HH:mm' }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="alert alert-info" *ngIf="!historialReciente?.length">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Sin actividad reciente
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div> <!-- Cierre del div *ngIf="!loading" -->
+</div>

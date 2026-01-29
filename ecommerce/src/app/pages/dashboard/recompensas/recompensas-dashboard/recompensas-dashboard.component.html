@@ -1,0 +1,287 @@
+<div class="recompensas-dashboard-container">
+  <!-- Header del Dashboard -->
+  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+      <i class="fas fa-gift me-2 text-primary"></i>
+      Dashboard de Recompensas
+    </h1>
+    <button class="btn btn-gradient" (click)="crearRecompensa()">
+      <i class="fas fa-plus me-2"></i>Nueva Recompensa
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loadingStats" class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
+          <p class="mt-3 text-muted">Cargando estadísticas...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="row mb-4" *ngIf="!loadingStats">
+    <div class="col-md-3">
+      <div class="card metric-card">
+        <div class="card-body">
+          <h5 class="card-title">Recompensas Activas</h5>
+          <h2 class="text-primary">{{ stats.recompensas_activas || 0 }}</h2>
+          <small class="text-success">
+            <i class="fas fa-arrow-up"></i> +{{ stats.recompensas_activas_crecimiento || 0 }}% vs mes anterior
+          </small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card metric-card">
+        <div class="card-body">
+          <h5 class="card-title">Puntos Canjeados</h5>
+          <h2 class="text-warning">{{ stats.puntos_canjeados || 0 | number }}</h2>
+          <small class="text-success">
+            <i class="fas fa-arrow-up"></i> +{{ stats.puntos_crecimiento || 0 }}% vs mes anterior
+          </small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card metric-card">
+        <div class="card-body">
+          <h5 class="card-title">Clientes Beneficiados</h5>
+          <h2 class="text-info">{{ stats.clientes_beneficiados || 0 | number }}</h2>
+          <small [class]="stats.clientes_crecimiento >= 0 ? 'text-success' : 'text-danger'">
+            <i [class]="stats.clientes_crecimiento >= 0 ? 'fas fa-arrow-up' : 'fas fa-arrow-down'"></i> 
+            {{ stats.clientes_crecimiento >= 0 ? '+' : '' }}{{ stats.clientes_crecimiento || 0 }}% vs mes anterior
+          </small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card metric-card">
+        <div class="card-body">
+          <h5 class="card-title">Conversión</h5>
+          <h2 class="text-success">{{ stats.tasa_conversion || 0 }}%</h2>
+          <small class="text-success">
+            <i class="fas fa-arrow-up"></i> +{{ stats.conversion_crecimiento || 0 }}% vs mes anterior
+          </small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estadísticas por Tipo -->
+  <div class="row mb-4" *ngIf="estadisticasPorTipo && getKeys(estadisticasPorTipo).length > 0">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-chart-pie me-2 text-info"></i>
+            Estadísticas por Tipo de Recompensa
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-3" *ngFor="let tipo of ['puntos', 'descuento', 'envio_gratis', 'regalo']">
+              <div class="card border-0 bg-light" *ngIf="estadisticasPorTipo[tipo]">
+                <div class="card-body text-center">
+                  <div class="mb-2">
+                    <i [class]="getTipoIcon(tipo)" [style.color]="getTipoColor(tipo)"></i>
+                  </div>
+                  <h6 class="card-title text-capitalize">{{ getTipoLabel(tipo) }}</h6>
+                  <div class="row text-center">
+                    <div class="col-6">
+                      <small class="text-muted">Total</small>
+                      <div class="fw-bold">{{ estadisticasPorTipo[tipo].total || 0 }}</div>
+                    </div>
+                    <div class="col-6">
+                      <small class="text-muted">Activas</small>
+                      <div class="fw-bold text-success">{{ estadisticasPorTipo[tipo].activas || 0 }}</div>
+                    </div>
+                  </div>
+                  <div class="mt-2" *ngIf="estadisticasPorTipo[tipo].aplicaciones_mes">
+                    <small class="text-muted">Aplicaciones este mes</small>
+                    <div class="fw-bold text-primary">{{ estadisticasPorTipo[tipo].aplicaciones_mes | number }}</div>
+                  </div>
+                  <div class="mt-2" *ngIf="estadisticasPorTipo[tipo].puntos_otorgados_mes">
+                    <small class="text-muted">Puntos otorgados</small>
+                    <div class="fw-bold text-warning">{{ estadisticasPorTipo[tipo].puntos_otorgados_mes | number }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Rewards -->
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5><i class="fas fa-clock me-2"></i>Recompensas Recientes</h5>
+      <button class="btn btn-sm btn-outline-secondary" (click)="debugRecompensasRecientes()" title="Debug">
+        <i class="fas fa-bug"></i>
+      </button>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Tipo</th>
+              <th>Estado</th>
+              <th>Fecha Inicio</th>
+              <th>Beneficiarios</th>
+              <th class="text-center" style="width: 90px;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let recompensa of recompensasRecientes">
+              <td><strong>{{ recompensa.nombre }}</strong></td>
+              <td>
+                <span class="badge" [class]="getTipoBadgeClass(recompensa.tipo)">
+                  {{ recompensa.tipo | titlecase }}
+                </span>
+              </td>
+              <td>
+                <span class="badge" [class]="getEstadoBadgeClass(recompensa.estado)">
+                  {{ recompensa.estado | titlecase }}
+                </span>
+              </td>
+              <td>{{ recompensa.fecha_inicio | date:'dd/MM/yyyy' }}</td>
+              <td>{{ recompensa.beneficiarios | number }}</td>
+              <td class="text-center">
+                <div class="dropdown acciones-dropdown">
+                  <button class="btn btn-sm acciones-trigger" type="button" (click)="$event.stopPropagation(); openMenuId = (openMenuId === recompensa.id ? null : recompensa.id)">
+                    <i class="fas fa-ellipsis-h" title="Acciones"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end show" *ngIf="openMenuId === recompensa.id">
+                    <li><button class="dropdown-item" type="button" (click)="editarRecompensa(recompensa.id)"><i class="fas fa-edit me-2"></i>Editar</button></li>
+                    <li><button class="dropdown-item" type="button" (click)="toggleEstado(recompensa)"><i class="me-2" [class]="recompensa.estado === 'activa' ? 'fas fa-pause' : 'fas fa-play'"></i>{{ recompensa.estado === 'activa' ? 'Pausar' : 'Activar' }}</button></li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="recompensasRecientes.length === 0">
+              <td colspan="6" class="text-center py-4">
+                <div class="empty-state">
+                  <i class="fas fa-gift fa-3x text-muted mb-3"></i>
+                  <h5 class="text-muted">No hay recompensas recientes</h5>
+                  <p class="text-muted">Crea tu primera recompensa para comenzar.</p>
+                  <button class="btn btn-primary" (click)="crearRecompensa()">
+                    <i class="fas fa-plus me-2"></i>
+                    Crear Recompensa
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="row mt-4">
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-plus-circle fa-3x text-primary mb-3"></i>
+          <h5>Crear Recompensa</h5>
+          <p class="text-muted">Configura una nueva recompensa paso a paso</p>
+          <button class="btn btn-primary" (click)="crearRecompensa()">
+            <i class="fas fa-plus me-2"></i>Crear
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-cogs fa-3x text-success mb-3"></i>
+          <h5>Gestionar</h5>
+          <p class="text-muted">Administra todas tus recompensas existentes</p>
+          <button class="btn btn-success" routerLink="/dashboard/recompensas/lista">
+            <i class="fas fa-list me-2"></i>Gestionar
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-chart-line fa-3x text-info mb-3"></i>
+          <h5>Analytics</h5>
+          <p class="text-muted">Analiza el rendimiento de tus recompensas</p>
+          <button class="btn btn-info" routerLink="/dashboard/recompensas/analytics">
+            <i class="fas fa-chart-bar me-2"></i>Ver Analytics
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Editar Recompensa (compacto) -->
+  <div class="modal fade" [class.show]="mostrarModalEditar" [style.display]="mostrarModalEditar ? 'block' : 'none'" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="fas fa-edit me-2 text-primary"></i>Editar Recompensa</h5>
+          <button type="button" class="btn-close" (click)="cerrarModalEditar()" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form *ngIf="recompensaEditando">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Nombre de la Recompensa *</label>
+                <input type="text" class="form-control" [(ngModel)]="recompensaEditando.nombre" name="nombre">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Tipo de Recompensa *</label>
+                <input type="text" class="form-control" [(ngModel)]="recompensaEditando.tipo" name="tipo">
+              </div>
+              <div class="col-12">
+                <label class="form-label">Descripción *</label>
+                <textarea class="form-control" rows="3" [(ngModel)]="recompensaEditando.descripcion" name="descripcion"></textarea>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Fecha de Inicio *</label>
+                <input type="date" class="form-control" [(ngModel)]="recompensaEditando.fecha_inicio" name="fecha_inicio">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Fecha de Fin *</label>
+                <input type="date" class="form-control" [(ngModel)]="recompensaEditando.fecha_fin" name="fecha_fin">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Estado</label>
+                <select class="form-select" [(ngModel)]="recompensaEditando.estado" name="estado">
+                  <option value="activa">Activa</option>
+                  <option value="pausada">Pausada</option>
+                  <option value="programada">Programada</option>
+                  <option value="expirada">Expirada</option>
+                  <option value="cancelada">Cancelada</option>
+                </select>
+              </div>
+            </div>
+            <div *ngIf="errorEdicion" class="alert alert-danger mt-3">{{ errorEdicion }}</div>
+          </form>
+          <div *ngIf="!recompensaEditando && !errorEdicion" class="text-center py-3">
+            <div class="spinner-border text-primary" role="status"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="cerrarModalEditar()" [disabled]="cargandoEdicion">Cancelar</button>
+          <button type="button" class="btn btn-primary" (click)="guardarEdicion()" [disabled]="cargandoEdicion || !recompensaEditando?.nombre">Guardar Cambios</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay -->
+  <div *ngIf="mostrarModalEditar" class="modal-backdrop fade show"></div>
+</div>

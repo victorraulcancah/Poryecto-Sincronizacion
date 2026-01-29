@@ -1,0 +1,39 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Notificacion extends Model
+{
+    use HasFactory;
+
+    protected $table = 'notificaciones';
+
+    protected $fillable = [
+        'user_id',
+        'email',
+        'telefono',
+        'tipo',
+        'canal',
+        'asunto',
+        'mensaje',
+        'datos_adicionales',
+        'estado',
+        'enviado_at',
+        'error',
+        'intentos'
+    ];
+
+    protected $casts = [
+        'datos_adicionales' => 'array',
+        'enviado_at' => 'datetime',
+        'intentos' => 'integer'
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+}

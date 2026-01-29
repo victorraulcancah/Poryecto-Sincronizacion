@@ -1,0 +1,81 @@
+<div class="border border-gray-100 hover-border-main-600 rounded-16 overflow-hidden bg-white transition-2">
+  <!-- Header de compras -->
+  <div class="p-24 p-md-32 border-bottom border-gray-100 bg-main-50">
+    <div class="flex-between align-items-center gap-16 flex-wrap">
+      <div class="flex-align gap-16">
+        <div class="w-48 h-48 bg-success-600 text-white rounded-circle flex-center">
+          <i class="ph-bold ph-package text-xl"></i>
+        </div>
+        <div>
+          <h4 class="mb-4 text-heading">Mis Compras</h4>
+          <p class="text-gray-500 mb-0 text-sm">Historial de compras y seguimiento de pedidos</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido de compras -->
+  <div class="p-24 p-md-32">
+    <!-- Loading state -->
+    <div *ngIf="isLoadingCompras" class="text-center py-40">
+      <div class="spinner-border text-success-600" role="status">
+        <span class="visually-hidden">Cargando compras...</span>
+      </div>
+    </div>
+
+    <!-- Lista de compras -->
+    <div *ngIf="!isLoadingCompras && compras.length > 0">
+      <div *ngFor="let compra of compras"
+           class="border border-gray-100 hover-border-success-600 rounded-16 p-20 mb-16 transition-2 hover-shadow-sm">
+
+        <div class="row align-items-center">
+          <!-- Información básica -->
+          <div class="col-md-4">
+            <div class="flex-align gap-12 mb-8">
+              <div class="w-40 h-40 bg-success-50 text-success-600 rounded-circle flex-center">
+                <i class="ph-bold ph-package"></i>
+              </div>
+              <div>
+                <h6 class="mb-2 text-heading">{{ compra.codigo_compra }}</h6>
+                <p class="text-xs text-gray-500 mb-0">{{ formatearFecha(compra.fecha_compra) }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Estado y monto -->
+          <div class="col-md-4 text-center">
+            <span [class]="'badge px-12 py-6 rounded-pill mb-8 ' + getEstadoCompraClass(compra.estado_compra)">
+              {{ compra.estado_compra.nombre || 'En proceso' }}
+            </span>
+            <h6 class="text-heading mb-0">S/ {{ compra.total | number:'1.2-2' }}</h6>
+            <p class="text-xs text-gray-500 mb-0">{{ compra.productos.length || 0 }} productos</p>
+          </div>
+
+          <!-- Acciones -->
+          <div class="col-md-4 text-end">
+            <button (click)="verDetalleCompra(compra)"
+                    class="btn bg-main-50 hover-bg-main-100 text-main-600 px-16 py-8 rounded-8 text-sm transition-2">
+              <i class="ph ph-eye me-4"></i>
+              Ver detalle
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estado vacío -->
+    <div *ngIf="!isLoadingCompras && compras.length === 0" class="text-center py-60">
+      <div class="w-80 h-80 bg-gray-50 text-gray-400 rounded-circle flex-center mx-auto mb-24">
+        <i class="ph ph-package text-3xl"></i>
+      </div>
+      <h5 class="text-heading mb-12">No tienes compras</h5>
+      <p class="text-gray-500 mb-24 max-w-400 mx-auto">
+        Cuando realices una compra, aparecerá aquí para que puedas hacer seguimiento.
+      </p>
+      <a routerLink="/shop" class="btn btn-main rounded-pill px-32 py-12">
+        <i class="ph-bold ph-shopping-cart me-8"></i>
+        Ir de compras
+      </a>
+    </div>
+  </div>
+</div>

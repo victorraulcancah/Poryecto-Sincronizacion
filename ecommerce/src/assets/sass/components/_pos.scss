@@ -1,0 +1,53 @@
+// ==========================================
+// POS COMPONENT STYLES - COMPARTIDO
+// ==========================================
+@import '../shared/common-components';
+
+// HOST & LAYOUT
+:host {
+    display: block;
+}
+
+// ALERTAS
+.pos-alerts {
+    margin-bottom: 20px;
+}
+
+.alert {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    @include transition();
+
+    i {
+        font-size: 1.25rem;
+    }
+
+    &-close {
+        margin-left: auto;
+        background: transparent;
+        border: none;
+        color: inherit;
+        opacity: 0.6;
+        cursor: pointer;
+        padding: 4px;
+        @include transition(opacity);
+
+        &:hover {
+            opacity: 1;
+        }
+    }
+
+    &-danger {
+        background: var(--danger-100);
+        color: var(--danger-600);
+    }
+
+    &-success {
+        background: var(--success-100);
+        color: var(--success-600);
+    }
+}

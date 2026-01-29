@@ -1,0 +1,184 @@
+<!-- Header -->
+<div class="border border-gray-100 rounded-16 overflow-hidden bg-white">
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <div class="flex-between align-items-center gap-16 flex-wrap">
+      <div>
+        <h4 class="mb-4 text-heading" style="font-size: 20px;">Caja Chica</h4>
+        <p class="text-gray-500 mb-0 text-sm">
+          Gestión de cajas chicas y gastos menores
+        </p>
+      </div>
+      <button *ngIf="puedeCrearCaja" class="btn bg-main-600" (click)="abrirModalCrear()"
+              style="padding: 10px 20px; font-size: 14px; display: inline-flex; align-items: center; gap: 8px;">
+        <i class="ph ph-plus"></i>
+        <span>Nueva Caja Chica</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="modern-data-table__loading">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="loading-text">Cargando cajas chicas...</p>
+  </div>
+
+  <!-- Lista de Cajas Chicas -->
+  <div *ngIf="!loading" class="p-24 p-md-32">
+    <div class="row g-4">
+      <div class="col-md-4" *ngFor="let caja of cajasChicas">
+        <div class="card border-0 shadow-sm h-100" style="transition: transform 0.2s, box-shadow 0.2s;">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div>
+                <h5 class="mb-1 client-info__name">{{ caja.nombre }}</h5>
+                <small class="client-info__subtitle">{{ caja.codigo }}</small>
+              </div>
+              <span class="status-badge status-badge--active">
+                <i class="ph ph-check-circle me-1"></i>
+                Activa
+              </span>
+            </div>
+
+            <div class="mb-3">
+              <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted text-sm">
+                  <i class="ph ph-wallet me-1"></i>
+                  Fondo Fijo:
+                </span>
+                <strong>S/ {{ caja.fondo_fijo | number:'1.2-2' }}</strong>
+              </div>
+              <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted text-sm">
+                  <i class="ph ph-currency-circle-dollar me-1"></i>
+                  Saldo Actual:
+                </span>
+                <strong class="text-primary">S/ {{ caja.saldo_actual | number:'1.2-2' }}</strong>
+              </div>
+              <div class="d-flex justify-content-between">
+                <span class="text-muted text-sm">
+                  <i class="ph ph-user me-1"></i>
+                  Responsable:
+                </span>
+                <span class="text-sm">{{ caja.responsable?.name || 'N/A' }}</span>
+              </div>
+            </div>
+
+            <!-- Barra de progreso -->
+            <div class="progress mb-3" style="height: 8px; border-radius: 4px;">
+              <div class="progress-bar" [style.width.%]="caja.porcentaje_disponible" [ngClass]="{
+                'bg-danger': caja.porcentaje_disponible! < 30,
+                'bg-warning': caja.porcentaje_disponible! >= 30 && caja.porcentaje_disponible! < 60,
+                'bg-success': caja.porcentaje_disponible! >= 60
+              }"></div>
+            </div>
+            <small class="text-muted text-xs">{{ caja.porcentaje_disponible | number:'1.0-0' }}% disponible</small>
+
+            <!-- Botones de acción -->
+            <div class="d-grid gap-2 mt-3">
+              <button class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center gap-2" 
+                      (click)="abrirModalGasto(caja)">
+                <i class="ph ph-minus-circle"></i>
+                Registrar Gasto
+              </button>
+              <button class="btn btn-sm btn-outline-success d-flex align-items-center justify-content-center gap-2" 
+                      (click)="abrirModalReposicion(caja)">
+                <i class="ph ph-arrow-up-circle"></i>
+                Reposición
+              </button>
+              <button class="btn btn-sm btn-outline-info d-flex align-items-center justify-content-center gap-2" 
+                      (click)="verRendicion(caja)">
+                <i class="ph ph-file-text"></i>
+                Rendición
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="cajasChicas.length === 0" class="col-12">
+        <div class="empty-state">
+          <div class="empty-state__icon">
+            <i class="ph ph-wallet"></i>
+          </div>
+          <h5 class="empty-state__title">No hay cajas chicas registradas</h5>
+          <p class="empty-state__description">
+            Contacta al administrador para crear una caja chica
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Registrar Gasto -->
+<app-gasto-modal 
+  [(visible)]="mostrarModalGasto" 
+  [saldoDisponible]="cajaSeleccionada?.saldo_actual || 0"
+  [procesando]="procesando" 
+  (onRegistrar)="registrarGasto($event)">
+</app-gasto-modal>
+
+<!-- Modal Reposición -->
+<div class="modal fade" [class.show]="mostrarModalReposicion"
+  [style.display]="mostrarModalReposicion ? 'block' : 'none'">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header" style="background: hsl(var(--success-600)); color: white;">
+        <h5 class="modal-title">
+          <i class="ph ph-arrow-up-circle me-2"></i>
+          Reposición de Fondo
+        </h5>
+        <button type="button" class="btn-close" style="filter: brightness(0) invert(1);"
+          (click)="mostrarModalReposicion = false"></button>
+      </div>
+      <div class="modal-body">
+        <div *ngIf="cajaSeleccionada" class="alert alert-info mb-3">
+          <div class="d-flex align-items-start gap-2">
+            <i class="ph ph-info text-info-600" style="font-size: 1.5rem;"></i>
+            <div>
+              <strong>{{ cajaSeleccionada.nombre }}</strong><br>
+              <small class="text-muted">
+                Fondo fijo: <strong>S/ {{ cajaSeleccionada.fondo_fijo | number:'1.2-2' }}</strong><br>
+                Saldo actual: <strong>S/ {{ cajaSeleccionada.saldo_actual | number:'1.2-2' }}</strong><br>
+                Monto sugerido: <strong class="text-success">S/ {{ montoReposicion | number:'1.2-2' }}</strong>
+              </small>
+            </div>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Monto a Reponer <span class="text-danger">*</span></label>
+          <div class="input-group">
+            <span class="input-group-text">
+              <i class="ph ph-currency-circle-dollar"></i>
+            </span>
+            <input type="number" class="form-control" [(ngModel)]="montoReposicion" 
+                   placeholder="0.00" step="0.01" min="0">
+          </div>
+          <small class="text-muted">El monto sugerido completa el fondo fijo</small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="mostrarModalReposicion = false" [disabled]="procesando">
+          Cancelar
+        </button>
+        <button class="btn btn-success" (click)="registrarReposicion()" 
+                [disabled]="procesando || montoReposicion <= 0">
+          <span *ngIf="procesando" class="spinner-border spinner-border-sm me-2"></span>
+          {{ procesando ? 'Registrando...' : 'Registrar Reposición' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div *ngIf="mostrarModalReposicion" class="modal-backdrop fade show"></div>
+
+<!-- Modal Crear Caja Chica -->
+<app-caja-chica-form-modal
+  [(visible)]="mostrarModalCrear"
+  [usuarios]="usuarios"
+  [procesando]="procesando"
+  (onGuardar)="crearCajaChica($event)">
+</app-caja-chica-form-modal>

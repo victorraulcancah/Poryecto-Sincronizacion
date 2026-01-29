@@ -1,0 +1,214 @@
+<div class="border border-gray-100 rounded-16 overflow-hidden bg-white">
+  <!-- Header -->
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <div class="flex-between align-items-center gap-16 flex-wrap">
+      <div>
+        <h4 class="mb-4 text-heading">Gestión de Usuarios</h4>
+        <p class="text-gray-500 mb-0 text-sm">Administra los usuarios de tu plataforma ecommerce</p>
+      </div>
+      <button
+        *ngIf="canCreateUser$ | async"
+        class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8 text-sm transition-2"
+        (click)="onCrearUsuario()"
+        type="button">
+        <i class="ph ph-plus me-8"></i>
+        Crear Usuario
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabla Moderna usando clases globales -->
+  <div class="modern-data-table mx-24 mx-md-32 mb-24 mb-md-32">
+    <!-- Header compacto -->
+    <div class="modern-data-table__header" *ngIf="!isLoading && usuariosFiltrados.length > 0">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-16">
+          <span class="table-info">{{ usuariosFiltrados.length }} usuarios encontrados</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <span style="font-size: var(--font-xs); color: var(--gray-500);">Filas:</span>
+          <select class="page-size-selector" [(ngModel)]="pageSize" (change)="goToPage(1)">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading state -->
+    <div *ngIf="isLoading" class="modern-data-table__loading">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="loading-text">Cargando usuarios...</p>
+    </div>
+
+    <!-- Tabla moderna -->
+    <div class="modern-data-table__container" *ngIf="!isLoading">
+      <table class="table table-borderless mb-0">
+        <thead>
+          <tr>
+            <th>USUARIO</th>
+            <th class="d-none d-lg-table-cell">EMAIL</th>
+            <th class="d-none d-md-table-cell">ROL</th>
+            <th>ESTADO</th>
+            <th class="d-none d-lg-table-cell">FECHA REGISTRO</th>
+            <th class="text-end">ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let usuario of getPaginatedUsuarios(); trackBy: trackByUsuarioId">
+
+            <!-- Usuario -->
+            <td>
+              <div class="d-flex align-items-center gap-12">
+                <div class="table-avatar__container">
+                  <ng-container *ngIf="getAvatarDisplay(usuario).type === 'image'; else avatarWithInitials">
+                    <img [src]="getAvatarDisplay(usuario).value"
+                         [alt]="usuario.nombre"
+                         class="table-avatar__img">
+                  </ng-container>
+                  <ng-template #avatarWithInitials>
+                    <div class="table-avatar__circle" [style.background-color]="getAvatarDisplay(usuario).color">
+                      {{ getAvatarDisplay(usuario).value }}
+                    </div>
+                  </ng-template>
+                </div>
+                <div>
+                  <div class="client-info__name">{{ usuario.nombre }}</div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Email (hidden on tablet) -->
+            <td class="d-none d-lg-table-cell">
+              <div class="client-info__subtitle">{{ usuario.email }}</div>
+            </td>
+
+            <!-- Rol (hidden on mobile) -->
+            <td class="d-none d-md-table-cell">
+              <div class="text-center">
+                <span class="type-badge" [ngClass]="getRolClass(usuario.rol)">
+                  {{ usuario.rol }}
+                </span>
+              </div>
+            </td>
+
+            <!-- Estado -->
+            <td>
+              <div class="d-flex align-items-center gap-8">
+                <span class="status-badge"
+                      [ngClass]="usuario.estado ? 'status-badge--active' : 'status-badge--inactive'">
+                  {{ usuario.estado ? 'Activo' : 'Inactivo' }}
+                </span>
+                <button *ngIf="canChangeStatus()"
+                        class="toggle-button"
+                        [ngClass]="usuario.estado ? 'toggle-button--active' : ''"
+                        [title]="usuario.estado ? 'Desactivar usuario' : 'Activar usuario'"
+                        (click)="onCambiarEstado(usuario)">
+                  <i class="ph" [class]="usuario.estado ? 'ph-toggle-right' : 'ph-toggle-left'"></i>
+                </button>
+              </div>
+            </td>
+
+            <!-- Fecha Registro (hidden on tablet) -->
+            <td class="d-none d-lg-table-cell">
+              <div class="text-center">
+                <div class="client-info__subtitle">{{ usuario.fechaCreacion | date:'dd/MM/yyyy' }}</div>
+              </div>
+            </td>
+
+            <!-- Acciones -->
+            <td class="text-end">
+              <div class="action-buttons">
+                <button class="action-buttons__btn action-buttons__btn--view"
+                        (click)="onVerUsuario(usuario)"
+                        title="Ver usuario"
+                        *ngIf="canShowUser$ | async">
+                  <i class="ph ph-eye"></i>
+                </button>
+                <button class="action-buttons__btn action-buttons__btn--edit"
+                        (click)="onEditarUsuario(usuario)"
+                        title="Editar usuario"
+                        *ngIf="canEditUser()">
+                  <i class="ph ph-pencil"></i>
+                </button>
+                <button class="action-buttons__btn action-buttons__btn--delete"
+                        (click)="onEliminarUsuario(usuario)"
+                        title="Eliminar usuario"
+                        *ngIf="canDeleteUser()">
+                  <i class="ph ph-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación moderna -->
+    <div class="modern-data-table__pagination" *ngIf="!isLoading && usuariosFiltrados.length > 0 && getTotalPages() > 1">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="pagination-info">
+          Mostrando {{ (currentPage - 1) * pageSize + 1 }} a {{ Math.min(currentPage * pageSize, usuariosFiltrados.length) }} de {{ usuariosFiltrados.length }} registros
+        </div>
+        <nav>
+          <ul class="pagination-controls">
+            <li [class.disabled]="currentPage === 1">
+              <button (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
+                <i class="ph ph-caret-left"></i>
+              </button>
+            </li>
+            <li *ngFor="let page of getPageNumbers()" [class.active]="page === currentPage">
+              <button (click)="goToPage(page)">{{ page }}</button>
+            </li>
+            <li [class.disabled]="currentPage === getTotalPages()">
+              <button (click)="goToPage(currentPage + 1)" [disabled]="currentPage === getTotalPages()">
+                <i class="ph ph-caret-right"></i>
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Estado vacío -->
+    <div *ngIf="!isLoading && usuarios.length === 0" class="empty-state">
+      <div class="empty-state__icon">
+        <i class="ph ph-users"></i>
+      </div>
+      <h5 class="empty-state__title">No hay usuarios registrados</h5>
+      <p class="empty-state__description">
+        Comienza creando tu primer usuario para gestionar la plataforma.
+      </p>
+      <button class="btn btn-primary"
+              *ngIf="canCreateUser$ | async"
+              (click)="onCrearUsuario()">
+        <i class="ph ph-plus me-8"></i>
+        Crear Usuario
+      </button>
+    </div>
+
+    <!-- Sin resultados de búsqueda -->
+    <div *ngIf="!isLoading && usuarios.length > 0 && usuariosFiltrados.length === 0" class="empty-state">
+      <div class="empty-state__icon">
+        <i class="ph ph-magnifying-glass"></i>
+      </div>
+      <h5 class="empty-state__title">No se encontraron resultados</h5>
+      <p class="empty-state__description">
+        Intenta cambiar los filtros para encontrar los usuarios que buscas.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de usuario -->
+<app-usuario-modal
+  [usuarioId]="selectedUsuarioId"
+  [isVisible]="showModal"
+  [mode]="modalMode"
+  (closeModal)="onCloseModal()"
+  (usuarioActualizado)="onUsuarioActualizado()">
+</app-usuario-modal>

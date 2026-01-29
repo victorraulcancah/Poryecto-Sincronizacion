@@ -1,0 +1,64 @@
+// src/app/pages/dashboard/banners-promocionales/banners-promocionales-list/banners-promocionales-list.component.scss
+// Este componente usa las clases globales de data-table
+// definidas en src/assets/sass/components/_data-table.scss
+
+// Solo estilos específicos para banners promocionales
+:host {
+  display: block;
+}
+
+// Estilos específicos para las imágenes de banners
+.banner-image-container {
+  width: 50px;
+  height: 40px;
+  background-color: var(--gray-50);
+  border-radius: var(--size-6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid var(--gray-200);
+  flex-shrink: 0;
+}
+
+.banner-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--size-4);
+}
+
+// Estilos específicos para el enlace del banner
+.banner-link {
+  font-size: var(--font-xs);
+  color: var(--gray-600);
+  display: flex;
+  align-items: center;
+  font-family: 'Monaco', 'Menlo', monospace;
+  margin-top: 2px;
+}
+
+// Estilos específicos para información de configuración
+.banner-config-info {
+  text-align: center;
+
+  .config-orden {
+    font-size: var(--font-sm);
+    font-weight: 600;
+    color: var(--main-600);
+    margin-bottom: 4px;
+  }
+
+  .config-delay {
+    font-size: var(--font-xs);
+    color: var(--gray-600);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+// MARGEN PARA EL ÚLTIMO ITEM DE LA TABLA
+::ng-deep .modern-data-table .table tbody tr:last-child td {
+  padding-bottom: 24px !important;
+}

@@ -1,0 +1,11 @@
+<div *ngIf="visible()" class="popup-wrapper">
+  <ng-container *ngFor="let p of popups()">
+    <app-popup-cliente
+      [popup]="p"
+      (cerrar)="onCerrar(p)"
+      (visto)="onVisto(p)">
+    </app-popup-cliente>
+  </ng-container>
+</div>
+
+

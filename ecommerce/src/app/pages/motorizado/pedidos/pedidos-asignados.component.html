@@ -1,0 +1,356 @@
+<!-- ========================= Breadcrumb Start =============================== -->
+<div class="breadcrumb py-26 bg-main-50">
+  <div class="container container-lg">
+    <div class="breadcrumb-wrapper flex-between flex-wrap gap-16">
+      <h6 class="mb-0">Mis Pedidos</h6>
+      <ul class="flex-align gap-8 flex-wrap">
+        <li class="text-sm">
+          <a routerLink="/motorizado/dashboard" class="text-gray-900 flex-align gap-8 hover-text-main-600">
+            <i class="ph ph-house"></i>
+            Dashboard
+          </a>
+        </li>
+        <li class="flex-align">
+          <i class="ph ph-caret-right"></i>
+        </li>
+        <li class="text-sm text-main-600">Pedidos</li>
+      </ul>
+    </div>
+  </div>
+</div>
+<!-- ========================= Breadcrumb End =============================== -->
+
+<div class="py-80">
+  <div class="container container-lg">
+
+    <!-- Header Mejorado -->
+    <div class="section-heading mb-32" data-aos="fade-up" data-aos-duration="600">
+      <div class="flex-between flex-wrap gap-16">
+        <div>
+          <h5 class="mb-0 flex-align gap-12">
+            <div class="w-48 h-48 bg-main-600 text-white rounded-circle flex-center">
+              <i class="ph ph-package text-lg"></i>
+            </div>
+            Pedidos Asignados
+          </h5>
+          <p class="text-gray-600 text-sm mt-8">Gestiona tus entregas y rutas de manera eficiente</p>
+        </div>
+        <div class="flex-align gap-16">
+          <!-- Filtro de estado mejorado -->
+          <div class="border border-gray-200 rounded-pill px-16 py-8 bg-white shadow-sm">
+            <select [(ngModel)]="filtroEstado" (change)="filtrarPedidos()"
+                    class="border-0 bg-transparent text-gray-700 fw-medium text-sm">
+              <option value="">🎯 Todos los estados</option>
+              <option value="asignado">⏳ Asignados</option>
+              <option value="aceptado">✅ Aceptados</option>
+              <option value="en_camino">🚚 En camino</option>
+            </select>
+          </div>
+          <!-- Botón de actualizar -->
+          <button class="btn bg-main-600 text-white hover-bg-main-700 rounded-pill px-16 py-8 text-sm">
+            <i class="ph ph-arrows-clockwise me-8"></i>
+            Actualizar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estadísticas de Pedidos Mejoradas -->
+    <div class="row g-24 mb-40">
+      <div class="col-xl-3 col-md-6" data-aos="fade-up" data-aos-duration="600">
+        <div class="product-card bg-white rounded-16 p-24 border border-gray-100 hover-border-warning-600 transition-2 shadow-sm hover-shadow-lg position-relative overflow-hidden"
+             [class.border-warning-600]="filtroEstado === 'asignado'"
+             [class.bg-warning-50]="filtroEstado === 'asignado'">
+          <!-- Decorative background -->
+          <div class="position-absolute top-0 end-0 w-32 h-32 bg-warning-50 rounded-circle" style="margin-top: -16px; margin-right: -16px;"></div>
+
+          <div class="flex-between mb-16">
+            <div class="w-56 h-56 bg-warning-50 text-warning-600 rounded-16 flex-center text-xl shadow-sm">
+              <i class="ph ph-clock"></i>
+            </div>
+            <button (click)="setFiltro('asignado')"
+                    class="text-xs px-12 py-6 rounded-pill fw-medium border-0 transition-2"
+                    [class]="filtroEstado === 'asignado' ? 'bg-warning-600 text-white' : 'bg-warning-50 text-warning-600 hover-bg-warning-100'">
+              {{filtroEstado === 'asignado' ? 'Filtrado' : 'Filtrar'}}
+            </button>
+          </div>
+          <div>
+            <h2 class="text-heading fw-bold mb-8 text-2xl">{{contadores.asignado || 0}}</h2>
+            <p class="text-gray-600 text-sm mb-8">Pedidos Asignados</p>
+            <div class="flex-align gap-8">
+              <div class="w-100 bg-gray-100 rounded-pill h-4">
+                <div class="bg-warning-600 rounded-pill h-4" [style.width]="getProgressPercent('asignado') + '%'"></div>
+              </div>
+              <span class="text-xs text-gray-500 fw-medium">{{getProgressPercent('asignado')}}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-3 col-md-6" data-aos="fade-up" data-aos-duration="700">
+        <div class="product-card bg-white rounded-16 p-24 border border-gray-100 hover-border-success-600 transition-2 shadow-sm hover-shadow-lg position-relative overflow-hidden"
+             [class.border-success-600]="filtroEstado === 'aceptado'"
+             [class.bg-success-50]="filtroEstado === 'aceptado'">
+          <!-- Decorative background -->
+          <div class="position-absolute top-0 end-0 w-32 h-32 bg-success-50 rounded-circle" style="margin-top: -16px; margin-right: -16px;"></div>
+
+          <div class="flex-between mb-16">
+            <div class="w-56 h-56 bg-success-50 text-success-600 rounded-16 flex-center text-xl shadow-sm">
+              <i class="ph ph-check"></i>
+            </div>
+            <button (click)="setFiltro('aceptado')"
+                    class="text-xs px-12 py-6 rounded-pill fw-medium border-0 transition-2"
+                    [class]="filtroEstado === 'aceptado' ? 'bg-success-600 text-white' : 'bg-success-50 text-success-600 hover-bg-success-100'">
+              {{filtroEstado === 'aceptado' ? 'Filtrado' : 'Filtrar'}}
+            </button>
+          </div>
+          <div>
+            <h2 class="text-heading fw-bold mb-8 text-2xl">{{contadores.aceptado || 0}}</h2>
+            <p class="text-gray-600 text-sm mb-8">Pedidos Aceptados</p>
+            <div class="flex-align gap-8">
+              <div class="w-100 bg-gray-100 rounded-pill h-4">
+                <div class="bg-success-600 rounded-pill h-4" [style.width]="getProgressPercent('aceptado') + '%'"></div>
+              </div>
+              <span class="text-xs text-gray-500 fw-medium">{{getProgressPercent('aceptado')}}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-3 col-md-6" data-aos="fade-up" data-aos-duration="800">
+        <div class="product-card bg-white rounded-16 p-24 border border-gray-100 hover-border-main-600 transition-2 shadow-sm hover-shadow-lg position-relative overflow-hidden"
+             [class.border-main-600]="filtroEstado === 'en_camino'"
+             [class.bg-main-50]="filtroEstado === 'en_camino'">
+          <!-- Decorative background -->
+          <div class="position-absolute top-0 end-0 w-32 h-32 bg-main-50 rounded-circle" style="margin-top: -16px; margin-right: -16px;"></div>
+
+          <div class="flex-between mb-16">
+            <div class="w-56 h-56 bg-main-50 text-main-600 rounded-16 flex-center text-xl shadow-sm">
+              <i class="ph ph-truck"></i>
+            </div>
+            <button (click)="setFiltro('en_camino')"
+                    class="text-xs px-12 py-6 rounded-pill fw-medium border-0 transition-2"
+                    [class]="filtroEstado === 'en_camino' ? 'bg-main-600 text-white' : 'bg-main-50 text-main-600 hover-bg-main-100'">
+              {{filtroEstado === 'en_camino' ? 'Filtrado' : 'Filtrar'}}
+            </button>
+          </div>
+          <div>
+            <h2 class="text-heading fw-bold mb-8 text-2xl">{{contadores.en_camino || 0}}</h2>
+            <p class="text-gray-600 text-sm mb-8">En Camino</p>
+            <div class="flex-align gap-8">
+              <div class="w-100 bg-gray-100 rounded-pill h-4">
+                <div class="bg-main-600 rounded-pill h-4" [style.width]="getProgressPercent('en_camino') + '%'"></div>
+              </div>
+              <span class="text-xs text-gray-500 fw-medium">{{getProgressPercent('en_camino')}}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-3 col-md-6" data-aos="fade-up" data-aos-duration="900">
+        <div class="product-card bg-white rounded-16 p-24 border border-gray-100 hover-border-danger-600 transition-2 shadow-sm hover-shadow-lg position-relative overflow-hidden">
+          <!-- Decorative background -->
+          <div class="position-absolute top-0 end-0 w-32 h-32 bg-danger-50 rounded-circle" style="margin-top: -16px; margin-right: -16px;"></div>
+
+          <div class="flex-between mb-16">
+            <div class="w-56 h-56 bg-danger-50 text-danger-600 rounded-16 flex-center text-xl shadow-sm">
+              <i class="ph ph-clock-afternoon"></i>
+            </div>
+            <span class="text-xs px-12 py-6 bg-danger-50 text-danger-600 rounded-pill fw-medium">
+              Tiempo
+            </span>
+          </div>
+          <div>
+            <h2 class="text-heading fw-bold mb-8 text-lg">{{getTiempoPromedio()}}</h2>
+            <p class="text-gray-600 text-sm mb-8">Tiempo Promedio</p>
+            <div class="flex-align gap-8">
+              <div class="w-100 bg-gray-100 rounded-pill h-4">
+                <div class="bg-danger-600 rounded-pill h-4" style="width: 65%"></div>
+              </div>
+              <span class="text-xs text-gray-500 fw-medium">Eficiencia</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de Pedidos Mejorada -->
+    <div class="section-heading mb-24">
+      <h5 class="mb-0" data-aos="fade-up" data-aos-duration="600">
+        Lista de Pedidos
+        <span class="text-sm fw-normal text-gray-500 ms-8">({{pedidosFiltrados.length}} pedidos)</span>
+      </h5>
+    </div>
+
+    <div class="row g-24">
+      <div class="col-lg-6" *ngFor="let pedido of pedidosFiltrados; let i = index"
+           data-aos="fade-up"
+           [attr.data-aos-duration]="600 + (i * 100)">
+
+        <div class="product-dContent border rounded-16 bg-white shadow-sm hover-shadow-lg transition-2 overflow-hidden">
+          <!-- Header del pedido -->
+          <div class="product-dContent__header border-bottom border-gray-100 p-20">
+            <div class="flex-between flex-wrap gap-12">
+              <div class="flex-align gap-12">
+                <div class="w-40 h-40 rounded-circle flex-center text-white text-sm fw-bold"
+                     [class]="getEstadoIconClass(pedido.estado)">
+                  <i [class]="getEstadoIcon(pedido.estado)"></i>
+                </div>
+                <div>
+                  <h6 class="text-heading fw-bold mb-4">Pedido #{{pedido.numero}}</h6>
+                  <span class="text-xs px-8 py-4 rounded-pill fw-medium"
+                        [class]="getEstadoBadgeClass(pedido.estado)">
+                    {{getEstadoLabel(pedido.estado)}}
+                  </span>
+                </div>
+              </div>
+              <div class="text-end">
+                <div class="flex-align gap-8 mb-4">
+                  <i class="ph ph-clock text-gray-400"></i>
+                  <span class="text-xs text-gray-500">{{getTimeAgo(pedido.fecha_asignacion)}}</span>
+                </div>
+                <div class="text-lg fw-bold text-main-600">S/ {{pedido.total}}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contenido del pedido -->
+          <div class="product-dContent__box p-20">
+            <!-- Información del cliente -->
+            <div class="mb-20">
+              <div class="flex-align gap-12 mb-12">
+                <i class="ph ph-user text-main-600"></i>
+                <span class="fw-semibold text-heading">{{pedido.cliente.nombre}}</span>
+              </div>
+
+              <div class="flex-align gap-12 mb-12">
+                <i class="ph ph-phone text-success-600"></i>
+                <a [href]="'tel:' + pedido.cliente.telefono"
+                   class="text-success-600 hover-text-success-700 text-decoration-none fw-medium">
+                  {{pedido.cliente.telefono}}
+                </a>
+              </div>
+
+              <div class="flex-align gap-12">
+                <i class="ph ph-map-pin text-danger-600"></i>
+                <span class="text-gray-600 text-sm line-height-20">{{pedido.direccion}}</span>
+              </div>
+            </div>
+
+            <!-- Detalles del pedido -->
+            <div class="border-top border-gray-100 pt-16">
+              <div class="row g-16">
+                <div class="col-6">
+                  <div class="text-center p-12 bg-gray-50 rounded-8">
+                    <div class="text-xs text-gray-500 mb-4">Productos</div>
+                    <div class="fw-bold text-heading">{{pedido.productos.length}} items</div>
+                  </div>
+                </div>
+                <div class="col-6" *ngIf="pedido.metodo_pago">
+                  <div class="text-center p-12 bg-gray-50 rounded-8">
+                    <div class="text-xs text-gray-500 mb-4">Pago</div>
+                    <div class="fw-bold text-heading text-xs">{{pedido.metodo_pago}}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Acciones del pedido mejoradas -->
+          <div class="product-dContent__footer p-20 border-top border-gray-100 bg-gray-50">
+            <ng-container [ngSwitch]="pedido.estado">
+              <!-- Pedido asignado -->
+              <div *ngSwitchCase="'asignado'" class="d-flex gap-12 flex-wrap">
+                <button class="btn bg-success-600 text-white hover-bg-success-700 rounded-pill px-20 py-8 flex-grow-1 fw-medium transition-2"
+                        (click)="aceptarPedido(pedido.id)">
+                  <i class="ph ph-check me-8"></i>
+                  Aceptar Pedido
+                </button>
+                <button class="btn bg-danger-600 text-white hover-bg-danger-700 rounded-pill px-20 py-8 flex-grow-1 fw-medium transition-2"
+                        (click)="rechazarPedido(pedido.id)">
+                  <i class="ph ph-x me-8"></i>
+                  Rechazar
+                </button>
+                <button class="btn bg-main-600 text-white hover-bg-main-700 rounded-circle w-40 h-40 flex-center transition-2"
+                        (click)="abrirMapa(pedido.latitud, pedido.longitud)">
+                  <i class="ph ph-navigation-arrow"></i>
+                </button>
+              </div>
+
+              <!-- Pedido aceptado -->
+              <div *ngSwitchCase="'aceptado'" class="d-flex gap-12 flex-wrap">
+                <button class="btn bg-main-600 text-white hover-bg-main-700 rounded-pill px-20 py-8 flex-grow-1 fw-medium transition-2"
+                        (click)="iniciarRuta(pedido.id)">
+                  <i class="ph ph-navigation-arrow me-8"></i>
+                  Iniciar Ruta
+                </button>
+                <button class="btn border border-gray-300 bg-white text-gray-700 hover-bg-gray-100 rounded-pill px-20 py-8 fw-medium transition-2"
+                        (click)="verDetalles(pedido.id)">
+                  <i class="ph ph-eye me-8"></i>
+                  Detalles
+                </button>
+                <button class="btn bg-success-600 text-white hover-bg-success-700 rounded-circle w-40 h-40 flex-center transition-2"
+                        (click)="llamarCliente(pedido.cliente.telefono)">
+                  <i class="ph ph-phone"></i>
+                </button>
+              </div>
+
+              <!-- En camino -->
+              <div *ngSwitchCase="'en_camino'" class="d-flex gap-12 flex-wrap">
+                <button class="btn bg-success-600 text-white hover-bg-success-700 rounded-pill px-20 py-8 flex-grow-1 fw-medium transition-2"
+                        (click)="completarEntrega(pedido.id)">
+                  <i class="ph ph-check-circle me-8"></i>
+                  Completar Entrega
+                </button>
+                <button class="btn bg-warning-600 text-white hover-bg-warning-700 rounded-pill px-20 py-8 fw-medium transition-2"
+                        (click)="llamarCliente(pedido.cliente.telefono)">
+                  <i class="ph ph-phone me-8"></i>
+                  Llamar Cliente
+                </button>
+                <button class="btn bg-main-600 text-white hover-bg-main-700 rounded-circle w-40 h-40 flex-center transition-2"
+                        (click)="abrirMapa(pedido.latitud, pedido.longitud)">
+                  <i class="ph ph-navigation-arrow"></i>
+                </button>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estado Vacío Mejorado -->
+    <div *ngIf="pedidosFiltrados.length === 0" class="col-12" data-aos="fade-up" data-aos-duration="600">
+      <div class="product-card bg-white rounded-16 p-40 border border-gray-100 text-center shadow-sm">
+        <div class="w-80 h-80 bg-gray-100 text-gray-400 rounded-circle flex-center mx-auto mb-24">
+          <i class="ph ph-package text-3xl"></i>
+        </div>
+
+        <h5 class="text-heading fw-bold mb-16">
+          {{filtroEstado ? 'No hay pedidos con este estado' : 'No tienes pedidos asignados'}}
+        </h5>
+
+        <p class="text-gray-500 text-sm mb-24 max-w-400 mx-auto">
+          {{filtroEstado ?
+            'Intenta cambiar el filtro para ver pedidos en otros estados.' :
+            'Los nuevos pedidos aparecerán aquí automáticamente cuando el sistema te los asigne.'}}
+        </p>
+
+        <div class="flex-center gap-12 flex-wrap">
+          <button *ngIf="filtroEstado"
+                  (click)="limpiarFiltros()"
+                  class="btn bg-main-600 text-white hover-bg-main-700 rounded-pill px-20 py-12 fw-medium">
+            <i class="ph ph-funnel me-8"></i>
+            Ver Todos los Pedidos
+          </button>
+
+          <button (click)="actualizarPedidos()"
+                  class="btn border border-gray-300 bg-white text-gray-700 hover-bg-gray-100 rounded-pill px-20 py-12 fw-medium">
+            <i class="ph ph-arrows-clockwise me-8"></i>
+            Actualizar Lista
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

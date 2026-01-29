@@ -1,0 +1,218 @@
+<!-- Header -->
+<div class="border border-gray-100 rounded-16 overflow-hidden bg-white">
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <div class="flex-between align-items-center gap-16 flex-wrap">
+      <div>
+        <h4 class="mb-4 text-heading">Gestión de Marcas</h4>
+        <p class="text-gray-500 mb-0 text-sm">Administra las marcas de productos de tu tienda</p>
+      </div>
+      <!-- ❌ COMENTADO: Botón Nueva Marca (ahora se sincronizan desde 7Power) -->
+      <!--
+      <button class="btn bg-main-600"
+        *ngIf="permissionsService.canCreateMarcas()"
+        (click)="nuevaMarca()"
+        data-bs-toggle="modal"
+        data-bs-target="#modalCrearMarca">
+        <i class="ph ph-plus me-8"></i>
+        Nueva Marca
+      </button>
+      -->
+    </div>
+  </div>
+
+  <!-- Filtros y Estadísticas -->
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-12">
+      <div class="d-flex align-items-center gap-16">
+        <span class="text-sm text-gray-600">{{ selectionText }}</span>
+      </div>
+      <div class="d-flex align-items-center gap-4">
+        <span class="text-sm fw-medium text-dark">Total:</span>
+        <span class="badge bg-main-50 text-main-600">{{ marcas.length }}</span>
+        <span class="text-sm fw-medium text-dark">Activas:</span>
+        <span class="badge bg-success-50 text-success-600">{{ getMarcasActivas() }}</span>
+        <span class="text-sm fw-medium text-dark">Inactivas:</span>
+        <span class="badge bg-danger-50 text-danger-600">{{ getMarcasInactivas() }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla Moderna usando clases globales -->
+  <div class="modern-data-table">
+    <!-- Header compacto -->
+    <div class="modern-data-table__header" *ngIf="!isLoading && marcasFiltradas.length > 0">
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="table-info">{{ marcasFiltradas.length }} marcas encontradas</span>
+        <div class="d-flex align-items-center gap-2">
+          <span style="font-size: var(--font-xs); color: var(--gray-500);">Filas:</span>
+          <select class="page-size-selector" [(ngModel)]="pageSize" (change)="goToPage(1)">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading state -->
+    <div *ngIf="isLoading" class="modern-data-table__loading">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="loading-text">Cargando marcas...</p>
+    </div>
+
+    <!-- Tabla moderna -->
+    <div class="modern-data-table__container" *ngIf="!isLoading">
+      <table class="table table-borderless mb-0">
+        <thead>
+          <tr>
+            <th>IMAGEN</th>
+            <th>MARCA</th>
+            <th class="d-none d-lg-table-cell">DESCRIPCIÓN</th>
+            <th>ESTADO</th>
+            <th class="d-none d-md-table-cell">FECHA CREACIÓN</th>
+            <th class="text-end">ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let marca of getPaginatedMarcas(); trackBy: trackByMarcaId">
+            <!-- Imagen -->
+            <td>
+              <div class="d-flex align-items-center gap-12">
+                <div class="table-avatar__container">
+                  <div class="brand-image-container">
+                    <img *ngIf="marca.imagen_url"
+                         [src]="marca.imagen_url"
+                         [alt]="marca.nombre"
+                         class="brand-image"
+                         (error)="onImageError($event)">
+                    <i *ngIf="!marca.imagen_url"
+                       class="ph ph-tag text-gray-400"></i>
+                  </div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Marca -->
+            <td>
+              <div class="client-info__name">{{ marca.nombre }}</div>
+              <div class="client-info__subtitle">{{ marca.descripcion || 'Sin descripción' | slice:0:30 }}{{ (marca.descripcion?.length || 0) > 30 ? '...' : '' }}</div>
+            </td>
+
+            <!-- Descripción (hidden on tablet) -->
+            <td class="d-none d-lg-table-cell">
+              <div class="brand-description">
+                {{ marca.descripcion || 'Sin descripción disponible' }}
+              </div>
+            </td>
+
+            <!-- Estado -->
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <span class="status-badge" [ngClass]="marca.activo ? 'status-badge--active' : 'status-badge--inactive'">
+                  {{ marca.activo ? 'Activa' : 'Inactiva' }}
+                </span>
+                <button *ngIf="permissionsService.canEditMarcas()"
+                        class="toggle-button"
+                        [ngClass]="marca.activo ? 'toggle-button--active' : ''"
+                        [title]="marca.activo ? 'Desactivar marca' : 'Activar marca'"
+                        (click)="toggleEstado(marca)">
+                  <i class="ph" [class]="marca.activo ? 'ph-eye-slash' : 'ph-eye'"></i>
+                </button>
+              </div>
+            </td>
+
+            <!-- Fecha Creación -->
+            <td class="d-none d-md-table-cell">
+              <div class="date-info__main">{{ marca.created_at | date:'dd/MM/yyyy' }}</div>
+              <div class="date-info__relative">{{ getTimeAgo(marca.created_at) }}</div>
+            </td>
+
+            <!-- Acciones -->
+            <td class="text-end">
+              <div class="action-buttons">
+                <button class="action-buttons__btn action-buttons__btn--edit"
+                        (click)="editarMarca(marca)"
+                        title="Editar marca"
+                        *ngIf="permissionsService.canEditMarcas()">
+                  <i class="ph ph-pencil"></i>
+                </button>
+                <button class="action-buttons__btn action-buttons__btn--delete"
+                        (click)="eliminarMarca(marca)"
+                        title="Eliminar marca"
+                        *ngIf="permissionsService.canDeleteMarcas()">
+                  <i class="ph ph-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación moderna -->
+    <div class="modern-data-table__pagination" *ngIf="!isLoading && marcasFiltradas.length > 0 && getTotalPages() > 1">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="pagination-info">
+          Mostrando {{ (currentPage - 1) * pageSize + 1 }} a {{ Math.min(currentPage * pageSize, marcasFiltradas.length) }} de {{ marcasFiltradas.length }} registros
+        </div>
+        <nav>
+          <ul class="pagination-controls">
+            <li [class.disabled]="currentPage === 1">
+              <button (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
+                <i class="ph ph-caret-left"></i>
+              </button>
+            </li>
+            <li *ngFor="let page of getPageNumbers()" [class.active]="page === currentPage">
+              <button (click)="goToPage(page)">{{ page }}</button>
+            </li>
+            <li [class.disabled]="currentPage === getTotalPages()">
+              <button (click)="goToPage(currentPage + 1)" [disabled]="currentPage === getTotalPages()">
+                <i class="ph ph-caret-right"></i>
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Estado vacío -->
+    <div *ngIf="!isLoading && marcas.length === 0" class="empty-state">
+      <div class="empty-state__icon">
+        <i class="ph ph-tag"></i>
+      </div>
+      <h5 class="empty-state__title">No hay marcas registradas</h5>
+      <p class="empty-state__description">
+        Las marcas aparecerán aquí cuando las crees para organizar tus productos.
+      </p>
+      <button class="btn btn-primary"
+              *ngIf="permissionsService.canCreateMarcas()"
+              (click)="nuevaMarca()"
+              data-bs-toggle="modal"
+              data-bs-target="#modalCrearMarca">
+        <i class="ph ph-plus me-8"></i>
+        Crear primera marca
+      </button>
+    </div>
+
+    <!-- Sin resultados de búsqueda -->
+    <div *ngIf="!isLoading && marcas.length > 0 && marcasFiltradas.length === 0" class="empty-state">
+      <div class="empty-state__icon">
+        <i class="ph ph-magnifying-glass"></i>
+      </div>
+      <h5 class="empty-state__title">No se encontraron resultados</h5>
+      <p class="empty-state__description">
+        Intenta cambiar los filtros para encontrar las marcas que buscas.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para crear/editar marca -->
+<app-marca-modal
+  [marca]="marcaSeleccionada"
+  (marcaGuardada)="onMarcaGuardada()"
+  (modalCerrado)="onModalCerrado()">
+</app-marca-modal>

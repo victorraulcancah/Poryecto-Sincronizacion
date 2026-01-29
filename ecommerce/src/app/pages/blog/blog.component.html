@@ -1,0 +1,97 @@
+<!-- ========================= Breadcrumb Start =============================== -->
+<app-breadcrumb title="Blog" subtitle="Blog"></app-breadcrumb>
+
+<!-- ========================= Breadcrumb End =============================== -->
+
+<!-- =============================== Blog Section Start =========================== -->
+<section class="blog py-80">
+    <div class="container container-lg">
+        <div class="row gy-5">
+            <div class="col-lg-8 pe-xl-4">
+                <div class="blog-item-wrapper">
+                    <div *ngFor="let post of posts" class="blog-item">
+                        <a [routerLink]="['blog-details']" class="w-100 h-100 rounded-16 overflow-hidden">
+                            <img [src]="post.image" alt="" class="cover-img">
+                        </a>
+                        <div class="blog-item__content mt-24">
+                            <span class="bg-main-50 text-main-600 py-4 px-24 rounded-8 mb-16">{{ post.category }}</span>
+                            <h6 class="text-2xl mb-24">
+                                <a [routerLink]="['/blog-details']">{{ post.title }}</a>
+                            </h6>
+                            <p class="text-gray-700 text-line-2">{{ post.excerpt }}</p>
+
+                            <div class="flex-align flex-wrap gap-24 pt-24 mt-24 border-top border-gray-100">
+                                <div class="flex-align flex-wrap gap-8">
+                                    <span class="text-lg text-main-600"><i class="ph ph-calendar-dots"></i></span>
+                                    <span class="text-sm text-gray-500">
+                                        <a [routerLink]="['blog-details']" class="text-gray-500 hover-text-main-600">{{
+                                            post.date }}</a>
+                                    </span>
+                                </div>
+                                <div class="flex-align flex-wrap gap-8">
+                                    <span class="text-lg text-main-600"><i class="ph ph-chats-circle"></i></span>
+                                    <span class="text-sm text-gray-500">
+                                        <a [routerLink]="['blog-details']" class="text-gray-500 hover-text-main-600">{{
+                                            post.comments }} Comments</a>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagination Start -->
+                <ul class="pagination flex-align flex-wrap gap-16">
+                    <li class="page-item">
+                        <a class="page-link h-64 w-64 flex-center text-xxl rounded-8 fw-medium text-neutral-600 border border-gray-100"
+                            href="#" (click)="onPageChange(currentPage - 1)" [class.disabled]="currentPage === 1">
+                            <i class="ph-bold ph-arrow-left"></i>
+                        </a>
+                    </li>
+
+                    <!-- Loop through the pages dynamically -->
+                    <li *ngFor="let page of getPages()" class="page-item" [class.active]="page === currentPage">
+                        <a class="page-link h-64 w-64 flex-center text-md rounded-8 fw-medium text-neutral-600 border border-gray-100"
+                            href="#" (click)="onPageChange(page)">
+                            {{ page < 10 ? '0' + page : page }} </a>
+                    </li>
+
+                    <li class="page-item">
+                        <a class="page-link h-64 w-64 flex-center text-xxl rounded-8 fw-medium text-neutral-600 border border-gray-100"
+                            href="#" (click)="onPageChange(currentPage + 1)"
+                            [class.disabled]="currentPage === totalPages">
+                            <i class="ph-bold ph-arrow-right"></i>
+                        </a>
+                    </li>
+                </ul>
+                <!-- Pagination End -->
+
+            </div>
+            <div class="col-lg-4 ps-xl-4">
+                <!-- Search Start -->
+                <div class="blog-sidebar border border-gray-100 rounded-8 p-32 mb-40">
+                    <h6 class="text-xl mb-32 pb-32 border-bottom border-gray-100">Search Here</h6>
+                    <form action="#">
+                        <div class="input-group">
+                            <input type="text" class="form-control common-input bg-color-three"
+                                placeholder="Searching...">
+                            <button type="submit"
+                                class="btn btn-main text-2xl h-56 w-56 flex-center text-2xl input-group-text"><i
+                                    class="ph ph-magnifying-glass"></i></button>
+                        </div>
+                    </form>
+                </div>
+                <!-- Search End -->
+
+                <!-- Recent Post Start -->
+                <app-recent-post />
+                <!-- Recent Post End -->
+
+                <!-- Tags Start -->
+                <app-blog-category-list />
+                <!-- Tags End -->
+
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,638 @@
+<!-- Modal usando BaseModalComponent con estilos globales -->
+<app-base-modal
+  [isOpen]="mostrar"
+  [title]="'Crear Nueva Recompensa'"
+  [icon]="'ph ph-gift'"
+  [size]="'xl'"
+  [headerClass]="'bg-main-600 text-white'"
+  [loading]="loading"
+  [showFooter]="false"
+  (onClose)="cerrarModal()">
+
+  <!-- Contenido del modal -->
+  <div class="wizard-container">
+    <!-- Progress Wizard mejorado -->
+    <div class="wizard-progress mb-4">
+      <!-- Steps con línea conectora -->
+      <div class="position-relative">
+        <div class="d-flex justify-content-between align-items-start mb-3 position-relative">
+          <!-- Línea conectora de fondo -->
+          <div class="position-absolute top-0 start-0 w-100 d-flex align-items-center" style="height: 40px; z-index: 1;">
+            <div class="flex-grow-1 mx-5" style="height: 2px; background-color: var(--gray-200);"></div>
+          </div>
+          
+          <!-- Steps -->
+          <div class="wizard-step text-center position-relative" style="z-index: 2;" 
+               [class.active]="pasoActual === 0" 
+               [class.completed]="pasoActual > 0" 
+               (click)="irAPaso(0)" 
+               role="button" 
+               tabindex="0"
+               [class.disabled]="!puedeIrAPaso(0)">
+            <div class="step-circle mx-auto mb-2 d-flex align-items-center justify-content-center"
+                 [class.border-main-600]="pasoActual >= 0"
+                 [class.bg-main-600]="pasoActual > 0"
+                 [class.text-white]="pasoActual > 0"
+                 [class.text-main-600]="pasoActual === 0"
+                 [class.border-gray-300]="pasoActual < 0"
+                 [class.text-gray-400]="pasoActual < 0">
+              <i class="ph ph-check" *ngIf="pasoActual > 0"></i>
+              <span class="fw-semibold" *ngIf="pasoActual <= 0">1</span>
+            </div>
+            <div class="step-label small fw-medium">Información</div>
+          </div>
+          
+          <div class="wizard-step text-center position-relative" style="z-index: 2;" 
+               [class.active]="pasoActual === 1" 
+               [class.completed]="pasoActual > 1" 
+               (click)="irAPaso(1)" 
+               role="button" 
+               tabindex="0"
+               [class.disabled]="!puedeIrAPaso(1)">
+            <div class="step-circle mx-auto mb-2 d-flex align-items-center justify-content-center"
+                 [class.border-main-600]="pasoActual >= 1"
+                 [class.bg-main-600]="pasoActual > 1"
+                 [class.text-white]="pasoActual > 1"
+                 [class.text-main-600]="pasoActual === 1"
+                 [class.border-gray-300]="pasoActual < 1"
+                 [class.text-gray-400]="pasoActual < 1">
+              <i class="ph ph-check" *ngIf="pasoActual > 1"></i>
+              <span class="fw-semibold" *ngIf="pasoActual <= 1">2</span>
+            </div>
+            <div class="step-label small fw-medium">Configuración</div>
+          </div>
+          
+          <div class="wizard-step text-center position-relative" style="z-index: 2;" 
+               [class.active]="pasoActual === 2" 
+               [class.completed]="pasoActual > 2" 
+               (click)="irAPaso(2)" 
+               role="button" 
+               tabindex="0"
+               [class.disabled]="!puedeIrAPaso(2)">
+            <div class="step-circle mx-auto mb-2 d-flex align-items-center justify-content-center"
+                 [class.border-main-600]="pasoActual >= 2"
+                 [class.bg-main-600]="pasoActual > 2"
+                 [class.text-white]="pasoActual > 2"
+                 [class.text-main-600]="pasoActual === 2"
+                 [class.border-gray-300]="pasoActual < 2"
+                 [class.text-gray-400]="pasoActual < 2">
+              <i class="ph ph-check" *ngIf="pasoActual > 2"></i>
+              <span class="fw-semibold" *ngIf="pasoActual <= 2">3</span>
+            </div>
+            <div class="step-label small fw-medium">Segmentación</div>
+          </div>
+          
+          <div class="wizard-step text-center position-relative" style="z-index: 2;" 
+               [class.active]="pasoActual === 3" 
+               [class.completed]="pasoActual > 3" 
+               (click)="irAPaso(3)" 
+               role="button" 
+               tabindex="0"
+               [class.disabled]="!puedeIrAPaso(3)">
+            <div class="step-circle mx-auto mb-2 d-flex align-items-center justify-content-center"
+                 [class.border-main-600]="pasoActual >= 3"
+                 [class.bg-main-600]="pasoActual > 3"
+                 [class.text-white]="pasoActual > 3"
+                 [class.text-main-600]="pasoActual === 3"
+                 [class.border-gray-300]="pasoActual < 3"
+                 [class.text-gray-400]="pasoActual < 3">
+              <i class="ph ph-check" *ngIf="pasoActual > 3"></i>
+              <span class="fw-semibold" *ngIf="pasoActual <= 3">4</span>
+            </div>
+            <div class="step-label small fw-medium">Productos</div>
+          </div>
+          
+          <div class="wizard-step text-center position-relative" style="z-index: 2;" 
+               [class.active]="pasoActual === 4" 
+               [class.completed]="pasoActual > 4" 
+               (click)="irAPaso(4)" 
+               role="button" 
+               tabindex="0"
+               [class.disabled]="!puedeIrAPaso(4)">
+            <div class="step-circle mx-auto mb-2 d-flex align-items-center justify-content-center"
+                 [class.border-main-600]="pasoActual >= 4"
+                 [class.bg-main-600]="pasoActual > 4"
+                 [class.text-white]="pasoActual > 4"
+                 [class.text-main-600]="pasoActual === 4"
+                 [class.border-gray-300]="pasoActual < 4"
+                 [class.text-gray-400]="pasoActual < 4">
+              <i class="ph ph-check" *ngIf="pasoActual > 4"></i>
+              <span class="fw-semibold" *ngIf="pasoActual <= 4">5</span>
+            </div>
+            <div class="step-label small fw-medium">Resumen</div>
+          </div>
+        </div>
+        
+        <!-- Progress bar -->
+        <div class="progress mt-3" style="height: 6px;">
+          <div class="progress-bar bg-main-600 transition-all" 
+               [style.width]="((pasoActual + 1) / 5 * 100) + '%'"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Alert usando clases globales -->
+    <div *ngIf="error" class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+      <i class="ph ph-warning-circle me-2"></i>
+      <div>{{ error }}</div>
+      <button type="button" class="btn-close ms-auto" (click)="error = null"></button>
+    </div>
+
+    <!-- Form Container -->
+    <form [formGroup]="formulario" class="position-relative">
+      <!-- Steps Container -->
+      <div class="steps-container">
+        <!-- Paso 1: Información Básica -->
+        <div class="step-content"
+             [class.d-none]="pasoActual !== 0">
+          <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-light-50 border-0">
+              <h6 class="mb-0 text-heading fw-semibold">
+                <i class="ph ph-info me-2 text-main-600"></i>
+                Datos Generales
+              </h6>
+            </div>
+            <div class="card-body p-4">
+              <div class="row g-3">
+                <!-- Nombre -->
+                <div class="col-md-6">
+                  <label for="nombre" class="form-label fw-medium">Nombre de la Recompensa *</label>
+                  <input
+                    type="text"
+                    id="nombre"
+                    class="form-control"
+                    formControlName="nombre"
+                    placeholder="Ej: Bono de Bienvenida"
+                    [class.is-invalid]="formulario.get('nombre')?.invalid && formulario.get('nombre')?.touched"
+                    [disabled]="modoSoloLectura"
+                  >
+                  <div class="invalid-feedback" *ngIf="formulario.get('nombre')?.hasError('required')">
+                    El nombre es requerido
+                  </div>
+                  <div class="invalid-feedback" *ngIf="formulario.get('nombre')?.hasError('minlength')">
+                    El nombre debe tener al menos 3 caracteres
+                  </div>
+                </div>
+
+                <!-- Tipo -->
+                <div class="col-md-6">
+                  <label for="tipo" class="form-label fw-medium">Tipo de Recompensa *</label>
+                  <select
+                    id="tipo"
+                    class="form-select"
+                    formControlName="tipo"
+                    [class.is-invalid]="formulario.get('tipo')?.invalid && formulario.get('tipo')?.touched"
+                  >
+                    <option *ngFor="let tipo of tiposRecompensa" [value]="tipo.value">
+                      {{ tipo.label }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Descripción -->
+                <div class="col-12">
+                  <label for="descripcion" class="form-label fw-medium">Descripción *</label>
+                  <textarea
+                    id="descripcion"
+                    class="form-control"
+                    formControlName="descripcion"
+                    rows="3"
+                    placeholder="Describe los beneficios y condiciones de esta recompensa..."
+                    [class.is-invalid]="formulario.get('descripcion')?.invalid && formulario.get('descripcion')?.touched"
+                  ></textarea>
+                  <div class="invalid-feedback" *ngIf="formulario.get('descripcion')?.hasError('required')">
+                    La descripción es requerida
+                  </div>
+                  <div class="invalid-feedback" *ngIf="formulario.get('descripcion')?.hasError('minlength')">
+                    La descripción debe tener al menos 10 caracteres
+                  </div>
+                </div>
+
+                <!-- Fechas -->
+                <div class="col-md-6">
+                  <label for="fecha_inicio" class="form-label fw-medium">Fecha de Inicio *</label>
+                  <input
+                    type="date"
+                    id="fecha_inicio"
+                    class="form-control"
+                    formControlName="fecha_inicio"
+                    [min]="hoyStr"
+                    [class.is-invalid]="formulario.get('fecha_inicio')?.invalid && formulario.get('fecha_inicio')?.touched"
+                  >
+                  <div class="invalid-feedback" *ngIf="formulario.get('fecha_inicio')?.hasError('required')">
+                    La fecha de inicio es requerida
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <label for="fecha_fin" class="form-label fw-medium">Fecha de Fin *</label>
+                  <input
+                    type="date"
+                    id="fecha_fin"
+                    class="form-control"
+                    formControlName="fecha_fin"
+                    [class.is-invalid]="formulario.get('fecha_fin')?.invalid && formulario.get('fecha_fin')?.touched"
+                  >
+                  <div class="invalid-feedback" *ngIf="formulario.get('fecha_fin')?.hasError('required')">
+                    La fecha de fin es requerida
+                  </div>
+                </div>
+
+                <!-- Estado -->
+                <div class="col-md-6">
+                  <label for="estado" class="form-label fw-medium">Estado Inicial</label>
+                  <select
+                    id="estado"
+                    class="form-select"
+                    formControlName="estado"
+                  >
+                    <option *ngFor="let estado of estadosRecompensa" [value]="estado.value">
+                      {{ estado.label }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paso 2: Configuración -->
+        <div class="step-content"
+             [class.d-none]="pasoActual !== 1">
+          <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-light-50 border-0">
+              <h6 class="mb-0 text-heading fw-semibold">
+                <i class="ph ph-gear me-2 text-main-600"></i>
+                Configuración de {{ getTipoLabel(tipoSeleccionado) }}
+              </h6>
+            </div>
+            <div class="card-body p-4">
+              <!-- Configuración según tipo -->
+              <div [ngSwitch]="tipoSeleccionado">
+                <!-- Configuración Puntos -->
+                <div *ngSwitchCase="'puntos'" class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label fw-medium">Puntos por Compra</label>
+                    <input type="number" class="form-control" formControlName="puntos_por_compra" min="0">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-medium">Puntos por Monto (S/)</label>
+                    <input type="number" class="form-control" formControlName="puntos_por_monto" min="0" step="0.01">
+                  </div>
+                </div>
+
+                <!-- Configuración Descuento -->
+                <div *ngSwitchCase="'descuento'" class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label fw-medium">Tipo de Descuento</label>
+                    <select class="form-select" formControlName="tipo_descuento">
+                      <option value="porcentaje">Porcentaje (%)</option>
+                      <option value="fijo">Monto Fijo (S/)</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-medium">Valor del Descuento</label>
+                    <input type="number" class="form-control" formControlName="valor_descuento" min="0" step="0.01">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-medium">Compra Mínima (S/)</label>
+                    <input type="number" class="form-control" formControlName="compra_minima" min="0" step="0.01">
+                  </div>
+                </div>
+
+                <!-- Configuración Envío Gratis -->
+                <div *ngSwitchCase="'envio_gratis'" class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label fw-medium">Compra Mínima para Envío Gratis (S/)</label>
+                    <input type="number" class="form-control" formControlName="compra_minima_envio" min="0" step="0.01">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-medium">Zonas de Cobertura</label>
+                    <select class="form-select" formControlName="zonas_envio">
+                      <option value="todas">Todas las zonas</option>
+                      <option value="lima">Solo Lima</option>
+                      <option value="provincias">Solo Provincias</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Configuración Regalo -->
+                <div *ngSwitchCase="'regalo'" class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label fw-medium">Producto de Regalo</label>
+                    <input type="text" class="form-control" formControlName="producto_regalo" placeholder="Nombre del producto">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-medium">Compra Mínima para Regalo (S/)</label>
+                    <input type="number" class="form-control" formControlName="compra_minima_regalo" min="0" step="0.01">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paso 3: Segmentación -->
+        <div class="step-content"
+             [class.d-none]="pasoActual !== 2">
+          <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-light-50 border-0">
+              <h6 class="mb-0 text-heading fw-semibold">
+                <i class="ph ph-users me-2 text-main-600"></i>
+                Segmentación de Clientes
+              </h6>
+            </div>
+            <div class="card-body p-4">
+              <div class="alert alert-info d-flex align-items-center mb-4">
+                <i class="ph ph-info me-2"></i>
+                <div>Define a qué clientes aplicará esta recompensa. Puedes segmentar por tipo de cliente o seleccionar clientes específicos.</div>
+              </div>
+              
+              <!-- Layout de 2 columnas -->
+              <div class="row g-3">
+                <!-- Columna Izquierda: Segmentos del Sistema -->
+                <div class="col-md-6">
+                  <div class="selection-panel">
+                    <h6 class="panel-title">Segmentos del Sistema</h6>
+                    <div class="panel-content">
+                      <div *ngFor="let segmento of segmentosDisponibles" class="list-item">
+                        <input type="checkbox" 
+                               class="form-check-input"
+                               [id]="'seg-' + segmento.id"
+                               [checked]="isSegmentoSeleccionado(segmento)"
+                               (change)="toggleSegmento(segmento)"
+                               [disabled]="modoSoloLectura">
+                        <label [for]="'seg-' + segmento.id" class="list-item-label">
+                          <strong>{{ segmento.nombre }}</strong>
+                          <small class="d-block text-muted">{{ segmento.descripcion }}</small>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Columna Derecha: Seleccionados -->
+                <div class="col-md-6">
+                  <div class="selection-panel">
+                    <h6 class="panel-title">Seleccionados ({{ segmentosSeleccionados.length }})</h6>
+                    <div class="panel-content">
+                      <div *ngIf="segmentosSeleccionados.length === 0" class="empty-selection">
+                        <i class="ph ph-stack"></i>
+                        <p>No has seleccionado segmentos</p>
+                      </div>
+                      <div *ngIf="segmentosSeleccionados.length > 0" class="selected-list">
+                        <div *ngFor="let seg of segmentosSeleccionados" class="selected-item">
+                          <span>{{ seg.nombre }}</span>
+                          <i class="ph ph-x" (click)="!modoSoloLectura && removeSegmento(seg)" [class.disabled]="modoSoloLectura"></i>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Barra de búsqueda para clientes específicos -->
+                    <div class="mt-3">
+                      <input type="text" 
+                             class="form-control form-control-sm" 
+                             placeholder="Buscar cliente específico..."
+                             [(ngModel)]="busquedaCliente"
+                             [ngModelOptions]="{standalone: true}"
+                             (input)="buscarClientesEspecificos()"
+                             [disabled]="modoSoloLectura">
+                      
+                      <!-- Resultados de búsqueda -->
+                      <div *ngIf="cargandoClientes" class="text-center py-2">
+                        <div class="spinner-border spinner-border-sm"></div>
+                      </div>
+                      
+                      <div *ngIf="!cargandoClientes && clientesFiltrados.length > 0" class="search-results mt-2">
+                        <div *ngFor="let cliente of clientesFiltrados" 
+                             class="search-result-item"
+                             (click)="!modoSoloLectura && agregarClienteEspecifico(cliente)"
+                             [class.disabled]="modoSoloLectura">
+                          <strong>{{ cliente.nombre || 'Sin nombre' }}</strong>
+                          <small class="d-block text-muted">{{ cliente.email || cliente.telefono || 'Sin contacto' }}</small>
+                        </div>
+                      </div>
+                      
+                      <div *ngIf="!cargandoClientes && busquedaCliente.length >= 2 && clientesFiltrados.length === 0" class="text-center py-2 text-muted">
+                        <small>No se encontraron clientes</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paso 4: Productos -->
+        <div class="step-content"
+             [class.d-none]="pasoActual !== 3">
+          <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-light-50 border-0">
+              <h6 class="mb-0 text-heading fw-semibold">
+                <i class="ph ph-package me-2 text-main-600"></i>
+                Productos Aplicables
+              </h6>
+            </div>
+            <div class="card-body p-4">
+              <div class="alert alert-info d-flex align-items-center mb-4">
+                <i class="ph ph-info me-2"></i>
+                <div>Selecciona los productos o categorías a los que aplicará esta recompensa.</div>
+              </div>
+              
+              <!-- Selector de tipo de aplicación -->
+              <div class="mb-4">
+                <label class="form-label fw-medium">Aplicar a</label>
+                <select class="form-select" formControlName="aplicar_a" (change)="onAplicarATipoChange()">
+                  <option value="todos">Todos los productos</option>
+                  <option value="categorias">Categorías específicas</option>
+                  <option value="productos">Productos específicos</option>
+                </select>
+              </div>
+
+              <!-- Layout de 2 columnas (solo si no es "todos") -->
+              <div class="row g-3" *ngIf="formulario.get('aplicar_a')?.value !== 'todos'">
+                <!-- Columna Izquierda: Productos Específicos -->
+                <div class="col-md-6">
+                  <div class="selection-panel">
+                    <h6 class="panel-title">Productos Específicos</h6>
+                    <input type="text" 
+                           class="form-control form-control-sm mb-3" 
+                           placeholder="Buscar productos..."
+                           [(ngModel)]="busquedaProducto"
+                           [ngModelOptions]="{standalone: true}"
+                           (input)="buscarProductosAPI()"
+                           [disabled]="modoSoloLectura">
+                    
+                    <div class="panel-content">
+                      <div *ngIf="cargandoProductos" class="text-center py-3">
+                        <div class="spinner-border spinner-border-sm"></div>
+                      </div>
+                      
+                      <div *ngIf="!cargandoProductos && productosFiltrados.length === 0" class="empty-selection">
+                        <i class="ph ph-magnifying-glass"></i>
+                        <p>Busca productos para agregar</p>
+                      </div>
+                      
+                      <div *ngFor="let producto of productosFiltrados" class="list-item">
+                        <input type="checkbox" 
+                               class="form-check-input"
+                               [id]="'prod-' + producto.id"
+                               [checked]="isProductoSeleccionado(producto)"
+                               (change)="toggleProducto(producto)"
+                               [disabled]="modoSoloLectura">
+                        <label [for]="'prod-' + producto.id" class="list-item-label">
+                          <strong>{{ producto.nombre }}</strong>
+                          <small class="d-block text-muted">{{ producto.codigo || 'Sin código' }}</small>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Columna Derecha: Categorías -->
+                <div class="col-md-6">
+                  <div class="selection-panel">
+                    <h6 class="panel-title">Categorías</h6>
+                    <input type="text" 
+                           class="form-control form-control-sm mb-3" 
+                           placeholder="Buscar categorías..."
+                           [(ngModel)]="busquedaCategoria"
+                           [ngModelOptions]="{standalone: true}"
+                           (input)="buscarCategoriasAPI()"
+                           [disabled]="modoSoloLectura">
+                    
+                    <div class="panel-content">
+                      <div *ngIf="cargandoCategorias" class="text-center py-3">
+                        <div class="spinner-border spinner-border-sm"></div>
+                      </div>
+                      
+                      <div *ngIf="!cargandoCategorias && categoriasFiltradas.length === 0" class="empty-selection">
+                        <i class="ph ph-magnifying-glass"></i>
+                        <p>Busca categorías para agregar</p>
+                      </div>
+                      
+                      <div *ngFor="let categoria of categoriasFiltradas" class="list-item">
+                        <input type="checkbox" 
+                               class="form-check-input"
+                               [id]="'cat-' + categoria.id"
+                               [checked]="isCategoriaSeleccionada(categoria)"
+                               (change)="toggleCategoria(categoria)"
+                               [disabled]="modoSoloLectura">
+                        <label [for]="'cat-' + categoria.id" class="list-item-label">
+                          <strong>{{ categoria.nombre }}</strong>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Resumen de seleccionados -->
+              <div *ngIf="productosSeleccionados.length > 0 || categoriasSeleccionadas.length > 0" class="mt-4">
+                <h6 class="fw-medium mb-3">Seleccionados</h6>
+                
+                <div *ngIf="productosSeleccionados.length > 0" class="mb-3">
+                  <small class="text-muted d-block mb-2">Productos ({{ productosSeleccionados.length }})</small>
+                  <div class="selected-items">
+                    <span *ngFor="let prod of productosSeleccionados" class="badge bg-info me-2 mb-2">
+                      {{ prod.nombre }}
+                      <i class="ph ph-x ms-1" (click)="!modoSoloLectura && removeProducto(prod)" [class.disabled]="modoSoloLectura"></i>
+                    </span>
+                  </div>
+                </div>
+
+                <div *ngIf="categoriasSeleccionadas.length > 0">
+                  <small class="text-muted d-block mb-2">Categorías ({{ categoriasSeleccionadas.length }})</small>
+                  <div class="selected-items">
+                    <span *ngFor="let cat of categoriasSeleccionadas" class="badge bg-success me-2 mb-2">
+                      {{ cat.nombre }}
+                      <i class="ph ph-x ms-1" (click)="!modoSoloLectura && removeCategoria(cat)" [class.disabled]="modoSoloLectura"></i>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paso 5: Resumen -->
+        <div class="step-content"
+             [class.d-none]="pasoActual !== 4">
+          <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-light-50 border-0">
+              <h6 class="mb-0 text-heading fw-semibold">
+                <i class="ph ph-check-circle me-2 text-main-600"></i>
+                Resumen de la Recompensa
+              </h6>
+            </div>
+            <div class="card-body p-4">
+              <div class="alert alert-success d-flex align-items-center">
+                <i class="ph ph-lightbulb me-2"></i>
+                <div><strong>Tip:</strong> Revisa toda la configuración antes de crear la recompensa. Podrás editarla después si es necesario.</div>
+              </div>
+              
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <strong>Nombre:</strong> {{ formulario.get('nombre')?.value }}
+                </div>
+                <div class="col-md-6">
+                  <strong>Tipo:</strong> {{ getTipoLabel(formulario.get('tipo')?.value) }}
+                </div>
+                <div class="col-md-6">
+                  <strong>Fecha Inicio:</strong> {{ formulario.get('fecha_inicio')?.value }}
+                </div>
+                <div class="col-md-6">
+                  <strong>Fecha Fin:</strong> {{ formulario.get('fecha_fin')?.value }}
+                </div>
+                <div class="col-12">
+                  <strong>Descripción:</strong> {{ formulario.get('descripcion')?.value }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+    
+    <!-- Footer personalizado -->
+    <div class="modal-footer border-top bg-light d-flex justify-content-between align-items-center p-3 mt-4">
+      <!-- Modo Solo Lectura: Solo botón Cerrar -->
+      <div *ngIf="modoSoloLectura" class="w-100 d-flex justify-content-between align-items-center">
+        <div class="text-muted small fw-medium">
+          Paso {{ pasoActual + 1 }} de {{ pasos.length }}
+        </div>
+        <button type="button" class="btn btn-secondary" (click)="cerrarModal()">
+          <i class="ph ph-x me-1"></i>
+          Cerrar
+        </button>
+      </div>
+      
+      <!-- Modo Edición/Creación: Botones de navegación -->
+      <ng-container *ngIf="!modoSoloLectura">
+        <button type="button" 
+                class="btn btn-outline-secondary" 
+                (click)="pasoActual === 0 ? cerrarModal() : anteriorPaso()"
+                [disabled]="loading">
+          <i class="ph ph-arrow-left me-1" *ngIf="pasoActual > 0"></i>
+          <i class="ph ph-x me-1" *ngIf="pasoActual === 0"></i>
+          {{ pasoActual === 0 ? 'Cancelar' : 'Anterior' }}
+        </button>
+        
+        <div class="text-muted small fw-medium">
+          Paso {{ pasoActual + 1 }} de {{ pasos.length }}
+        </div>
+        
+        <button type="button" 
+                [class]="pasoActual === 4 ? 'btn btn-success' : 'btn btn-primary'"
+                (click)="pasoActual === 4 ? crearRecompensa() : siguientePaso()"
+                [disabled]="loading || (!validacionesPaso[pasoActual] || !validacionesPaso[pasoActual]())">
+          <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+          <i *ngIf="!loading && pasoActual < 4" class="ph ph-arrow-right me-1"></i>
+          <i *ngIf="!loading && pasoActual === 4" class="ph ph-check me-1"></i>
+          {{ loading ? 'Procesando...' : (pasoActual === 4 ? 'Crear Recompensa' : 'Siguiente') }}
+        </button>
+      </ng-container>
+    </div>
+  </div>
+</app-base-modal>

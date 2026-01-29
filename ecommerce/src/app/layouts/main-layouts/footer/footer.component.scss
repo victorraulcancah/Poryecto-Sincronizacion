@@ -1,0 +1,43 @@
+/* Footer Styles */
+
+
+.footer-item__title {
+  font-size: 0.875rem;
+  letter-spacing: 0.5px;
+}
+
+.footer-menu a {
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.newsletter-form .form-control {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.newsletter-form .btn {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.payment-method-img {
+  border-radius: 4px;
+  background: white;
+  padding: 4px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .footer {
+    padding: 40px 0 !important;
+  }
+  
+  .footer-item__title {
+    margin-bottom: 16px !important;
+  }
+  
+  .payment-method-img {
+    height: 28px !important;
+  }
+}

@@ -1,0 +1,13 @@
+// Este componente usa las clases globales de data-table
+// definidas en src/assets/sass/components/_data-table.scss
+
+:host {
+  display: block;
+}
+
+// Ajustes específicos para el contenedor de tiendas
+.modern-data-table {
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+}

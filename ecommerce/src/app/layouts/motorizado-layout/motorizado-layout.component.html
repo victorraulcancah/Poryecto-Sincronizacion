@@ -1,0 +1,317 @@
+<!-- Layout del Motorizado -->
+<div class="motorizado-layout">
+  <!-- Mobile Overlay -->
+  <div class="sidebar-overlay d-lg-none"
+       [class.show]="sidebarCollapsed"
+       (click)="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar-motorizado position-fixed d-none d-lg-block bg-white border-end border-gray-200 shadow-sm"
+         [class.collapsed]="sidebarCollapsed">
+
+    <!-- Header del Sidebar -->
+    <div class="p-20 border-bottom border-gray-100 bg-main-600 text-white">
+      <div class="text-center" *ngIf="!sidebarCollapsed">
+        <div class="w-48 h-48 bg-white bg-opacity-20 rounded-circle flex-center mx-auto mb-12 text-main-600">
+          <span class="fw-bold">{{ getUserInitials() }}</span>
+        </div>
+        <h6 class="fw-bold text-white mb-4">{{ currentUser?.name || 'Usuario Motorizado' }}</h6>
+        <span class="text-xs px-12 py-4 bg-white bg-opacity-20 rounded-pill fw-medium text-main-600">
+          Unidad {{ currentUser?.numero_unidad || 'MOT-001' }}
+        </span>
+      </div>
+      <div class="text-center" *ngIf="sidebarCollapsed">
+        <div class="w-32 h-32 bg-white bg-opacity-20 rounded-circle flex-center mx-auto">
+          <span class="fw-bold text-xs text-main-600">{{ getUserInitials() }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Menú de Navegación -->
+    <nav class="p-0">
+      <ul class="list-unstyled p-0 m-0">
+        <!-- Dashboard -->
+        <li>
+          <a routerLink="/motorizado/dashboard"
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{exact: true}"
+             class="d-flex align-items-center gap-12 p-16 mx-16 my-8 rounded-12 text-decoration-none text-gray-700 hover-bg-main-50 hover-text-main-600 transition-2">
+            <div class="w-32 h-32 bg-gray-100 rounded-8 flex-center">
+              <i class="ph ph-squares-four text-main-600"></i>
+            </div>
+            <span [class.d-none]="sidebarCollapsed">Dashboard</span>
+          </a>
+        </li>
+
+        <!-- Mis Pedidos -->
+        <li>
+          <a routerLink="/motorizado/pedidos"
+             routerLinkActive="active"
+             class="d-flex align-items-center gap-12 p-16 mx-16 my-8 rounded-12 text-decoration-none text-gray-700 hover-bg-main-50 hover-text-main-600 transition-2 position-relative">
+            <div class="w-32 h-32 bg-gray-100 rounded-8 flex-center">
+              <i class="ph ph-package text-main-600"></i>
+            </div>
+            <span class="flex-grow-1" [class.d-none]="sidebarCollapsed">Mis Pedidos</span>
+            <span *ngIf="pedidosPendientes > 0 && !sidebarCollapsed"
+                  class="bg-danger-600 text-white rounded-pill px-8 py-4 text-xs fw-bold">
+              {{ pedidosPendientes }}
+            </span>
+          </a>
+        </li>
+
+        <!-- Rutas -->
+        <li>
+          <a routerLink="/motorizado/rutas"
+             routerLinkActive="active"
+             class="d-flex align-items-center gap-12 p-16 mx-16 my-8 rounded-12 text-decoration-none text-gray-700 hover-bg-main-50 hover-text-main-600 transition-2">
+            <div class="w-32 h-32 bg-gray-100 rounded-8 flex-center">
+              <i class="ph ph-map-pin text-main-600"></i>
+            </div>
+            <span [class.d-none]="sidebarCollapsed">Rutas</span>
+          </a>
+        </li>
+
+        <!-- Mi Perfil -->
+        <li>
+          <a routerLink="/motorizado/perfil"
+             routerLinkActive="active"
+             class="d-flex align-items-center gap-12 p-16 mx-16 my-8 rounded-12 text-decoration-none text-gray-700 hover-bg-main-50 hover-text-main-600 transition-2">
+            <div class="w-32 h-32 bg-gray-100 rounded-8 flex-center">
+              <i class="ph ph-user-circle text-main-600"></i>
+            </div>
+            <span [class.d-none]="sidebarCollapsed">Mi Perfil</span>
+          </a>
+        </li>
+
+        <!-- Historial -->
+        <li>
+          <a routerLink="/motorizado/historial"
+             routerLinkActive="active"
+             class="d-flex align-items-center gap-12 p-16 mx-16 my-8 rounded-12 text-decoration-none text-gray-700 hover-bg-main-50 hover-text-main-600 transition-2">
+            <div class="w-32 h-32 bg-gray-100 rounded-8 flex-center">
+              <i class="ph ph-clock-clockwise text-main-600"></i>
+            </div>
+            <span [class.d-none]="sidebarCollapsed">Historial</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-content" [class.sidebar-collapsed]="sidebarCollapsed">
+    <!-- Header -->
+    <header class="header-motorizado bg-white border-bottom border-gray-200 position-fixed top-0 z-3">
+      <div class="container-fluid h-100">
+        <div class="d-flex align-items-center justify-content-between h-100 px-16">
+          <!-- Left Section -->
+          <div class="d-flex align-items-center gap-16">
+            <!-- Toggle Sidebar Desktop -->
+            <button class="btn border-0 bg-transparent hover-bg-gray-100 p-8 d-none d-lg-flex"
+                    (click)="toggleSidebar()">
+              <i class="ph ph-list text-gray-900 fs-24"></i>
+            </button>
+
+            <!-- Mobile Menu Button -->
+            <button class="btn border-0 bg-transparent hover-bg-gray-100 p-8 d-lg-none"
+                    (click)="toggleSidebar()">
+              <i class="ph ph-list text-gray-900 fs-24"></i>
+            </button>
+
+            <!-- Logo -->
+            <div class="d-flex align-items-center gap-12">
+              <div class="w-40 h-40 bg-main-600 text-white rounded-circle flex-center">
+                <i class="ph ph-motorcycle"></i>
+              </div>
+              <div class="d-none d-sm-block">
+                <h6 class="mb-0 fw-bold text-heading">MotoriApp</h6>
+                <small class="text-gray-500">Sistema de Entregas</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Center Section - User Info -->
+          <div class="d-none d-lg-flex align-items-center gap-16">
+            <div class="d-flex align-items-center gap-12">
+              <div class="w-32 h-32 bg-warning-100 text-warning-600 rounded-circle flex-center fw-bold text-sm">
+                {{ getUserInitials() }}
+              </div>
+              <div>
+                <div class="text-sm fw-semibold">{{ getGreeting() }}</div>
+                <div class="text-xs text-gray-600">{{ currentUser?.name || 'Usuario' }}</div>
+              </div>
+            </div>
+            <span class="bg-main-50 text-main-600 px-12 py-6 rounded-pill text-xs fw-semibold">
+              <i class="ph ph-identification-badge me-4"></i>
+              {{ currentUser?.numero_unidad || 'MOT-001' }}
+            </span>
+          </div>
+
+          <!-- Right Section -->
+          <div class="d-flex align-items-center gap-16">
+            <!-- User Menu Mobile -->
+            <div class="dropdown d-lg-none">
+              <button class="btn bg-transparent border-0 p-8" type="button" data-bs-toggle="dropdown">
+                <div class="w-32 h-32 bg-warning-100 text-warning-600 rounded-circle flex-center fw-bold text-sm">
+                  {{ getUserInitials() }}
+                </div>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><span class="dropdown-item-text">{{ currentUser?.name || 'Usuario' }}</span></li>
+                <li><span class="dropdown-item-text text-muted">{{ currentUser?.numero_unidad || 'MOT-001' }}</span></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#" (click)="logout()">
+                  <i class="ph ph-sign-out me-8"></i>Salir
+                </a></li>
+              </ul>
+            </div>
+
+            <!-- Logout Desktop -->
+            <button class="btn bg-gray-100 hover-bg-gray-200 text-gray-700 rounded-8 px-16 py-8 text-sm d-none d-lg-flex align-items-center gap-8"
+                    (click)="logout()">
+              <i class="ph ph-sign-out"></i>
+              <span>Salir</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main class="content-area bg-gray-50 flex-1 p-24">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+  <!-- Mobile Sidebar -->
+  <aside class="sidebar-mobile position-fixed d-lg-none bg-white shadow-lg"
+         [class.show]="sidebarCollapsed">
+
+    <!-- Header del Sidebar -->
+    <div class="p-20 border-bottom border-gray-100 bg-main-600 text-white">
+      <div class="text-center">
+        <div class="w-48 h-48 bg-white bg-opacity-20 rounded-circle flex-center mx-auto mb-12">
+          <span class="fw-bold text-white">{{ getUserInitials() }}</span>
+        </div>
+        <h6 class="fw-bold text-main-600 mb-4">{{ currentUser?.name || 'Usuario Motorizado' }}</h6>
+        <span class="text-xs px-12 py-4 bg-white bg-opacity-20 rounded-pill fw-medium">
+          Unidad {{ currentUser?.numero_unidad || 'MOT-001' }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Menú de Navegación Móvil -->
+    <nav class="p-0">
+      <ul class="list-unstyled p-0 m-0">
+        <!-- Dashboard -->
+        <li>
+          <a routerLink="/motorizado/dashboard"
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{exact: true}"
+             class="d-flex align-items-center gap-12 p-16 mx-16 my-8 rounded-12 text-decoration-none text-gray-700 hover-bg-main-50 hover-text-main-600 transition-2"
+             (click)="toggleSidebar()">
+            <div class="w-32 h-32 bg-gray-100 rounded-8 flex-center">
+              <i class="ph ph-squares-four text-main-600"></i>
+            </div>
+            <span>Dashboard</span>
+          </a>
+        </li>
+
+        <!-- Mis Pedidos -->
+        <li>
+          <a routerLink="/motorizado/pedidos"
+             routerLinkActive="active"
+             class="d-flex align-items-center gap-12 p-16 mx-16 my-8 rounded-12 text-decoration-none text-gray-700 hover-bg-main-50 hover-text-main-600 transition-2 position-relative"
+             (click)="toggleSidebar()">
+            <div class="w-32 h-32 bg-gray-100 rounded-8 flex-center">
+              <i class="ph ph-package text-main-600"></i>
+            </div>
+            <span class="flex-grow-1">Mis Pedidos</span>
+            <span *ngIf="pedidosPendientes > 0"
+                  class="bg-danger-600 text-white rounded-pill px-8 py-4 text-xs fw-bold">
+              {{ pedidosPendientes }}
+            </span>
+          </a>
+        </li>
+
+        <!-- Rutas -->
+        <li>
+          <a routerLink="/motorizado/rutas"
+             routerLinkActive="active"
+             class="d-flex align-items-center gap-12 p-16 mx-16 my-8 rounded-12 text-decoration-none text-gray-700 hover-bg-main-50 hover-text-main-600 transition-2"
+             (click)="toggleSidebar()">
+            <div class="w-32 h-32 bg-gray-100 rounded-8 flex-center">
+              <i class="ph ph-map-pin text-main-600"></i>
+            </div>
+            <span>Rutas</span>
+          </a>
+        </li>
+
+        <!-- Mi Perfil -->
+        <li>
+          <a routerLink="/motorizado/perfil"
+             routerLinkActive="active"
+             class="d-flex align-items-center gap-12 p-16 mx-16 my-8 rounded-12 text-decoration-none text-gray-700 hover-bg-main-50 hover-text-main-600 transition-2"
+             (click)="toggleSidebar()">
+            <div class="w-32 h-32 bg-gray-100 rounded-8 flex-center">
+              <i class="ph ph-user-circle text-main-600"></i>
+            </div>
+            <span>Mi Perfil</span>
+          </a>
+        </li>
+
+        <!-- Historial -->
+        <li>
+          <a routerLink="/motorizado/historial"
+             routerLinkActive="active"
+             class="d-flex align-items-center gap-12 p-16 mx-16 my-8 rounded-12 text-decoration-none text-gray-700 hover-bg-main-50 hover-text-main-600 transition-2"
+             (click)="toggleSidebar()">
+            <div class="w-32 h-32 bg-gray-100 rounded-8 flex-center">
+              <i class="ph ph-clock-clockwise text-main-600"></i>
+            </div>
+            <span>Historial</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- Mobile Navigation -->
+  <nav class="mobile-nav position-fixed d-lg-none bg-white border-top border-gray-200 shadow-lg">
+    <div class="d-flex justify-content-around align-items-center h-100">
+      <a routerLink="/motorizado/dashboard"
+         routerLinkActive="active"
+         [routerLinkActiveOptions]="{exact: true}"
+         class="d-flex flex-column align-items-center justify-content-center py-8 px-12 text-decoration-none text-gray-600 hover-text-main-600 transition-2">
+        <i class="ph ph-squares-four fs-20 mb-4"></i>
+        <span class="text-xs fw-medium">Dashboard</span>
+      </a>
+
+      <a routerLink="/motorizado/pedidos"
+         routerLinkActive="active"
+         class="d-flex flex-column align-items-center justify-content-center py-8 px-12 text-decoration-none text-gray-600 hover-text-main-600 transition-2 position-relative">
+        <i class="ph ph-package fs-20 mb-4"></i>
+        <span class="text-xs fw-medium">Pedidos</span>
+        <span *ngIf="pedidosPendientes > 0"
+              class="position-absolute w-16 h-16 bg-danger-600 text-white rounded-circle flex-center text-xs fw-bold"
+              style="top: 4px; right: 20%;">
+          {{ pedidosPendientes }}
+        </span>
+      </a>
+
+      <a routerLink="/motorizado/rutas"
+         routerLinkActive="active"
+         class="d-flex flex-column align-items-center justify-content-center py-8 px-12 text-decoration-none text-gray-600 hover-text-main-600 transition-2">
+        <i class="ph ph-map-pin fs-20 mb-4"></i>
+        <span class="text-xs fw-medium">Rutas</span>
+      </a>
+
+      <a routerLink="/motorizado/perfil"
+         routerLinkActive="active"
+         class="d-flex flex-column align-items-center justify-content-center py-8 px-12 text-decoration-none text-gray-600 hover-text-main-600 transition-2">
+        <i class="ph ph-user-circle fs-20 mb-4"></i>
+        <span class="text-xs fw-medium">Perfil</span>
+      </a>
+    </div>
+  </nav>
+</div>

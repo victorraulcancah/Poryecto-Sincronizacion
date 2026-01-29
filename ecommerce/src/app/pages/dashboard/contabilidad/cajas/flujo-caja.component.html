@@ -1,0 +1,387 @@
+<!-- Contenedor Principal -->
+<div class="border border-gray-100 rounded-16 overflow-hidden bg-white">
+  <!-- Header -->
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <h4 class="mb-4 text-heading" style="font-size: 20px;">Flujo de Caja</h4>
+        <p class="text-gray-500 mb-0 text-sm">
+          Proyecciones y análisis de flujo de efectivo
+        </p>
+      </div>
+      <button class="btn bg-main-600" (click)="abrirModal()" *ngIf="vistaActual === 'proyecciones'"
+              style="padding: 8px 16px; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; background-color: #3b82f6 !important; color: white !important; border: none; transition: all 0.2s ease;">
+        <i class="ph ph-plus"></i>
+        <span>Nueva Proyección</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabs y Filtros -->
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <!-- Tabs de Vista -->
+    <div class="mb-3" style="display: flex; gap: 8px; flex-wrap: wrap;">
+      <button class="btn" 
+              [ngClass]="vistaActual === 'proyecciones' ? 'btn-primary' : 'btn-outline-secondary'"
+              (click)="cambiarVista('proyecciones')"
+              style="padding: 8px 16px; font-size: 14px; display: inline-flex; align-items: center; gap: 6px;">
+        <i class="ph ph-chart-line"></i>
+        <span>Proyecciones</span>
+      </button>
+      <button class="btn" 
+              [ngClass]="vistaActual === 'comparativa' ? 'btn-primary' : 'btn-outline-secondary'"
+              (click)="cambiarVista('comparativa')"
+              style="padding: 8px 16px; font-size: 14px; display: inline-flex; align-items: center; gap: 6px;">
+        <i class="ph ph-chart-bar"></i>
+        <span>Comparativa</span>
+      </button>
+      <button class="btn" 
+              [ngClass]="vistaActual === 'alertas' ? 'btn-primary' : 'btn-outline-secondary'"
+              (click)="cambiarVista('alertas')"
+              style="padding: 8px 16px; font-size: 14px; display: inline-flex; align-items: center; gap: 6px;">
+        <i class="ph ph-warning"></i>
+        <span>Alertas</span>
+      </button>
+    </div>
+
+    <!-- Filtros -->
+    <div class="row g-3">
+      <div class="col-md-3">
+        <label class="form-label text-sm fw-medium">
+          <i class="ph ph-calendar me-1"></i>
+          Fecha Inicio
+        </label>
+        <input type="date" [(ngModel)]="filtros.fecha_inicio" class="form-control">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label text-sm fw-medium">
+          <i class="ph ph-calendar me-1"></i>
+          Fecha Fin
+        </label>
+        <input type="date" [(ngModel)]="filtros.fecha_fin" class="form-control">
+      </div>
+      <div class="col-md-3" *ngIf="vistaActual === 'proyecciones'">
+        <label class="form-label text-sm fw-medium">
+          <i class="ph ph-funnel me-1"></i>
+          Tipo
+        </label>
+        <select [(ngModel)]="filtros.tipo" class="form-select">
+          <option value="">Todos</option>
+          <option value="INGRESO">Ingresos</option>
+          <option value="EGRESO">Egresos</option>
+        </select>
+      </div>
+      <div class="col-md-3 d-flex align-items-end" style="gap: 8px;">
+        <button class="btn btn-primary" (click)="aplicarFiltros()" 
+                style="padding: 8px 16px; font-size: 14px; display: inline-flex; align-items: center; gap: 6px;">
+          <i class="ph ph-funnel-simple"></i>
+          <span>Aplicar</span>
+        </button>
+        <button class="btn btn-outline-secondary" (click)="limpiarFiltros()" 
+                style="padding: 8px 16px; font-size: 14px; display: inline-flex; align-items: center; gap: 6px;">
+          <i class="ph ph-x"></i>
+          <span>Limpiar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="modern-data-table__loading">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="loading-text">Cargando datos...</p>
+  </div>
+
+  <!-- Vista Proyecciones -->
+  <div *ngIf="!loading && vistaActual === 'proyecciones'">
+    <div class="modern-data-table__container" *ngIf="proyecciones.length > 0">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>FECHA</th>
+            <th>TIPO</th>
+            <th>CATEGORÍA</th>
+            <th>CONCEPTO</th>
+            <th>PROYECTADO</th>
+            <th>REAL</th>
+            <th>DESVIACIÓN</th>
+            <th>ESTADO</th>
+            <th class="text-end">ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let proyeccion of proyecciones">
+            <td>
+              <div class="date-info">
+                <div class="date-info__main">{{ proyeccion.fecha | date:'dd/MM/yyyy' }}</div>
+              </div>
+            </td>
+            <td>
+              <span class="type-badge" 
+                    [ngClass]="proyeccion.tipo === 'INGRESO' ? 'type-badge--manual' : 'type-badge--default'">
+                <i class="ph" [ngClass]="proyeccion.tipo === 'INGRESO' ? 'ph-arrow-up' : 'ph-arrow-down'"></i>
+                {{ proyeccion.tipo }}
+              </span>
+            </td>
+            <td>
+              <span class="client-info__subtitle">{{ proyeccion.categoria }}</span>
+            </td>
+            <td>
+              <div class="client-info__name">{{ proyeccion.concepto }}</div>
+            </td>
+            <td>
+              <div class="product-price-info">
+                <div class="price-sale">S/ {{ proyeccion.monto_proyectado | number:'1.2-2' }}</div>
+              </div>
+            </td>
+            <td>
+              <div class="product-price-info" *ngIf="proyeccion.monto_real">
+                <div class="price-sale">S/ {{ proyeccion.monto_real | number:'1.2-2' }}</div>
+              </div>
+              <span *ngIf="!proyeccion.monto_real" class="text-gray-400">-</span>
+            </td>
+            <td>
+              <div *ngIf="proyeccion.desviacion" class="text-sm">
+                <div [class]="proyeccion.desviacion > 0 ? 'text-danger-600' : 'text-success-600'">
+                  S/ {{ proyeccion.desviacion | number:'1.2-2' }}
+                </div>
+                <div class="text-muted text-xs">
+                  ({{ proyeccion.desviacion_porcentaje | number:'1.1-1' }}%)
+                </div>
+              </div>
+              <span *ngIf="!proyeccion.desviacion" class="text-gray-400">-</span>
+            </td>
+            <td>
+              <span class="status-badge" 
+                    [ngClass]="{
+                      'status-badge--active': proyeccion.estado === 'REALIZADO',
+                      'status-badge--inactive': proyeccion.estado === 'PROYECTADO'
+                    }">
+                {{ proyeccion.estado }}
+              </span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button class="action-buttons__btn action-buttons__btn--view" 
+                        (click)="registrarReal(proyeccion)" 
+                        *ngIf="proyeccion.estado === 'PROYECTADO'"
+                        title="Registrar monto real">
+                  <i class="ph ph-check"></i>
+                </button>
+                <button class="action-buttons__btn action-buttons__btn--edit" 
+                        (click)="abrirModal(proyeccion)" 
+                        title="Editar">
+                  <i class="ph ph-pencil"></i>
+                </button>
+                <button class="action-buttons__btn action-buttons__btn--delete" 
+                        (click)="eliminarProyeccion(proyeccion.id)" 
+                        title="Eliminar">
+                  <i class="ph ph-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="proyecciones.length === 0" class="empty-state">
+      <div class="empty-state__icon">
+        <i class="ph ph-chart-line"></i>
+      </div>
+      <h5 class="empty-state__title">No hay proyecciones registradas</h5>
+      <p class="empty-state__description">
+        Crea la primera proyección para comenzar a analizar tu flujo de caja.
+      </p>
+      <button class="btn btn-primary" (click)="abrirModal()">
+        <i class="ph ph-plus me-2"></i>
+        Nueva Proyección
+      </button>
+    </div>
+  </div>
+
+  <!-- Vista Comparativa -->
+  <div *ngIf="!loading && vistaActual === 'comparativa'" class="p-24 p-md-32">
+    <div *ngIf="comparativa" class="row g-4">
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm bg-success-50 h-100">
+          <div class="card-body">
+            <h5 class="mb-3 d-flex align-items-center gap-2">
+              <i class="ph ph-arrow-up text-success-600" style="font-size: 1.5rem;"></i>
+              <span>Ingresos</span>
+            </h5>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted text-sm">Proyectado:</span>
+              <strong>S/ {{ comparativa.ingresos.proyectado | number:'1.2-2' }}</strong>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted text-sm">Real:</span>
+              <strong>S/ {{ comparativa.ingresos.real | number:'1.2-2' }}</strong>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span class="text-muted text-sm">Desviación:</span>
+              <strong [class]="comparativa.ingresos.desviacion < 0 ? 'text-danger-600' : 'text-success-600'">
+                S/ {{ comparativa.ingresos.desviacion | number:'1.2-2' }}
+              </strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm bg-danger-50 h-100">
+          <div class="card-body">
+            <h5 class="mb-3 d-flex align-items-center gap-2">
+              <i class="ph ph-arrow-down text-danger-600" style="font-size: 1.5rem;"></i>
+              <span>Egresos</span>
+            </h5>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted text-sm">Proyectado:</span>
+              <strong>S/ {{ comparativa.egresos.proyectado | number:'1.2-2' }}</strong>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted text-sm">Real:</span>
+              <strong>S/ {{ comparativa.egresos.real | number:'1.2-2' }}</strong>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span class="text-muted text-sm">Desviación:</span>
+              <strong [class]="comparativa.egresos.desviacion > 0 ? 'text-danger-600' : 'text-success-600'">
+                S/ {{ comparativa.egresos.desviacion | number:'1.2-2' }}
+              </strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm bg-primary-50 h-100">
+          <div class="card-body">
+            <h5 class="mb-3 d-flex align-items-center gap-2">
+              <i class="ph ph-currency-circle-dollar text-primary-600" style="font-size: 1.5rem;"></i>
+              <span>Flujo Neto</span>
+            </h5>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted text-sm">Proyectado:</span>
+              <strong>S/ {{ comparativa.flujo_neto.proyectado | number:'1.2-2' }}</strong>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted text-sm">Real:</span>
+              <strong>S/ {{ comparativa.flujo_neto.real | number:'1.2-2' }}</strong>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span class="text-muted text-sm">Desviación:</span>
+              <strong [class]="comparativa.flujo_neto.desviacion < 0 ? 'text-danger-600' : 'text-success-600'">
+                S/ {{ comparativa.flujo_neto.desviacion | number:'1.2-2' }}
+              </strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="!comparativa" class="empty-state">
+      <div class="empty-state__icon">
+        <i class="ph ph-chart-bar"></i>
+      </div>
+      <h5 class="empty-state__title">No hay datos para comparar</h5>
+      <p class="empty-state__description">
+        Selecciona un rango de fechas y aplica los filtros.
+      </p>
+    </div>
+  </div>
+
+  <!-- Vista Alertas -->
+  <div *ngIf="!loading && vistaActual === 'alertas'" class="p-24 p-md-32">
+    <div *ngIf="alertas">
+      <!-- Resumen de Alertas -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+              <i class="ph ph-warning text-gray-400" style="font-size: 2rem;"></i>
+              <h2 class="mb-1 mt-2">{{ alertas.total_alertas }}</h2>
+              <p class="text-muted mb-0 text-sm">Total Alertas</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-0 shadow-sm bg-danger-50">
+            <div class="card-body text-center">
+              <i class="ph ph-warning-circle text-danger-600" style="font-size: 2rem;"></i>
+              <h2 class="mb-1 mt-2 text-danger-600">{{ alertas.criticas }}</h2>
+              <p class="text-muted mb-0 text-sm">Críticas (&gt;20%)</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-0 shadow-sm bg-warning-50">
+            <div class="card-body text-center">
+              <i class="ph ph-warning-octagon text-warning-600" style="font-size: 2rem;"></i>
+              <h2 class="mb-1 mt-2 text-warning-600">{{ alertas.moderadas }}</h2>
+              <p class="text-muted mb-0 text-sm">Moderadas (10-20%)</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de Alertas -->
+      <div class="row g-3" *ngIf="alertas.alertas.length > 0">
+        <div class="col-md-6" *ngFor="let alerta of alertas.alertas">
+          <div class="card border-2 shadow-sm" 
+               [class.border-danger]="Math.abs(alerta.desviacion_porcentaje) > 20"
+               [class.border-warning]="Math.abs(alerta.desviacion_porcentaje) >= 10 && Math.abs(alerta.desviacion_porcentaje) <= 20">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <h6 class="mb-0">{{ alerta.concepto }}</h6>
+                <span class="badge" 
+                      [class.bg-danger]="Math.abs(alerta.desviacion_porcentaje) > 20"
+                      [class.bg-warning]="Math.abs(alerta.desviacion_porcentaje) >= 10 && Math.abs(alerta.desviacion_porcentaje) <= 20">
+                  {{ alerta.desviacion_porcentaje | number:'1.1-1' }}%
+                </span>
+              </div>
+              <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted text-sm">Proyectado:</span>
+                <strong>S/ {{ alerta.monto_proyectado | number:'1.2-2' }}</strong>
+              </div>
+              <div class="d-flex justify-content-between">
+                <span class="text-muted text-sm">Real:</span>
+                <strong>S/ {{ alerta.monto_real | number:'1.2-2' }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="alertas.alertas.length === 0" class="empty-state">
+        <div class="empty-state__icon">
+          <i class="ph ph-check-circle text-success-600"></i>
+        </div>
+        <h5 class="empty-state__title">No hay alertas de desviación</h5>
+        <p class="empty-state__description">
+          Todas las proyecciones están dentro del rango esperado.
+        </p>
+      </div>
+    </div>
+
+    <div *ngIf="!alertas" class="empty-state">
+      <div class="empty-state__icon">
+        <i class="ph ph-warning"></i>
+      </div>
+      <h5 class="empty-state__title">No hay datos de alertas</h5>
+      <p class="empty-state__description">
+        Selecciona un rango de fechas y aplica los filtros.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<app-proyeccion-modal 
+  *ngIf="showModal" 
+  [visible]="showModal" 
+  [proyeccion]="proyeccionSeleccionada"
+  (close)="cerrarModal()" 
+  (save)="guardarProyeccion($event)">
+</app-proyeccion-modal>

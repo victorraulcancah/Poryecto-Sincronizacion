@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="es-PE">
+
+<head>
+  <meta charset="utf-8">
+  <title>MAGUS Ecommerce - Computadoras, Laptops y Componentes | Perú</title>
+  <meta name="description" content="Compra las mejores computadoras, laptops, componentes de PC y periféricos en MAGUS. Envío rápido a todo el Perú. Precios competitivos y atención personalizada.">
+  <meta name="keywords" content="computadoras Perú, laptops Perú, componentes PC, MAGUS, arma tu PC, cases, procesadores, tarjetas gráficas">
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="assets/images/logo/favicon.png">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://magus-ecommerce.com/">
+  <meta property="og:title" content="MAGUS Ecommerce - Computadoras, Laptops y Componentes">
+  <meta property="og:description" content="Tu tienda de confianza para computadoras y componentes en Perú">
+  <meta property="og:image" content="https://magus-ecommerce.com/assets/images/logo/logo.png">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://magus-ecommerce.com/">
+  <meta property="twitter:title" content="MAGUS Ecommerce - Computadoras y Componentes">
+  <meta property="twitter:description" content="Tu tienda de confianza para computadoras y componentes en Perú">
+  <meta property="twitter:image" content="https://magus-ecommerce.com/assets/images/logo/logo.png">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.2/src/fill/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.2/src/regular/style.css">
+
+  <!-- =====================================================
+       GOOGLE ANALYTICS CON CONSENT MODE V2
+       ===================================================== -->
+  <!--
+    IMPORTANTE: Reemplaza 'G-XXXXXXXXXX' con tu ID real de Google Analytics
+    Puedes obtenerlo desde: https://analytics.google.com/
+  -->
+  <script>
+    // Configurar el modo de consentimiento por defecto ANTES de cargar gtag
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+
+    // Establecer el modo de consentimiento por defecto como 'denied'
+    // Esto cumple con GDPR, LGPD, y CCPA
+    gtag('consent', 'default', {
+      'ad_storage': 'denied',
+      'ad_user_data': 'denied',
+      'ad_personalization': 'denied',
+      'analytics_storage': 'denied',
+      'functionality_storage': 'denied',
+      'personalization_storage': 'denied',
+      'security_storage': 'granted', // Siempre permitido para seguridad
+      'wait_for_update': 500
+    });
+
+    // Configuración adicional de Google Analytics
+    gtag('js', new Date());
+
+    // NOTA: El ID de medición se configura dinámicamente desde el backend
+    // Si necesitas configurarlo manualmente, descomenta la siguiente línea:
+    // gtag('config', 'G-XXXXXXXXXX', { 'anonymize_ip': true });
+  </script>
+
+  <!-- Cargar Google Analytics (gtag.js) -->
+  <!-- NOTA: Reemplaza 'G-XXXXXXXXXX' con tu ID real de Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+
+  <!-- Estilos del loader de carga inicial -->
+  <style>
+    #initial-loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease-out;
+    }
+
+    #initial-loader.fade-out {
+      opacity: 0;
+    }
+
+    .loader-gif {
+      width: 120px;
+      height: 120px;
+      max-width: 20vw;
+      max-height: 20vw;
+      object-fit: contain;
+    }
+
+    .loader-text {
+      margin-top: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 16px;
+      color: #666;
+      text-align: center;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .loader-gif {
+        width: 100px;
+        height: 100px;
+        object-fit: contain;
+      }
+
+      .loader-text {
+        font-size: 14px;
+        margin-top: 15px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .loader-gif {
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
+      }
+
+      .loader-text {
+        font-size: 12px;
+        margin-top: 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Loader de carga inicial -->
+  <div id="initial-loader">
+    <!-- Video solo para primera carga verdadera -->
+    <video id="loader-video" class="loader-gif" autoplay muted loop playsinline style="display: none;">
+      <source src="assets/images/logo/Logo_loader.mp4" type="video/mp4">
+      <!-- Fallback para navegadores que no soporten el video -->
+      Tu navegador no soporta video HTML5.
+    </video>
+
+    <div class="loader-text" id="loader-text" style="display: none;">Cargando Marketpro...</div>
+  </div>
+
+  <app-root></app-root>
+
+  <!-- Script para remover el loader cuando Angular termine de cargar -->
+  <script>
+    let angularReady = false;
+    let minimumTimeReached = false;
+
+    // Detectar si es la primera carga de la sesión
+    const isFirstLoad = !sessionStorage.getItem('hasLoadedBefore');
+    const minimumTime = isFirstLoad ? 3000 : 100; // 3s primera vez, 0.1s después (muy rápido)
+
+    // Mostrar el loader solo si es primera carga
+    const loaderVideo = document.getElementById('loader-video');
+    const loaderText = document.getElementById('loader-text');
+    const loader = document.getElementById('initial-loader');
+
+    if (isFirstLoad) {
+      // Primera carga: mostrar video completo
+      loaderVideo.style.display = 'block';
+      loaderText.style.display = 'block';
+      loaderText.textContent = 'Cargando Marketpro...';
+      // Marcar que ya se cargó una vez en esta sesión
+      sessionStorage.setItem('hasLoadedBefore', 'true');
+    } else {
+      // Navegación posterior: loader invisible (solo para esperar a Angular)
+      loader.style.background = 'transparent';
+      loader.style.pointerEvents = 'none';
+    }
+
+    // Función para remover el loader
+    function removeInitialLoader() {
+      if (loader) {
+        loader.classList.add('fade-out');
+        setTimeout(() => {
+          loader.remove();
+        }, 500);
+      }
+    }
+
+    // Verificar si se puede remover el loader (ambas condiciones cumplidas)
+    function checkRemoveLoader() {
+      if (angularReady && minimumTimeReached) {
+        removeInitialLoader();
+      }
+    }
+
+    // Timer para el tiempo mínimo (3s o 0.1s según sea primera carga)
+    setTimeout(() => {
+      minimumTimeReached = true;
+      checkRemoveLoader();
+    }, minimumTime);
+
+    // Escuchar cuando Angular termine de cargar
+    document.addEventListener('DOMContentLoaded', function() {
+      // Verificar periódicamente si Angular está listo
+      const checkAngularReady = setInterval(() => {
+        const appRoot = document.querySelector('app-root');
+        if (appRoot && appRoot.children.length > 0) {
+          angularReady = true;
+          checkRemoveLoader();
+          clearInterval(checkAngularReady);
+        }
+      }, 100);
+
+      // Failsafe: remover el loader después de máximo 15 segundos
+      setTimeout(() => {
+        angularReady = true;
+        minimumTimeReached = true;
+        removeInitialLoader();
+        clearInterval(checkAngularReady);
+      }, 15000);
+    });
+  </script>
+</body>
+
+</html>

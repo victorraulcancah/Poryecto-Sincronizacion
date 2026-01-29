@@ -1,0 +1,182 @@
+// src/app/pages/dashboard/almacen/productos/productos-list.component.scss
+// Este componente usa las clases globales de data-table
+// definidas en src/assets/sass/components/_data-table.scss
+
+// Solo estilos específicos para productos
+:host {
+  display: block;
+}
+
+// ✅ NUEVO: Estilos para el buscador
+.search-input-container {
+  position: relative;
+  
+  .search-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: var(--gray-400);
+    pointer-events: none;
+  }
+  
+  .form-control {
+    padding-left: 48px;
+    padding-right: 48px;
+    transition: all 0.2s ease;
+    
+    &:focus {
+      border-color: var(--main-600);
+      box-shadow: 0 0 0 3px rgba(var(--main-600-rgb), 0.1);
+    }
+    
+    &::placeholder {
+      color: var(--gray-400);
+      font-size: 14px;
+    }
+  }
+  
+  .clear-search-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: var(--gray-500);
+    padding: 4px 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      color: var(--gray-700);
+      background-color: var(--gray-100);
+      border-radius: 4px;
+    }
+  }
+}
+
+// Estilos específicos para las imágenes de productos
+.product-image-container {
+  width: 40px;
+  height: 40px;
+  background-color: var(--gray-50);
+  border-radius: var(--size-6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid var(--gray-200);
+}
+
+.product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--size-4);
+}
+
+// Estilos específicos para información de precios
+.product-price-info {
+  text-align: right;
+
+  .price-sale {
+    font-size: var(--font-sm);
+    font-weight: 600;
+    color: var(--success-600);
+    margin-bottom: 2px;
+  }
+
+  .price-buy {
+    font-size: var(--font-xs);
+    color: var(--gray-600);
+  }
+}
+
+// Estilos específicos para información de stock
+.product-stock-info {
+  text-align: center;
+
+  .stock-current {
+    font-size: var(--font-sm);
+    font-weight: 600;
+    color: var(--gray-700);
+    margin-bottom: 2px;
+
+    &.stock-low {
+      color: var(--danger-600);
+    }
+  }
+
+  .stock-min {
+    font-size: var(--font-xs);
+    color: var(--gray-600);
+  }
+}
+
+// Estilos específicos para el botón de estrella destacada
+.action-buttons__btn--view {
+  &:has(.ph-fill) {
+    background-color: var(--warning-50) !important;
+    color: var(--warning-600) !important;
+
+    &:hover {
+      background-color: var(--warning-100) !important;
+      color: var(--warning-700) !important;
+    }
+  }
+}
+
+// MARGEN PARA EL ÚLTIMO ITEM DE LA TABLA
+::ng-deep .modern-data-table .table tbody tr:last-child td {
+  padding-bottom: 24px !important;
+}
+
+// Limitar ancho de la columna de producto y truncar texto largo
+::ng-deep .modern-data-table .table {
+  table-layout: fixed;
+  width: 100%;
+
+  // Anchos en porcentajes que suman 100% para ocupar todo el espacio
+  thead th:nth-child(1) { width: 8%; }      // Imagen
+  thead th:nth-child(2) { width: 25%; }     // Producto (la más ancha)
+  thead th:nth-child(3) { width: 13%; }     // Categoría
+  thead th:nth-child(4) { width: 13%; }     // Marca
+  thead th:nth-child(5) { width: 12%; }     // Precios
+  thead th:nth-child(6) { width: 10%; }     // Stock
+  thead th:nth-child(7) { width: 11%; }     // Estado
+  thead th:nth-child(8) { width: 8%; }      // Acciones
+
+  tbody td:nth-child(2) {
+    .client-info__name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: block;
+      cursor: help;
+    }
+
+    .client-info__subtitle {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: block;
+      cursor: help;
+    }
+  }
+}
+
+// Ajustar distribución cuando el sidebar está colapsado (más espacio disponible)
+.main-content.sidebar-collapsed ::ng-deep .modern-data-table .table,
+:host-context(.main-content.sidebar-collapsed) ::ng-deep .modern-data-table .table {
+  // Redistribuir el espacio cuando hay más ancho
+  thead th:nth-child(1) { width: 6%; }      // Imagen (reducir)
+  thead th:nth-child(2) { width: 30%; }     // Producto (más espacio)
+  thead th:nth-child(3) { width: 12%; }     // Categoría
+  thead th:nth-child(4) { width: 12%; }     // Marca
+  thead th:nth-child(5) { width: 12%; }     // Precios
+  thead th:nth-child(6) { width: 9%; }      // Stock
+  thead th:nth-child(7) { width: 11%; }     // Estado
+  thead th:nth-child(8) { width: 8%; }      // Acciones
+}

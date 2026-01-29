@@ -1,0 +1,96 @@
+<!-- Modal Foto de Perfil -->
+<div *ngIf="isVisible" class="modal d-block" style="background-color: rgba(0,0,0,0.5);" (click)="cerrarModal()">
+  <div class="modal-dialog modal-dialog-centered" (click)="onModalContentClick($event)">
+    <div class="modal-content">
+      <!-- Header del Modal -->
+      <div class="modal-header border-bottom border-gray-100">
+        <h5 class="modal-title fw-semibold text-heading">
+          <i class="ph ph-camera me-8 text-main-600"></i>
+          Foto de Perfil
+        </h5>
+        <button type="button" class="btn-close" (click)="cerrarModal()"></button>
+      </div>
+
+      <!-- Body del Modal -->
+      <div class="modal-body p-24">
+        <!-- Error Message -->
+        <div *ngIf="errorMessage" class="alert alert-danger d-flex align-items-center mb-16">
+          <i class="ph ph-warning-circle me-8"></i>
+          {{ errorMessage }}
+        </div>
+
+        <!-- Preview de la imagen seleccionada -->
+        <div *ngIf="previewUrl" class="text-center mb-24">
+          <div class="position-relative d-inline-block">
+            <img [src]="previewUrl" alt="Preview" class="rounded-16" style="max-width: 200px; max-height: 200px; object-fit: cover;">
+          </div>
+          <p class="text-sm text-gray-600 mt-8 mb-0">Vista previa de tu nueva foto</p>
+        </div>
+
+        <!-- Input de archivo -->
+        <div class="mb-24">
+          <label class="form-label fw-medium text-heading mb-8">Seleccionar imagen</label>
+          <input type="file"
+                 class="form-control"
+                 accept="image/*"
+                 (change)="onFileSelected($event)">
+          <div class="form-text text-gray-600 mt-8">
+            <small>
+              <i class="ph ph-info me-4"></i>
+              Formatos permitidos: JPG, PNG, GIF. Tamaño máximo: 2MB
+            </small>
+          </div>
+        </div>
+
+        <!-- Información adicional -->
+        <div class="bg-main-50 p-16 rounded-12 mb-24">
+          <div class="d-flex align-items-start gap-12">
+            <i class="ph ph-lightbulb text-main-600 mt-2"></i>
+            <div>
+              <h6 class="text-main-600 fw-medium mb-4">Consejos para una buena foto:</h6>
+              <ul class="text-sm text-gray-700 mb-0 ps-16">
+                <li>Usa una imagen clara y bien iluminada</li>
+                <li>Asegúrate de que tu rostro sea visible</li>
+                <li>Evita imágenes borrosas o muy oscuras</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer del Modal -->
+      <div class="modal-footer border-top border-gray-100 p-24">
+        <div class="d-flex gap-12 w-100">
+          <!-- Botón Eliminar (solo si no hay imagen seleccionada) -->
+          <button *ngIf="!selectedFile"
+                  type="button"
+                  class="btn btn-outline-danger flex-fill"
+                  (click)="deleteFoto()"
+                  [disabled]="isUploading">
+            <i class="ph ph-trash me-8"></i>
+            Eliminar foto actual
+          </button>
+
+          <!-- Botón Cancelar -->
+          <button type="button"
+                  class="btn btn-outline-gray flex-fill"
+                  (click)="cerrarModal()"
+                  [disabled]="isUploading">
+            Cancelar
+          </button>
+
+          <!-- Botón Subir -->
+          <button *ngIf="selectedFile"
+                  type="button"
+                  class="btn btn-main-600 flex-fill"
+                  (click)="uploadFoto()"
+                  [disabled]="isUploading || !selectedFile">
+            <span *ngIf="isUploading" class="spinner-border spinner-border-sm me-8"></span>
+            <i *ngIf="!isUploading" class="ph ph-upload me-8"></i>
+            {{ isUploading ? 'Subiendo...' : 'Subir foto' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

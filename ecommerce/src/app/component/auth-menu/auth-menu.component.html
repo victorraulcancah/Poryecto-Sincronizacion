@@ -1,0 +1,95 @@
+<!-- src/app/component/auth-menu/auth-menu.component.html -->
+<div class="auth-menu-wrapper position-relative">
+  <!-- Usuario no logueado -->
+  <div *ngIf="!isLoggedIn" class="auth-dropdown">
+    <button 
+      type="button" 
+      class="auth-trigger d-flex align-items-center gap-8 text-gray-700 hover-text-main-600 transition-2"
+      (click)="toggleAuthMenu()"
+      [attr.aria-expanded]="isAuthMenuOpen">
+      <i class="ph ph-user text-xl"></i>
+      <div class="d-none d-lg-block">
+        <span class="d-block text-sm text-gray-500">Hola,</span>
+        <span class="d-block text-sm fw-medium">Inicia sesión</span>
+      </div>
+      <i class="ph ph-caret-down text-sm transition-2" [class.rotate-180]="isAuthMenuOpen"></i>
+    </button>
+
+    <!-- Dropdown Menu -->
+    <div 
+      *ngIf="isAuthMenuOpen" 
+      class="auth-dropdown-menu position-absolute top-100 end-0 mt-8 bg-white border border-gray-100 rounded-12 shadow-lg py-16 px-0 min-w-200 z-50">
+      <a 
+        [routerLink]="['/login']" 
+        class="d-flex align-items-center gap-12 px-20 py-12 text-gray-700 hover-bg-gray-50 hover-text-main-600 transition-2 text-decoration-none">
+        <i class="ph ph-sign-in text-lg"></i>
+        <span class="fw-medium">Iniciar sesión</span>
+      </a>
+      <a 
+        [routerLink]="['/register']" 
+        class="d-flex align-items-center gap-12 px-20 py-12 text-gray-700 hover-bg-gray-50 hover-text-main-600 transition-2 text-decoration-none">
+        <i class="ph ph-user-plus text-lg"></i>
+        <span class="fw-medium">Regístrate</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Usuario logueado -->
+  <div *ngIf="isLoggedIn" class="user-profile-dropdown">
+    <button 
+      type="button" 
+      class="user-trigger d-flex align-items-center gap-8 text-gray-700 hover-text-main-600 transition-2"
+      (click)="toggleUserMenu()"
+      [attr.aria-expanded]="isUserMenuOpen">
+      <div class="user-avatar w-32 h-32 rounded-circle bg-main-600 text-white d-flex align-items-center justify-content-center">
+        <i class="ph ph-user"></i>
+      </div>
+      <div class="d-none d-lg-block">
+        <span class="d-block text-sm text-gray-500">Hola,</span>
+        <span class="d-block text-sm fw-medium">{{ currentUser?.nombres || 'Usuario' }}</span>
+      </div>
+      <i class="ph ph-caret-down text-sm transition-2" [class.rotate-180]="isUserMenuOpen"></i>
+    </button>
+
+    <!-- User Dropdown Menu -->
+    <div 
+      *ngIf="isUserMenuOpen" 
+      class="user-dropdown-menu position-absolute top-100 end-0 mt-8 bg-white border border-gray-100 rounded-12 shadow-lg py-16 px-0 min-w-220 z-50">
+      <div class="px-20 py-12 border-bottom border-gray-100 mb-8">
+        <p class="text-sm fw-medium text-gray-900 mb-0">{{ currentUser?.nombres }} {{ currentUser?.apellidos }}</p>
+        <p class="text-xs text-gray-500 mb-0">{{ currentUser?.email }}</p>
+      </div>
+      
+      <a 
+        [routerLink]="['/profile']" 
+        class="d-flex align-items-center gap-12 px-20 py-12 text-gray-700 hover-bg-gray-50 hover-text-main-600 transition-2 text-decoration-none">
+        <i class="ph ph-user-circle text-lg"></i>
+        <span>Mi Perfil</span>
+      </a>
+      
+      <a 
+        [routerLink]="['/orders']" 
+        class="d-flex align-items-center gap-12 px-20 py-12 text-gray-700 hover-bg-gray-50 hover-text-main-600 transition-2 text-decoration-none">
+        <i class="ph ph-package text-lg"></i>
+        <span>Mis Pedidos</span>
+      </a>
+      
+      <a 
+        [routerLink]="['/my-account/favoritos']" 
+        class="d-flex align-items-center gap-12 px-20 py-12 text-gray-700 hover-bg-gray-50 hover-text-main-600 transition-2 text-decoration-none">
+        <i class="ph ph-heart text-lg"></i>
+        <span>Lista de Deseos</span>
+      </a>
+      
+      <div class="border-top border-gray-100 mt-8 pt-8">
+        <button 
+          type="button"
+          (click)="logout()"
+          class="d-flex align-items-center gap-12 px-20 py-12 text-danger-600 hover-bg-danger-50 transition-2 w-100 border-0 bg-transparent text-start">
+          <i class="ph ph-sign-out text-lg"></i>
+          <span>Cerrar Sesión</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

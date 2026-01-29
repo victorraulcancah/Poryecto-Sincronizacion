@@ -1,0 +1,86 @@
+// Estilos para el modal de foto de perfil
+.modal {
+  z-index: 1050;
+}
+
+.modal-content {
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+  padding: 24px 24px 20px;
+
+  .modal-title {
+    font-size: 1.125rem;
+    display: flex;
+    align-items: center;
+  }
+}
+
+.form-control {
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  transition: border-color 0.2s ease;
+
+  &:focus {
+    border-color: var(--main-600);
+    box-shadow: 0 0 0 3px rgba(var(--main-600-rgb), 0.1);
+  }
+}
+
+.btn {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+
+  &.btn-main-600 {
+    background-color: var(--main-600);
+    border-color: var(--main-600);
+    color: white;
+
+    &:hover:not(:disabled) {
+      background-color: var(--main-700);
+      border-color: var(--main-700);
+      transform: translateY(-1px);
+    }
+  }
+
+  &.btn-outline-danger {
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
+  }
+
+  &.btn-outline-gray {
+    border-color: #d1d5db;
+    color: #6b7280;
+
+    &:hover:not(:disabled) {
+      background-color: #f9fafb;
+      border-color: #9ca3af;
+      color: #374151;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.alert {
+  border-radius: 8px;
+  border: none;
+
+  &.alert-danger {
+    background-color: #fef2f2;
+    color: #dc2626;
+  }
+}
+
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+}

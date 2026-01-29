@@ -1,0 +1,50 @@
+// Estilos para los tabs
+.nav-tabs .nav-link {
+  border-radius: 0;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.nav-tabs .nav-link.active {
+  background-color: var(--bs-main-50);
+  color: var(--bs-main-600);
+  border-bottom: 2px solid var(--bs-main-600);
+}
+
+.nav-tabs .nav-link:hover {
+  background-color: var(--bs-gray-50);
+}
+
+// Estilos para las tarjetas de métricas
+.metric-card {
+  transition: transform 0.2s ease;
+}
+
+.metric-card:hover {
+  transform: translateY(-2px);
+}
+
+// Estilos para los gráficos
+.chart-container {
+  position: relative;
+  height: 300px;
+}
+
+// Estilos para las tablas
+.table td {
+  vertical-align: middle;
+}
+
+// Estilos para los badges
+.badge {
+  font-size: 0.75rem;
+}
+
+// Estilos para los progress bars
+.progress {
+  border-radius: 4px;
+}
+
+.progress-bar {
+  border-radius: 4px;
+}

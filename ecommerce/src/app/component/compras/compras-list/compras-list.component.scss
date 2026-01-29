@@ -1,0 +1,80 @@
+// src/app/component/compras/compras-list/compras-list.component.scss
+// Este componente usa las clases globales de data-table
+// definidas en src/assets/sass/components/_data-table.scss
+
+// Solo estilos específicos para compras
+:host {
+  display: block;
+}
+
+// Fix para el tamaño de las imágenes de avatar
+.table-avatar__img {
+  width: 40px !important;
+  height: 40px !important;
+  object-fit: cover !important;
+  border-radius: 50% !important;
+}
+
+// Estilos específicos para el total de compra
+.compra-total {
+  font-size: var(--font-lg);
+  font-weight: 700;
+  color: var(--success-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Estilos específicos para método de pago
+.metodo-pago {
+  font-size: var(--font-xs);
+  color: var(--gray-600);
+  text-align: center;
+  margin-top: 2px;
+}
+
+// Estilos específicos para códigos de compra
+.compra-code {
+  .client-info__name {
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-weight: 600;
+  }
+}
+
+// Estilos específicos para información de fecha
+.fecha-info {
+  text-align: center;
+}
+
+// Botones de acción específicos para compras
+.action-buttons__btn--success {
+  background-color: var(--success-50) !important;
+  color: var(--success-600) !important;
+  border-color: var(--success-200) !important;
+
+  &:hover {
+    background-color: var(--success-100) !important;
+    color: var(--success-700) !important;
+  }
+}
+
+// Estados específicos para compras
+.status-badge {
+  min-width: 85px;
+  font-size: var(--font-xs);
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  i {
+    font-size: var(--font-xs);
+  }
+}
+
+// MARGEN PARA EL ÚLTIMO ITEM DE LA TABLA
+::ng-deep .modern-data-table .table tbody tr:last-child td {
+  padding-bottom: 24px !important;
+}

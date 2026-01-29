@@ -1,0 +1,567 @@
+// Estilos para Guías de Remisión Electrónica (GRE)
+
+.gre-container {
+  padding: var(--size-24);
+  color: #212529 !important;
+}
+
+.gre-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--size-24);
+}
+
+.gre-title {
+  h5 {
+    color: #212529 !important;
+    font-weight: 600;
+    margin-bottom: var(--size-8);
+  }
+
+  p {
+    color: #6c757d !important;
+    margin-bottom: 0;
+  }
+}
+
+.gre-btn-primary {
+  background-color: var(--main-600) !important;
+  border-color: var(--main-600) !important;
+  color: #fff !important;
+  padding: var(--size-10) var(--size-16);
+  border-radius: var(--size-8);
+  font-weight: 500;
+  font-size: var(--font-sm);
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: var(--main-700) !important;
+    border-color: var(--main-700) !important;
+  }
+
+  i {
+    margin-right: var(--size-6);
+    font-size: 1rem;
+  }
+}
+
+.gre-btn-secondary {
+  background-color: #6c757d !important;
+  border-color: #6c757d !important;
+  color: #fff !important;
+  padding: var(--size-8) var(--size-16);
+  border-radius: var(--size-6);
+  font-weight: 500;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #5a6268 !important;
+    border-color: #545b62 !important;
+  }
+
+  i {
+    margin-right: var(--size-8);
+  }
+}
+
+.gre-stats {
+  margin-bottom: var(--size-24);
+
+  .stat-card {
+    background: #fff;
+    border-radius: var(--size-12);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+
+    &:hover {
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .card-body {
+      padding: var(--size-20);
+    }
+
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--size-12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .stat-label {
+      font-size: var(--font-sm);
+      color: #6c757d !important;
+      margin-bottom: var(--size-4);
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #212529 !important;
+      margin-bottom: 0;
+    }
+
+    &.stat-total .stat-icon {
+      background-color: #e3f2fd;
+      color: #1976d2;
+    }
+
+    &.stat-pending .stat-icon {
+      background-color: #fff3e0;
+      color: #f57c00;
+    }
+
+    &.stat-accepted .stat-icon {
+      background-color: #e8f5e9;
+      color: #388e3c;
+    }
+
+    &.stat-rejected .stat-icon {
+      background-color: #ffebee;
+      color: #d32f2f;
+    }
+  }
+}
+
+.gre-filters {
+  background: #fff;
+  border-radius: var(--size-12);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: var(--size-24);
+
+  .card-body {
+    padding: var(--size-20);
+  }
+
+  .form-label {
+    font-size: var(--font-sm);
+    font-weight: 500;
+    color: #212529 !important;
+    margin-bottom: var(--size-8);
+  }
+
+  .form-select,
+  .form-control {
+    color: #212529 !important;
+    border-color: #dee2e6;
+
+    &:focus {
+      border-color: var(--main-600);
+      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+  }
+}
+
+.gre-table-card {
+  background: #fff;
+  border-radius: var(--size-12);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  .card-body {
+    padding: var(--size-20);
+  }
+
+  .table {
+    margin-bottom: 0;
+    color: #212529 !important;
+
+    thead {
+      background-color: #f8f9fa;
+
+      th {
+        color: #212529 !important;
+        font-weight: 600;
+        font-size: var(--font-sm);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: var(--size-16) var(--size-20);
+        border-bottom: 2px solid #dee2e6;
+      }
+    }
+
+    tbody {
+      tr {
+        transition: all 0.15s ease;
+
+        &:hover {
+          background-color: #f8f9fa;
+        }
+
+        td {
+          color: #212529 !important;
+          padding: var(--size-16) var(--size-20);
+          vertical-align: middle;
+          border-bottom: 1px solid #dee2e6;
+
+          &.td-number {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-weight: 600;
+            color: #212529 !important;
+          }
+
+          strong {
+            color: #000 !important;
+            font-weight: 600;
+          }
+
+          small {
+            color: #6c757d !important;
+            font-size: var(--font-xs);
+          }
+        }
+      }
+    }
+  }
+}
+
+.gre-badge {
+  padding: var(--size-6) var(--size-12);
+  border-radius: 20px;
+  font-size: var(--font-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  &.badge-pendiente {
+    background-color: #fff3e0;
+    color: #f57c00 !important;
+  }
+
+  &.badge-enviado {
+    background-color: #e3f2fd;
+    color: #1976d2 !important;
+  }
+
+  &.badge-aceptado {
+    background-color: #e8f5e9;
+    color: #388e3c !important;
+  }
+
+  &.badge-rechazado {
+    background-color: #ffebee;
+    color: #d32f2f !important;
+  }
+
+  &.badge-anulado {
+    background-color: #f5f5f5;
+    color: #616161 !important;
+  }
+}
+
+.gre-actions-group {
+  display: flex;
+  gap: var(--size-8);
+  justify-content: flex-end;
+}
+
+.gre-btn-action {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  font-size: var(--font-sm);
+  cursor: pointer;
+
+  &.btn-view {
+    background-color: #e3f2fd;
+    color: #1976d2 !important;
+
+    &:hover {
+      background-color: #bbdefb;
+      transform: scale(1.05);
+    }
+  }
+
+  &.btn-send {
+    background-color: #e8f5e9;
+    color: #388e3c !important;
+
+    &:hover {
+      background-color: #c8e6c9;
+      transform: scale(1.05);
+    }
+  }
+
+  &.btn-download {
+    background-color: #fff3e0;
+    color: #f57c00 !important;
+
+    &:hover {
+      background-color: #ffe0b2;
+      transform: scale(1.05);
+    }
+  }
+
+  &.btn-pdf {
+    background-color: #ffebee;
+    color: #c62828 !important;
+
+    &:hover {
+      background-color: #ffcdd2;
+      transform: scale(1.05);
+    }
+  }
+
+  &.btn-view-xml {
+    background-color: #f3e5f5;
+    color: #7b1fa2 !important;
+
+    &:hover {
+      background-color: #e1bee7;
+      transform: scale(1.05);
+    }
+  }
+
+  &.btn-email {
+    background-color: #e0f2f1;
+    color: #00695c !important;
+
+    &:hover {
+      background-color: #b2dfdb;
+      transform: scale(1.05);
+    }
+  }
+
+  &.btn-whatsapp {
+    background-color: #e8f5e9;
+    color: #2e7d32 !important;
+
+    &:hover {
+      background-color: #c8e6c9;
+      transform: scale(1.05);
+    }
+  }
+
+  &.btn-refresh {
+    background-color: #e3f2fd;
+    color: #1565c0 !important;
+
+    &:hover {
+      background-color: #bbdefb;
+      transform: scale(1.05);
+    }
+  }
+}
+
+.gre-loading {
+  text-align: center;
+  padding: var(--size-60) var(--size-20);
+
+  .spinner-border {
+    width: 2rem;
+    height: 2rem;
+    color: var(--main-600);
+  }
+
+  p {
+    color: #6c757d !important;
+    margin-top: var(--size-12);
+  }
+}
+
+.gre-alert {
+  padding: var(--size-16);
+  border-radius: var(--size-8);
+  margin-bottom: var(--size-16);
+
+  &.alert-danger {
+    background-color: #ffebee;
+    color: #d32f2f !important;
+    border: 1px solid #ef9a9a;
+  }
+
+  i {
+    margin-right: var(--size-8);
+  }
+}
+
+.gre-empty {
+  text-align: center;
+  padding: var(--size-60) var(--size-20);
+
+  i {
+    font-size: 4rem;
+    color: #bdbdbd;
+    margin-bottom: var(--size-16);
+  }
+
+  h6 {
+    color: #212529 !important;
+    margin-bottom: var(--size-16);
+  }
+}
+
+// Paginación
+.gre-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--size-20) 0;
+  margin-top: var(--size-20);
+  border-top: 1px solid #dee2e6;
+
+  .pagination-info {
+    color: #6c757d !important;
+    font-size: var(--font-sm);
+    display: flex;
+    align-items: center;
+  }
+
+  .pagination {
+    margin-bottom: 0;
+
+    .page-item {
+      &.active .page-link {
+        background-color: var(--main-600);
+        border-color: var(--main-600);
+        color: #fff !important;
+      }
+
+      &.disabled .page-link {
+        color: #6c757d !important;
+        pointer-events: none;
+        background-color: #fff;
+        border-color: #dee2e6;
+      }
+
+      .page-link {
+        color: #212529 !important;
+        border-color: #dee2e6;
+        padding: var(--size-8) var(--size-12);
+        margin: 0 var(--size-4);
+        border-radius: var(--size-6);
+        transition: all 0.2s ease;
+
+        &:hover:not(.disabled) {
+          background-color: #e9ecef;
+          border-color: #dee2e6;
+        }
+
+        i {
+          font-size: var(--font-sm);
+        }
+      }
+    }
+  }
+}
+
+// Menú desplegable de acciones
+.dropdown-menu-custom {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 8px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  min-width: 220px;
+  padding: 8px;
+  z-index: 1000;
+  animation: fadeInDown 0.2s ease;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-item-custom {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+
+  &:hover:not(:disabled) {
+    background: #f8f9fa;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  i {
+    font-size: 18px;
+  }
+
+  &.text-purple {
+    color: #6f42c1;
+  }
+
+  &.text-teal {
+    color: #20c997;
+  }
+
+  &.text-blue {
+    color: #0d6efd;
+  }
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: #e9ecef;
+  margin: 8px 0;
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .gre-container {
+    padding: var(--size-16);
+  }
+
+  .gre-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--size-16);
+  }
+
+  .gre-table-card {
+    .table {
+      font-size: var(--font-sm);
+
+      thead th,
+      tbody td {
+        padding: var(--size-12) var(--size-16);
+      }
+    }
+  }
+
+  .gre-pagination {
+    flex-direction: column;
+    gap: var(--size-16);
+    align-items: flex-start;
+
+    .pagination-info {
+      width: 100%;
+    }
+
+    .pagination {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+}

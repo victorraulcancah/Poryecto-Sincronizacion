@@ -1,0 +1,44 @@
+<div *ngIf="isOpen" class="modal-overlay" (click)="onClose()" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.5); z-index: 9999;">
+  <div class="modal-container" (click)="$event.stopPropagation()" style="background: white; border-radius: 24px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); padding: 0;">
+    
+    <!-- Icono de éxito -->
+    <div style="text-align: center; padding: 40px 30px 20px;">
+      <div style="width: 80px; height: 80px; margin: 0 auto 20px; background: linear-gradient(135deg, #a8e6cf 0%, #56c596 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(86, 197, 150, 0.3);">
+        <i class="ph ph-check" style="font-size: 48px; color: white;"></i>
+      </div>
+      <h4 style="margin: 0 0 8px; font-size: 24px; font-weight: 600; color: #2c3e50;">¡Venta Registrada!</h4>
+      <p style="margin: 0; color: #7f8c8d; font-size: 14px;">La venta se ha registrado exitosamente</p>
+    </div>
+
+    <!-- Información de la venta -->
+    <div style="padding: 0 30px 30px;">
+      <div style="background: #f8f9fa; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <span style="color: #6c757d; font-size: 14px;">Código</span>
+          <strong style="color: #2c3e50; font-size: 16px; font-weight: 600;">{{ getNumeroComprobante() }}</strong>
+        </div>
+        <div style="height: 1px; background: #dee2e6; margin: 12px 0;"></div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="color: #6c757d; font-size: 14px;">Total</span>
+          <strong style="color: #28a745; font-size: 20px; font-weight: 700;">S/ {{ data.total.toFixed(2) }}</strong>
+        </div>
+      </div>
+
+      <!-- Botón Continuar -->
+      <button 
+        style="width: 100%; padding: 14px; background: #28a745; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;"
+        (click)="onClose()"
+        onmouseover="this.style.background='#218838'"
+        onmouseout="this.style.background='#28a745'">
+        Continuar
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+</style>

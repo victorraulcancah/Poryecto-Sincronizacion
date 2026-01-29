@@ -1,0 +1,322 @@
+<div class="d-flex justify-content-between align-items-center mb-24">
+  <div>
+    <div class="d-flex align-items-center gap-8 mb-8">
+      <h5 class="text-heading fw-semibold mb-0">Lista de Ventas</h5>
+      <button 
+        class="btn btn-sm bg-info-50 text-info-600 px-8 py-4 rounded-6"
+        (click)="mostrarInfoSistemaPdf()"
+        title="Información sobre PDFs SUNAT mejorados">
+        <i class="ph ph-info text-xs"></i>
+      </button>
+    </div>
+    <p class="text-gray-500 mb-0">Administra todas las ventas del sistema con PDFs compliant SUNAT</p>
+  </div>
+  <button
+    class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8"
+    routerLink="nueva">
+    <i class="ph ph-plus me-8"></i>
+    Nueva Venta
+  </button>
+</div>
+
+<!-- Filtros -->
+<div class="card border-0 shadow-sm rounded-12 mb-24">
+  <div class="card-body p-24">
+    <form [formGroup]="filtrosForm" (ngSubmit)="aplicarFiltros()">
+      <div class="row">
+        <div class="col-md-3 mb-16">
+          <label class="form-label text-heading fw-medium mb-8">Estado</label>
+          <select class="form-select px-16 py-12 border rounded-8" formControlName="estado">
+            <option value="">Todos los estados</option>
+            <option value="PENDIENTE">Pendiente</option>
+            <option value="FACTURADO">Facturado</option>
+            <option value="ANULADO">Anulado</option>
+          </select>
+        </div>
+        <div class="col-md-3 mb-16">
+          <label class="form-label text-heading fw-medium mb-8">Fecha Inicio</label>
+          <input 
+            type="date" 
+            class="form-control px-16 py-12 border rounded-8"
+            formControlName="fecha_inicio">
+        </div>
+        <div class="col-md-3 mb-16">
+          <label class="form-label text-heading fw-medium mb-8">Fecha Fin</label>
+          <input 
+            type="date" 
+            class="form-control px-16 py-12 border rounded-8"
+            formControlName="fecha_fin">
+        </div>
+        <div class="col-md-3 mb-16">
+          <label class="form-label text-heading fw-medium mb-8">Buscar</label>
+          <div class="input-group">
+            <input 
+              type="text" 
+              class="form-control px-16 py-12 border rounded-start-8"
+              formControlName="search"
+              placeholder="Código, cliente...">
+            <button 
+              type="submit" 
+              class="btn bg-main-600 text-white px-16 rounded-end-8">
+              <i class="ph ph-magnifying-glass"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Tabla de ventas -->
+<div class="card border-0 shadow-sm rounded-12">
+  <div class="card-body p-0">
+    
+    <!-- Loading state -->
+    <div *ngIf="isLoading" class="text-center py-40">
+      <div class="spinner-border text-main-600" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="text-gray-500 mt-12 mb-0">Cargando ventas...</p>
+    </div>
+
+    <!-- Tabla -->
+    <div *ngIf="!isLoading" class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-24 py-16 text-heading fw-semibold border-0">Código</th>
+            <th class="px-24 py-16 text-heading fw-semibold border-0">Cliente</th>
+            <th class="px-24 py-16 text-heading fw-semibold border-0">Fecha</th>
+            <th class="px-24 py-16 text-heading fw-semibold border-0">Total</th>
+            <th class="px-24 py-16 text-heading fw-semibold border-0">Estado</th>
+            <th class="px-24 py-16 text-heading fw-semibold border-0">Comprobante</th>
+            <th class="px-24 py-16 text-heading fw-semibold border-0 text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let venta of ventas" class="border-bottom border-gray-100">
+            <!-- Código -->
+            <td class="px-24 py-16">
+              <span class="text-heading fw-semibold">{{ venta.codigo_venta }}</span>
+            </td>
+
+            <!-- Cliente -->
+            <td class="px-24 py-16">
+              <div>
+                <h6 class="text-heading fw-medium mb-4">
+                  {{ venta.cliente_info.nombre_completo }}
+                </h6>
+                <p class="text-gray-500 text-sm mb-0">
+                  {{ venta.cliente_info.numero_documento }}
+                </p>
+              </div>
+            </td>
+
+            <!-- Fecha -->
+            <td class="px-24 py-16">
+              <span class="text-heading">{{ formatearFecha(venta.fecha_venta) }}</span>
+            </td>
+
+            <!-- Total -->
+            <td class="px-24 py-16">
+              <span class="text-heading fw-semibold">S/ {{ venta.total }}</span>
+            </td>
+
+            <!-- Estado -->
+            <td class="px-24 py-16">
+              <span class="badge px-12 py-6 rounded-pill fw-medium"
+                    [ngClass]="getEstadoClase(venta.estado)">
+                {{ venta.estado }}
+              </span>
+            </td>
+
+            <!-- Comprobante -->
+            <td class="px-24 py-16">
+              <div *ngIf="venta.comprobante_info">
+                <span class="badge px-8 py-4 rounded text-xs d-inline-block mb-8"
+                      [ngClass]="obtenerColorTipoComprobante(venta.comprobante_info.tipo_comprobante)">
+                  {{ obtenerTipoComprobanteCorto(venta.comprobante_info.tipo_comprobante) }}
+                </span>
+                <div class="text-heading fw-medium mb-8">
+                  {{ venta.comprobante_info.numero_completo }}
+                </div>
+                <span class="badge px-8 py-4 rounded-pill text-xs d-inline-block"
+                      [ngClass]="getEstadoSunatClase(venta.comprobante_info.estado)">
+                  {{ venta.comprobante_info.estado }}
+                </span>
+              </div>
+              <span *ngIf="!venta.comprobante_info" class="text-gray-400 text-sm">Sin comprobante</span>
+            </td>
+
+            <!-- Acciones -->
+            <td class="px-24 py-16">
+              <div class="position-relative">
+                <!-- Botón de menú -->
+                <button 
+                  class="btn btn-sm bg-gray-100 hover-bg-gray-200 text-gray-600 px-8 py-6 rounded-6"
+                  (click)="toggleMenu(venta.id, $event)">
+                  <i class="ph ph-dots-three-vertical"></i>
+                </button>
+
+                <!-- Menú desplegable -->
+                <div 
+                  *ngIf="menuAbiertoId === venta.id"
+                  class="dropdown-menu-custom"
+                  (click)="$event.stopPropagation()">
+                  
+                  <!-- Editar Venta (solo si está PENDIENTE y sin comprobante) -->
+                  <button 
+                    *ngIf="venta.estado === 'PENDIENTE' && !venta.comprobante_info"
+                    class="dropdown-item-custom text-primary"
+                    (click)="editarVenta(venta); cerrarMenu()">
+                    <i class="ph ph-pencil-simple me-2"></i>
+                    <span>Editar Venta</span>
+                  </button>
+
+                  <!-- Generar Comprobante (solo si NO tiene comprobante) -->
+                  <button 
+                    *ngIf="venta.estado === 'PENDIENTE' && !venta.comprobante_info"
+                    class="dropdown-item-custom text-success"
+                    (click)="facturarVenta(venta); cerrarMenu()">
+                    <i class="ph ph-receipt me-2"></i>
+                    <span>Generar Comprobante</span>
+                  </button>
+
+                  <!-- Enviar SUNAT (solo si tiene comprobante PENDIENTE o RECHAZADO) -->
+                  <button 
+                    *ngIf="venta.comprobante_info && (venta.comprobante_info.estado === 'PENDIENTE' || venta.comprobante_info.estado === 'RECHAZADO')"
+                    class="dropdown-item-custom text-warning"
+                    (click)="enviarSunat(venta); cerrarMenu()">
+                    <i class="ph ph-paper-plane-tilt me-2"></i>
+                    <span>Enviar a SUNAT</span>
+                  </button>
+
+                  <!-- Ver XML y Firma Digital (siempre que tenga comprobante) -->
+                  <button 
+                    *ngIf="venta.comprobante_info && (venta.comprobante_info.tiene_xml || venta.comprobante_info.estado === 'ACEPTADO' || venta.comprobante_info.estado === 'PENDIENTE')"
+                    class="dropdown-item-custom text-primary"
+                    (click)="verFirma(venta); cerrarMenu()">
+                    <i class="ph ph-file-code me-2"></i>
+                    <span>Ver XML y Firma Digital</span>
+                  </button>
+
+                  <!-- Generar PDF SUNAT (disponible cuando está aceptado y no tiene PDF) -->
+                  <button 
+                    *ngIf="venta.comprobante_info?.estado === 'ACEPTADO' && (venta.comprobante_info?.tiene_pdf === false || venta.comprobante_info?.tiene_pdf === null || venta.comprobante_info?.tiene_pdf === undefined)"
+                    class="dropdown-item-custom text-warning"
+                    (click)="generarPdf(venta); cerrarMenu()">
+                    <i class="ph ph-file-plus me-2"></i>
+                    <span>🎯 Generar PDF SUNAT</span>
+                  </button>
+
+                  <!-- Regenerar PDF SUNAT (disponible cuando ya tiene PDF) -->
+                  <button 
+                    *ngIf="venta.comprobante_info?.estado === 'ACEPTADO' && venta.comprobante_info?.tiene_pdf === true"
+                    class="dropdown-item-custom text-info"
+                    (click)="generarPdf(venta); cerrarMenu()">
+                    <i class="ph ph-arrow-clockwise me-2"></i>
+                    <span>🔄 Regenerar PDF</span>
+                  </button>
+
+                  <!-- Descargar PDF (disponible cuando tiene PDF o está aceptado) -->
+                  <button 
+                    *ngIf="venta.comprobante_info?.estado === 'ACEPTADO'"
+                    class="dropdown-item-custom text-danger"
+                    (click)="descargarPdf(venta.id); cerrarMenu()">
+                    <i class="ph ph-file-pdf me-2"></i>
+                    <span>📄 Descargar PDF</span>
+                  </button>
+
+                  <!-- Descargar CDR (disponible cuando está aceptado) -->
+                  <button 
+                    *ngIf="venta.comprobante_info && (venta.comprobante_info.tiene_cdr || venta.comprobante_info.estado === 'ACEPTADO')"
+                    class="dropdown-item-custom text-info"
+                    (click)="descargarCdr(venta.id); cerrarMenu()">
+                    <i class="ph ph-file-text me-2"></i>
+                    <span>Descargar CDR</span>
+                  </button>
+
+                  <!-- Ver Detalle (siempre disponible) -->
+                  <button 
+                    class="dropdown-item-custom text-purple"
+                    (click)="verDetalle(venta); cerrarMenu()">
+                    <i class="ph ph-eye me-2"></i>
+                    <span>Ver Detalle</span>
+                  </button>
+
+                  <!-- Enviar por (Email/WhatsApp) - disponible cuando está aceptado -->
+                  <button 
+                    *ngIf="venta.comprobante_info?.estado === 'ACEPTADO'"
+                    class="dropdown-item-custom text-blue"
+                    (click)="abrirModalEnvio(venta); cerrarMenu()">
+                    <i class="ph ph-paper-plane me-2"></i>
+                    <span>Enviar por</span>
+                  </button>
+
+                  <!-- Consultar SUNAT (siempre que tenga comprobante) -->
+                  <button 
+                    *ngIf="venta.comprobante_info"
+                    class="dropdown-item-custom text-teal"
+                    (click)="consultarSunat(venta); cerrarMenu()">
+                    <i class="ph ph-magnifying-glass me-2"></i>
+                    <span>Consultar en SUNAT</span>
+                  </button>
+
+                  <div class="dropdown-divider" *ngIf="venta.estado !== 'ANULADO'"></div>
+
+                  <!-- Anular (solo si NO está anulado) -->
+                  <button 
+                    *ngIf="venta.estado !== 'ANULADO'"
+                    class="dropdown-item-custom text-danger"
+                    (click)="anularVenta(venta); cerrarMenu()">
+                    <i class="ph ph-x me-2"></i>
+                    <span>Anular Venta</span>
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Empty state -->
+      <div *ngIf="ventas.length === 0" class="text-center py-40">
+        <i class="ph ph-shopping-cart text-gray-300 text-6xl mb-16"></i>
+        <h6 class="text-heading fw-semibold mb-8">No hay ventas</h6>
+        <p class="text-gray-500 mb-16">No se encontraron ventas con los filtros aplicados</p>
+        <button
+          class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8"
+          routerLink="nueva">
+          <i class="ph ph-plus me-8"></i>
+          Crear primera venta
+        </button>
+      </div>
+    </div>
+
+    <!-- Paginación -->
+    <div *ngIf="paginacion && paginacion.last_page > 1" class="p-24 border-top border-gray-100">
+      <nav>
+        <ul class="pagination justify-content-center mb-0">
+          <li class="page-item" [class.disabled]="paginacion.current_page === 1">
+            <button class="page-link" (click)="cambiarPagina(paginacion.current_page - 1)">
+              Anterior
+            </button>
+          </li>
+          <li 
+            *ngFor="let page of getPaginas()" 
+            class="page-item" 
+            [class.active]="page === paginacion.current_page">
+            <button class="page-link" (click)="cambiarPagina(page)">
+              {{ page }}
+            </button>
+          </li>
+          <li class="page-item" [class.disabled]="paginacion.current_page === paginacion.last_page">
+            <button class="page-link" (click)="cambiarPagina(paginacion.current_page + 1)">
+              Siguiente
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>

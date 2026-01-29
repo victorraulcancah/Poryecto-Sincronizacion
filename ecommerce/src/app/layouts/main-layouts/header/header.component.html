@@ -1,0 +1,680 @@
+<!-- src\app\layouts\main-layouts\header\header.component.html -->
+<!--==================== Preloader Start ====================-->
+<!-- <div class="preloader">
+    <img src="assets/images/icon/preloader.gif" alt="">
+  </div> -->
+<!--==================== Preloader End ====================-->
+
+<!--==================== Overlay Start ====================-->
+<div class="overlay"></div>
+<!--==================== Overlay End ====================-->
+
+<!--==================== Sidebar Overlay End ====================-->
+<div
+  class="side-overlay"
+  [ngClass]="{ show: isMobileMenuActive }"
+  (click)="closeMobileMenu()"
+></div>
+<!--==================== Sidebar Overlay End ====================-->
+
+<!-- ==================== Scroll to Top End Here ==================== -->
+<div
+  class="progress-wrap"
+  [class.active-progress]="isActiveProgress"
+  (click)="scrollToTop($event)"
+>
+  <svg
+    class="progress-circle svg-content"
+    width="100%"
+    height="100%"
+    viewBox="-1 -1 102 102"
+  >
+    <path #progressPath d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98" />
+  </svg>
+</div>
+<!-- ==================== Scroll to Top End Here ==================== -->
+
+<!-- ==================== Cuadro de búsqueda Comience aquí==================== -->
+<form action="#" class="search-box">
+  <button
+    type="button"
+    class="search-box__close position-absolute inset-block-start-0 inset-inline-end-0 m-16 w-48 h-48 border border-gray-100 rounded-circle flex-center text-white hover-text-gray-800 hover-bg-white text-2xl transition-1"
+  >
+    <i class="ph ph-x"></i>
+  </button>
+  <div class="container">
+    <div class="position-relative">
+      <input
+        type="text"
+        class="form-control py-16 px-24 text-xl rounded-pill pe-64"
+        placeholder="Search for a product or brand"
+      />
+      <button
+        type="submit"
+        class="w-48 h-48 bg-main-600 rounded-circle flex-center text-xl text-white position-absolute top-50 translate-middle-y inset-inline-end-0 me-8"
+      >
+        <i class="ph ph-magnifying-glass"></i>
+      </button>
+    </div>
+  </div>
+</form>
+<!-- ==================== Search Box End Here ==================== -->
+
+<!-- ==================== Mobile Menu Start Here ==================== -->
+<div
+  class="mobile-menu scroll-sm d-lg-none d-block"
+  [ngClass]="{ active: isMobileMenuActive }"
+>
+  <button type="button" class="close-button" (click)="closeMobileMenu()">
+    <i class="ph ph-x"></i>
+  </button>
+  <div class="mobile-menu__inner">
+    <a [routerLink]="['/']" class="mobile-menu__logo">
+      <img src="assets/images/logo/logo3.png" alt="Logo" />
+    </a>
+    <div class="mobile-menu__menu">
+      <!-- Nav Menu Start -->
+      <ul class="nav-menu flex-align nav-menu--mobile">
+        <!-- ✅ SKELETON LOADER MÓVIL -->
+        <ng-container *ngIf="isLoadingMenus">
+          <li class="nav-menu__item">
+            <div class="menu-skeleton-mobile">
+              <div class="menu-skeleton-mobile__item menu-skeleton-mobile__item--1"></div>
+              <div class="menu-skeleton-mobile__item menu-skeleton-mobile__item--2"></div>
+              <div class="menu-skeleton-mobile__item menu-skeleton-mobile__item--3"></div>
+              <div class="menu-skeleton-mobile__item menu-skeleton-mobile__item--4"></div>
+              <div class="menu-skeleton-mobile__item menu-skeleton-mobile__item--5"></div>
+              <div class="menu-skeleton-mobile__item menu-skeleton-mobile__item--6"></div>
+            </div>
+          </li>
+        </ng-container>
+
+        <!-- ✅ MENÚS MÓVILES DINÁMICOS DESDE LA BASE DE DATOS -->
+        <li
+          *ngFor="let menu of menuItems; let i = index"
+          class="nav-menu__item"
+          [class.on-hover-item]="hasSubmenus(menu)"
+          [class.has-submenu]="hasSubmenus(menu)"
+          [routerLinkActive]="'activePage'"
+          (click)="hasSubmenus(menu) ? toggleSubmenu('menu-' + i) : null"
+        >
+          <a
+            [href]="menu.url"
+            [routerLink]="menu.url !== 'javascript:void(0)' && !hasSubmenus(menu) ? menu.url : null"
+            [target]="menu.target"
+            class="nav-menu__link"
+            [ngClass]="menu.url === '/arma-tu-pc' ? 'text-main-600' : 'text-gray-700'"
+          >
+            {{ menu.nombre }}
+          </a>
+
+          <!-- Submenús móviles (si existen) -->
+          <ul
+            *ngIf="hasSubmenus(menu)"
+            class="on-hover-dropdown common-dropdown nav-submenu scroll-sm"
+            [style.display]="activeIndex === 'menu-' + i ? 'block' : 'none'"
+          >
+            <li
+              *ngFor="let submenu of getSubmenus(menu)"
+              class="common-dropdown__item nav-submenu__item"
+              [routerLinkActive]="'activePage'"
+            >
+              <a
+                [routerLink]="submenu.url"
+                [target]="submenu.target"
+                class="common-dropdown__link nav-submenu__link text-heading-two hover-bg-neutral-100"
+              >
+                {{ submenu.nombre }}
+              </a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+      <!-- Nav Menu End -->
+    </div>
+  </div>
+</div>
+<!-- ==================== Mobile Menu End Here ==================== -->
+
+<!-- ======================= Inicio del encabezado medio ========================= -->
+<header class="header-middle border-bottom border-gray-100 bg-azul-oscuro">
+  <div class="container container-lg">
+    <nav class="header-inner flex-between gap-8">
+      <!-- Logo Start -->
+      <div class="logo">
+        <a [routerLink]="['']" class="link">
+          <img src="assets/images/logo/logo3.png" alt="Logo" />
+        </a>
+      </div>
+      <!-- Logo End  -->
+
+      <!-- form location Start -->
+      <form
+        action="#"
+        class="flex-align flex-wrap form-location-wrapper max-w-840 w-100"
+      >
+        <div
+          class="search-category select-style-one d-flex select-border-end-0 search-form d-sm-flex d-none text-heading-two text-sm w-100"
+        >
+          <!-- Select2 Category Dropdown -->
+          <ng-container *ngIf="isBrowser">
+            <ng-select2
+              class="js-example-basic-single border border-neutral-40 border-end-0 bg-white"
+              [data]="categories"
+              [(ngModel)]="selectedCategory"
+              name="category"
+              placeholder="Todas las categorias"
+              (ngModelChange)="onCategoryChange()"
+            >
+            </ng-select2>
+          </ng-container>
+
+          <!-- ✅ NUEVO: Search Input con autocompletado -->
+          <div
+            class="search-form__wrapper position-relative flex-grow-1 bg-white"
+          >
+            <input
+              type="text"
+              name="searchTerm"
+              class="common-input py-18 ps-16 pe-76 pe-44 placeholder-italic placeholder-text-sm"
+              placeholder="Buscar productos, categorías o marcas..."
+              [(ngModel)]="searchTerm"
+              (input)="onSearchTermChange()"
+              (keydown)="onSearchKeyPress($event)"
+              autocomplete="off"
+            />
+
+            <!-- ✅ NUEVO: Dropdown de sugerencias con estilos de dashboard -->
+            <div
+              *ngIf="showSuggestions"
+              class="search-suggestions position-absolute w-100 table-card"
+              style="top: 100%; left: 0; max-height: 400px; overflow-y: auto; z-index: 1050; margin-top: 4px;"
+            >
+              <!-- Loading state -->
+              <div
+                *ngIf="isLoadingSuggestions"
+                class="p-3 text-center text-gray-500"
+              >
+                <div class="loading-skeleton w-100" style="height: 20px; border-radius: 4px;"></div>
+                <small class="text-muted mt-2 d-block">Buscando...</small>
+              </div>
+
+              <!-- Sugerencias -->
+              <div
+                *ngFor="let producto of searchSuggestions; let i = index"
+                class="search-suggestion-item product-cell p-3 table-row"
+                [class.bg-light]="i === selectedSuggestionIndex"
+                (click)="selectSuggestion(producto)"
+                (mouseenter)="selectedSuggestionIndex = i"
+                style="cursor: pointer; border-bottom: 1px solid #f1f3f4;"
+              >
+                <!-- Imagen del producto -->
+                <div class="suggestion-image me-3 flex-shrink-0">
+                  <img
+                    [src]="
+                      producto.imagen_url ||
+                      '/assets/images/placeholder-product.jpg'
+                    "
+                    [alt]="producto.nombre"
+                    class="product-image"
+                    style="width: 48px; height: 48px"
+                  />
+                </div>
+
+                <!-- Información del producto -->
+                <div class="suggestion-content product-info flex-grow-1">
+                  <div class="suggestion-title product-name fw-medium">
+                    {{ producto.nombre }}
+                  </div>
+                  <div class="suggestion-category seller small">
+                    {{ producto.categoria }}
+                  </div>
+                </div>
+
+                <!-- Precio -->
+                <div class="suggestion-price price fw-bold me-2">
+                  ${{ producto.precio | number : "1.2-2" }}
+                </div>
+
+                <!-- Icono -->
+                <div class="suggestion-icon text-muted">
+                  <i class="ph ph-arrow-up-right"></i>
+                </div>
+              </div>
+
+              <!-- Sin resultados -->
+              <div
+                *ngIf="!isLoadingSuggestions && searchSuggestions.length === 0"
+                class="p-3 text-center"
+              >
+                <div class="stats-icon mx-auto mb-2" style="width: 40px; height: 40px; background: linear-gradient(135deg, #6c757d, #adb5bd);">
+                  <i class="ph ph-magnifying-glass"></i>
+                </div>
+                <p class="stats-label mb-0">No se encontraron productos</p>
+              </div>
+            </div>
+
+            <!-- Search Button -->
+            <button
+              type="button"
+              (click)="onSearch()"
+              class="w-64 h-44 bg-danger-10 hover-bg-danger-20 flex-center text-xl text-white position-absolute top-50 translate-middle-y inset-inline-end-0 me-6 rounded-12"
+            >
+              <i class="ph ph-magnifying-glass"></i>
+            </button>
+          </div>
+        </div>
+      </form>
+      <!-- form location end -->
+
+      <!-- Header Middle Right start -->
+      <div class="header-right flex-align flex-shrink-0">
+        <div class="flex-align gap-20">
+          <button
+            type="button"
+            class="search-icon flex-align d-lg-none d-flex gap-4 item-hover"
+          >
+            <span
+              class="text-2xl d-flex position-relative item-hover__text text-white"
+            >
+              <i class="ph ph-magnifying-glass"></i>
+            </span>
+          </button>
+
+          <!-- Usuario Profile Component - Sin texto adicional -->
+          <app-user-profile></app-user-profile>
+
+          <!-- ✅ NUEVO: Dropdown de Favoritos estilo Mercado Libre -->
+          <div class="favoritos-dropdown-wrapper position-relative">
+            <button
+              type="button"
+              (click)="toggleFavoritosDropdown($event)"
+              class="flex-align gap-4 item-hover-white bg-transparent border-0 p-0"
+              style="cursor: pointer;"
+            >
+              <span
+                class="text-xl d-flex position-relative me-6 mt-6 item-hover__text text-white"
+              >
+                <i class="ph ph-heart"></i>
+                <span
+                  *ngIf="favoritosCount > 0"
+                  class="w-16 h-16 flex-center rounded-circle bg-danger-10 text-white text-xs position-absolute top-n6 end-n4"
+                  >{{ favoritosCount }}</span
+                >
+              </span>
+              <span class="text-md item-hover__text d-none d-lg-flex text-white"
+                >Favoritos</span
+              >
+            </button>
+
+            <!-- Dropdown de Favoritos -->
+            <div
+              *ngIf="showFavoritosDropdown"
+              class="favoritos-dropdown position-absolute bg-white border border-gray-100 rounded-16 shadow-lg"
+              style="top: 100%; right: 0; margin-top: 12px; width: 400px; max-height: 500px; overflow-y: auto; z-index: 9999;"
+              (click)="$event.stopPropagation()"
+            >
+              <!-- Header del dropdown -->
+              <div class="p-16 border-bottom border-gray-100">
+                <h6 class="mb-0 fw-semibold text-heading">
+                  Favoritos
+                  <span class="text-gray-500 fw-normal">({{ favoritosCount }})</span>
+                </h6>
+              </div>
+
+              <!-- Loading state -->
+              <div *ngIf="isLoadingFavoritos" class="text-center py-40 px-20">
+                <div class="spinner-border text-main-600" role="status">
+                  <span class="visually-hidden">Cargando favoritos...</span>
+                </div>
+              </div>
+
+              <!-- Lista de productos favoritos -->
+              <div *ngIf="!isLoadingFavoritos && favoritosItems.length > 0" class="p-12">
+                <div
+                  *ngFor="let item of favoritosItems"
+                  class="favorito-item border border-gray-100 rounded-8 p-12 mb-12 hover-shadow-sm transition-2"
+                >
+                  <div class="d-flex gap-12">
+                    <!-- Imagen del producto -->
+                    <div 
+                      class="flex-shrink-0" 
+                      style="cursor: pointer;"
+                      (click)="goToProductDetail(item.producto_id)"
+                    >
+                      <img
+                        [src]="item.imagen_url"
+                        [alt]="item.nombre"
+                        class="rounded-8"
+                        style="width: 72px; height: 72px; object-fit: cover;"
+                        (error)="onImageError($event)"
+                      />
+                    </div>
+
+                    <!-- Info del producto -->
+                    <div class="flex-grow-1 min-w-0">
+                      <p 
+                        class="text-sm text-heading mb-4 text-truncate hover-text-main-600 transition-2" 
+                        style="max-width: 220px; cursor: pointer;"
+                        (click)="goToProductDetail(item.producto_id)"
+                      >
+                        {{ item.nombre }}
+                      </p>
+                      <p class="text-lg fw-bold text-main-600 mb-8">
+                        S/ {{ formatPrice(item.precio) }}
+                      </p>
+                      
+                      <!-- Stock info -->
+                      <div class="d-flex align-items-center gap-8 mb-8">
+                        <span 
+                          class="text-xs px-8 py-2 rounded-4"
+                          [ngClass]="{
+                            'bg-success-50 text-success-600': item.stock_disponible > 10,
+                            'bg-warning-50 text-warning-600': item.stock_disponible > 0 && item.stock_disponible <= 10,
+                            'bg-danger-50 text-danger-600': item.stock_disponible <= 0
+                          }"
+                        >
+                          <i class="ph ph-package me-4"></i>
+                          <span *ngIf="item.stock_disponible > 0">Stock: {{ item.stock_disponible }}</span>
+                          <span *ngIf="item.stock_disponible <= 0">Sin stock</span>
+                        </span>
+                      </div>
+
+                      <!-- Botones de acción -->
+                      <div class="d-flex gap-8">
+                        <!-- Botón añadir al carrito -->
+                        <button
+                          type="button"
+                          (click)="addToCartFromFavoritos(item, $event)"
+                          [disabled]="item.stock_disponible <= 0"
+                          class="btn btn-sm bg-main-600 hover-bg-main-700 text-white px-12 py-6 rounded-6 flex-grow-1 d-flex align-items-center justify-content-center gap-4 transition-2"
+                          [ngClass]="{'opacity-50 cursor-not-allowed': item.stock_disponible <= 0}"
+                          title="Añadir al carrito"
+                        >
+                          <i class="ph ph-shopping-cart text-sm"></i>
+                          <span class="text-xs">Añadir</span>
+                        </button>
+
+                        <!-- Botón eliminar -->
+                        <button
+                          type="button"
+                          (click)="removeFromFavoritosHeader(item.producto_id, $event)"
+                          class="btn btn-sm bg-transparent border border-gray-200 hover-bg-danger-50 hover-border-danger-600 text-gray-600 hover-text-danger-600 w-32 h-32 p-0 rounded-6 d-flex align-items-center justify-content-center transition-2"
+                          title="Eliminar de favoritos"
+                        >
+                          <i class="ph ph-trash text-sm"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Estado vacío -->
+              <div
+                *ngIf="!isLoadingFavoritos && favoritosItems.length === 0"
+                class="text-center py-40 px-20"
+              >
+                <i class="ph ph-heart text-gray-300" style="font-size: 3rem;"></i>
+                <p class="text-gray-500 mt-12 mb-0">
+                  No tienes favoritos aún
+                </p>
+              </div>
+
+              <!-- Footer con botón "Ver todos" -->
+              <div
+                *ngIf="!isLoadingFavoritos && favoritosCount > 0"
+                class="p-16 border-top border-gray-100"
+              >
+                <button
+                  type="button"
+                  (click)="verTodosFavoritos()"
+                  class="btn bg-main-50 hover-bg-main-100 text-main-600 w-100 py-12 rounded-8 fw-medium"
+                >
+                  Ver todos los favoritos y listas
+                  <i class="ph ph-arrow-right ms-8"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <a [routerLink]="['cart']" class="flex-align gap-4 item-hover-white">
+            <span
+              class="text-xl d-flex position-relative me-6 mt-6 item-hover__text text-white"
+            >
+              <i class="ph ph-shopping-cart-simple"></i>
+              <span
+                class="w-16 h-16 flex-center rounded-circle bg-danger-10 text-white text-xs position-absolute top-n6 end-n4"
+                >{{ cartItemCount }}</span
+              >
+            </span>
+            <span class="text-md item-hover__text d-none d-lg-flex text-white"
+              >Carrito</span
+            >
+          </a>
+        </div>
+      </div>
+      <!-- Header Middle Right End  -->
+    </nav>
+  </div>
+</header>
+<!-- ======================= Middle Header End ========================= -->
+
+<!-- ==================== Header Start Here ==================== -->
+<header class="header bg-white border-bottom-0 box-shadow-3xl py-10 z-2">
+  <div class="container container-lg">
+    <nav class="header-inner d-flex justify-content-between gap-8">
+      <div class="flex-align menu-category-wrapper position-relative">
+        <!-- Category Dropdown Start -->
+        <div class="position-relative category-dropdown-wrapper">
+          <!-- Botón Explorar categorías (solo en página principal) -->
+          <button
+            *ngIf="isHomePageActive"
+            type="button"
+            (click)="toggleCategoryDropdown()"
+            class="category-button d-flex align-items-center gap-12 text-white bg-success-600 px-20 py-16 rounded-6 hover-bg-success-700 transition-2"
+          >
+            <span class="text-xl line-height-1"
+              ><i class="ph ph-squares-four"></i
+            ></span>
+            <span>Explorar categorías</span>
+            <span class="line-height-1 icon transition-2"
+              ><i class="ph-bold ph-caret-down"></i
+            ></span>
+          </button>
+
+          <!-- Enlace "Arma tu PC" (en otras páginas) -->
+          <a
+            *ngIf="mostrarBotonArmaTuPC() && !isHomePageActive"
+            routerLink="/arma-tu-pc"
+            class="text-main-600 hover-text-main-700 text-decoration-none fw-semibold d-flex align-items-center gap-12 px-20 py-16"
+          >
+            <span class="text-lg line-height-1"
+              ><i class="ph ph-desktop"></i
+            ></span>
+            <span>Arma tu PC</span>
+          </a>
+
+          <!-- Dropdown -->
+          <div
+            *ngIf="categoryDropdownVisible"
+            [ngClass]="{ active: isActive }"
+            class="category-dropdown border border-success-200 shadow bg-white p-16 rounded-16 w-100 max-w-472 position-absolute inset-block-start-100 inset-inline-start-0 z-99 transition-2"
+          >
+            <div
+              class="d-grid grid-cols-3-repeat gap-4 max-h-350 overflow-y-auto"
+            >
+              <!-- Loading state -->
+              <div
+                *ngIf="isLoadingCategorias"
+                class="col-span-3 text-center py-20"
+              >
+                <div class="spinner-border text-success-600" role="status">
+                  <span class="visually-hidden">Cargando categorías...</span>
+                </div>
+              </div>
+
+              <!-- Categorías dinámicas -->
+              <a
+                *ngFor="let category of categorie"
+                [routerLink]="[category.route]"
+                [queryParams]="{ categoria: category.id }"
+                class="py-16 px-8 rounded-8 hover-bg-main-50 d-flex flex-column align-items-center text-center border border-white hover-border-main-100"
+              >
+                <img
+                  *ngIf="category.icon"
+                  [src]="category.icon"
+                  [alt]="category.name"
+                  class="w-40"
+                  (error)="onImageError($event)"
+                />
+                <!-- ✅ NUEVO: Ícono por defecto cuando no hay imagen -->
+                <div 
+                  *ngIf="!category.icon"
+                  class="w-40 h-40 d-flex align-items-center justify-content-center bg-main-50 rounded-circle"
+                >
+                  <i class="ph ph-squares-four text-main-600" style="font-size: 24px;"></i>
+                </div>
+                <span class="fw-semibold text-heading mt-16 text-sm">{{
+                  category.name
+                }}</span>
+              </a>
+
+              <!-- Estado vacío -->
+              <div
+                *ngIf="!isLoadingCategorias && categorie.length === 0"
+                class="col-span-3 text-center py-20"
+              >
+                <p class="text-gray-500">No hay categorías disponibles</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Category Dropdown End -->
+
+        <!-- Menu Start  -->
+        <div class="header-menu d-lg-block d-none">
+          <!-- Nav Menu Start -->
+          <ul class="nav-menu flex-align">
+            <!-- ✅ SKELETON LOADER DESKTOP -->
+            <ng-container *ngIf="isLoadingMenus">
+              <li class="nav-menu__item">
+                <div class="menu-skeleton">
+                  <div class="menu-skeleton__item menu-skeleton__item--short"></div>
+                  <div class="menu-skeleton__item menu-skeleton__item--long"></div>
+                  <div class="menu-skeleton__item menu-skeleton__item--medium"></div>
+                  <div class="menu-skeleton__item menu-skeleton__item--medium"></div>
+                  <div class="menu-skeleton__item menu-skeleton__item--long"></div>
+                  <div class="menu-skeleton__item menu-skeleton__item--medium"></div>
+                </div>
+              </li>
+            </ng-container>
+
+            <!-- ✅ MENÚS DINÁMICOS DESDE LA BASE DE DATOS -->
+            <li
+              *ngFor="let menu of visibleMenuItems"
+              class="nav-menu__item"
+              [class.on-hover-item]="hasSubmenus(menu)"
+              [class.has-submenu]="hasSubmenus(menu)"
+              [class.activePage]="isRouteActive(menu.url)"
+            >
+              <!-- Enlace del menú principal -->
+              <a
+                [href]="menu.url"
+                [routerLink]="menu.url !== 'javascript:void(0)' ? menu.url : null"
+                [target]="menu.target"
+                class="nav-menu__link"
+                [ngClass]="menu.url === '/arma-tu-pc' ? 'text-main-600 fw-semibold' : 'text-gray-700'"
+              >
+                {{ menu.nombre }}
+              </a>
+
+              <!-- Submenús (si existen) -->
+              <ul
+                *ngIf="hasSubmenus(menu)"
+                class="on-hover-dropdown common-dropdown nav-submenu scroll-sm"
+              >
+                <li
+                  *ngFor="let submenu of getSubmenus(menu)"
+                  class="common-dropdown__item nav-submenu__item"
+                  [class.activePage]="isRouteActive(submenu.url)"
+                >
+                  <a
+                    [routerLink]="submenu.url"
+                    [target]="submenu.target"
+                    class="common-dropdown__link nav-submenu__link text-heading-two hover-bg-neutral-100"
+                  >
+                    {{ submenu.nombre }}
+                  </a>
+                </li>
+              </ul>
+            </li>
+
+            <!-- ✅ NUEVO: Botón "Más" cuando hay muchos menús -->
+            <li
+              *ngIf="hiddenMenuItems.length > 0"
+              class="nav-menu__item on-hover-item"
+            >
+              <a
+                href="javascript:void(0)"
+                class="nav-menu__link text-gray-700 d-flex align-items-center gap-4"
+              >
+                Más
+                <i class="ph ph-caret-down text-sm"></i>
+              </a>
+
+              <!-- Dropdown con menús ocultos -->
+              <ul class="on-hover-dropdown common-dropdown nav-submenu scroll-sm" style="min-width: 220px;">
+                <li
+                  *ngFor="let menu of hiddenMenuItems"
+                  class="common-dropdown__item nav-submenu__item"
+                  [class.activePage]="isRouteActive(menu.url)"
+                >
+                  <a
+                    [routerLink]="menu.url !== 'javascript:void(0)' ? menu.url : null"
+                    [href]="menu.url"
+                    [target]="menu.target"
+                    class="common-dropdown__link nav-submenu__link text-heading-two hover-bg-neutral-100"
+                  >
+                    {{ menu.nombre }}
+                  </a>
+                </li>
+              </ul>
+            </li>
+          </ul>
+          <!-- Nav Menu End -->
+        </div>
+        <!-- Menu End  -->
+      </div>
+
+      <!-- Header Right start -->
+      <div class="header-right flex-align gap-20">
+        <a
+          href="tel:+(2)871382023"
+          class="d-sm-flex align-items-center gap-16 d-none"
+        >
+          <span class="d-flex text-32">
+            <img src="assets/images/icon/mobile.png" alt="Mobile Icon" />
+          </span>
+          <span class="">
+            <span class="d-block text-heading fw-medium"
+              >¿Necesitas ayuda? ¡Llámanos!</span
+            >
+            <span
+              class="d-block fw-bold text-danger-10 hover-text-decoration-underline"
+              >{{ empresaInfo?.telefono || "+ 999 999 999" }}</span
+            >
+          </span>
+        </a>
+        <button
+          type="button"
+          class="toggle-mobileMenu d-lg-none ms-3n text-gray-800 text-4xl d-flex"
+          (click)="openMobileMenu()"
+        >
+          <i class="ph ph-list"></i>
+        </button>
+      </div>
+      <!-- Header Right End  -->
+    </nav>
+  </div>
+</header>

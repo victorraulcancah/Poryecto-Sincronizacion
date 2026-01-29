@@ -1,0 +1,195 @@
+<!-- Header -->
+<div class="border border-gray-100 rounded-16 overflow-hidden bg-white">
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <div class="flex-between align-items-center gap-16 flex-wrap">
+      <div>
+        <h4 class="mb-4 text-heading">Cajas</h4>
+        <p class="text-gray-500 mb-0 text-sm">
+          Control de cajas registradoras
+        </p>
+      </div>
+      <button class="btn bg-main-600" (click)="abrirModalCrear()">
+        <i class="ph ph-plus me-8"></i>
+        Nueva Caja
+      </button>
+    </div>
+  </div>
+
+  <!-- Resumen General -->
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <div class="row g-3">
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-success-50">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="flex-grow-1">
+                <p class="text-muted mb-1 text-sm">Cajas Abiertas</p>
+                <h3 class="mb-0 text-success-600">{{ cajasAbiertas }}</h3>
+              </div>
+              <i class="ph ph-lock-open text-success-600" style="font-size: 2rem;"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-neutral-50">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="flex-grow-1">
+                <p class="text-muted mb-1 text-sm">Cajas Cerradas</p>
+                <h3 class="mb-0 text-neutral-600">{{ cajasCerradas }}</h3>
+              </div>
+              <i class="ph ph-lock text-neutral-600" style="font-size: 2rem;"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-success-50">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="flex-grow-1">
+                <p class="text-muted mb-1 text-sm">Total Ingresos</p>
+                <h3 class="mb-0 text-success-600">S/ {{ totalIngresos | number:'1.2-2' }}</h3>
+              </div>
+              <i class="ph ph-arrow-up text-success-600" style="font-size: 2rem;"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-danger-50">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="flex-grow-1">
+                <p class="text-muted mb-1 text-sm">Total Egresos</p>
+                <h3 class="mb-0 text-danger-600">S/ {{ totalEgresos | number:'1.2-2' }}</h3>
+              </div>
+              <i class="ph ph-arrow-down text-danger-600" style="font-size: 2rem;"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla Moderna -->
+  <div class="modern-data-table">
+    <!-- Loading state -->
+    <div *ngIf="loading" class="modern-data-table__loading">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="loading-text">Cargando cajas...</p>
+    </div>
+
+    <!-- Empty state -->
+    <div *ngIf="!loading && cajas.length === 0" class="empty-state">
+      <div class="empty-state__icon">
+        <i class="ph ph-cash-register"></i>
+      </div>
+      <h5 class="empty-state__title">No hay cajas registradas</h5>
+      <p class="empty-state__description">
+        Crea la primera caja para comenzar a gestionar el efectivo.
+      </p>
+      <button class="btn btn-primary" (click)="abrirModalCrear()">
+        <i class="ph ph-plus me-8"></i>
+        Crear Primera Caja
+      </button>
+    </div>
+
+    <!-- Tabla -->
+    <div *ngIf="!loading && cajas.length > 0" class="modern-data-table__container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>CÓDIGO</th>
+            <th>NOMBRE</th>
+            <th>TIENDA</th>
+            <th>ESTADO</th>
+            <th>SALDO ACTUAL</th>
+            <th class="text-end">ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let caja of cajas">
+            <td>
+              <div class="client-info">
+                <div class="client-info__name">{{ caja.codigo }}</div>
+              </div>
+            </td>
+            <td>
+              <div class="client-info">
+                <div class="client-info__name">{{ caja.nombre }}</div>
+              </div>
+            </td>
+            <td>
+              <span class="type-badge type-badge--default" *ngIf="caja.tienda">
+                <i class="ph ph-storefront"></i>
+                {{ caja.tienda.nombre }}
+              </span>
+              <span class="text-gray-400" *ngIf="!caja.tienda">Sin tienda</span>
+            </td>
+            <td>
+              <span *ngIf="estaAbierta(caja)" class="status-badge status-badge--active">
+                <i class="ph ph-lock-open me-1"></i>
+                ABIERTA
+              </span>
+              <span *ngIf="!estaAbierta(caja)" class="status-badge status-badge--inactive">
+                <i class="ph ph-lock me-1"></i>
+                CERRADA
+              </span>
+            </td>
+            <td>
+              <div *ngIf="estaAbierta(caja)" class="product-price-info">
+                <div class="price-sale">
+                  S/ {{ obtenerSaldoActual(caja) | number:'1.2-2' }}
+                </div>
+              </div>
+              <span *ngIf="!estaAbierta(caja)" class="text-gray-400">-</span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button class="action-buttons__btn action-buttons__btn--view" 
+                        (click)="verDetalle(caja)" 
+                        title="Ver Detalle">
+                  <i class="ph ph-eye"></i>
+                </button>
+                <button class="action-buttons__btn action-buttons__btn--edit" 
+                        (click)="abrirModalEditar(caja)" 
+                        title="Editar">
+                  <i class="ph ph-pencil"></i>
+                </button>
+                <button *ngIf="!estaAbierta(caja)" 
+                        class="action-buttons__btn" 
+                        style="background-color: var(--success-50); color: var(--success-700);"
+                        (click)="aperturarCaja(caja)"
+                        title="Aperturar Caja">
+                  <i class="ph ph-lock-open"></i>
+                </button>
+                <button *ngIf="estaAbierta(caja)" 
+                        class="action-buttons__btn action-buttons__btn--edit" 
+                        (click)="operarCaja(caja)"
+                        title="Operar Caja">
+                  <i class="ph ph-currency-circle-dollar"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Crear/Editar Caja -->
+<app-caja-form-modal 
+  [(visible)]="mostrarModalCaja" 
+  [caja]="cajaEditando" 
+  [tiendas]="tiendas" 
+  [procesando]="procesando"
+  (onGuardar)="guardarCaja($event)">
+</app-caja-form-modal>

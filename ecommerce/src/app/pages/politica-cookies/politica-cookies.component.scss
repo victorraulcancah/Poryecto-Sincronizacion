@@ -1,0 +1,535 @@
+// =====================================================
+// POLÍTICA DE COOKIES - Estilos profesionales
+// =====================================================
+
+// Variables
+$primary-color: #0066cc;
+$success-color: #28a745;
+$dark-color: #2c3e50;
+$light-bg: #f8f9fa;
+$border-color: #e0e0e0;
+$text-color: #333;
+$text-secondary: #666;
+$shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+$shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
+$transition: all 0.3s ease;
+
+// =====================================================
+// PÁGINA PRINCIPAL
+// =====================================================
+.politica-cookies-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 60px 20px;
+
+  @media (max-width: 768px) {
+    padding: 40px 15px;
+  }
+}
+
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 16px;
+  box-shadow: $shadow-hover;
+  overflow: hidden;
+}
+
+// =====================================================
+// HEADER
+// =====================================================
+.page-header {
+  background: linear-gradient(135deg, $primary-color, darken($primary-color, 10%));
+  color: white;
+  padding: 48px 40px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    left: -5%;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+  }
+
+  @media (max-width: 768px) {
+    padding: 32px 24px;
+  }
+}
+
+.page-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  position: relative;
+  z-index: 1;
+
+  i {
+    font-size: 3rem;
+    animation: rotate 10s linear infinite;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 2rem;
+    gap: 12px;
+
+    i {
+      font-size: 2.5rem;
+    }
+  }
+
+  @media (max-width: 576px) {
+    font-size: 1.75rem;
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.page-subtitle {
+  font-size: 1rem;
+  opacity: 0.9;
+  margin: 0;
+  position: relative;
+  z-index: 1;
+}
+
+// =====================================================
+// SECCIONES
+// =====================================================
+.policy-section {
+  padding: 40px;
+  border-bottom: 1px solid $border-color;
+
+  &:last-of-type {
+    border-bottom: none;
+  }
+
+  @media (max-width: 768px) {
+    padding: 32px 24px;
+  }
+}
+
+.section-intro {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: $text-secondary;
+  margin: 0;
+
+  p {
+    margin: 0;
+  }
+}
+
+.section-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: $dark-color;
+  margin: 0 0 24px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  i {
+    font-size: 2rem;
+    color: $primary-color;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
+    gap: 10px;
+
+    i {
+      font-size: 1.75rem;
+    }
+  }
+}
+
+.section-content {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: $text-color;
+
+  p {
+    margin: 0 0 16px 0;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  a {
+    color: $primary-color;
+    text-decoration: none;
+    font-weight: 600;
+    transition: $transition;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+// =====================================================
+// TARJETAS DE TIPOS DE COOKIES
+// =====================================================
+.cookie-type-card {
+  background: $light-bg;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  padding: 24px;
+  margin-bottom: 24px;
+  transition: $transition;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  &:hover {
+    border-color: $primary-color;
+    box-shadow: $shadow;
+  }
+}
+
+.cookie-type-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+
+  @media (max-width: 576px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
+.cookie-type-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+
+  i {
+    font-size: 1.5rem;
+    color: $primary-color;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: $dark-color;
+    margin: 0;
+  }
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &-required {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+
+  &-optional {
+    background: #e3f2fd;
+    color: #1565c0;
+  }
+}
+
+.cookie-type-content {
+  p {
+    margin: 0 0 16px 0;
+    color: $text-secondary;
+  }
+}
+
+.cookie-examples {
+  background: white;
+  border-left: 4px solid $primary-color;
+  padding: 16px;
+  border-radius: 4px;
+  margin: 16px 0;
+
+  h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: $dark-color;
+    margin: 0 0 12px 0;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 24px;
+
+    li {
+      margin-bottom: 8px;
+      color: $text-secondary;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+}
+
+.cookie-duration {
+  margin-top: 16px;
+  font-size: 0.95rem;
+  color: $text-secondary;
+}
+
+// =====================================================
+// TERCEROS
+// =====================================================
+.third-party-list {
+  margin-top: 24px;
+}
+
+.third-party-item {
+  background: $light-bg;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 16px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: $dark-color;
+    margin: 0 0 12px 0;
+  }
+
+  p {
+    margin: 0;
+    color: $text-secondary;
+    line-height: 1.6;
+  }
+}
+
+// =====================================================
+// BOTÓN DE CONFIGURACIÓN DE COOKIES
+// =====================================================
+.cookie-settings-btn-wrapper {
+  margin: 24px 0;
+  text-align: center;
+}
+
+.cookie-settings-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 32px;
+  background: $primary-color;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: $transition;
+  box-shadow: $shadow;
+
+  i {
+    font-size: 1.5rem;
+  }
+
+  &:hover {
+    background: darken($primary-color, 10%);
+    transform: translateY(-2px);
+    box-shadow: $shadow-hover;
+  }
+
+  @media (max-width: 576px) {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+// =====================================================
+// ENLACES DE NAVEGADORES
+// =====================================================
+.browser-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 24px;
+
+  a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: $light-bg;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    color: $primary-color;
+    text-decoration: none;
+    font-weight: 600;
+    transition: $transition;
+
+    i {
+      font-size: 1.3rem;
+    }
+
+    &:hover {
+      border-color: $primary-color;
+      background: white;
+      box-shadow: $shadow;
+    }
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// =====================================================
+// LISTA DE DERECHOS
+// =====================================================
+.rights-list {
+  list-style: none;
+  padding: 0;
+  margin: 24px 0 0 0;
+
+  li {
+    position: relative;
+    padding: 16px;
+    padding-left: 48px;
+    margin-bottom: 16px;
+    background: $light-bg;
+    border-radius: 8px;
+    color: $text-secondary;
+    line-height: 1.6;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 24px;
+      height: 24px;
+      background: $success-color;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    strong {
+      color: $dark-color;
+    }
+  }
+}
+
+// =====================================================
+// INFORMACIÓN DE CONTACTO
+// =====================================================
+.contact-info {
+  background: $light-bg;
+  border-left: 4px solid $primary-color;
+  padding: 24px;
+  border-radius: 4px;
+  margin-top: 24px;
+
+  p {
+    margin: 0 0 12px 0;
+    color: $text-secondary;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    strong {
+      color: $dark-color;
+      margin-right: 8px;
+    }
+  }
+}
+
+// =====================================================
+// FOOTER
+// =====================================================
+.page-footer {
+  padding: 32px 40px;
+  text-align: center;
+  background: $light-bg;
+
+  @media (max-width: 768px) {
+    padding: 24px;
+  }
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 32px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: $transition;
+
+  i {
+    font-size: 1.2rem;
+  }
+
+  &:hover {
+    background: darken(#6c757d, 10%);
+    transform: translateY(-2px);
+    box-shadow: $shadow;
+  }
+
+  @media (max-width: 576px) {
+    width: 100%;
+    justify-content: center;
+  }
+}

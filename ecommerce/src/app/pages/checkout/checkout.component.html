@@ -1,0 +1,671 @@
+<!-- ========================= Breadcrumb Start =============================== -->
+<app-breadcrumb title="Finalizar Compra" subtitle="Checkout"></app-breadcrumb>
+
+<!-- ========================= Breadcrumb End =============================== -->
+
+<!-- ================================ Checkout Section Start ================================ -->
+<section class="checkout py-80">
+  <div class="container container-lg">
+    <div class="row gy-4">
+      <!-- Formulario de Checkout -->
+      <div class="col-lg-8">
+        <div class="checkout-form">
+          <div class="card border-0 shadow-sm rounded-12">
+            <div class="card-header bg-main-600 text-white py-16">
+              <h5 class="mb-0 fw-semibold text-white">
+                <i class="ph ph-shopping-cart me-8"></i>
+                Detalle Compra
+              </h5>
+            </div>
+            <div class="card-body p-24">
+              <form [formGroup]="checkoutForm" (ngSubmit)="onSubmit()">
+                <!-- DNI / RUC -->
+                <div class="row mb-20">
+                  <div class="col-md-6">
+                    <label class="form-label text-heading fw-medium"
+                      >DNI / RUC</label
+                    >
+                    <div class="input-group">
+                      <input
+                        type="text"
+                        class="form-control rounded-start-8 border-end-0"
+                        formControlName="numeroDocumento"
+                        placeholder="Ingrese DNI o RUC"
+                        maxlength="11"
+                      />
+                      <button
+                        type="button"
+                        class="btn btn-main px-16 rounded-end-8"
+                        (click)="buscarDocumento()"
+                        [disabled]="buscandoDocumento"
+                      >
+                        <i
+                          class="ph ph-magnifying-glass"
+                          *ngIf="!buscandoDocumento"
+                        ></i>
+                        <i
+                          class="ph ph-spinner ph-spin"
+                          *ngIf="buscandoDocumento"
+                        ></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Cliente -->
+                <div class="mb-20">
+                  <label class="form-label text-heading fw-medium">
+                    Cliente <span class="text-danger">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    class="form-control rounded-8"
+                    formControlName="cliente"
+                    placeholder="Nombre completo del cliente"
+                    [class.is-invalid]="
+                      checkoutForm.get('cliente')?.invalid &&
+                      checkoutForm.get('cliente')?.touched
+                    "
+                  />
+                  <div
+                    class="invalid-feedback"
+                    *ngIf="
+                      checkoutForm.get('cliente')?.invalid &&
+                      checkoutForm.get('cliente')?.touched
+                    "
+                  >
+                    El nombre del cliente es requerido
+                  </div>
+                </div>
+
+                <!-- Direcciones Guardadas -->
+                <div class="mb-20" *ngIf="direccionesGuardadas.length > 0">
+                  <label class="form-label text-heading fw-medium">
+                    Direcciones Guardadas
+                  </label>
+                  <div class="row g-2">
+                    <div
+                      class="col-12"
+                      *ngFor="let direccion of direccionesGuardadas"
+                    >
+                      <div
+                        class="border border-gray-100 rounded-8 p-12 cursor-pointer hover-bg-main-25 transition-2"
+                        [class.border-main-600]="
+                          direccionSeleccionada?.id === direccion.id
+                        "
+                        [class.bg-main-25]="
+                          direccionSeleccionada?.id === direccion.id
+                        "
+                        (click)="seleccionarDireccion(direccion)"
+                      >
+                        <div class="flex-between align-items-start">
+                          <div class="flex-grow-1">
+                            <div class="flex-align gap-8 mb-4">
+                              <input
+                                type="radio"
+                                [checked]="
+                                  direccionSeleccionada?.id === direccion.id
+                                "
+                                name="direccionGuardada"
+                              />
+                              <h6 class="mb-0 text-sm fw-medium">
+                                {{ direccion.nombre_destinatario }}
+                              </h6>
+                              <span
+                                *ngIf="direccion.predeterminada"
+                                class="bg-success-50 text-success-600 px-6 py-1 rounded-pill text-xs"
+                              >
+                                Principal
+                              </span>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-2">
+                              {{ direccion.direccion_completa }}
+                            </p>
+                            <p
+                              class="text-xs text-gray-500 mb-0"
+                              *ngIf="direccion.ubigeo"
+                            >
+                              {{ direccion.ubigeo.distrito_nombre }},
+                              {{ direccion.ubigeo.provincia_nombre }},
+                              {{ direccion.ubigeo.departamento_nombre }}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Checkbox para usar dirección personalizada -->
+                  <div class="mt-12">
+                    <div class="form-check">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        [(ngModel)]="usarDireccionPersonalizada"
+                        [ngModelOptions]="{ standalone: true }"
+                        (change)="onCambiarTipoDireccion()"
+                        id="usarDireccionPersonalizada"
+                      />
+                      <label
+                        class="form-check-label text-sm"
+                        for="usarDireccionPersonalizada"
+                      >
+                        Usar una dirección diferente
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Dirección Manual -->
+                <div
+                  class="mb-20"
+                  *ngIf="
+                    direccionesGuardadas.length === 0 ||
+                    usarDireccionPersonalizada
+                  "
+                >
+                  <label class="form-label text-heading fw-medium">
+                    <span *ngIf="direccionesGuardadas.length === 0"
+                      >Dirección</span
+                    >
+                    <span *ngIf="direccionesGuardadas.length > 0"
+                      >Dirección Personalizada</span
+                    >
+                    <span class="text-danger">*</span>
+                  </label>
+                  <textarea
+                    class="form-control rounded-8"
+                    formControlName="direccion"
+                    rows="2"
+                    placeholder="Ingrese su dirección completa"
+                    [class.is-invalid]="
+                      checkoutForm.get('direccion')?.invalid &&
+                      checkoutForm.get('direccion')?.touched
+                    "
+                  ></textarea>
+                  <div
+                    class="invalid-feedback"
+                    *ngIf="
+                      checkoutForm.get('direccion')?.invalid &&
+                      checkoutForm.get('direccion')?.touched
+                    "
+                  >
+                    La dirección es requerida
+                  </div>
+                </div>
+
+                <!-- Celular -->
+                <div class="mb-20">
+                  <label class="form-label text-heading fw-medium">
+                    Celular <span class="text-danger">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    class="form-control rounded-8"
+                    formControlName="celular"
+                    placeholder="999 999 999"
+                    maxlength="9"
+                    [class.is-invalid]="
+                      checkoutForm.get('celular')?.invalid &&
+                      checkoutForm.get('celular')?.touched
+                    "
+                  />
+                  <div
+                    class="invalid-feedback"
+                    *ngIf="
+                      checkoutForm.get('celular')?.invalid &&
+                      checkoutForm.get('celular')?.touched
+                    "
+                  >
+                    El número de celular es requerido
+                  </div>
+                </div>
+
+                <!-- Ubigeo -->
+                <div class="row mb-20">
+                  <!-- Departamento -->
+                  <div class="col-md-4 mb-16 mb-md-0">
+                    <label class="form-label text-heading fw-medium">
+                      Departamento <span class="text-danger">*</span>
+                    </label>
+                    <select
+                      class="form-select rounded-8"
+                      formControlName="departamento"
+                      (change)="onDepartamentoChange()"
+                      [class.is-invalid]="
+                        checkoutForm.get('departamento')?.invalid &&
+                        checkoutForm.get('departamento')?.touched
+                      "
+                    >
+                      <option value="">SELECCIONE DEPARTAMENTO (*)</option>
+                      <option
+                        *ngFor="let depto of departamentos"
+                        [value]="depto.id"
+                      >
+                        {{ depto.nombre }}
+                      </option>
+                    </select>
+                    <div
+                      class="invalid-feedback"
+                      *ngIf="
+                        checkoutForm.get('departamento')?.invalid &&
+                        checkoutForm.get('departamento')?.touched
+                      "
+                    >
+                      Seleccione un departamento
+                    </div>
+                  </div>
+
+                  <!-- Provincia -->
+                  <div class="col-md-4 mb-16 mb-md-0">
+                    <label class="form-label text-heading fw-medium">
+                      Provincia <span class="text-danger">*</span>
+                    </label>
+                    <select
+                      class="form-select rounded-8"
+                      formControlName="provincia"
+                      (change)="onProvinciaChange()"
+                      [class.is-invalid]="
+                        checkoutForm.get('provincia')?.invalid &&
+                        checkoutForm.get('provincia')?.touched
+                      "
+                    >
+                      <option value="">SELECCIONE PROVINCIA (*)</option>
+                      <option *ngFor="let prov of provincias" [value]="prov.id">
+                        {{ prov.nombre }}
+                      </option>
+                    </select>
+                    <div
+                      class="invalid-feedback"
+                      *ngIf="
+                        checkoutForm.get('provincia')?.invalid &&
+                        checkoutForm.get('provincia')?.touched
+                      "
+                    >
+                      Seleccione una provincia
+                    </div>
+                  </div>
+
+                  <!-- Distrito -->
+                  <div class="col-md-4">
+                    <label class="form-label text-heading fw-medium">
+                      Distrito <span class="text-danger">*</span>
+                    </label>
+                    <select
+                      class="form-select rounded-8"
+                      formControlName="distrito"
+                      (change)="onDistritoChange()"
+                      [class.is-invalid]="
+                        checkoutForm.get('distrito')?.invalid &&
+                        checkoutForm.get('distrito')?.touched
+                      "
+                    >
+                      <option value="">SELECCIONE DISTRITO (*)</option>
+                      <option *ngFor="let dist of distritos" [value]="dist.id">
+                        {{ dist.nombre }}
+                      </option>
+                    </select>
+                    <div
+                      class="invalid-feedback"
+                      *ngIf="
+                        checkoutForm.get('distrito')?.invalid &&
+                        checkoutForm.get('distrito')?.touched
+                      "
+                    >
+                      Seleccione un distrito
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Forma de Envío y Tipo de Pago -->
+                <div class="row mb-20">
+                  <!-- Forma de Envío -->
+                  <div class="col-md-6 mb-16 mb-md-0">
+                    <label class="form-label text-heading fw-medium">
+                      Forma de Envío <span class="text-danger">*</span>
+                    </label>
+                    <select
+                      class="form-select rounded-8"
+                      formControlName="formaEnvio"
+                      (change)="onFormaEnvioChange()"
+                      [class.is-invalid]="
+                        checkoutForm.get('formaEnvio')?.invalid &&
+                        checkoutForm.get('formaEnvio')?.touched
+                      "
+                    >
+                      <option value="">Forma de Envío (*)</option>
+                      <option
+                        *ngFor="let forma of formasEnvio"
+                        [value]="forma.id"
+                      >
+                        {{
+                          forma.ubicacion_completa || forma.departamento_nombre
+                        }}
+                        - S/ {{ forma.costo | number : "1.2-2" }}
+                      </option>
+                    </select>
+                    <div
+                      class="invalid-feedback"
+                      *ngIf="
+                        checkoutForm.get('formaEnvio')?.invalid &&
+                        checkoutForm.get('formaEnvio')?.touched
+                      "
+                    >
+                      Seleccione una forma de envío
+                    </div>
+                  </div>
+
+                  <!-- Tipo de Pago -->
+                  <div class="col-md-6">
+                    <label class="form-label text-heading fw-medium">
+                      Tipo de Pago <span class="text-danger">*</span>
+                    </label>
+                    <select
+                      class="form-select rounded-8"
+                      formControlName="tipoPago"
+                      [class.is-invalid]="
+                        checkoutForm.get('tipoPago')?.invalid &&
+                        checkoutForm.get('tipoPago')?.touched
+                      "
+                    >
+                      <option value="">Tipo de pago (*)</option>
+                      <option
+                        *ngFor="let tipo of tiposPago"
+                        [value]="tipo.codigo"
+                      >
+                        <i
+                          *ngIf="tipo.icono"
+                          class="ph"
+                          [ngClass]="tipo.icono"
+                        ></i>
+                        {{ tipo.nombre }}
+                      </option>
+                    </select>
+                    <div
+                      class="invalid-feedback"
+                      *ngIf="
+                        checkoutForm.get('tipoPago')?.invalid &&
+                        checkoutForm.get('tipoPago')?.touched
+                      "
+                    >
+                      Seleccione un tipo de pago
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Email -->
+                <div class="mb-20">
+                  <label class="form-label text-heading fw-medium">
+                    Email <span class="text-danger">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    class="form-control rounded-8"
+                    formControlName="email"
+                    placeholder="correo@ejemplo.com"
+                    [class.is-invalid]="
+                      checkoutForm.get('email')?.invalid &&
+                      checkoutForm.get('email')?.touched
+                    "
+                  />
+                  <div
+                    class="invalid-feedback"
+                    *ngIf="
+                      checkoutForm.get('email')?.invalid &&
+                      checkoutForm.get('email')?.touched
+                    "
+                  >
+                    <span
+                      *ngIf="checkoutForm.get('email')?.errors?.['required']"
+                      >El email es requerido</span
+                    >
+                    <span *ngIf="checkoutForm.get('email')?.errors?.['email']"
+                      >Ingrese un email válido</span
+                    >
+                  </div>
+                </div>
+
+                <!-- Términos y Condiciones -->
+                <div class="mb-20">
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      formControlName="aceptaTerminos"
+                      id="aceptaTerminos"
+                    />
+                    <label
+                      class="form-check-label text-sm"
+                      for="aceptaTerminos"
+                    >
+                      He leído y acepto los
+                      <a
+                        href="#"
+                        class="text-main-600 text-decoration-underline"
+                        >términos y condiciones</a
+                      >
+                      y las
+                      <a
+                        href="#"
+                        class="text-main-600 text-decoration-underline"
+                        >políticas de privacidad</a
+                      >
+                    </label>
+                  </div>
+                  <div
+                    class="text-danger text-sm mt-4"
+                    *ngIf="
+                      checkoutForm.get('aceptaTerminos')?.invalid &&
+                      checkoutForm.get('aceptaTerminos')?.touched
+                    "
+                  >
+                    Debe aceptar los términos y condiciones
+                  </div>
+                </div>
+
+                <!-- Información Adicional -->
+                <div class="mb-0">
+                  <h6 class="text-heading fw-semibold mb-16">
+                    Información Adicional
+                  </h6>
+                  <label class="form-label text-heading fw-medium"
+                    >Otras notas...</label
+                  >
+                  <textarea
+                    class="form-control rounded-8"
+                    formControlName="observaciones"
+                    rows="3"
+                    placeholder="Instrucciones especiales para la entrega, referencias de ubicación, etc."
+                  ></textarea>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumen del Pedido -->
+      <div class="col-lg-4">
+        <div class="checkout-sidebar position-sticky" style="top: 24px">
+          <!-- Tu Orden -->
+          <div class="card border-0 shadow-sm rounded-12 mb-20">
+            <div class="card-header bg-gray-50 py-16">
+              <h6 class="mb-0 fw-semibold text-heading">Tu Orden</h6>
+            </div>
+            <div class="card-body p-20">
+              <!-- Productos -->
+              <div class="order-products mb-20">
+                <div
+                  class="d-flex justify-content-between align-items-center fw-medium text-sm mb-12 pb-8 border-bottom border-gray-100"
+                >
+                  <span>Producto</span>
+                  <span>Total</span>
+                </div>
+
+                <div
+                  class="product-item d-flex justify-content-between align-items-start mb-12"
+                  *ngFor="let item of cartItems"
+                >
+                  <div class="flex-grow-1">
+                    <h6 class="text-sm fw-medium mb-4">{{ item.nombre }}</h6>
+                    <span class="text-xs text-gray-500"
+                      >x {{ item.cantidad }}</span
+                    >
+                  </div>
+                  <span class="text-sm fw-medium"
+                    >S/ {{ formatPrice(getItemSubtotal(item)) }}</span
+                  >
+                </div>
+              </div>
+
+              <!-- Totales -->
+              <div class="order-totals">
+                <div
+                  class="d-flex justify-content-between align-items-center mb-12"
+                >
+                  <span class="text-gray-600">SubTotal</span>
+                  <span class="fw-medium"
+                    >S/ {{ formatPrice(cartSummary.subtotal) }}</span
+                  >
+                </div>
+
+                <!-- Descuento del cupón -->
+                <div
+                  *ngIf="cuponAplicado && descuentoCupon > 0"
+                  class="d-flex justify-content-between align-items-center mb-12"
+                >
+                  <span class="text-success-600">
+                    <i class="ph ph-ticket me-4"></i>
+                    Cupón ({{ cuponAplicado.codigo }})
+                  </span>
+                  <span class="text-success-600 fw-medium"
+                    >-S/ {{ formatPrice(descuentoCupon) }}</span
+                  >
+                </div>
+
+                <div
+                  *ngIf="cuponAplicado"
+                  class="alert alert-success d-flex align-items-center gap-8 py-8 px-12 mb-12"
+                  style="font-size: 0.85rem;"
+                >
+                  <i class="ph ph-check-circle"></i>
+                  <span>
+                    <strong>{{ cuponAplicado.codigo }}</strong> aplicado:
+                    <ng-container *ngIf="cuponAplicado.tipo_descuento === 'porcentaje'">
+                      {{ cuponAplicado.valor_descuento }}% de descuento
+                    </ng-container>
+                    <ng-container *ngIf="cuponAplicado.tipo_descuento === 'cantidad_fija'">
+                      S/ {{ cuponAplicado.valor_descuento }} de descuento
+                    </ng-container>
+                  </span>
+                </div>
+
+                <div
+                  class="d-flex justify-content-between align-items-center mb-12"
+                >
+                  <span class="text-gray-600">Envío</span>
+                  <span class="fw-medium"
+                    >S/ {{ formatPrice(costoEnvioCalculado) }}</span
+                  >
+                </div>
+
+                <hr class="border-gray-200 my-12" />
+
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="text-heading fw-bold">Total</span>
+                  <span class="text-heading fw-bold"
+                    >S/ {{ formatPrice(getTotalFinal()) }}</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Procesamiento -->
+          <div class="card border-0 shadow-sm rounded-12 mb-20">
+            <div class="card-header bg-info-50 py-16">
+              <h6 class="mb-0 fw-semibold text-heading">Procesamiento</h6>
+            </div>
+            <div class="card-body p-20">
+              <p class="text-sm text-gray-600 mb-16">
+                Contáctese por WhatsApp con el número de pedido que se asignará
+                a su pedido, para procesar su compra
+              </p>
+
+              <!-- Botones de Acción -->
+              <div class="d-grid gap-12">
+                <button
+                  type="button"
+                  class="btn btn-outline-main py-12 rounded-8"
+                  (click)="pedirCotizacion()"
+                  [disabled]="!checkoutForm.valid || procesandoPedido"
+                >
+                  <i class="ph ph-file-pdf me-8"></i>
+                  Generar Cotización
+                </button>
+
+                <button
+                  type="button"
+                  class="btn btn-main py-12 rounded-8"
+                  (click)="pagarConTarjeta()"
+                  [disabled]="!checkoutForm.valid || procesandoPedido"
+                >
+                  <i
+                    class="ph ph-credit-card me-8"
+                    *ngIf="!procesandoPedido"
+                  ></i>
+                  <i
+                    class="ph ph-spinner ph-spin me-8"
+                    *ngIf="procesandoPedido"
+                  ></i>
+                  Pagar Con Tarjeta
+                </button>
+              </div>
+
+              <p class="text-xs text-gray-500 mt-12 mb-0">
+                *Pagos con tarjeta se le suma 5%
+              </p>
+            </div>
+          </div>
+
+          <!-- Costo por envío -->
+          <div class="card border-0 shadow-sm rounded-12">
+            <div class="card-header bg-warning-50 py-16">
+              <h6 class="mb-0 fw-semibold text-heading">
+                Costos de Envío Disponibles
+              </h6>
+            </div>
+            <div class="card-body p-20">
+              <div class="shipping-costs">
+                <div
+                  *ngFor="let forma of formasEnvio"
+                  class="d-flex justify-content-between align-items-center mb-8"
+                >
+                  <span class="text-sm text-gray-600"
+                    >{{
+                      forma.ubicacion_completa || forma.departamento_nombre
+                    }}:</span
+                  >
+                  <span class="text-sm fw-medium"
+                    >S/ {{ formatPrice(forma.costo) }}</span
+                  >
+                </div>
+                <div
+                  *ngIf="formasEnvio.length === 0"
+                  class="text-center text-muted"
+                >
+                  <small>No hay formas de envío disponibles</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ================================ Checkout Section End ================================ -->
+
+<!-- ========================== Shipping Section Start ============================ -->
+<app-shipping></app-shipping>
+<!-- ========================== Shipping Section End ============================ -->

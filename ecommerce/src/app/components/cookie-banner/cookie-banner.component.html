@@ -1,0 +1,222 @@
+<!-- Banner de Cookies -->
+<div
+  *ngIf="isVisible && config"
+  class="cookie-banner"
+  [class.cookie-banner--bottom]="config.banner_posicion === 'bottom'"
+  [class.cookie-banner--top]="config.banner_posicion === 'top'"
+  [class.cookie-banner--center]="config.banner_posicion === 'center'"
+  [class.cookie-banner--light]="config.banner_tema === 'light'"
+  [class.cookie-banner--dark]="config.banner_tema === 'dark'"
+  [@slideIn]>
+
+  <div class="cookie-banner__container">
+    <div class="cookie-banner__content">
+      <!-- Icono de Cookie -->
+      <div class="cookie-banner__icon">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="24" cy="24" r="20" fill="#8B5E3C" opacity="0.9"/>
+          <circle cx="15" cy="18" r="2" fill="#6B4423"/>
+          <circle cx="28" cy="15" r="2.5" fill="#6B4423"/>
+          <circle cx="20" cy="28" r="2" fill="#6B4423"/>
+          <circle cx="32" cy="26" r="2" fill="#6B4423"/>
+          <circle cx="18" cy="35" r="1.5" fill="#6B4423"/>
+          <circle cx="30" cy="34" r="1.5" fill="#6B4423"/>
+          <path d="M24 4C13 4 4 13 4 24C4 35 13 44 24 44" stroke="#A67C52" stroke-width="2" stroke-dasharray="4 4"/>
+        </svg>
+      </div>
+
+      <!-- Texto del Banner -->
+      <div class="cookie-banner__text">
+        <h3 class="cookie-banner__title">{{ config.banner_titulo }}</h3>
+        <p class="cookie-banner__message">
+          {{ config.banner_mensaje }}
+          <a [routerLink]="['/politica-cookies']" class="cookie-banner__link">
+            {{ config.banner_link_politica }}
+          </a>
+        </p>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="cookie-banner__actions">
+        <button
+          type="button"
+          class="cookie-banner__btn cookie-banner__btn--accept"
+          (click)="acceptAll()">
+          <i class="ph ph-check-circle"></i>
+          {{ config.banner_boton_aceptar }}
+        </button>
+
+        <button
+          type="button"
+          class="cookie-banner__btn cookie-banner__btn--reject"
+          (click)="rejectAll()">
+          <i class="ph ph-x-circle"></i>
+          {{ config.banner_boton_rechazar }}
+        </button>
+
+        <button
+          type="button"
+          class="cookie-banner__btn cookie-banner__btn--customize"
+          (click)="openSettings()">
+          <i class="ph ph-gear"></i>
+          {{ config.banner_boton_personalizar }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Botón de Cerrar (X) -->
+    <button
+      type="button"
+      class="cookie-banner__close"
+      (click)="closeBanner()"
+      aria-label="Cerrar">
+      <i class="ph ph-x"></i>
+    </button>
+  </div>
+</div>
+
+<!-- Modal de Configuración de Cookies -->
+<div
+  *ngIf="showSettings"
+  class="cookie-settings-overlay"
+  [@fadeIn]
+  (click)="closeSettings()">
+
+  <div
+    class="cookie-settings-modal"
+    (click)="$event.stopPropagation()">
+
+    <!-- Header del Modal -->
+    <div class="cookie-settings-modal__header">
+      <h2 class="cookie-settings-modal__title">
+        <i class="ph ph-cookie"></i>
+        Configuración de Cookies
+      </h2>
+      <button
+        type="button"
+        class="cookie-settings-modal__close"
+        (click)="closeSettings()">
+        <i class="ph ph-x"></i>
+      </button>
+    </div>
+
+    <!-- Contenido del Modal -->
+    <div class="cookie-settings-modal__content">
+      <p class="cookie-settings-modal__intro">
+        Utilizamos diferentes tipos de cookies para optimizar tu experiencia en nuestro sitio web.
+        Haz clic en las categorías a continuación para obtener más información y cambiar la configuración predeterminada.
+      </p>
+
+      <!-- Categorías de Cookies -->
+      <div class="cookie-category">
+        <div class="cookie-category__header">
+          <div class="cookie-category__info">
+            <h3 class="cookie-category__title">
+              <i class="ph ph-lock-key"></i>
+              Cookies Necesarias
+            </h3>
+            <span class="cookie-category__badge cookie-category__badge--required">Siempre activas</span>
+          </div>
+          <label class="cookie-toggle">
+            <input
+              type="checkbox"
+              [checked]="true"
+              disabled>
+            <span class="cookie-toggle__slider"></span>
+          </label>
+        </div>
+        <p class="cookie-category__description">
+          {{ config?.categoria_necesarias_desc }}
+        </p>
+      </div>
+
+      <div class="cookie-category">
+        <div class="cookie-category__header">
+          <div class="cookie-category__info">
+            <h3 class="cookie-category__title">
+              <i class="ph ph-chart-line"></i>
+              Cookies Analíticas
+            </h3>
+          </div>
+          <label class="cookie-toggle">
+            <input
+              type="checkbox"
+              [(ngModel)]="customPreferences.cookies_analiticas">
+            <span class="cookie-toggle__slider"></span>
+          </label>
+        </div>
+        <p class="cookie-category__description">
+          {{ config?.categoria_analiticas_desc }}
+        </p>
+      </div>
+
+      <div class="cookie-category">
+        <div class="cookie-category__header">
+          <div class="cookie-category__info">
+            <h3 class="cookie-category__title">
+              <i class="ph ph-megaphone"></i>
+              Cookies de Marketing
+            </h3>
+          </div>
+          <label class="cookie-toggle">
+            <input
+              type="checkbox"
+              [(ngModel)]="customPreferences.cookies_marketing">
+            <span class="cookie-toggle__slider"></span>
+          </label>
+        </div>
+        <p class="cookie-category__description">
+          {{ config?.categoria_marketing_desc }}
+        </p>
+      </div>
+
+      <div class="cookie-category">
+        <div class="cookie-category__header">
+          <div class="cookie-category__info">
+            <h3 class="cookie-category__title">
+              <i class="ph ph-sliders"></i>
+              Cookies Funcionales
+            </h3>
+          </div>
+          <label class="cookie-toggle">
+            <input
+              type="checkbox"
+              [(ngModel)]="customPreferences.cookies_funcionales">
+            <span class="cookie-toggle__slider"></span>
+          </label>
+        </div>
+        <p class="cookie-category__description">
+          {{ config?.categoria_funcionales_desc }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Footer del Modal -->
+    <div class="cookie-settings-modal__footer">
+      <button
+        type="button"
+        class="cookie-settings-modal__btn cookie-settings-modal__btn--secondary"
+        (click)="rejectAll()">
+        Rechazar Todo
+      </button>
+      <button
+        type="button"
+        class="cookie-settings-modal__btn cookie-settings-modal__btn--primary"
+        (click)="saveCustomPreferences()">
+        Guardar Preferencias
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Icono Flotante para Reabrir Configuración -->
+<button
+  *ngIf="!isVisible && config?.mostrar_icono_flotante"
+  type="button"
+  class="cookie-floating-btn"
+  [class.cookie-floating-btn--left]="config?.icono_flotante_posicion === 'bottom-left'"
+  [class.cookie-floating-btn--right]="config?.icono_flotante_posicion === 'bottom-right'"
+  (click)="openSettings()"
+  title="Configuración de cookies">
+  <i class="ph ph-cookie"></i>
+</button>

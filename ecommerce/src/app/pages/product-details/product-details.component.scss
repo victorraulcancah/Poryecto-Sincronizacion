@@ -1,0 +1,456 @@
+/* ============================ Product Details Css Start ============================= */
+.product-details {
+    &__thumb {
+        &-slider {
+            padding: clampCal(48, 116);
+        }
+    }
+    .slick-initialized.slick-slider .slick-slide > div > div {
+        height: 100%;
+    }
+}
+
+.product-dContent__box, .product-dContent__header {
+    padding: 16px 40px;
+}
+
+.product-dContent {
+    &__box {
+        padding-top: 48px;
+        padding-bottom: 48px;
+    }
+}
+
+/* ===== LAYOUT VERTICAL PARA IMÁGENES CON ZOOM FUNCIONAL ===== */
+.product-details__images-container {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    
+    @media screen and (max-width: 768px) {
+        flex-direction: column;
+        gap: 16px;
+    }
+}
+
+.product-details__thumbnails {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 120px;
+    flex-shrink: 0;
+    
+    @media screen and (max-width: 768px) {
+        flex-direction: row;
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 8px;
+    }
+}
+
+.product-details__thumbnail {
+    width: 100px;
+    height: 100px;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    position: relative;
+
+    &:hover {
+        border-color: var(--bs-primary, #007bff);
+        transform: scale(1.05);
+    }
+
+    &.active {
+        border-color: var(--bs-primary, #007bff);
+        box-shadow: 0 0 0 1px rgba(0, 123, 255, 0.3);
+    }
+
+    // Estilos específicos para videos
+    &.video-thumbnail {
+        &:hover {
+            border-color: #dc3545;
+
+            .video-play-overlay {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+        }
+    }
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+
+        &:hover {
+            transform: scale(1.1);
+        }
+    }
+
+    @media screen and (max-width: 768px) {
+        width: 80px;
+        height: 80px;
+        min-width: 80px;
+    }
+}
+
+// Estilos para el overlay de play en videos
+.video-thumbnail-content {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.video-play-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.8;
+    transition: all 0.3s ease;
+    z-index: 1;
+
+    i {
+        color: white;
+        font-size: 18px;
+    }
+
+    @media screen and (max-width: 768px) {
+        width: 28px;
+        height: 28px;
+
+        i {
+            font-size: 14px;
+        }
+    }
+}
+
+.product-details__main-image {
+    flex: 1;
+    max-width: calc(100% - 140px);
+    
+    @media screen and (max-width: 768px) {
+        max-width: 100%;
+    }
+}
+
+.product-details__main-image-container {
+    width: 100%;
+    height: 500px;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: zoom-in;
+
+    @media screen and (max-width: 768px) {
+        height: 350px;
+    }
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+        transform-origin: center center;
+        will-change: transform;
+    }
+}
+
+/* Estilos de zoom para el div interior que contiene la imagen */
+.zoom-active {
+    img {
+        transform: scale(2.5);
+    }
+}
+
+.mobile-zoom {
+    img {
+        transform: scale(1.8);
+    }
+}
+
+// Estilos para el contenedor de video
+.product-details__video-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.product-details__video-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 12px;
+}
+
+.video-info-overlay {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    z-index: 1;
+
+    i {
+        font-size: 14px;
+    }
+}
+
+// Estilos para el modal de video
+.video-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease;
+}
+
+.video-modal-container {
+    width: 90%;
+    max-width: 900px;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease;
+
+    @media screen and (max-width: 768px) {
+        width: 95%;
+        max-width: none;
+    }
+}
+
+.video-modal-header {
+    padding: 16px 20px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.video-modal-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.video-modal-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #666;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background: #e9ecef;
+        color: #333;
+    }
+}
+
+.video-modal-body {
+    padding: 0;
+    height: 506px;
+
+    @media screen and (max-width: 768px) {
+        height: 280px;
+    }
+}
+
+.video-modal-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+// Animaciones
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Indicador de zoom */
+.zoom-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 3;
+
+    &.show {
+        opacity: 1;
+    }
+}
+
+/* Botones de navegación */
+.navigation-buttons {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    display: flex;
+    justify-content: space-between;
+    padding: 0 16px;
+    z-index: 2;
+    pointer-events: none;
+
+    .nav-btn {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.6);
+        border: none;
+        color: white;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        pointer-events: all;
+        backdrop-filter: blur(10px);
+
+        &:hover {
+            background: rgba(0, 0, 0, 0.8);
+            transform: scale(1.1);
+        }
+
+        &:active {
+            transform: scale(0.95);
+        }
+
+        i {
+            font-size: 18px;
+        }
+    }
+
+    @media screen and (max-width: 768px) {
+        padding: 0 12px;
+
+        .nav-btn {
+            width: 36px;
+            height: 36px;
+            font-size: 16px;
+
+            i {
+                font-size: 14px;
+            }
+        }
+    }
+}
+
+/* Contador de contenido */
+.content-counter {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    z-index: 2;
+    backdrop-filter: blur(10px);
+
+    @media screen and (max-width: 768px) {
+        bottom: 12px;
+        font-size: 11px;
+        padding: 4px 10px;
+    }
+}
+
+/* Estilos para cuando no hay imágenes */
+.product-details__no-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    color: #6c757d;
+    font-size: 1.2rem;
+    border-radius: 8px;
+    
+    i {
+        margin-bottom: 12px;
+        opacity: 0.5;
+    }
+}
+
+/* Indicador de carga */
+.product-details__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    color: #6c757d;
+}
+
+/* Mejoras para la experiencia móvil */
+@media screen and (max-width: 768px) {
+    .product-details__main-image-container {
+        &.mobile-zoom {
+            cursor: zoom-out;
+        }
+    }
+}
+/* ============================ Product Details Css End ============================= */

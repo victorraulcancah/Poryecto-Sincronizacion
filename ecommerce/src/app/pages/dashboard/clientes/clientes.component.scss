@@ -1,0 +1,13 @@
+// src/app/pages/dashboard/clientes/clientes.component.scss
+// Este componente ahora usa las clases globales de data-table
+// definidas en src/assets/sass/components/_data-table.scss
+
+// Solo estilos específicos de este componente (si los hay)
+:host {
+  display: block;
+}
+
+// Cualquier override específico para clientes (si es necesario)
+// .modern-data-table {
+//   // overrides específicos aquí
+// }

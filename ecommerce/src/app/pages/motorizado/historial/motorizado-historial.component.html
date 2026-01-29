@@ -1,0 +1,58 @@
+  <div class="historial-container">
+      <div class="page-header">
+        <h1>
+          <i class="fas fa-history"></i>
+          Historial de Entregas
+        </h1>
+        <p>Revisa tus entregas anteriores</p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="stat-content">
+            <h3>125</h3>
+            <p>Entregas Exitosas</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon rating">
+            <i class="fas fa-star"></i>
+          </div>
+          <div class="stat-content">
+            <h3>4.8</h3>
+            <p>Calificación Promedio</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="historial-list">
+        <div class="entrega-card" *ngFor="let entrega of entregas">
+          <div class="entrega-header">
+            <div class="entrega-info">
+              <h3>Pedido #{{entrega.numero}}</h3>
+              <span class="fecha">{{entrega.fecha | date:'dd/MM/yyyy HH:mm'}}</span>
+            </div>
+            <div class="entrega-monto">
+              <span class="monto">S/ {{entrega.total}}</span>
+              <span class="estado-badge success">
+                <i class="fas fa-check"></i>
+                Entregado
+              </span>
+            </div>
+          </div>
+          <div class="entrega-details">
+            <p><strong>Cliente:</strong> {{entrega.cliente}}</p>
+            <p><strong>Dirección:</strong> {{entrega.direccion}}</p>
+            <div class="rating" *ngIf="entrega.calificacion">
+              <span>Calificación:</span>
+              <div class="stars">
+                <i class="fas fa-star" *ngFor="let star of getStars(entrega.calificacion)"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>

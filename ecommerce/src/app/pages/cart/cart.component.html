@@ -1,0 +1,318 @@
+<!-- src/app/pages/cart/cart.component.html -->
+<!-- ========================= Breadcrumb Start =============================== -->
+<app-breadcrumb title="Carrito de Compras" subtitle="Mi Carrito"></app-breadcrumb>
+
+<!-- ========================= Breadcrumb End =============================== -->
+
+<!-- ================================ Cart Section Start ================================ -->
+<section class="cart py-80">
+  <div class="container container-lg">
+    
+    <!-- Carrito vacío -->
+    <div *ngIf="cartItems.length === 0" class="text-center py-80">
+      <i class="ph ph-shopping-cart text-gray-300" style="font-size: 6rem;"></i>
+      <h4 class="text-heading fw-semibold mt-24 mb-16">Tu carrito está vacío</h4>
+      <p class="text-gray-500 mb-32">Agrega productos a tu carrito para continuar con la compra</p>
+      <button 
+        class="btn btn-main py-18 px-32 rounded-8"
+        (click)="continueShopping()">
+        <i class="ph ph-storefront me-8"></i>
+        Continuar comprando
+      </button>
+    </div>
+
+    <!-- Carrito con productos -->
+    <div *ngIf="cartItems.length > 0" class="row gy-4">
+      <div class="col-xl-8 col-lg-7">
+        <div class="cart-table border border-gray-100 rounded-12 p-24">
+          
+          <!-- Header del carrito -->
+          <div class="d-flex justify-content-between align-items-center mb-24 pb-16 border-bottom border-gray-100">
+            <h5 class="text-heading fw-semibold mb-0">
+              Productos en tu carrito ({{ cartSummary.cantidad_items }})
+            </h5>
+            <button 
+              class="btn bg-danger-50 text-danger-600 hover-bg-danger-100 px-16 py-8 rounded-8"
+              (click)="clearCart()">
+              <i class="ph ph-trash me-8"></i>
+              Vaciar carrito
+            </button>
+          </div>
+
+          <!-- Tabla de productos -->
+          <div class="overflow-x-auto">
+            <table class="table table-borderless" style="table-layout: fixed; min-width: 100%; font-size: 0.9rem;">
+              <colgroup>
+                <col style="width: 45%;">  <!-- Producto -->
+                <col style="width: 15%;">  <!-- Precio -->
+                <col style="width: 18%;">  <!-- Cantidad -->
+                <col style="width: 15%;">  <!-- Subtotal -->
+                <col style="width: 7%;">   <!-- Acciones -->
+              </colgroup>
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-12 py-8 fw-semibold border-0" style="font-size: 0.85rem; text-transform: uppercase; color: #666;">Producto</th>
+                  <th class="px-12 py-8 fw-semibold border-0" style="font-size: 0.85rem; text-transform: uppercase; color: #666;">Precio</th>
+                  <th class="px-12 py-8 fw-semibold border-0" style="font-size: 0.85rem; text-transform: uppercase; color: #666;">Cantidad</th>
+                  <th class="px-12 py-8 fw-semibold border-0" style="font-size: 0.85rem; text-transform: uppercase; color: #666;">Subtotal</th>
+                  <th class="px-12 py-8 fw-semibold border-0 text-center" style="font-size: 0.85rem; text-transform: uppercase; color: #666;"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of cartItems" class="border-bottom border-gray-100">
+                  <!-- Producto -->
+                  <td class="px-12 py-12">
+                    <div class="d-flex align-items-center gap-12">
+                      <div class="cart-product-thumb border border-gray-100 rounded-6 overflow-hidden flex-shrink-0">
+                        <img
+                          [src]="item.imagen_url"
+                          [alt]="item.nombre"
+                          (error)="onImageError($event)"
+                          class="object-fit-cover"
+                          style="width: 60px; height: 60px;">
+                      </div>
+                      <div class="cart-product-content" style="max-width: 350px;">
+                        <h6 class="mb-4" style="
+                          display: -webkit-box;
+                          -webkit-line-clamp: 2;
+                          -webkit-box-orient: vertical;
+                          overflow: hidden;
+                          text-overflow: ellipsis;
+                          line-height: 1.3;
+                          max-height: 2.6em;
+                          font-size: 0.9rem;
+                          font-weight: 600;
+                        ">
+                          <a [routerLink]="['/product-details', item.producto_id]"
+                             class="text-decoration-none text-dark"
+                             [title]="item.nombre">
+                            {{ item.nombre }}
+                          </a>
+                        </h6>
+                        <p class="text-gray-500 mb-2" style="font-size: 0.75rem;">
+                          Código: {{ item.codigo_producto }}
+                        </p>
+                        <p class="text-success-600 mb-0" style="font-size: 0.75rem;">
+                          <i class="ph ph-check-circle me-1"></i>
+                          {{ item.stock_disponible }} disponibles
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Precio -->
+                  <td class="px-12 py-12" style="vertical-align: middle;">
+                    <!-- Si tiene descuento, mostrar precio original tachado y precio con descuento -->
+                    <div *ngIf="item.descuento_porcentaje && item.descuento_porcentaje > 0" class="d-flex flex-column gap-1">
+                      <div class="d-flex align-items-center gap-2">
+                        <span class="text-decoration-line-through text-gray-400" style="font-size: 0.7rem;">
+                          S/ {{ formatPrice(item.precio) }}
+                        </span>
+                        <span class="badge bg-danger-600 text-white px-4 py-1" style="font-size: 0.6rem; line-height: 1;">
+                          -{{ item.descuento_porcentaje }}%
+                        </span>
+                      </div>
+                      <span class="fw-semibold text-danger-600" style="font-size: 0.85rem;">
+                        S/ {{ formatPrice(item.precio_con_descuento) }}
+                      </span>
+                    </div>
+                    <!-- Si NO tiene descuento, mostrar precio normal -->
+                    <span *ngIf="!item.descuento_porcentaje || item.descuento_porcentaje === 0" class="fw-semibold" style="font-size: 0.9rem;">
+                      S/ {{ formatPrice(item.precio) }}
+                    </span>
+                  </td>
+
+                  <!-- Cantidad -->
+                  <td class="px-12 py-12" style="vertical-align: middle;">
+                    <div class="quantity-controls d-flex align-items-center border border-gray-200 rounded-6 overflow-hidden" style="width: fit-content;">
+                      <button
+                        type="button"
+                        class="quantity-btn border-0 bg-gray-50 hover-bg-main-600 hover-text-white d-flex align-items-center justify-content-center transition-2"
+                        style="width: 32px; height: 32px; font-size: 0.85rem;"
+                        (click)="decrementQuantity(item)"
+                        [disabled]="isUpdating">
+                        <i class="ph ph-minus"></i>
+                      </button>
+                      <input
+                        type="number"
+                        [ngModel]="item.cantidad || 1"
+                        (ngModelChange)="updateQuantity(item, $event)"
+                        class="quantity-input border-0 text-center bg-white"
+                        style="width: 50px; height: 32px; font-size: 0.9rem;"
+                        min="1"
+                        [max]="item.stock_disponible || 1">
+                      <button
+                        type="button"
+                        class="quantity-btn border-0 bg-gray-50 hover-bg-main-600 hover-text-white d-flex align-items-center justify-content-center transition-2"
+                        style="width: 32px; height: 32px; font-size: 0.85rem;"
+                        (click)="incrementQuantity(item)"
+                        [disabled]="isUpdating || (item.cantidad || 0) >= (item.stock_disponible || 0)">
+                        <i class="ph ph-plus"></i>
+                      </button>
+                    </div>
+                  </td>
+
+                  <!-- Subtotal -->
+                  <td class="px-12 py-12" style="vertical-align: middle;">
+                    <span class="fw-bold" style="font-size: 0.95rem;">S/ {{ formatPrice(getItemSubtotal(item)) }}</span>
+                  </td>
+
+                  <!-- Acciones -->
+                  <td class="px-12 py-12 text-center" style="vertical-align: middle;">
+                    <button
+                      class="btn bg-danger-50 hover-bg-danger-100 text-danger-600 rounded-6 d-flex align-items-center justify-content-center transition-2 mx-auto"
+                      style="width: 32px; height: 32px;"
+                      (click)="removeProduct(item.id)"
+                      title="Eliminar producto">
+                      <i class="ph ph-trash" style="font-size: 0.9rem;"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Cupón de descuento -->
+          <div class="cart-actions mt-32 pt-24 border-top border-gray-100">
+            <div class="row align-items-center">
+              <div class="col-md-6">
+                <!-- Input y botón de cupón -->
+                <div class="d-flex gap-12" *ngIf="!cuponAplicado">
+                  <input
+                    type="text"
+                    [(ngModel)]="codigoCupon"
+                    class="form-control px-16 py-12 border rounded-8"
+                    placeholder="Código de cupón"
+                    [disabled]="isValidatingCupon">
+                  <button
+                    type="button"
+                    class="btn btn-main py-12 px-24 rounded-8 flex-shrink-0"
+                    (click)="aplicarCupon()"
+                    [disabled]="isValidatingCupon || !codigoCupon.trim()">
+                    <ng-container *ngIf="!isValidatingCupon">
+                      Aplicar
+                    </ng-container>
+                    <ng-container *ngIf="isValidatingCupon">
+                      <span class="spinner-border spinner-border-sm me-8" role="status"></span>
+                      Validando...
+                    </ng-container>
+                  </button>
+                </div>
+
+                <!-- Badge de cupón aplicado -->
+                <div *ngIf="cuponAplicado" class="cupon-aplicado-badge">
+                  <div class="d-flex align-items-center gap-12 bg-success-50 border border-success-200 rounded-8 p-12">
+                    <div class="flex-grow-1">
+                      <div class="d-flex align-items-center gap-8">
+                        <i class="ph ph-check-circle text-success-600 text-xl"></i>
+                        <span class="fw-semibold text-success-600">Cupón aplicado</span>
+                      </div>
+                      <div class="mt-4">
+                        <span class="badge bg-success-600 text-white px-8 py-4 rounded-4 me-8">
+                          {{ cuponAplicado.codigo }}
+                        </span>
+                        <span class="text-sm text-gray-600">
+                          <ng-container *ngIf="cuponAplicado.tipo_descuento === 'porcentaje'">
+                            {{ cuponAplicado.valor_descuento }}% de descuento
+                          </ng-container>
+                          <ng-container *ngIf="cuponAplicado.tipo_descuento === 'cantidad_fija'">
+                            S/ {{ cuponAplicado.valor_descuento }} de descuento
+                          </ng-container>
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      class="btn btn-sm bg-transparent border-0 text-gray-500 hover-text-danger-600 p-4"
+                      (click)="quitarCupon()"
+                      title="Quitar cupón">
+                      <i class="ph ph-x text-lg"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6 text-md-end mt-16 mt-md-0">
+                <button 
+                  class="btn bg-gray-100 hover-bg-gray-200 text-gray-600 py-12 px-24 rounded-8"
+                  (click)="continueShopping()">
+                  <i class="ph ph-arrow-left me-8"></i>
+                  Continuar comprando
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumen del carrito -->
+      <div class="col-xl-4 col-lg-5">
+        <div class="cart-sidebar border border-gray-100 rounded-12 p-24 position-sticky" style="top: 24px;">
+          <h6 class="text-xl fw-semibold mb-24">Resumen del pedido</h6>
+          
+          <div class="cart-summary">
+            <!-- Subtotal -->
+            <div class="d-flex justify-content-between align-items-center mb-16">
+              <span class="text-gray-600">Subtotal ({{ cartSummary.cantidad_items }} items):</span>
+              <span class="text-heading fw-medium">S/ {{ formatPrice(cartSummary.subtotal) }}</span>
+            </div>
+
+            <!-- IGV (solo mostrar si hay exactamente 1 producto Y tiene mostrar_igv = true) -->
+            <div *ngIf="cartItems.length === 1 && cartItems[0].mostrar_igv === true" class="d-flex justify-content-between align-items-center mb-16">
+              <span class="text-gray-600">IGV (18%):</span>
+              <span class="text-heading fw-medium">S/ {{ formatPrice(cartSummary.igv) }}</span>
+            </div>
+
+            <!-- Descuento por cupón -->
+            <div *ngIf="descuentoCupon > 0" class="d-flex justify-content-between align-items-center mb-16">
+              <span class="text-success-600">Descuento cupón:</span>
+              <span class="text-success-600 fw-medium">-S/ {{ formatPrice(descuentoCupon) }}</span>
+            </div>
+
+            <!-- Envío -->
+            <div class="d-flex justify-content-between align-items-center mb-24">
+              <span class="text-gray-600">Envío:</span>
+              <span class="text-success-600 fw-medium">Gratis</span>
+            </div>
+
+            <hr class="border-gray-200 my-16">
+
+            <!-- Total -->
+            <div class="d-flex justify-content-between align-items-center mb-32">
+              <span class="text-heading text-xl fw-bold">Total:</span>
+              <span class="text-heading text-xl fw-bold">S/ {{ formatPrice(getTotalFinal()) }}</span>
+            </div>
+
+            <!-- Botón de checkout -->
+            <button 
+              class="btn btn-main w-100 py-16 rounded-8 mb-16"
+              (click)="proceedToCheckout()">
+              <i class="ph ph-credit-card me-8"></i>
+              Proceder al pago
+            </button>
+
+            <!-- Información adicional -->
+            <div class="cart-info bg-gray-50 rounded-8 p-16">
+              <div class="d-flex align-items-center gap-8 mb-12">
+                <i class="ph ph-shield-check text-success-600"></i>
+                <span class="text-sm text-gray-600">Compra 100% segura</span>
+              </div>
+              <div class="d-flex align-items-center gap-8 mb-12">
+                <i class="ph ph-truck text-main-600"></i>
+                <span class="text-sm text-gray-600">Envío gratis en compras mayores a S/ 100</span>
+              </div>
+              <div class="d-flex align-items-center gap-8">
+                <i class="ph ph-arrow-clockwise text-info-600"></i>
+                <span class="text-sm text-gray-600">30 días para devoluciones</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ================================ Cart Section End ================================ -->
+
+<!-- ========================== Shipping Section Start ============================ -->
+<app-shipping></app-shipping>
+<!-- ========================== Shipping Section End ============================ -->

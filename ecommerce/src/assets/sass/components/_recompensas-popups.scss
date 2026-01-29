@@ -1,0 +1,719 @@
+// Estilos para el componente de gestión de popups globales
+
+.card {
+  transition: all 0.3s ease;
+  border: 1px solid #e3e6f0;
+  box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.25rem 2rem 0 rgba(58, 59, 69, 0.2);
+  }
+}
+
+.card-title {
+  font-weight: 600;
+  color: #5a5c69;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.badge {
+  font-size: 0.65rem;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  
+  &.badge-success {
+    background-color: #1cc88a;
+    color: white;
+  }
+  
+  &.badge-secondary {
+    background-color: #858796;
+    color: white;
+  }
+  
+  &.badge-warning {
+    background-color: #f6c23e;
+    color: #212529;
+  }
+  
+  &.badge-info {
+    background-color: #36b9cc;
+    color: white;
+  }
+}
+
+// Iconos de tipo de recompensa
+.fas {
+  margin-right: 0.5rem;
+  
+  &.fa-coins {
+    color: #ffc107;
+  }
+  
+  &.fa-percentage {
+    color: #28a745;
+  }
+  
+  &.fa-shipping-fast {
+    color: #17a2b8;
+  }
+  
+  &.fa-gift {
+    color: #e83e8c;
+  }
+}
+
+// Botones de acción
+.btn {
+  border-radius: 0.35rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-1px);
+  }
+  
+  &.btn-primary {
+    background-color: #4e73df;
+    border-color: #4e73df;
+    
+    &:hover {
+      background-color: #2e59d9;
+      border-color: #2e59d9;
+    }
+  }
+  
+  &.btn-outline-primary {
+    color: #4e73df;
+    border-color: #4e73df;
+    
+    &:hover {
+      background-color: #4e73df;
+      border-color: #4e73df;
+    }
+  }
+  
+  &.btn-success {
+    background-color: #1cc88a;
+    border-color: #1cc88a;
+    
+    &:hover {
+      background-color: #17a673;
+      border-color: #17a673;
+    }
+  }
+  
+  &.btn-warning {
+    background-color: #f6c23e;
+    border-color: #f6c23e;
+    color: #212529;
+    
+    &:hover {
+      background-color: #f4b619;
+      border-color: #f4b619;
+    }
+  }
+  
+  &.btn-outline-danger {
+    color: #e74a3b;
+    border-color: #e74a3b;
+    
+    &:hover {
+      background-color: #e74a3b;
+      border-color: #e74a3b;
+    }
+  }
+}
+
+// Formularios
+.form-control {
+  border-radius: 0.35rem;
+  border: 1px solid #d1d3e2;
+  transition: all 0.3s ease;
+  
+  &:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+  }
+}
+
+.form-group {
+  margin-bottom: 1rem;
+  
+  label {
+    font-weight: 600;
+    color: #5a5c69;
+    margin-bottom: 0.5rem;
+  }
+}
+
+// Paginación
+.pagination {
+  .page-item {
+    .page-link {
+      color: #4e73df;
+      border-color: #d1d3e2;
+      border-radius: 0.35rem;
+      margin: 0 0.125rem;
+      
+      &:hover {
+        background-color: #eaecf4;
+        border-color: #d1d3e2;
+      }
+    }
+    
+    &.active .page-link {
+      background-color: #4e73df;
+      border-color: #4e73df;
+    }
+    
+    &.disabled .page-link {
+      color: #858796;
+      background-color: #f8f9fc;
+      border-color: #d1d3e2;
+    }
+  }
+}
+
+// Modales
+.modal {
+  .modal-dialog {
+    margin: 1.75rem auto;
+  }
+  
+  .modal-content {
+    border: none;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  }
+  
+  .modal-header {
+    border-bottom: 1px solid #e3e6f0;
+    padding: 1rem 1.5rem;
+    
+    .modal-title {
+      font-weight: 600;
+      color: #5a5c69;
+    }
+    
+    .close {
+      font-size: 1.5rem;
+      color: #858796;
+      
+      &:hover {
+        color: #5a5c69;
+      }
+    }
+  }
+  
+  .modal-body {
+    padding: 1.5rem;
+  }
+  
+  .modal-footer {
+    border-top: 1px solid #e3e6f0;
+    padding: 1rem 1.5rem;
+  }
+}
+
+// Modal de Producto
+.product-modal {
+  .modal-header {
+    background: white;
+    border-bottom: 1px solid #e3e6f0;
+    padding: 1.5rem 2rem;
+    
+    .modal-title {
+      color: #5a5c69;
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 0;
+    }
+    
+    .close {
+      color: #858796;
+      font-size: 1.5rem;
+      
+      &:hover {
+        color: #5a5c69;
+      }
+    }
+  }
+  
+  .modal-body {
+    padding: 2rem;
+    background: white;
+  }
+  
+  .modal-footer {
+    background: white;
+    border-top: 1px solid #e3e6f0;
+    padding: 1.5rem 2rem;
+  }
+}
+
+// Formulario del producto
+.product-form {
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-label {
+    font-weight: 600;
+    color: #5a5c69;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .form-control {
+    border: 1px solid #d1d3e2;
+    border-radius: 0.35rem;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+    
+    &:focus {
+      border-color: #4e73df;
+      box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+    }
+  }
+  
+  .form-check {
+    margin-bottom: 1rem;
+    
+    .form-check-input {
+      width: 1.25rem;
+      height: 1.25rem;
+      margin-top: 0;
+      
+      &:checked {
+        background-color: #4e73df;
+        border-color: #4e73df;
+      }
+    }
+    
+    .form-check-label {
+      font-weight: 500;
+      color: #5a5c69;
+      margin-left: 0.5rem;
+      
+      i {
+        color: #4e73df;
+        margin-right: 0.5rem;
+      }
+    }
+  }
+}
+
+// Contenedor de carga de imagen
+.image-upload-container {
+  .image-upload-zone {
+    border: 2px dashed #d1d3e2;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    
+    &:hover {
+      border-color: #4e73df;
+      background-color: #f8f9fc;
+    }
+    
+    &.has-image {
+      border-style: solid;
+      border-color: #1cc88a;
+      background-color: #f8fff9;
+    }
+    
+    .upload-placeholder {
+      .upload-text {
+        color: #5a5c69;
+        font-weight: 500;
+        margin-bottom: 1rem;
+      }
+    }
+    
+    .image-preview {
+      position: relative;
+      width: 100%;
+      
+      .preview-image {
+        max-width: 100%;
+        max-height: 150px;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+      }
+      
+      .remove-image {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+    
+    .file-input {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+  }
+  
+  .upload-info {
+    margin-top: 1rem;
+    
+    .info-text, .warning-text {
+      font-size: 0.8rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      
+      i {
+        margin-right: 0.5rem;
+        font-size: 0.9rem;
+      }
+    }
+    
+    .info-text {
+      color: #5a5c69;
+    }
+    
+    .warning-text {
+      color: #856404;
+    }
+  }
+}
+
+// Estilos para mostrar detalles de popups
+.popup-detail-card {
+  border: 1px solid #e3e6f0;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+  
+  .popup-image-container {
+    text-align: center;
+    
+    .popup-image {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: 0.5rem;
+      box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+      object-fit: contain;
+    }
+    
+    .image-debug {
+      margin-top: 0.5rem;
+      padding: 0.5rem;
+      background-color: #f8f9fc;
+      border-radius: 0.25rem;
+      border: 1px solid #e3e6f0;
+      word-break: break-all;
+    }
+  }
+  
+  .popup-description {
+    background-color: #f8f9fc;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border-left: 4px solid #4e73df;
+  }
+  
+  .popup-detail-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f8f9fc;
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    strong {
+      color: #5a5c69;
+      font-weight: 600;
+      min-width: 120px;
+    }
+    
+    .badge {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+    }
+  }
+}
+
+// Loading states
+.spinner-border {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.1rem;
+}
+
+// Alertas
+.alert {
+  border-radius: 0.5rem;
+  border: none;
+  
+  &.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+  
+  &.alert-info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .card-body {
+    padding: 1rem;
+  }
+  
+  .btn {
+    font-size: 0.875rem;
+    padding: 0.375rem 0.75rem;
+  }
+  
+  .modal-dialog {
+    margin: 0.5rem;
+  }
+}
+
+// Estados de popup
+.popup-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  
+  &.active {
+    color: #1cc88a;
+  }
+  
+  &.inactive {
+    color: #858796;
+  }
+}
+
+// Animaciones
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card {
+  animation: fadeIn 0.3s ease;
+}
+
+// Checkbox personalizado
+.form-check-input {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0;
+  
+  &:checked {
+    background-color: #4e73df;
+    border-color: #4e73df;
+  }
+}
+
+// Texto pequeño
+.small {
+  font-size: 0.75rem;
+}
+
+// Estilos específicos para las tarjetas de recompensas
+.recompensa-card {
+  .card-body {
+    font-size: 0.8rem;
+    
+    .card-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    
+    .card-text {
+      font-size: 0.75rem;
+      line-height: 1.3;
+    }
+    
+    .text-muted {
+      font-size: 0.7rem;
+    }
+    
+    .btn {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+    }
+  }
+}
+
+// Gap utilities
+.gap-2 {
+  gap: 0.5rem;
+}
+
+.gap-3 {
+  gap: 1rem;
+}
+
+// Flex utilities
+.flex-fill {
+  flex: 1 1 auto;
+}
+
+.flex-grow-1 {
+  flex-grow: 1;
+}
+
+// Text utilities
+.text-capitalize {
+  text-transform: capitalize;
+}
+
+// Position utilities
+.position-absolute {
+  position: absolute;
+}
+
+// Spacing utilities
+.mt-1 { margin-top: 0.25rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 1rem; }
+.mt-4 { margin-top: 1.5rem; }
+.mt-5 { margin-top: 3rem; }
+
+.mb-0 { margin-bottom: 0; }
+.mb-1 { margin-bottom: 0.25rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 1rem; }
+.mb-4 { margin-bottom: 1.5rem; }
+
+.mr-2 { margin-right: 0.5rem; }
+.ml-2 { margin-left: 0.5rem; }
+
+.py-3 { padding-top: 1rem; padding-bottom: 1rem; }
+.py-4 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+.py-5 { padding-top: 3rem; padding-bottom: 3rem; }
+
+// Modal de Éxito
+.success-modal {
+  border: none;
+  border-radius: 1rem;
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+  animation: slideInDown 0.3s ease-out;
+  
+  .modal-header {
+    padding: 1.5rem 1.5rem 0 1.5rem;
+    
+    .btn-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      opacity: 0.5;
+      transition: opacity 0.3s ease;
+      
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+  
+  .modal-body {
+    padding: 0 1.5rem 1.5rem 1.5rem;
+    
+    .success-icon {
+      animation: bounceIn 0.6s ease-out;
+      
+      i {
+        color: #28a745 !important;
+        filter: drop-shadow(0 0.25rem 0.5rem rgba(40, 167, 69, 0.3));
+      }
+    }
+    
+    .modal-title {
+      font-weight: 700;
+      font-size: 1.5rem;
+      animation: fadeInUp 0.4s ease-out 0.2s both;
+    }
+    
+    p {
+      font-size: 1.1rem;
+      animation: fadeInUp 0.4s ease-out 0.3s both;
+    }
+    
+    .btn {
+      border-radius: 0.75rem;
+      font-weight: 600;
+      padding: 0.75rem 2rem;
+      transition: all 0.3s ease;
+      animation: fadeInUp 0.4s ease-out 0.4s both;
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(40, 167, 69, 0.3);
+      }
+    }
+  }
+}
+
+// Animaciones
+@keyframes slideInDown {
+  from {
+    transform: translateY(-100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

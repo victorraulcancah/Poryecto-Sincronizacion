@@ -1,0 +1,139 @@
+<div class="container-fluid">
+  <!-- Vista principal de banners -->
+  <div *ngIf="!mostrarProductos">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-24">
+      <div>
+        <h4 class="text-heading fw-semibold mb-8">Banners Ofertas</h4>
+        <p class="text-gray-500 mb-0">Administra los banners de ofertas especiales</p>
+        <small class="text-gray-400"><i class="ph ph-info me-4"></i>Dimensiones recomendadas: 1734 x 2862 px | Formatos: JPG, PNG, WEBP, GIF</small>
+      </div>
+      <button class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8"
+              data-bs-toggle="modal"
+              data-bs-target="#modalCrearBannerOferta">
+        <i class="ph ph-plus me-8"></i>
+        Nuevo Banner
+      </button>
+    </div>
+
+    <!-- Loading state -->
+    <div *ngIf="isLoading" class="text-center py-40">
+      <div class="spinner-border text-main-600" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="text-gray-500 mt-12 mb-0">Cargando banners...</p>
+    </div>
+
+    <!-- Grid de Cards de Banners -->
+    <div *ngIf="!isLoading && banners.length > 0" class="row g-20">
+      <div class="col-12 col-md-6 col-lg-4 col-xl-3" *ngFor="let banner of banners">
+        <div class="banner-oferta-card">
+
+          <!-- Imagen del banner -->
+          <div class="banner-oferta-image"
+               [style.background-image]="'url(' + banner.imagen_url + ')'">
+            <!-- Badges superiores -->
+            <div class="banner-badges">
+              <span class="badge"
+                    [class.bg-success-600]="banner.activo"
+                    [class.text-white]="banner.activo"
+                    [class.bg-danger-600]="!banner.activo"
+                    [class.text-white]="!banner.activo">
+                {{ banner.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+              <span class="badge bg-info-600 text-white ms-auto">
+                Prioridad: {{ banner.prioridad }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Body del Card -->
+          <div class="banner-oferta-body">
+
+            <!-- Info del banner -->
+            <div class="mb-12">
+              <div class="text-sm text-gray-600">
+                <i class="ph ph-image me-4"></i>
+                <strong>Banner ID:</strong> {{ banner.id }}
+              </div>
+            </div>
+
+            <!-- Productos -->
+            <div class="banner-productos mb-16">
+              <button class="btn btn-sm bg-info-50 hover-bg-info-100 text-info-600 w-100"
+                      (click)="gestionarProductos(banner)">
+                <i class="ph ph-package me-6"></i>
+                Gestionar Productos ({{ contarProductos(banner) }})
+              </button>
+            </div>
+
+            <!-- Acciones -->
+            <div class="banner-actions d-flex gap-8">
+              <!-- Toggle Activo -->
+              <button class="btn btn-sm flex-fill"
+                      [class.bg-success-600]="banner.activo"
+                      [class.text-white]="banner.activo"
+                      [class.bg-gray-100]="!banner.activo"
+                      [class.text-gray-600]="!banner.activo"
+                      [title]="banner.activo ? 'Desactivar' : 'Activar'"
+                      (click)="toggleActivo(banner)">
+                <i class="ph" [class.ph-check-circle]="banner.activo" [class.ph-x-circle]="!banner.activo"></i>
+              </button>
+
+              <!-- Editar -->
+              <button class="btn btn-sm bg-main-50 text-main-600 hover-bg-main-600 hover-text-white flex-fill"
+                      title="Editar"
+                      (click)="editarBanner(banner)">
+                <i class="ph ph-pencil"></i>
+              </button>
+
+              <!-- Eliminar -->
+              <button class="btn btn-sm bg-danger-50 text-danger-600 hover-bg-danger-600 hover-text-white flex-fill"
+                      title="Eliminar"
+                      (click)="eliminarBanner(banner.id!)">
+                <i class="ph ph-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    <div *ngIf="!isLoading && banners.length === 0" class="text-center py-40">
+      <i class="ph ph-image text-gray-300 text-6xl mb-16"></i>
+      <h6 class="text-heading fw-semibold mb-8">No hay banners ofertas</h6>
+      <p class="text-gray-500 mb-16">Aún no has creado ningún banner de ofertas</p>
+      <button class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8"
+              data-bs-toggle="modal"
+              data-bs-target="#modalCrearBannerOferta">
+        <i class="ph ph-plus me-8"></i>
+        Crear primer banner
+      </button>
+    </div>
+  </div>
+
+  <!-- Vista de gestión de productos -->
+  <div *ngIf="mostrarProductos && bannerSeleccionado">
+    <div class="d-flex align-items-center gap-12 mb-24">
+      <button class="btn bg-gray-100 hover-bg-gray-200 text-gray-600 px-12 py-8 rounded-6"
+              (click)="volverABanners()">
+        <i class="ph ph-arrow-left me-8"></i>
+        Volver a Banners
+      </button>
+      <div class="vr"></div>
+      <h5 class="text-heading fw-semibold mb-0">Gestionar Productos del Banner</h5>
+    </div>
+
+    <app-productos-banner-oferta
+      [bannerId]="bannerSeleccionado.id!">
+    </app-productos-banner-oferta>
+  </div>
+</div>
+
+<!-- Modal para crear/editar -->
+<app-banner-oferta-modal
+  [banner]="bannerParaEditar"
+  (bannerGuardado)="onBannerGuardado()"
+  (modalCerrado)="onModalCerrado()">
+</app-banner-oferta-modal>

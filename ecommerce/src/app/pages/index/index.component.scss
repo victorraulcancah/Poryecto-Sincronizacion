@@ -1,0 +1,359 @@
+// stiles para banner
+
+/* ✅ FIX: PREVENIR FOUC (Flash of Unstyled Content) EN BANNERS */
+::ng-deep {
+  .banner {
+    .carousel {
+      /* Ocultar carousel hasta que Slick se inicialice completamente */
+      &:not(.slick-initialized) {
+        opacity: 0;
+        min-height: 450px; /* Reservar espacio para evitar layout shift */
+
+        /* Responsive heights */
+        @media (max-width: 1400px) {
+          min-height: 400px;
+        }
+        @media (max-width: 1200px) {
+          min-height: 350px;
+        }
+        @media (max-width: 992px) {
+          min-height: 300px;
+        }
+        @media (max-width: 768px) {
+          min-height: 250px;
+        }
+      }
+
+      /* Una vez inicializado, mostrar con transición suave */
+      &.slick-initialized {
+        opacity: 1;
+        transition: opacity 0.4s ease-in;
+      }
+    }
+  }
+}
+
+/* ✅ FIX: Eliminar margin de slick-slide en categorías para evitar overflow y corte */
+.feature-item-wrapper {
+  .slick-slide {
+    margin: 0 !important;
+  }
+
+  .slick-track {
+    margin: 0 !important;
+  }
+}
+/* ✅ ESTILOS PARA BANNER OFERTAS CON CARRUSEL */
+.hot-deals {
+  overflow: visible !important;
+
+  .banner-ofertas-image {
+    background-color: #ffffff !important;
+
+    img {
+      object-fit: contain !important;
+    }
+  }
+
+  /* ✅ ESTILOS PARA EL CARRUSEL */
+  .ofertas-carousel {
+    .slick-slide {
+      padding: 0 6px; // Espacio entre productos (reducido de 8px a 6px)
+    }
+
+    .slick-list {
+      margin: 0 -6px; // Compensar padding (reducido de -8px a -6px)
+    }
+
+    .slick-track {
+      display: flex;
+      align-items: stretch;
+    }
+  }
+
+  /* ✅ CARDS DE PRODUCTOS */
+  .product-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+
+    .product-card__thumb {
+      height: 200px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      img {
+        max-width: 160px;
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+        transition: transform 0.3s ease;
+      }
+
+      &:hover img {
+        transform: scale(1.1);
+      }
+    }
+
+    .product-card__content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+  }
+
+  /* ✅ BOTONES DE NAVEGACIÓN CUADRADOS PARA OFERTAS ESPECIALES */
+  .ofertas-nav-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    width: 48px;
+    height: 48px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 8px !important; // Cuadrado con bordes redondeados
+
+    &.ofertas-nav-prev {
+      left: 10px; // Dentro del primer producto
+    }
+
+    &.ofertas-nav-next {
+      right: 10px; // Dentro del último producto
+    }
+
+    &:hover {
+      transform: translateY(-50%) scale(1.1);
+    }
+  }
+}
+
+
+/* ✅ FIX: Dar más espacio vertical a la sección de categorías */
+.feature {
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+
+  .arrow-center {
+    padding-top: 20px !important;
+    padding-bottom: 20px !important;
+    overflow: visible !important;
+
+    /* ✅ Mostrar botones al hacer hover en la sección */
+    &:hover {
+      .categoria-nav-btn {
+        visibility: visible;
+        opacity: 1;
+
+        &.categoria-nav-prev {
+          left: -24px;
+        }
+
+        &.categoria-nav-next {
+          right: -24px;
+        }
+      }
+    }
+  }
+
+  /* ✅ BOTONES DE NAVEGACIÓN PERSONALIZADOS PARA CATEGORÍAS */
+  .categoria-nav-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    width: 48px;
+    height: 48px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    visibility: hidden;
+    opacity: 0;
+
+    &.categoria-nav-prev {
+      left: -40px;
+    }
+
+    &.categoria-nav-next {
+      right: -40px;
+    }
+
+    &:hover {
+      transform: translateY(-50%) scale(1.1);
+    }
+  }
+}
+
+/* ✅ FIX: Ajustar altura de los items de categorías */
+.feature-item {
+  height: auto !important;
+  min-height: 240px !important;
+  padding-bottom: 20px;
+
+  .feature-item__content {
+    margin-top: 20px !important;
+    padding: 0 10px;
+  }
+}
+
+/* ✅ FIX: Reducir espacio entre categorías y banners promocionales */
+.promotional-banner {
+  padding-top: 40px !important;
+}
+
+/* ✅ ANIMACIONES FADE-IN PARA PRODUCTOS */
+.recommended .product-card {
+  animation: fadeInUp 0.5s ease-out;
+  animation-fill-mode: both;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ✅ MEJORAR BOTÓN "VER MÁS" CON HOVER */
+.btn-main:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 123, 255, 0.3);
+}
+
+/* ✅ ANIMACIÓN DE CARGA SUAVE PARA NUEVOS PRODUCTOS */
+.product-card[data-aos="fade-up"] {
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+/* ✅ FIX: Asegurar que las columnas de la sección short-product no floten incorrectamente */
+.short-product {
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    
+    > [class*="col-"] {
+      display: flex;
+      flex-direction: column;
+      
+      > .product-card,
+      > div {
+        flex: 1;
+        height: 100%;
+      }
+    }
+  }
+}
+
+/* ✅ FIX: Prevenir que los mensajes de "No hay..." se superpongan */
+.product-card {
+  position: relative;
+  z-index: 1;
+  
+  .text-center {
+    position: relative;
+    z-index: 2;
+  }
+}
+
+/* ✅ ESTILOS PARA SCROLL HORIZONTAL DE CATEGORÍAS */
+.recommended {
+  .nav-pills {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 0 50px; // Espacio para los botones de navegación
+    
+    .categories-scroll-container {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      scrollbar-width: none; // Firefox
+      -ms-overflow-style: none; // IE/Edge
+      padding: 4px 0;
+      flex: 1;
+      
+      &::-webkit-scrollbar {
+        display: none; // Chrome/Safari
+      }
+      
+      .nav-item {
+        flex-shrink: 0;
+      }
+    }
+    
+    .category-nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid #e0e0e0;
+      background: white;
+      color: #666;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      z-index: 10;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      
+      &:hover:not(.disabled) {
+        background: var(--main-600, #007bff);
+        color: white;
+        border-color: var(--main-600, #007bff);
+        transform: translateY(-50%) scale(1.1);
+      }
+      
+      &.disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        pointer-events: none;
+      }
+      
+      &.category-nav-prev {
+        left: 0;
+      }
+      
+      &.category-nav-next {
+        right: 0;
+      }
+      
+      i {
+        font-size: 20px;
+      }
+    }
+  }
+}
+
+// Responsive: ocultar botones en móviles
+@media (max-width: 768px) {
+  .recommended .nav-pills {
+    padding: 0 10px;
+    
+    .category-nav-btn {
+      display: none !important;
+    }
+    
+    .categories-scroll-container {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+}

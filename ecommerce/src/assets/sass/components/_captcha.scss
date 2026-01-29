@@ -1,0 +1,62 @@
+/* Estilos para el Puzzle CAPTCHA */
+.puzzle-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5px;
+  width: 300px; /* Ancho total del rompecabezas */
+  margin: auto;
+  padding: 10px;
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.puzzle-board {
+  grid-column: span 2;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2px;
+  border: 2px dashed #aaa;
+  background: #fff;
+  padding: 5px;
+}
+
+.puzzle-pieces-container {
+  grid-column: span 2;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+  min-height: 150px; /* Altura para las piezas sueltas */
+  align-items: center;
+}
+
+.puzzle-piece, .puzzle-placeholder {
+  width: 140px; /* (300px / 2) - (gap * 1.5) */
+  height: 140px;
+  background-size: 300px 300px; /* Tamaño de la imagen completa */
+  border: 1px solid #ddd;
+  box-sizing: border-box;
+}
+
+.puzzle-piece {
+  cursor: grab;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.puzzle-piece:active {
+  cursor: grabbing;
+  transform: scale(1.1);
+  z-index: 10;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+}
+
+.puzzle-placeholder {
+  background-color: #e9ecef;
+  border: 2px dashed #ccc;
+}
+
+.puzzle-placeholder.over {
+  background-color: #d4edda; /* Verde claro para indicar drop válido */
+  border-color: #28a745;
+}

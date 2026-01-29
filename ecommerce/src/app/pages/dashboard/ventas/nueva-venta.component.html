@@ -1,0 +1,328 @@
+<div class="d-flex justify-content-between align-items-center mb-24">
+  <div>
+    <h5 class="text-heading fw-semibold mb-8">Nueva Venta</h5>
+    <p class="text-gray-500 mb-0">Registra una nueva venta en el sistema</p>
+  </div>
+  <button
+    class="btn bg-gray-100 hover-bg-gray-200 text-gray-600 px-16 py-8 rounded-8"
+    routerLink="/dashboard/ventas">
+    <i class="ph ph-arrow-left me-8"></i>
+    Volver
+  </button>
+</div>
+
+<!-- Alertas -->
+<div *ngIf="errorMessage || successMessage" class="mb-24">
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="ph ph-warning-circle me-8"></i>
+    {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="cerrarMensajes()"></button>
+  </div>
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="ph ph-check-circle me-8"></i>
+    {{ successMessage }}
+    <button type="button" class="btn-close" (click)="cerrarMensajes()"></button>
+  </div>
+</div>
+
+<form [formGroup]="ventaForm" (ngSubmit)="onSubmit()">
+  <div class="row">
+    <!-- Panel Izquierdo -->
+    <div class="col-lg-8">
+      <!-- Información del Cliente -->
+      <div class="card border-0 shadow-sm rounded-12 mb-24">
+        <div class="card-header bg-gray-50 border-0 rounded-top-12 p-24">
+          <h6 class="text-heading fw-semibold mb-0">
+            <i class="ph ph-user me-8"></i>
+            Información del Cliente
+          </h6>
+        </div>
+        <div class="card-body p-24" formGroupName="cliente">
+          <div class="row">
+            <div class="col-md-3 mb-16">
+              <label class="form-label text-heading fw-medium mb-8">Tipo Doc. *</label>
+              <select
+                class="form-select px-16 py-12 border rounded-8"
+                formControlName="tipo_documento">
+                <option value="1">DNI</option>
+                <option value="6">RUC</option>
+                <option value="4">CE</option>
+                <option value="7">Pasaporte</option>
+                <option value="0">Otros</option>
+              </select>
+            </div>
+
+            <div class="col-md-3 mb-16">
+              <label class="form-label text-heading fw-medium mb-8">Número *</label>
+              <div class="input-group">
+                <input
+                  type="text"
+                  class="form-control px-16 py-12 border rounded-8"
+                  formControlName="numero_documento"
+                  placeholder="Número">
+                <button
+                  class="btn btn-outline-secondary px-16"
+                  type="button"
+                  (click)="buscarCliente()"
+                  [disabled]="!ventaForm.get('cliente.numero_documento')?.value">
+                  <i class="ph ph-magnifying-glass"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="col-md-6 mb-16">
+              <label class="form-label text-heading fw-medium mb-8">Nombre / Razón Social *</label>
+              <input
+                type="text"
+                class="form-control px-16 py-12 border rounded-8"
+                formControlName="nombre"
+                placeholder="Nombre completo o razón social">
+            </div>
+
+            <div class="col-md-6 mb-16">
+              <label class="form-label text-heading fw-medium mb-8">Dirección</label>
+              <input
+                type="text"
+                class="form-control px-16 py-12 border rounded-8"
+                formControlName="direccion"
+                placeholder="Dirección del cliente">
+            </div>
+
+            <div class="col-md-3 mb-16">
+              <label class="form-label text-heading fw-medium mb-8">Email</label>
+              <input
+                type="email"
+                class="form-control px-16 py-12 border rounded-8"
+                formControlName="email"
+                placeholder="email@ejemplo.com">
+            </div>
+
+            <div class="col-md-3 mb-16">
+              <label class="form-label text-heading fw-medium mb-8">Teléfono</label>
+              <input
+                type="text"
+                class="form-control px-16 py-12 border rounded-8"
+                formControlName="telefono"
+                placeholder="Teléfono">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Información de la Venta -->
+      <div class="card border-0 shadow-sm rounded-12 mb-24">
+        <div class="card-header bg-gray-50 border-0 rounded-top-12 p-24">
+          <h6 class="text-heading fw-semibold mb-0">Información de la Venta</h6>
+        </div>
+        <div class="card-body p-24">
+          <div class="row">
+            <div class="col-md-6 mb-16">
+              <label class="form-label text-heading fw-medium mb-8">Método de Pago *</label>
+              <select class="form-select px-16 py-12 border rounded-8" formControlName="metodo_pago">
+                <option value="">Seleccionar método</option>
+                <option value="efectivo">Efectivo</option>
+                <option value="tarjeta">Tarjeta</option>
+                <option value="transferencia">Transferencia</option>
+                <option value="yape">Yape</option>
+                <option value="plin">Plin</option>
+                <option value="credito">Crédito</option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-16">
+              <label class="form-label text-heading fw-medium mb-8">Observaciones</label>
+              <textarea
+                class="form-control px-16 py-12 border rounded-8"
+                rows="2"
+                formControlName="observaciones"
+                placeholder="Observaciones adicionales..."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Productos -->
+      <div class="card border-0 shadow-sm rounded-12">
+        <div class="card-header bg-gray-50 border-0 rounded-top-12 p-24">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="text-heading fw-semibold mb-0">Productos</h6>
+            <button
+              type="button"
+              class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8"
+              (click)="agregarProducto()">
+              <i class="ph ph-plus me-8"></i>
+              Agregar Producto
+            </button>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-16 py-12 text-heading fw-semibold border-0" style="width: 80px;">Código</th>
+                  <th class="px-16 py-12 text-heading fw-semibold border-0">Producto</th>
+                  <th class="px-16 py-12 text-heading fw-semibold border-0" style="width: 80px;">Cant.</th>
+                  <th class="px-16 py-12 text-heading fw-semibold border-0" style="width: 100px;">U.M.</th>
+                  <th class="px-16 py-12 text-heading fw-semibold border-0" style="width: 100px;">Precio</th>
+                  <th class="px-16 py-12 text-heading fw-semibold border-0" style="width: 80px;">Desc.</th>
+                  <th class="px-16 py-12 text-heading fw-semibold border-0" style="width: 120px;">Afect. IGV</th>
+                  <th class="px-16 py-12 text-heading fw-semibold border-0" style="width: 100px;">Subtotal</th>
+                  <th class="px-16 py-12 text-heading fw-semibold border-0 text-center" style="width: 50px;">Acción</th>
+                </tr>
+              </thead>
+              <tbody formArrayName="productos">
+                <tr *ngFor="let producto of productosArray.controls; let i = index" [formGroupName]="i">
+                  <td class="px-16 py-12">
+                    <input
+                      type="text"
+                      class="form-control form-control-sm px-12 py-8"
+                      formControlName="codigo_producto"
+                      placeholder="COD">
+                  </td>
+                  <td class="px-16 py-12">
+                    <select
+                      class="form-select form-select-sm px-12 py-8"
+                      formControlName="producto_id"
+                      (change)="onProductoChange(i)">
+                      <option value="">Seleccionar producto</option>
+                      <option *ngFor="let prod of productos" [value]="prod.id">
+                        {{ prod.nombre }}
+                      </option>
+                    </select>
+                  </td>
+                  <td class="px-16 py-12">
+                    <input
+                      type="number"
+                      class="form-control form-control-sm px-12 py-8"
+                      formControlName="cantidad"
+                      min="1"
+                      (input)="calcularSubtotal(i)">
+                  </td>
+                  <td class="px-16 py-12">
+                    <select
+                      class="form-select form-select-sm px-12 py-8"
+                      formControlName="unidad_medida">
+                      <option value="NIU">NIU</option>
+                      <option value="ZZ">ZZ</option>
+                      <option value="KGM">KGM</option>
+                      <option value="MTR">MTR</option>
+                      <option value="LTR">LTR</option>
+                    </select>
+                  </td>
+                  <td class="px-16 py-12">
+                    <input
+                      type="number"
+                      class="form-control form-control-sm px-12 py-8"
+                      formControlName="precio_unitario"
+                      step="0.01"
+                      min="0"
+                      (input)="calcularSubtotal(i)">
+                  </td>
+                  <td class="px-16 py-12">
+                    <input
+                      type="number"
+                      class="form-control form-control-sm px-12 py-8"
+                      formControlName="descuento_unitario"
+                      step="0.01"
+                      min="0"
+                      (input)="calcularSubtotal(i)">
+                  </td>
+                  <td class="px-16 py-12">
+                    <select
+                      class="form-select form-select-sm px-12 py-8"
+                      formControlName="tipo_afectacion_igv"
+                      (change)="calcularSubtotal(i)">
+                      <option value="10">10 - Gravado</option>
+                      <option value="20">20 - Exonerado</option>
+                      <option value="30">30 - Inafecto</option>
+                      <option value="40">40 - Exportación</option>
+                    </select>
+                  </td>
+                  <td class="px-16 py-12">
+                    <span class="text-heading fw-semibold">
+                      S/ {{ getSubtotalLinea(i) }}
+                    </span>
+                  </td>
+                  <td class="px-16 py-12 text-center">
+                    <button
+                      type="button"
+                      class="btn bg-danger-50 hover-bg-danger-100 text-danger-600 w-32 h-32 rounded-6 flex-center transition-2"
+                      (click)="eliminarProducto(i)">
+                      <i class="ph ph-trash text-sm"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Empty state -->
+            <div *ngIf="productosArray.length === 0" class="text-center py-40">
+              <i class="ph ph-package text-gray-300 text-4xl mb-16"></i>
+              <h6 class="text-heading fw-semibold mb-8">No hay productos</h6>
+              <p class="text-gray-500 mb-16">Agrega productos para crear la venta</p>
+              <button
+                type="button"
+                class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8"
+                (click)="agregarProducto()">
+                <i class="ph ph-plus me-8"></i>
+                Agregar primer producto
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resumen -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm rounded-12 position-sticky" style="top: 24px;">
+        <div class="card-header bg-gray-50 border-0 rounded-top-12 p-24">
+          <h6 class="text-heading fw-semibold mb-0">Resumen de Venta</h6>
+        </div>
+        <div class="card-body p-24">
+          <div class="d-flex justify-content-between mb-12">
+            <span class="text-gray-600">Subtotal:</span>
+            <span class="text-heading fw-medium">S/ {{ subtotal.toFixed(2) }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-12">
+            <span class="text-gray-600">IGV (18%):</span>
+            <span class="text-heading fw-medium">S/ {{ igv.toFixed(2) }}</span>
+          </div>
+          <div class="mb-16">
+            <label class="form-label text-gray-600 mb-8">Descuento adicional:</label>
+            <div class="input-group">
+              <span class="input-group-text bg-gray-50 border-end-0">S/</span>
+              <input
+                type="number"
+                class="form-control px-16 py-12 border-start-0"
+                formControlName="descuento_total"
+                step="0.01"
+                min="0"
+                (input)="calcularTotales()">
+            </div>
+          </div>
+          <hr class="border-gray-200 my-16">
+          <div class="d-flex justify-content-between mb-24">
+            <span class="text-heading fw-semibold">Total:</span>
+            <span class="text-heading fw-bold text-xl">S/ {{ total.toFixed(2) }}</span>
+          </div>
+
+          <button
+            type="submit"
+            class="btn bg-main-600 hover-bg-main-700 text-white w-100 py-12 rounded-8 mb-12"
+            [disabled]="isLoading || ventaForm.invalid || productosArray.length === 0">
+            <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-8"></span>
+            <i *ngIf="!isLoading" class="ph ph-check me-8"></i>
+            {{ isLoading ? 'Guardando...' : 'Registrar Venta' }}
+          </button>
+
+          <small class="text-muted text-center d-block">
+            <i class="ph ph-info me-4"></i>
+            Podrá generar el comprobante después
+          </small>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+

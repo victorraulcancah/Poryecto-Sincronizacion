@@ -1,0 +1,109 @@
+<div class="border border-gray-100 hover-border-main-600 rounded-16 overflow-hidden bg-white transition-2">
+  <!-- Header de la sección de cotizaciones -->
+  <div class="p-24 p-md-32 border-bottom border-gray-100 bg-main-50">
+    <div class="flex-between align-items-center gap-16 flex-wrap">
+      <div class="flex-align gap-16">
+        <div class="w-48 h-48 bg-info-600 text-white rounded-circle flex-center">
+          <i class="ph-bold ph-file-text text-xl"></i>
+        </div>
+        <div>
+          <h4 class="mb-4 text-heading">Mis Cotizaciones</h4>
+          <p class="text-gray-500 mb-0 text-sm">Cotizaciones generadas que puedes convertir en compra</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido de cotizaciones -->
+  <div class="p-24 p-md-32">
+    <!-- Loading state -->
+    <div *ngIf="isLoadingCotizaciones" class="text-center py-40">
+      <div class="spinner-border text-info-600" role="status">
+        <span class="visually-hidden">Cargando cotizaciones...</span>
+      </div>
+    </div>
+
+    <!-- Lista de cotizaciones -->
+    <div *ngIf="!isLoadingCotizaciones && cotizaciones.length > 0">
+      <div *ngFor="let cotizacion of cotizaciones"
+           class="border border-gray-100 hover-border-info-600 rounded-16 p-20 mb-16 transition-2 hover-shadow-sm">
+
+        <div class="row align-items-center">
+          <!-- Información básica de la cotización -->
+          <div class="col-md-4">
+            <div class="flex-align gap-12 mb-8">
+              <div class="w-40 h-40 bg-info-50 text-info-600 rounded-circle flex-center">
+                <i class="ph-bold ph-file-text"></i>
+              </div>
+              <div>
+                <h6 class="mb-2 text-heading">{{ cotizacion.codigo_cotizacion }}</h6>
+                <p class="text-xs text-gray-500 mb-0">{{ formatearFecha(cotizacion.fecha_cotizacion) }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Estado y monto -->
+          <div class="col-md-4 text-center">
+            <span class="badge bg-info-50 text-info-600 px-12 py-6 rounded-pill mb-8">
+              {{ cotizacion.estado_actual.nombre || 'Pendiente' }}
+            </span>
+            <h6 class="text-heading mb-0">S/ {{ cotizacion.total | number:'1.2-2' }}</h6>
+            <p class="text-xs text-gray-500 mb-0">{{ (cotizacion.productos && cotizacion.productos.length) || 0 }} productos</p>
+          </div>
+
+          <!-- Acciones -->
+          <div class="col-md-4">
+            <div class="d-flex flex-wrap gap-6 justify-content-md-end justify-content-start">
+              <button (click)="verDetallesCotizacion(cotizacion)"
+                      class="btn bg-main-600 text-white btn-xs rounded-pill px-12 py-6 d-flex align-items-center gap-2 transition-2 hover:bg-main-400">
+                <i class="ph-bold ph-eye text-xs"></i>
+                <span class="text-xs">Ver</span>
+              </button>
+
+              <button *ngIf="cotizacion.puede_convertir_compra"
+                      (click)="convertirACompra(cotizacion)"
+                      class="btn btn-success btn-xs rounded-pill px-12 py-6 d-flex align-items-center gap-2 transition-2">
+                <i class="ph-bold ph-shopping-cart text-xs"></i>
+                <span class="text-xs">Comprar</span>
+              </button>
+
+              <button (click)="pedirCotizacion(cotizacion)"
+                      class="btn btn-info btn-xs rounded-pill px-12 py-6 d-flex align-items-center gap-2 transition-2"
+                      title="Solicitar que procesen esta cotización">
+                <i class="ph-bold ph-phone text-xs"></i>
+                <span class="text-xs">Pedir</span>
+              </button>
+
+              <button (click)="eliminarCotizacion(cotizacion)"
+                      class="btn btn-danger btn-xs rounded-pill px-12 py-6 d-flex align-items-center gap-2 transition-2 hover:bg-danger-600"
+                      title="Eliminar cotización">
+                <i class="ph-bold ph-trash text-xs"></i>
+                <span class="text-xs">Eliminar</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Productos de la cotización -->
+        <div class="mt-16 pt-16 border-top border-gray-100">
+          <p class="text-sm text-gray-600 mb-12">{{ cotizacion.productos.length || 0 }} productos en esta cotización</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estado vacío -->
+    <div *ngIf="!isLoadingCotizaciones && cotizaciones.length === 0" class="text-center py-60">
+      <div class="w-80 h-80 bg-gray-50 text-gray-400 rounded-circle flex-center mx-auto mb-24">
+        <i class="ph ph-file-text text-3xl"></i>
+      </div>
+      <h5 class="text-heading mb-12">No tienes cotizaciones</h5>
+      <p class="text-gray-500 mb-24 max-w-400 mx-auto">
+        Cuando generes una cotización desde el carrito, aparecerá aquí para que puedas convertirla en compra.
+      </p>
+      <a routerLink="/shop" class="btn btn-main rounded-pill px-32 py-12">
+        <i class="ph-bold ph-shopping-cart me-8"></i>
+        Explorar productos
+      </a>
+    </div>
+  </div>
+</div>

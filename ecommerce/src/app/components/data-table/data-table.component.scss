@@ -1,0 +1,92 @@
+// Estilos para el componente DataTable reutilizable
+.custom-data-table {
+  .table-header {
+    @apply bg-gray-50;
+
+    th {
+      @apply border-0 text-sm font-semibold text-gray-700;
+      background-color: #f9fafb !important;
+    }
+  }
+
+  .table-row {
+    @apply transition-colors duration-200 border-b border-gray-100;
+
+    &:hover {
+      @apply bg-gray-50;
+    }
+
+    &.selected {
+      @apply bg-main-25 border-main-100;
+    }
+
+    td {
+      @apply border-0 align-middle;
+    }
+  }
+
+  // Checkboxes personalizados
+  .form-check-input {
+    @apply w-4 h-4 text-main-600 border-gray-300 rounded focus:ring-main-500 focus:ring-2;
+
+    &:checked {
+      @apply bg-main-600 border-main-600;
+    }
+  }
+
+  // Badges personalizados
+  .badge {
+    @apply text-xs font-medium px-2 py-1 rounded-xl;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .custom-data-table {
+    .table-header th,
+    .table-row td {
+      padding: 12px 16px !important;
+    }
+  }
+
+  // Hacer los campos de búsqueda más compactos en móvil
+  .form-control {
+    min-width: 200px !important;
+  }
+
+  .form-select-sm {
+    font-size: 0.7rem !important;
+    padding: 2px 6px !important;
+    min-width: 60px !important;
+  }
+}
+
+// Estados especiales
+.loading-overlay {
+  @apply absolute inset-0 bg-white bg-opacity-75 flex items-center justify-content-center z-10;
+}
+
+.empty-state {
+  @apply text-center py-16;
+}
+
+// Botones de acción
+.action-button {
+  @apply w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 text-sm;
+
+  &:hover {
+    @apply scale-110;
+  }
+
+  &.btn-view {
+    @apply bg-main-50 hover:bg-main-100 text-main-600;
+  }
+
+  &.btn-edit {
+    @apply bg-warning-50 hover:bg-warning-100 text-warning-600;
+  }
+
+  &.btn-delete {
+    @apply bg-danger-50 hover:bg-danger-100 text-danger-600;
+  }
+}

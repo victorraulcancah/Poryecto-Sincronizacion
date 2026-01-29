@@ -1,0 +1,389 @@
+<div class="usuarios-container p-24" *ngIf="!isLoading">
+  <!-- Header -->
+  <div class="usuarios-header">
+    <div class="header-content">
+      <div class="title-section">
+        <h1 class="page-title">
+          <i class="fas fa-motorcycle text-main-600 me-8"></i>
+          Detalles del Motorizado
+        </h1>
+        <p class="page-subtitle text-gray-600">Información completa del motorizado registrado</p>
+      </div>
+      <div class="d-flex gap-12">
+        <button type="button"
+                class="btn bg-main-50 text-main-600 hover-bg-main-100 border-0 px-16 py-12 rounded-8 fw-semibold d-flex align-items-center gap-8"
+                (click)="onEdit()">
+          <i class="fas fa-edit"></i>
+          Editar
+        </button>
+        <button type="button" class="btn btn-secondary px-16 py-12 rounded-8" (click)="onBack()">
+          <i class="fas fa-arrow-left me-8"></i>
+          Volver
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Información del Motorizado -->
+  <div *ngIf="motorizado" class="table-container">
+
+    <!-- Información Personal -->
+    <div class="border border-gray-100 rounded-8 mb-24 bg-white">
+      <div class="table-header p-20 border-bottom border-gray-100">
+        <h2 class="table-title text-xl mb-0 d-flex align-items-center">
+          <i class="fas fa-user text-main-600 me-8"></i>
+          Información Personal
+        </h2>
+        <div class="badge" [class]="getEstadoBadgeClass(motorizado.estado)">
+          <i class="fas me-4" [class.fa-check-circle]="motorizado.estado" [class.fa-times-circle]="!motorizado.estado"></i>
+          {{getEstadoText(motorizado.estado)}}
+        </div>
+      </div>
+
+      <div class="p-24">
+        <div class="row g-32 align-items-start">
+
+          <!-- Foto del Motorizado -->
+          <div class="col-auto">
+            <div class="d-flex flex-column align-items-center gap-12">
+              <div class="user-avatar position-relative" style="width: 120px; height: 120px;">
+                <img *ngIf="motorizado.foto_perfil"
+                     [src]="motorizado.foto_perfil"
+                     [alt]="motorizado.nombre_completo"
+                     class="w-100 h-100 object-fit-cover rounded-circle border border-main-600 border-4">
+                <div *ngIf="!motorizado.foto_perfil"
+                     class="w-100 h-100 rounded-circle bg-main-100 d-flex align-items-center justify-content-center text-main-600 fw-bold"
+                     style="font-size: 3rem;">
+                  {{motorizado.nombre_completo?.charAt(0)?.toUpperCase() || 'M'}}
+                </div>
+              </div>
+              <div class="text-center">
+                <div class="badge bg-gray-100 text-gray-700 px-12 py-6 rounded-6">
+                  N° {{motorizado.numero_unidad}}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Datos Principales -->
+          <div class="col">
+            <div class="row g-24">
+
+              <!-- Columna 1 -->
+              <div class="col-md-6">
+                <div class="info-item mb-20">
+                  <label class="form-label text-gray-500 text-xs text-uppercase fw-semibold mb-4 d-block">
+                    <i class="fas fa-user text-main-600 me-6"></i>
+                    Nombre Completo
+                  </label>
+                  <div class="text-heading text-md fw-medium">
+                    {{motorizado.nombre_completo}}
+                  </div>
+                </div>
+
+                <div class="info-item mb-20">
+                  <label class="form-label text-gray-500 text-xs text-uppercase fw-semibold mb-4 d-block">
+                    <i class="fas fa-id-card text-main-600 me-6"></i>
+                    Documento
+                  </label>
+                  <div class="text-heading text-md fw-medium">
+                    {{getDocumentoCompleto()}}
+                  </div>
+                </div>
+
+                <div class="info-item mb-20">
+                  <label class="form-label text-gray-500 text-xs text-uppercase fw-semibold mb-4 d-block">
+                    <i class="fas fa-phone text-main-600 me-6"></i>
+                    Teléfono
+                  </label>
+                  <div class="text-heading text-md fw-medium">
+                    {{motorizado.telefono}}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Columna 2 -->
+              <div class="col-md-6">
+                <div class="info-item mb-20">
+                  <label class="form-label text-gray-500 text-xs text-uppercase fw-semibold mb-4 d-block">
+                    <i class="fas fa-envelope text-main-600 me-6"></i>
+                    Correo Electrónico
+                  </label>
+                  <div class="text-heading text-md fw-medium">
+                    {{motorizado.correo}}
+                  </div>
+                </div>
+
+                <div class="info-item mb-20">
+                  <label class="form-label text-gray-500 text-xs text-uppercase fw-semibold mb-4 d-block">
+                    <i class="fas fa-id-badge text-main-600 me-6"></i>
+                    N° Licencia
+                  </label>
+                  <div class="text-heading text-md fw-medium">
+                    {{motorizado.licencia_numero}}
+                  </div>
+                </div>
+
+                <div class="info-item mb-20">
+                  <label class="form-label text-gray-500 text-xs text-uppercase fw-semibold mb-4 d-block">
+                    <i class="fas fa-certificate text-main-600 me-6"></i>
+                    Categoría Licencia
+                  </label>
+                  <div class="text-heading text-md fw-medium">
+                    {{motorizado.licencia_categoria}}
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Información de Dirección -->
+    <div class="border border-gray-100 rounded-8 mb-24 bg-white">
+      <div class="table-header p-20 border-bottom border-gray-100">
+        <h2 class="table-title text-xl mb-0 d-flex align-items-center">
+          <i class="fas fa-map-marker-alt text-main-600 me-8"></i>
+          Información de Dirección
+        </h2>
+      </div>
+
+      <div class="p-24">
+        <div class="row g-24">
+
+          <div class="col-md-6">
+            <div class="info-item mb-20">
+              <label class="form-label text-gray-500 text-xs text-uppercase fw-semibold mb-4 d-block">
+                <i class="fas fa-map text-main-600 me-6"></i>
+                Ubicación
+              </label>
+              <div class="text-heading text-md fw-medium">
+                {{motorizado.ubicacion?.nombre || 'No especificada'}}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="info-item mb-20">
+              <label class="form-label text-gray-500 text-xs text-uppercase fw-semibold mb-4 d-block">
+                <i class="fas fa-home text-main-600 me-6"></i>
+                Dirección Detalle
+              </label>
+              <div class="text-heading text-md fw-medium">
+                {{motorizado.direccion_detalle}}
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Información del Vehículo -->
+    <div class="border border-gray-100 rounded-8 mb-24 bg-white">
+      <div class="table-header p-20 border-bottom border-gray-100">
+        <h2 class="table-title text-xl mb-0 d-flex align-items-center">
+          <i class="fas fa-motorcycle text-main-600 me-8"></i>
+          Información del Vehículo
+        </h2>
+      </div>
+
+      <div class="p-24">
+        <div class="row g-24">
+
+          <div class="col-md-4">
+            <div class="info-item mb-20">
+              <label class="form-label text-gray-500 text-xs text-uppercase fw-semibold mb-4 d-block">
+                <i class="fas fa-industry text-main-600 me-6"></i>
+                Marca
+              </label>
+              <div class="text-heading text-md fw-medium">
+                {{motorizado.vehiculo_marca}}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="info-item mb-20">
+              <label class="form-label text-gray-500 text-xs text-uppercase fw-semibold mb-4 d-block">
+                <i class="fas fa-car text-main-600 me-6"></i>
+                Modelo
+              </label>
+              <div class="text-heading text-md fw-medium">
+                {{motorizado.vehiculo_modelo}}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="info-item mb-20">
+              <label class="form-label text-gray-500 text-xs text-uppercase fw-semibold mb-4 d-block">
+                <i class="fas fa-calendar text-main-600 me-6"></i>
+                Año
+              </label>
+              <div class="text-heading text-md fw-medium">
+                {{motorizado.vehiculo_ano}}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="info-item mb-20">
+              <label class="form-label text-gray-500 text-xs text-uppercase fw-semibold mb-4 d-block">
+                <i class="fas fa-tachometer-alt text-main-600 me-6"></i>
+                Cilindraje
+              </label>
+              <div class="text-heading text-md fw-medium">
+                {{motorizado.vehiculo_cilindraje}}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="info-item mb-20">
+              <label class="form-label text-gray-500 text-xs text-uppercase fw-semibold mb-4 d-block">
+                <i class="fas fa-id-card-alt text-main-600 me-6"></i>
+                Placa
+              </label>
+              <div class="text-heading text-md fw-medium text-uppercase">
+                {{motorizado.vehiculo_placa}}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="info-item mb-20">
+              <label class="form-label text-gray-500 text-xs text-uppercase fw-semibold mb-4 d-block">
+                <i class="fas fa-palette text-main-600 me-6"></i>
+                Color Principal
+              </label>
+              <div class="text-heading text-md fw-medium">
+                {{motorizado.vehiculo_color_principal}}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-4" *ngIf="motorizado.vehiculo_color_secundario">
+            <div class="info-item mb-20">
+              <label class="form-label text-gray-500 text-xs text-uppercase fw-semibold mb-4 d-block">
+                <i class="fas fa-palette text-main-600 me-6"></i>
+                Color Secundario
+              </label>
+              <div class="text-heading text-md fw-medium">
+                {{motorizado.vehiculo_color_secundario}}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="info-item mb-20">
+              <label class="form-label text-gray-500 text-xs text-uppercase fw-semibold mb-4 d-block">
+                <i class="fas fa-cogs text-main-600 me-6"></i>
+                N° Motor
+              </label>
+              <div class="text-heading text-md fw-medium">
+                {{motorizado.vehiculo_motor}}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="info-item mb-20">
+              <label class="form-label text-gray-500 text-xs text-uppercase fw-semibold mb-4 d-block">
+                <i class="fas fa-barcode text-main-600 me-6"></i>
+                N° Chasis
+              </label>
+              <div class="text-heading text-md fw-medium">
+                {{motorizado.vehiculo_chasis}}
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Observaciones -->
+    <div class="border border-gray-100 rounded-8 mb-24 bg-white" *ngIf="motorizado.comentario">
+      <div class="table-header p-20 border-bottom border-gray-100">
+        <h2 class="table-title text-xl mb-0 d-flex align-items-center">
+          <i class="fas fa-clipboard text-main-600 me-8"></i>
+          Observaciones
+        </h2>
+      </div>
+
+      <div class="p-24">
+        <div class="info-item">
+          <label class="form-label text-gray-500 text-xs text-uppercase fw-semibold mb-8 d-block">
+            <i class="fas fa-comment text-main-600 me-6"></i>
+            Comentarios
+          </label>
+          <div class="bg-light p-16 rounded-8 border-start border-main-600 border-4 text-heading">
+            {{motorizado.comentario}}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Información de Registro -->
+    <div class="border border-gray-100 rounded-8 mb-24 bg-white">
+      <div class="table-header p-20 border-bottom border-gray-100">
+        <h2 class="table-title text-xl mb-0 d-flex align-items-center">
+          <i class="fas fa-info-circle text-main-600 me-8"></i>
+          Información de Registro
+        </h2>
+      </div>
+
+      <div class="p-24">
+        <div class="row g-24">
+
+          <div class="col-md-4">
+            <div class="info-item mb-20">
+              <label class="form-label text-gray-500 text-xs text-uppercase fw-semibold mb-4 d-block">
+                <i class="fas fa-user-plus text-main-600 me-6"></i>
+                Registrado Por
+              </label>
+              <div class="text-heading text-md fw-medium">
+                {{motorizado.registrado_por?.name || 'Sistema'}}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="info-item mb-20">
+              <label class="form-label text-gray-500 text-xs text-uppercase fw-semibold mb-4 d-block">
+                <i class="fas fa-calendar-plus text-main-600 me-6"></i>
+                Fecha de Registro
+              </label>
+              <div class="text-heading text-md fw-medium">
+                {{motorizado.created_at | date:'dd/MM/yyyy HH:mm'}}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-4" *ngIf="motorizado.updated_at">
+            <div class="info-item mb-20">
+              <label class="form-label text-gray-500 text-xs text-uppercase fw-semibold mb-4 d-block">
+                <i class="fas fa-calendar-edit text-main-600 me-6"></i>
+                Última Actualización
+              </label>
+              <div class="text-heading text-md fw-medium">
+                {{motorizado.updated_at | date:'dd/MM/yyyy HH:mm'}}
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Loading State -->
+<div class="loading-overlay text-center py-60" *ngIf="isLoading">
+  <div class="spinner-border text-main-600 mb-16"></div>
+  <p class="text-gray-600">Cargando información del motorizado...</p>
+</div>

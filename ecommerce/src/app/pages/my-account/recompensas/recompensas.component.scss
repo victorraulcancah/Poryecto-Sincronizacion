@@ -1,0 +1,64 @@
+.card { border: 1px solid #eef1f4; border-radius: 12px; background: #fff; }
+.p-16 { padding: 16px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-24 { margin-bottom: 24px; }
+.g-16 { gap: 16px; }
+.h4 { font-size: 1.4rem; }
+.h5 { font-size: 1.2rem; }
+.bg-main-50 { background: #f0f7ff; }
+.bg-gray-50 { background: #f8f9fb; }
+.rounded-12 { border-radius: 12px; }
+.table th, .table td { vertical-align: middle; }
+
+// Gradientes modernos para las tarjetas de métricas
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+}
+
+.bg-gradient-success {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  box-shadow: 0 8px 32px rgba(79, 172, 254, 0.3);
+}
+
+.bg-gradient-warning {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  box-shadow: 0 8px 32px rgba(250, 112, 154, 0.3);
+}
+
+// Iconos circulares mejorados
+.icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2) !important;
+  transition: all 0.3s ease;
+}
+
+.icon-circle:hover {
+  transform: scale(1.05);
+  background: rgba(255, 255, 255, 0.3) !important;
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+// Efectos hover para las tarjetas
+.card:hover {
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}
+
+// Mejoras de tipografía
+.text-white-50 {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+

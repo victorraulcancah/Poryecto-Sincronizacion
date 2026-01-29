@@ -1,0 +1,43 @@
+/* src/app/component/auth-menu/auth-menu.component.scss */
+.auth-menu-wrapper {
+  .auth-trigger,
+  .user-trigger {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    
+    &:hover {
+      .user-avatar {
+        background-color: var(--main-700, #1a73e8);
+      }
+    }
+  }
+
+  .auth-dropdown-menu,
+  .user-dropdown-menu {
+    animation: fadeInDown 0.2s ease-out;
+    
+    a, button {
+      transition: all 0.2s ease;
+      
+      &:hover {
+        transform: translateX(4px);
+      }
+    }
+  }
+
+  .rotate-180 {
+    transform: rotate(180deg);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

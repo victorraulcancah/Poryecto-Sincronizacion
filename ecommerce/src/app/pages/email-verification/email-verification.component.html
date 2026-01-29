@@ -1,0 +1,103 @@
+<app-breadcrumb title="Verificación de Email" subtitle="Verifica tu cuenta"></app-breadcrumb>
+
+<section class="account py-80">
+  <div class="container container-lg">
+    <div class="row justify-content-center">
+      <div class="col-xl-6 col-lg-8">
+        <div class="border border-gray-100 hover-border-main-600 transition-1 rounded-16 px-24 py-40">
+          <div class="text-center mb-32">
+            <i class="ph ph-envelope-simple text-main-600" style="font-size: 48px;"></i>
+            <h6 class="text-xl mt-16">Verificación de Correo Electrónico</h6>
+            <p class="text-gray-500 mt-8">
+              Revisa tu bandeja de entrada y completa la verificación
+            </p>
+          </div>
+
+          <!-- Mensaje de estado -->
+          <div *ngIf="message" 
+               class="alert mb-24"
+               [ngClass]="{
+                 'alert-success': messageType === 'success',
+                 'alert-danger': messageType === 'error',
+                 'alert-info': messageType === 'info'
+               }">
+            {{ message }}
+          </div>
+
+          <form [formGroup]="verificationForm" (ngSubmit)="onVerify()">
+            <!-- Email -->
+            <div class="mb-24">
+              <label for="email" class="text-neutral-900 text-lg mb-8 fw-medium">
+                Correo Electrónico <span class="text-danger">*</span>
+              </label>
+              <input 
+                type="email" 
+                class="common-input" 
+                id="email" 
+                formControlName="email"
+                placeholder="tu@email.com"
+                [ngClass]="{'is-invalid': email?.invalid && email?.touched}"
+              >
+              <div *ngIf="email?.invalid && email?.touched" class="text-danger mt-1">
+                <small *ngIf="email?.errors?.['required']">El correo electrónico es requerido</small>
+                <small *ngIf="email?.errors?.['email']">Ingresa un correo electrónico válido</small>
+              </div>
+            </div>
+
+            <!-- Token -->
+            <div class="mb-24">
+              <label for="token" class="text-neutral-900 text-lg mb-8 fw-medium">
+                Código de Verificación <span class="text-danger">*</span>
+              </label>
+              <input 
+                type="text" 
+                class="common-input" 
+                id="token" 
+                formControlName="token"
+                placeholder="Ingresa el código recibido"
+                [ngClass]="{'is-invalid': token?.invalid && token?.touched}"
+              >
+              <div *ngIf="token?.invalid && token?.touched" class="text-danger mt-1">
+                <small *ngIf="token?.errors?.['required']">El código es requerido</small>
+                <small *ngIf="token?.errors?.['minlength']">El código debe tener al menos 6 caracteres</small>
+              </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="mb-24">
+              <button 
+                type="submit" 
+                class="btn btn-main py-18 px-40 w-100 mb-16"
+                [disabled]="isLoading || verificationForm.invalid"
+              >
+                <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                <i *ngIf="!isLoading" class="ph ph-check-circle me-2"></i>
+                Verificar Cuenta
+              </button>
+
+              <button 
+                type="button"
+                class="btn btn-outline-main py-18 px-40 w-100"
+                [disabled]="isResending || !email?.value"
+                (click)="onResendVerification()"
+              >
+                <span *ngIf="isResending" class="spinner-border spinner-border-sm me-2"></span>
+                <i *ngIf="!isResending" class="ph ph-paper-plane-tilt me-2"></i>
+                Reenviar Código
+              </button>
+            </div>
+
+            <div class="text-center">
+              <p class="text-gray-500 mb-0">
+                ¿Ya verificaste tu cuenta? 
+                <a routerLink="/account" class="text-main-600 fw-semibold hover-text-decoration-underline">
+                  Iniciar sesión
+                </a>
+              </p>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

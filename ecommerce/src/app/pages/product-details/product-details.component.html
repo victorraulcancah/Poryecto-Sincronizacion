@@ -1,0 +1,913 @@
+<!-- src\app\pages\product-details\product-details.component.html -->
+<!-- ========================= Breadcrumb Start =============================== -->
+<app-breadcrumb 
+  [title]="producto?.categoria?.nombre || 'Detalles del producto'" 
+  [subtitle]="producto?.nombre || 'Cargando...'">
+</app-breadcrumb>
+
+<!-- ========================= Breadcrumb End =============================== -->
+
+<!-- ✅ LOADING STATE -->
+<div *ngIf="isLoading" class="container container-lg py-80">
+  <div class="text-center">
+    <div class="spinner-border text-main-600" role="status">
+      <span class="visually-hidden">Cargando producto...</span>
+    </div>
+    <p class="text-gray-500 mt-12">Cargando detalles del producto...</p>
+  </div>
+</div>
+
+<!-- ✅ ERROR STATE -->
+<div *ngIf="error && !isLoading" class="container container-lg py-80">
+  <div class="text-center">
+    <h4 class="text-danger mb-20">{{ error }}</h4>
+    <p class="text-gray-500 mb-20">Redirigiendo al inicio...</p>
+    <a [routerLink]="['/']" class="btn btn-main">Volver al inicio</a>
+  </div>
+</div>
+
+<!-- ✅ CONTENIDO PRINCIPAL -->
+<section class="product-details py-80" *ngIf="!isLoading && !error && producto">
+    <div class="container container-lg">
+        <div class="row gy-4">
+            <div class="col-lg-9">
+                <div class="row gy-4">
+                    <div class="col-xl-6">
+                        <div class="product-details__left">
+
+                            <!-- ✅ NUEVO LAYOUT VERTICAL PARA IMÁGENES Y VIDEOS CON ZOOM DINÁMICO -->
+                            <div class="product-details__images-container" *ngIf="imagenesProducto.length > 0 || videosProducto.length > 0">
+                                <!-- Thumbnails verticales a la izquierda -->
+                                <div class="product-details__thumbnails" *ngIf="(imagenesProducto.length + videosProducto.length) > 1">
+                                    <!-- Thumbnails de imágenes -->
+                                    <div
+                                        class="product-details__thumbnail"
+                                        [class.active]="imagen === imagenPrincipal"
+                                        *ngFor="let imagen of imagenesProducto; trackBy: trackByImageUrl"
+                                        (click)="cambiarImagenPrincipal(imagen)">
+                                        <img
+                                            [src]="imagen"
+                                            [alt]="producto.nombre"
+                                            (error)="onImageError($event)"
+                                            loading="lazy">
+                                    </div>
+
+                                    <!-- Thumbnails de videos -->
+                                    <div
+                                        class="product-details__thumbnail video-thumbnail"
+                                        *ngFor="let video of videosProducto; let i = index"
+                                        title="Video demostrativo">
+                                        <div class="video-thumbnail-content">
+                                            <img
+                                                [src]="getYouTubeThumbnail(video)"
+                                                [alt]="'Video ' + (i + 1) + ' de ' + producto.nombre"
+                                                (error)="onImageError($event)"
+                                                loading="lazy"
+                                                (click)="mostrarVideo(video)">
+                                            <div class="video-play-overlay" (click)="mostrarVideoEnModal(video)">
+                                                <i class="ph ph-play-circle"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Contenido principal (imagen o video) -->
+                                <div class="product-details__main-image">
+                                    <div class="product-details__main-image-container border border-gray-100 rounded-16 position-relative">
+
+                                        <!-- Mostrar imagen -->
+                                        <div *ngIf="contenidoPrincipal.tipo === 'imagen'"
+                                             [class.zoom-active]="isZoomActive"
+                                             [class.mobile-zoom]="isMobileZoom"
+                                             (mouseenter)="onMouseEnterImage($event)"
+                                             (mouseleave)="onMouseLeaveImage($event)"
+                                             (mousemove)="onMouseMoveImage($event)"
+                                             (click)="toggleMobileZoom()"
+                                             #imageContainer>
+
+                                            <!-- Indicador de zoom -->
+                                            <div class="zoom-indicator" [class.show]="isZoomActive || isMobileZoom">
+                                                {{ isMobileZoom ? 'Toca para alejar' : 'Zoom activo' }}
+                                            </div>
+
+                                            <!-- Botones de navegación -->
+                                            <div *ngIf="obtenerTotalContenidos() > 1" class="navigation-buttons">
+                                                <button
+                                                    class="nav-btn nav-btn-prev"
+                                                    (click)="anteriorContenido()"
+                                                    title="Contenido anterior">
+                                                    <i class="ph ph-caret-left"></i>
+                                                </button>
+                                                <button
+                                                    class="nav-btn nav-btn-next"
+                                                    (click)="siguienteContenido()"
+                                                    title="Siguiente contenido">
+                                                    <i class="ph ph-caret-right"></i>
+                                                </button>
+                                            </div>
+
+                                            <!-- Contador de contenido -->
+                                            <div *ngIf="obtenerTotalContenidos() > 1" class="content-counter">
+                                                {{ obtenerIndiceActual() }} / {{ obtenerTotalContenidos() }}
+                                            </div>
+
+                                            <img
+                                                *ngIf="contenidoPrincipal.url; else noImage"
+                                                [src]="contenidoPrincipal.url"
+                                                [alt]="producto.nombre"
+                                                (error)="onImageError($event)"
+                                                #zoomImage>
+
+                                            <ng-template #noImage>
+                                                <div class="product-details__no-image">
+                                                    <i class="ph ph-image" style="font-size: 3rem;"></i>
+                                                    <span class="ms-3">Sin imagen disponible</span>
+                                                </div>
+                                            </ng-template>
+                                        </div>
+
+                                        <!-- Mostrar video -->
+                                        <div *ngIf="contenidoPrincipal.tipo === 'video'" class="product-details__video-container">
+                                            <iframe
+                                                [src]="getVideoEmbedUrl(contenidoPrincipal.url) | trustUrl"
+                                                frameborder="0"
+                                                allowfullscreen
+                                                class="product-details__video-iframe">
+                                            </iframe>
+                                            <div class="video-info-overlay">
+                                                <i class="ph ph-video me-2"></i>
+                                                Video demostrativo
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ✅ FALLBACK: Si no hay imágenes, mostrar placeholder -->
+                            <div *ngIf="imagenesProducto.length === 0" class="product-details__main-image">
+                                <div class="product-details__main-image-container border border-gray-100 rounded-16">
+                                    <div class="product-details__no-image">
+                                        <i class="ph ph-image" style="font-size: 3rem;"></i>
+                                        <span class="ms-3">Sin imagen disponible</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                    <div class="col-xl-6">
+                        <div class="product-details__content">
+                            <h5 class="mb-12">{{ producto.nombre }}</h5>
+                            <div class="flex-align flex-wrap gap-12">
+                                <div class="flex-align gap-12 flex-wrap">
+                                    <div class="flex-align gap-8">
+                                        <span *ngFor="let star of getEstrellas()" 
+                                              class="text-xs fw-medium text-warning-600 d-flex">
+                                          <i class="ph-fill ph-star"></i>
+                                        </span>
+                                    </div>
+                                    <span class="text-sm fw-medium text-neutral-600">4.8 Star Rating</span>
+                                    <span class="text-sm fw-medium text-gray-500">({{ producto.reviews_count || 0 }})</span>
+                                </div>
+                                <span class="text-sm fw-medium text-gray-500">|</span>
+                                <span class="text-gray-900"> 
+                                  <span class="text-gray-400">SKU:</span>{{ producto.codigo_producto }} 
+                                </span>
+                            </div>
+                            <span class="mt-32 pt-32 text-gray-700 border-top border-gray-100 d-block"></span>
+                            
+                            <!-- ✅ DESCRIPCIÓN DINÁMICA (USANDO HTML SANITIZADO) -->
+                            <!-- <div [innerHTML]="safeDescripcionDetallada"></div> -->
+                            
+                            <div class="mt-32 flex-align flex-wrap gap-32">
+                                <div class="d-flex flex-column gap-2">
+                                    <div class="flex-align gap-8">
+                                        <h4 class="mb-0 text-danger-600" [class.text-heading]="!tieneOferta()">
+                                          S/ {{ getPrecioActual() | number:'1.2-2' }}
+                                        </h4>
+                                        <span *ngIf="tieneOferta()" class="badge bg-danger-600 text-white px-8 py-4 text-xs">
+                                          -{{ getPorcentajeDescuento() }}%
+                                        </span>
+                                    </div>
+                                    <span *ngIf="tieneOferta()" class="text-sm text-gray-500 text-decoration-line-through">
+                                      Antes: S/ {{ getPrecioOriginal() | number:'1.2-2' }}
+                                    </span>
+                                </div>
+                                <button (click)="ordenarPorWhatsApp()" class="btn bg-danger-20 hover:bg-danger-10 rounded-pill">
+                                    <i class="ph ph-whatsapp-logo me-2"></i>
+                                    Ordenar por WhatsApp
+                                </button>
+                            </div>
+                            <span class="mt-32 pt-32 text-gray-700 border-top border-gray-100 d-block"></span>
+
+                            <!-- ✅ OFERTA ESPECIAL SI EXISTE -->
+                            <div *ngIf="tieneOferta()" class="flex-align flex-wrap gap-16 bg-color-one rounded-8 py-16 px-24">
+                                <div class="flex-align gap-16">
+                                    <span class="text-main-600 text-sm">Oferta Especial:</span>
+                                </div>
+                                <div class="countdown" id="countdown11">
+                                    <ul class="countdown-list flex-align flex-wrap">
+                                        <li
+                                            class="countdown-list__item text-heading flex-align gap-4 text-xs fw-medium w-28 h-28 rounded-4 border border-main-600 p-0 flex-center">
+                                            <span class="days">0</span>
+                                        </li>
+                                        <li
+                                            class="countdown-list__item text-heading flex-align gap-4 text-xs fw-medium w-28 h-28 rounded-4 border border-main-600 p-0 flex-center">
+                                            <span class="hours">0</span>
+                                        </li>
+                                        <li
+                                            class="countdown-list__item text-heading flex-align gap-4 text-xs fw-medium w-28 h-28 rounded-4 border border-main-600 p-0 flex-center">
+                                            <span class="minutes">0</span>
+                                        </li>
+                                        <li
+                                            class="countdown-list__item text-heading flex-align gap-4 text-xs fw-medium w-28 h-28 rounded-4 border border-main-600 p-0 flex-center">
+                                            <span class="seconds">0</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <span class="text-gray-900 text-xs">{{ getPorcentajeDescuento() }}% de descuento</span>
+                            </div>
+
+                            <!-- ✅ STOCK DINÁMICO -->
+                            <div class="mb-24">
+                                <div class="mt-32 flex-align gap-12 mb-16">
+                                    <span
+                                        class="w-32 h-32 bg-white flex-center rounded-circle text-main-600 box-shadow-xl">
+                                        <i class="ph-fill ph-lightning"></i>
+                                    </span>
+                                    <h6 class="text-md mb-0 fw-bold text-gray-900">
+                                      {{ producto.stock <= 10 ? 'Pocas unidades disponibles' : 'Producto disponible' }}
+                                    </h6>
+                                </div>
+                                <div class="progress w-100 bg-gray-100 rounded-pill h-8" role="progressbar"
+                                    aria-label="Stock disponible" 
+                                    [attr.aria-valuenow]="(producto.stock / (producto.stock + 50)) * 100" 
+                                    aria-valuemin="0" aria-valuemax="100">
+                                    <div class="progress-bar bg-main-two-600 rounded-pill" 
+                                         [style.width.%]="(producto.stock / (producto.stock + 50)) * 100"></div>
+                                </div>
+                                <span class="text-sm text-gray-700 mt-8">Disponible: {{ producto.stock }}</span>
+                            </div>
+
+                            <span class="text-gray-900 d-block mb-8">Cantidad:</span>
+                            <div class="flex-between gap-16 flex-wrap">
+                                <div class="flex-align flex-wrap gap-16">
+                                    <div class="border border-gray-100 rounded-pill py-9 px-16 flex-align">
+                                        <button type="button"
+                                            class="quantity__minus p-4 text-gray-700 hover-text-main-600 flex-center"
+                                            (click)="disminuirCantidad()">
+                                            <i class="ph ph-minus"></i>
+                                        </button>
+                                        <input type="number" class="quantity__input border-0 text-center w-32"
+                                            [(ngModel)]="cantidad" [min]="1" [max]="producto.stock">
+                                        <button type="button"
+                                            class="quantity__plus p-4 text-gray-700 hover-text-main-600 flex-center"
+                                            (click)="aumentarCantidad()">
+                                            <i class="ph ph-plus"></i>
+                                        </button>
+                                    </div>
+                                    <button 
+                                        (click)="agregarAlCarrito()" 
+                                        class="btn bg-danger-20 rounded-pill flex-align d-inline-flex gap-8 px-48"
+                                        [disabled]="producto.stock <= 0">
+                                        <i class="ph ph-shopping-cart"></i> 
+                                        {{ producto.stock <= 0 ? 'Sin Stock' : 'Agregar al Carrito' }}
+                                    </button>
+                                </div>
+
+                                <div class="flex-align gap-12 position-relative">
+                                    <!-- Botón de favoritos -->
+                                    <button
+                                        (click)="toggleFavorito()"
+                                        [class.bg-danger-600]="esFavorito"
+                                        [class.text-white]="esFavorito"
+                                        [class.bg-main-50]="!esFavorito"
+                                        [class.text-main-600]="!esFavorito"
+                                        class="w-52 h-52 text-xl hover-bg-danger-600 hover-text-white flex-center rounded-circle border-0 transition-2"
+                                        [title]="esFavorito ? 'Eliminar de favoritos' : 'Agregar a favoritos'">
+                                        <i [class.ph-fill]="esFavorito" [class.ph]="!esFavorito" class="ph-heart"></i>
+                                    </button>
+                                    
+                                    <!-- Botón de comparar (deshabilitado por ahora) -->
+                                    <button
+                                        disabled
+                                        class="w-52 h-52 bg-gray-100 text-gray-400 text-xl flex-center rounded-circle border-0"
+                                        title="Comparar (próximamente)">
+                                        <i class="ph ph-shuffle"></i>
+                                    </button>
+                                    
+                                    <!-- Botón de compartir -->
+                                    <button
+                                        (click)="compartirProducto()"
+                                        class="w-52 h-52 bg-main-50 text-main-600 text-xl hover-bg-main-600 hover-text-white flex-center rounded-circle border-0 transition-2"
+                                        title="Compartir producto">
+                                        <i class="ph ph-share-network"></i>
+                                    </button>
+
+                                    <!-- Mensaje flotante de "Enlace copiado" -->
+                                    <div *ngIf="compartirMensaje" 
+                                         class="position-absolute top-100 end-0 mt-8 bg-success-600 text-white px-12 py-6 rounded-8 text-sm fw-medium shadow-lg"
+                                         style="white-space: nowrap; z-index: 1000;">
+                                        <i class="ph ph-check-circle me-4"></i>
+                                        {{ compartirMensaje }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <span class="mt-32 pt-32 text-gray-700 border-top border-gray-100 d-block"></span>
+
+                            <!-- ✅ CUPONES DINÁMICOS SI EXISTEN -->
+                            <div
+                                class="flex-between gap-16 p-12 border border-main-two-600 border-dashed rounded-8 mb-16">
+                                <div class="flex-align gap-12">
+                                    <button type="button"
+                                        class="w-18 h-18 flex-center border border-gray-900 text-xs rounded-circle hover-bg-gray-100">
+                                        <i class="ph ph-plus"></i>
+                                    </button>
+                                    <span class="text-gray-900 fw-medium text-xs">Cupón de descuento disponible</span>
+                                </div>
+                                <a [routerLink]="['cart']"
+                                    class="text-xs fw-semibold text-main-two-600 text-decoration-underline hover-text-main-two-700">Ver
+                                    Detalles</a>
+                            </div>
+                            
+                            <!-- ✅ INFORMACIÓN ADICIONAL -->
+                            <ul class="list-inside ms-12">
+                                <li class="text-gray-900 text-sm mb-8">Envío gratis en compras mayores a S/ 100</li>
+                                <li class="text-gray-900 text-sm mb-0">Garantía de satisfacción</li>
+                            </ul>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3">
+                <div class="product-details__sidebar border border-gray-100 rounded-16 overflow-hidden bg-white">
+                    
+                    <!-- Envío gratis -->
+                    <div class="p-24 border-bottom border-gray-100">
+                        <div class="mb-16">
+                            <span class="text-warning-600 fw-semibold">Envío gratis</span>
+                            <span class="text-gray-900 ms-2">a todo el país</span>
+                        </div>
+                        <p class="text-gray-500 text-sm mb-12">Conocé los tiempos y las formas de envío.</p>
+                        <div class="d-flex flex-column gap-8">
+                            <a routerLink="/pasos-envio" class="text-main-600 text-sm fw-medium text-decoration-underline d-flex align-items-center gap-4">
+                                <i class="ph ph-truck"></i>
+                                Conocé nuestros pasos de envío
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Vendido por -->
+                    <div class="p-24 border-bottom border-gray-100">
+                        <div class="mb-8">
+                            <span class="text-gray-900">Vendido por&nbsp;</span>
+                            <span class="text-warning-600 fw-semibold">{{ nombreEmpresa }}</span>
+                        </div>
+                        <span class="text-gray-500 text-sm">+100 ventas</span>
+                    </div>
+
+                    <!-- Stock disponible -->
+                    <div class="p-24 border-bottom border-gray-100">
+                        <div class="d-flex align-items-center justify-content-between mb-12">
+                            <span class="text-gray-900 fw-semibold">Stock disponible</span>
+                            <img [src]="environment.apiUrl.replace('/api', '') + '/imagenes/logo - Magus.png'" [alt]="nombreEmpresa" style="height: 50px; max-width: 150px; object-fit: contain;">
+                        </div>
+                        <p class="text-gray-500 text-sm">Almacenado y enviado por {{ nombreEmpresa }}</p>
+                    </div>
+
+                    <!-- Cantidad -->
+                    <div class="p-24 border-bottom border-gray-100">
+                        <div class="mb-16">
+                            <span class="text-gray-900 fw-semibold">Cantidad: </span>
+                            <span class="text-gray-900">{{ cantidad }} unidad</span>
+                            <span class="text-gray-500 text-sm"> ({{ producto.stock }} disponibles)</span>
+                        </div>
+                        
+                        <!-- Botones de acción -->
+                        <div class="d-grid gap-12">
+                            <button 
+                                (click)="comprarAhora()"
+                                class="btn bg-danger-10 rounded-pill py-12 fw-semibold"
+                                [disabled]="producto.stock <= 0">
+                                {{ producto.stock <= 0 ? 'Sin Stock' : 'Comprar ahora' }}
+                            </button>
+                            <button 
+                                (click)="agregarAlCarrito()" 
+                                class="btn bg-danger-30 text-danger-20 rounded-pill py-12 fw-semibold"
+                                [disabled]="producto.stock <= 0">
+                                {{ producto.stock <= 0 ? 'Sin Stock' : 'Agregar al carrito' }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Características del servicio -->
+                    <div class="p-24">
+                        <!-- Devolución gratis -->
+                        <div class="d-flex align-items-start gap-12 mb-20">
+                            <i class="ph ph-arrow-u-up-left text-warning-600 text-xl mt-4"></i>
+                            <div>
+                                <span class="text-warning-600 fw-medium">Devolución gratis</span>
+                                <p class="text-gray-500 text-sm mb-0">Tienes 30 días desde que lo recibes</p>
+                            </div>
+                        </div>
+
+                        <!-- Vendedor confiable -->
+                        <div class="d-flex align-items-start gap-12 mb-20">
+                            <i class="ph ph-trophy text-warning-600 text-xl mt-4"></i>
+                            <div>
+                                <span class="text-warning-600 fw-medium">Vendedor confiable</span>
+                                <p class="text-gray-500 text-sm mb-0">100% calificaciones positivas</p>
+                            </div>
+                        </div>
+
+                        <!-- Compra protegida -->
+                        <div class="d-flex align-items-start gap-12 mb-20">
+                            <i class="ph ph-shield-check text-warning-600 text-xl mt-4"></i>
+                            <div>
+                                <span class="text-warning-600 fw-medium">Compra protegida</span>
+                            </div>
+                        </div>
+
+                        <!-- Garantía -->
+                        <div class="d-flex align-items-start gap-12">
+                            <i class="ph ph-clock text-gray-600 text-xl mt-4"></i>
+                            <div>
+                                <span class="text-gray-900 fw-medium">6 meses de garantía de fábrica.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formas de pago -->
+                <div class="product-details__sidebar border border-gray-100 rounded-16 overflow-hidden bg-white mt-24">
+                    <div class="p-24">
+                        <h6 class="text-gray-900 fw-semibold mb-20">Formas de pago</h6>
+                        
+                        <!-- Tarjetas de crédito -->
+                        <div class="mb-20">
+                            <p class="text-gray-900 fw-medium mb-12">Tarjetas de crédito</p>
+                            <div class="d-flex align-items-center gap-8 flex-wrap">
+                                <img src="assets/images/payment/PaymentLogo.png" alt="Visa" class="border rounded">
+                                <img src="assets/images/payment/express.png" alt="American Express" class="border rounded">
+                                <img src="assets/images/payment/mc.png" alt="Mastercard" class="border rounded">
+                            </div>
+                        </div>
+
+                        <!-- Tarjetas de débito -->
+                        <div class="mb-20">
+                            <p class="text-gray-900 fw-medium mb-12">Tarjetas de débito</p>
+                            <div class="d-flex align-items-center gap-8 flex-wrap">
+                                <img src="assets/images/payment/visaa.png" alt="Visa Débito" class="border rounded">
+                                <img src="assets/images/payment/MAE.png" alt="Maestro" class="border rounded">
+                                <img src="assets/images/payment/MC2.png" alt="Mastercard Débito" class="border rounded">
+                            </div>
+                        </div>
+
+                        <a href="#" class="text-warning-600 text-sm fw-medium text-decoration-underline">Conocé otros medios de pago</a>
+                    </div>
+                </div>
+
+                
+            </div>
+        </div>
+
+        <div class="pt-80">
+            <div class="product-dContent border rounded-24">
+                <div class="product-dContent__header border-bottom border-gray-100 flex-between flex-wrap gap-16">
+                    <ul class="nav common-tab nav-pills mb-3" id="pills-tab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="pills-description-tab" data-bs-toggle="pill"
+                                data-bs-target="#pills-description" type="button" role="tab"
+                                aria-controls="pills-description" aria-selected="true">Descripción</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="pills-reviews-tab" data-bs-toggle="pill"
+                                data-bs-target="#pills-reviews" type="button" role="tab" aria-controls="pills-reviews"
+                                aria-selected="false">Opiniones</button>
+                        </li>
+                    </ul>
+                    <a href="#"
+                        class="btn bg-color-one rounded-16 flex-align gap-8 text-main-600 hover-bg-main-600 hover-text-white">
+                        <img src="assets/images/icon/satisfaction-icon.png" alt="">
+                       100% satisfacción garantizada
+                    </a>
+                </div>
+                <div class="product-dContent__box">
+                    <div class="tab-content" id="pills-tabContent">
+                        <div class="tab-pane fade show active" id="pills-description" role="tabpanel"
+                            aria-labelledby="pills-description-tab" tabindex="0">
+                            <div class="mb-40">
+                                <h6 class="mb-24">Descripción del producto</h6>
+                                <div [innerHTML]="safeDescripcionDetallada"></div> <!-- ✅ Usa la nueva propiedad -->
+                            </div>
+                            
+                            <!-- ✅ ESPECIFICACIONES DINÁMICAS -->
+                            <div class="mb-40" *ngIf="getEspecificaciones().length > 0">
+                                <h6 class="mb-24">Especificaciones del producto</h6>
+                                <ul class="mt-32">
+                                    <li *ngFor="let spec of getEspecificaciones()" class="text-gray-400 mb-14 flex-align gap-14">
+                                        <span
+                                            class="w-20 h-20 bg-main-50 text-main-600 text-xs flex-center rounded-circle">
+                                            <i class="ph ph-check"></i>
+                                        </span>
+                                        <span class="text-heading fw-medium">
+                                            {{ spec.nombre }}:
+                                            <span class="text-gray-500"> {{ spec.valor }}</span>
+                                        </span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <!-- ✅ CARACTERÍSTICAS TÉCNICAS DINÁMICAS -->
+                            <div class="mb-40" *ngIf="getCaracteristicasTecnicas().length > 0">
+                                <h6 class="mb-24">Características técnicas</h6>
+                                <ul class="mt-32">
+                                    <li *ngFor="let caracteristica of getCaracteristicasTecnicas()" class="text-gray-400 mb-14 flex-align gap-14">
+                                        <span
+                                            class="w-20 h-20 bg-main-50 text-main-600 text-xs flex-center rounded-circle">
+                                            <i class="ph ph-check"></i>
+                                        </span>
+                                        <span class="text-heading fw-medium">
+                                            {{ caracteristica.caracteristica }}:
+                                            <span class="text-gray-500"> {{ caracteristica.detalle }}</span>
+                                        </span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <!-- ✅ INSTRUCCIONES DE USO -->
+                            <div class="mb-0" *ngIf="detalles?.instrucciones_uso">
+                                <h6 class="mb-24">Instrucciones de uso</h6>
+                                <p class="text-gray-700">{{ detalles.instrucciones_uso }}</p>
+                            </div>
+
+                        </div>
+                        <div class="tab-pane fade" id="pills-reviews" role="tabpanel"
+                            aria-labelledby="pills-reviews-tab" tabindex="0">
+                            <div class="row g-4">
+                                <div class="col-lg-6">
+                                    <h6 class="mb-24">Reseñas del producto</h6>
+                                    <div
+                                        class="d-flex align-items-start gap-24 pb-44 border-bottom border-gray-100 mb-44">
+                                        <img src="assets/images/thumbs/comment-img1.png" alt=""
+                                            class="w-52 h-52 object-fit-cover rounded-circle flex-shrink-0">
+                                        <div class="flex-grow-1">
+                                            <div class="flex-between align-items-start gap-8 ">
+                                                <div class="">
+                                                    <h6 class="mb-12 text-md">Usuario Verificado</h6>
+                                                    <div class="flex-align gap-8">
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                    </div>
+                                                </div>
+                                                <span class="text-gray-800 text-xs">Hace 3 días</span>
+                                            </div>
+                                            <h6 class="mb-14 text-md mt-24">Excelente Producto</h6>
+                                            <p class="text-gray-700">Muy buena calidad y llegó en perfecto estado. Lo recomiendo totalmente.</p>
+
+                                            <div class="flex-align gap-20 mt-44">
+                                                <button class="flex-align gap-12 text-gray-700 hover-text-main-600">
+                                                    <i class="ph-bold ph-thumbs-up"></i>
+                                                    Me gusta
+                                                </button>
+                                                <a href="#comment-form"
+                                                    class="flex-align gap-12 text-gray-700 hover-text-main-600">
+                                                    <i class="ph-bold ph-arrow-bend-up-left"></i>
+                                                    Responder
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-56">
+                                        <div class="">
+                                            <h6 class="mb-24">Escribir una reseña</h6>
+                                            <span class="text-heading mb-8">¿Qué te parece el producto?</span>
+                                            <div class="flex-align gap-8">
+                                                <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                        class="ph-fill ph-star"></i></span>
+                                                <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                        class="ph-fill ph-star"></i></span>
+                                                <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                        class="ph-fill ph-star"></i></span>
+                                                <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                        class="ph-fill ph-star"></i></span>
+                                                <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                        class="ph-fill ph-star"></i></span>
+                                            </div>
+                                        </div>
+                                        <div class="mt-32">
+                                            <form action="#">
+                                                <div class="mb-32">
+                                                    <label for="title" class="text-neutral-600 mb-8">Título de la reseña</label>
+                                                    <input type="text" class="common-input rounded-8" id="title"
+                                                        placeholder="Excelente producto">
+                                                </div>
+                                                <div class="mb-32">
+                                                    <label for="desc" class="text-neutral-600 mb-8">Contenido de la reseña</label>
+                                                    <textarea class="common-input rounded-8"
+                                                        id="desc">Escribe tu opinión sobre el producto...</textarea>
+                                                </div>
+                                                <button type="submit" class="btn btn-main rounded-pill mt-48">Enviar
+                                                    Reseña</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="ms-xxl-5">
+                                        <h6 class="mb-24">Comentarios de clientes</h6>
+                                        <div class="d-flex flex-wrap gap-44">
+                                            <div
+                                                class="border border-gray-100 rounded-8 px-40 py-52 flex-center flex-column flex-shrink-0 text-center">
+                                                <h2 class="mb-6 text-main-600">4.8</h2>
+                                                <div class="flex-center gap-8">
+                                                    <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                            class="ph-fill ph-star"></i></span>
+                                                    <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                            class="ph-fill ph-star"></i></span>
+                                                    <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                            class="ph-fill ph-star"></i></span>
+                                                    <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                            class="ph-fill ph-star"></i></span>
+                                                    <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                            class="ph-fill ph-star"></i></span>
+                                                </div>
+                                                <span class="mt-16 text-gray-500">Calificación promedio</span>
+                                            </div>
+                                            <div class="border border-gray-100 rounded-8 px-24 py-40 flex-grow-1">
+                                                <div class="flex-align gap-8 mb-20">
+                                                    <span class="text-gray-900 flex-shrink-0">5</span>
+                                                    <div class="progress w-100 bg-gray-100 rounded-pill h-8"
+                                                        role="progressbar" aria-label="Basic example" aria-valuenow="70"
+                                                        aria-valuemin="0" aria-valuemax="100">
+                                                        <div class="progress-bar bg-main-600 rounded-pill"
+                                                            style="width: 70%"></div>
+                                                    </div>
+                                                    <div class="flex-align gap-4">
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                    </div>
+                                                    <span class="text-gray-900 flex-shrink-0">124</span>
+                                                </div>
+                                                <div class="flex-align gap-8 mb-20">
+                                                    <span class="text-gray-900 flex-shrink-0">4</span>
+                                                    <div class="progress w-100 bg-gray-100 rounded-pill h-8"
+                                                        role="progressbar" aria-label="Basic example" aria-valuenow="50"
+                                                        aria-valuemin="0" aria-valuemax="100">
+                                                        <div class="progress-bar bg-main-600 rounded-pill"
+                                                            style="width: 50%"></div>
+                                                    </div>
+                                                    <div class="flex-align gap-4">
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                    </div>
+                                                    <span class="text-gray-900 flex-shrink-0">52</span>
+                                                </div>
+                                                <div class="flex-align gap-8 mb-20">
+                                                    <span class="text-gray-900 flex-shrink-0">3</span>
+                                                    <div class="progress w-100 bg-gray-100 rounded-pill h-8"
+                                                        role="progressbar" aria-label="Basic example" aria-valuenow="35"
+                                                        aria-valuemin="0" aria-valuemax="100">
+                                                        <div class="progress-bar bg-main-600 rounded-pill"
+                                                            style="width: 35%"></div>
+                                                    </div>
+                                                    <div class="flex-align gap-4">
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                    </div>
+                                                    <span class="text-gray-900 flex-shrink-0">12</span>
+                                                </div>
+                                                <div class="flex-align gap-8 mb-20">
+                                                    <span class="text-gray-900 flex-shrink-0">2</span>
+                                                    <div class="progress w-100 bg-gray-100 rounded-pill h-8"
+                                                        role="progressbar" aria-label="Basic example" aria-valuenow="20"
+                                                        aria-valuemin="0" aria-valuemax="100">
+                                                        <div class="progress-bar bg-main-600 rounded-pill"
+                                                            style="width: 20%"></div>
+                                                    </div>
+                                                    <div class="flex-align gap-4">
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                    </div>
+                                                    <span class="text-gray-900 flex-shrink-0">5</span>
+                                                </div>
+                                                <div class="flex-align gap-8 mb-0">
+                                                    <span class="text-gray-900 flex-shrink-0">1</span>
+                                                    <div class="progress w-100 bg-gray-100 rounded-pill h-8"
+                                                        role="progressbar" aria-label="Basic example" aria-valuenow="5"
+                                                        aria-valuemin="0" aria-valuemax="100">
+                                                        <div class="progress-bar bg-main-600 rounded-pill"
+                                                            style="width: 5%"></div>
+                                                    </div>
+                                                    <div class="flex-align gap-4">
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                        <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                                                class="ph-fill ph-star"></i></span>
+                                                    </div>
+                                                    <span class="text-gray-900 flex-shrink-0">2</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Modal de Video -->
+<div *ngIf="showVideoModal" class="video-modal-overlay" (click)="cerrarVideoModal()">
+    <div class="video-modal-container" (click)="$event.stopPropagation()">
+        <div class="video-modal-header">
+            <h5 class="video-modal-title">
+                <i class="ph ph-video me-2"></i>
+                Video Demostrativo - {{ producto?.nombre }}
+            </h5>
+            <button class="video-modal-close" (click)="cerrarVideoModal()">
+                <i class="ph ph-x"></i>
+            </button>
+        </div>
+        <div class="video-modal-body">
+            <iframe
+                [src]="getVideoEmbedUrl(currentVideoUrl) | trustUrl"
+                frameborder="0"
+                allowfullscreen
+                class="video-modal-iframe">
+            </iframe>
+        </div>
+    </div>
+</div>
+
+<!-- ========================== Similar Product Start ============================= -->
+<section class="new-arrival pb-80" *ngIf="productosRelacionados.length > 0">
+    <div class="container container-lg">
+        <div class="section-heading">
+            <div class="flex-between flex-wrap gap-8">
+                <h5 class="mb-0">También te puede interesar</h5>
+                <div class="flex-align gap-16">
+                    <a [routerLink]="['shop']"
+                        class="text-sm fw-medium text-gray-700 hover-text-main-600 hover-text-decoration-underline">Todos los
+                        Productos</a>
+                    <div class="flex-align gap-8">
+                        <button type="button" id="new-arrival-prev"
+                            class="slick-prev slick-arrow flex-center rounded-circle border border-gray-100 hover-border-main-600 text-xl hover-bg-main-600 hover-text-white transition-1">
+                            <i class="ph ph-caret-left"></i>
+                        </button>
+                        <button type="button" id="new-arrival-next"
+                            class="slick-next slick-arrow flex-center rounded-circle border border-gray-100 hover-border-main-600 text-xl hover-bg-main-600 hover-text-white transition-1">
+                            <i class="ph ph-caret-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <ngx-slick-carousel #slickModal="slick-carousel" class="product-one-slider g-12" [config]="arrivalSlider">
+            <div ngxSlickItem *ngFor="let product of productosRelacionados" class="slide">
+                <div class="" [attr.data-aos]="'fade-up'" [attr.data-aos-duration]="200">
+                    <div
+                        class="product-card px-20 py-16 border border-gray-100 hover-border-main-600 rounded-16 position-relative transition-2">
+
+                        <button
+                            (click)="agregarProductoRelacionado(product)"
+                            class="product-card__cart btn bg-main-50 text-main-600 hover-bg-main-600 hover-text-white py-11 px-24 rounded-pill flex-align gap-8 position-absolute inset-block-start-0 inset-inline-end-0 me-16 mt-16">
+                            Agregar <i class="ph ph-shopping-cart"></i>
+                        </button>
+
+                        <a href="javascript:void(0)" (click)="navegarAProducto(product, $event)" class="product-card__thumb flex-center overflow-hidden" style="cursor: pointer">
+                            <img [src]="product.imagen_url || product.imagen" [alt]="product.nombre" (error)="onImageError($event)">
+                        </a>
+
+                        <div class="product-card__content mt-12">
+                            <div class="product-card__price mb-8 d-flex align-items-center gap-8">
+                                <span class="text-heading text-md fw-semibold">S/ {{ product.precio_venta | number:'1.2-2' }}
+                                  <span class="text-gray-500 fw-normal">/Qty</span>
+                                </span>
+                                <span *ngIf="product.precio_oferta" class="text-gray-400 text-md fw-semibold text-decoration-line-through">
+                                  S/ {{ product.precio_oferta | number:'1.2-2' }}
+                                </span>
+                            </div>
+
+                            <div class="flex-align gap-6">
+                                <span class="text-xs fw-bold text-gray-600">4.8</span>
+                                <span class="text-15 fw-bold text-warning-600 d-flex"><i
+                                        class="ph-fill ph-star"></i></span>
+                                <span class="text-xs fw-bold text-gray-600">(17k)</span>
+                            </div>
+
+                            <h6 class="title text-lg fw-semibold mt-12 mb-20">
+                                <a href="javascript:void(0)" (click)="navegarAProducto(product, $event)" class="link text-line-2" style="cursor: pointer">{{ product.nombre }}</a>
+                            </h6>
+
+                            <div class="mt-12">
+                                <div class="progress w-100 bg-color-three rounded-pill h-4" role="progressbar"
+                                    [attr.aria-valuenow]="(product.stock / (product.stock + 50)) * 100" aria-valuemin="0"
+                                    aria-valuemax="100">
+                                    <div class="progress-bar bg-main-600 rounded-pill"
+                                        [style.width.%]="(product.stock / (product.stock + 50)) * 100"></div>
+                                </div>
+                                <span class="text-gray-900 text-xs fw-medium mt-8 d-block">
+                                    Stock: {{ product.stock }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </ngx-slick-carousel>
+    </div>
+</section>
+<!-- ========================== Similar Product End ============================= -->
+
+<!-- ========================== Shipping Section Start ============================ -->
+<app-shipping></app-shipping>
+
+<!-- ========================== Shipping Section End ============================ -->
+
+<!-- =============================== Newsletter Section Start ============================ -->
+<!-- <div class="newsletter">
+    <div class="container container-lg">
+        <div class="newsletter-box position-relative rounded-16 flex-align gap-16 flex-wrap z-1">
+            <img src="assets/images/bg/newsletter-bg.png" alt=""
+                class="position-absolute inset-block-start-0 inset-inline-start-0 z-n1 w-100 h-100 opacity-6">
+            <div class="row align-items-center">
+                <div class="col-xl-6">
+                    <div class="">
+                        <h1 class="text-white mb-12" data-aos="fade-down" data-aos-duration="800">No te pierdas las ofertas</h1>
+                        <p class="text-white h5 mb-0" data-aos="fade-up" data-aos-duration="800">SUSCRÍBETE PARA RECIBIR ACTUALIZACIONES</p>
+                        <form action="#" class="position-relative mt-40" data-aos="zoom-in" data-aos-duration="800">
+                            <input type="email"
+                                class="form-control common-input rounded-pill text-white py-22 px-16 pe-144"
+                                placeholder="Tu dirección de email...">
+                            <button type="submit"
+                                class="btn btn-main-two rounded-pill position-absolute top-50 translate-middle-y inset-inline-end-0 me-10">Suscribirse
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-xl-6 text-center d-xl-block d-none">
+                    <img src="assets/images/thumbs/newsletter-img.png" alt="" data-aos="zoom-in"
+                        data-aos-duration="800">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> -->
+<!-- =============================== Newsletter Section End ============================ -->

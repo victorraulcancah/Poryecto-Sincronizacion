@@ -1,0 +1,535 @@
+<div class="container-fluid py-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-10 col-xl-8">
+      <div class="card shadow-lg border-0">
+        <div class="card-header bg-primary text-white py-3">
+          <h4 class="mb-0">
+            <i class="fas fa-user-plus me-2"></i>
+            Registro de Usuario
+          </h4>
+        </div>
+        
+        <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="card-body">
+          
+          <!-- SECCIÓN: Datos Base -->
+          <div class="section-divider mb-4 mt-5 pt-2">
+            <h5 class="section-title" style="margin-top: 0px;">
+              <i class="fas fa-lock text-primary me-2"></i>
+              Datos de Inicio de Sesión
+            </h5>
+          </div>
+          
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label for="name" class="form-label">
+                Nombre de Usuario <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-user"></i>
+                </span>
+                <input 
+                  type="text" 
+                  class="form-control"
+                  [class.is-invalid]="isFieldInvalid('name')"
+                  id="name" 
+                  formControlName="name"
+                  placeholder="Ingrese nombre de usuario">
+              </div>
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('name')">
+                {{ getFieldError('name') }}
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <label for="email" class="form-label">
+                Email <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-envelope"></i>
+                </span>
+                <input 
+                  type="email" 
+                  class="form-control"
+                  [class.is-invalid]="isFieldInvalid('email')"
+                  id="email" 
+                  formControlName="email"
+                  placeholder="correo@ejemplo.com">
+              </div>
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('email')">
+                {{ getFieldError('email') }}
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <label for="password" class="form-label">
+                Contraseña <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-key"></i>
+                </span>
+                <input 
+                  type="password" 
+                  class="form-control"
+                  [class.is-invalid]="isFieldInvalid('password')"
+                  id="password" 
+                  formControlName="password"
+                  placeholder="Mínimo 8 caracteres">
+              </div>
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('password')">
+                {{ getFieldError('password') }}
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <label for="confirmPassword" class="form-label">
+                Confirmar Contraseña <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-key"></i>
+                </span>
+                <input 
+                  type="password" 
+                  class="form-control"
+                  [class.is-invalid]="isFieldInvalid('confirmPassword')"
+                  id="confirmPassword" 
+                  formControlName="confirmPassword"
+                  placeholder="Repita la contraseña">
+              </div>
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('confirmPassword')">
+                {{ getFieldError('confirmPassword') }}
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <label for="role" class="form-label">
+                Rol <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-user-tag"></i>
+                </span>
+                <select 
+                  class="form-select"
+                  [class.is-invalid]="isFieldInvalid('role')"
+                  id="role" 
+                  formControlName="role">
+                  <option value="">Seleccione un rol</option>
+                  <option *ngFor="let role of roles" [value]="role.name">
+                    {{ role.name }} <!-- ← Ahora usa 'name' y envía el nombre como value -->
+                  </option>
+                </select>
+              </div>
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('role')">
+                {{ getFieldError('role') }}
+              </div>
+            </div>
+          </div>
+
+          <!-- SECCIÓN: Datos del Perfil -->
+          <div class="section-divider mb-4 mt-5 pt-2">
+            <h5 class="section-title">
+              <i class="fas fa-id-card text-success me-2"></i>
+              Datos del Perfil
+            </h5>
+          </div>
+          
+          <div class="row g-3 mb-4">
+
+            <div class="col-md-6">
+            <label for="document_number" class="form-label">
+              Número de Documento <span class="text-danger">*</span>
+            </label>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fas fa-id-card"></i>
+              </span>
+              <input 
+                type="text" 
+                class="form-control"
+                [class.is-invalid]="isFieldInvalid('document_number')"
+                id="document_number" 
+                formControlName="document_number"
+                placeholder="12345678">
+              <button 
+                type="button" 
+                class="btn btn-outline-primary"
+                [disabled]="isSearchingReniec || !userForm.get('document_number')?.value"
+                (click)="buscarEnReniec()"
+                title="Buscar en RENIEC">
+                <i 
+                  class="fas fa-search" 
+                  [class.fa-spin]="isSearchingReniec"
+                  style="color: #007bff;" 
+                ></i>
+              </button>
+            </div>
+            <div class="invalid-feedback" *ngIf="isFieldInvalid('document_number')">
+              {{ getFieldError('document_number') }}
+            </div>
+          </div>
+
+          <div class="col-md-6">
+              <label for="document_type" class="form-label">
+                Tipo de Documento <span class="text-danger">*</span>
+              </label>
+              <select 
+                class="form-select"
+                [class.is-invalid]="isFieldInvalid('document_type')"
+                id="document_type" 
+                formControlName="document_type">
+                <option value="">Seleccione tipo</option>
+                <option *ngFor="let docType of documentTypes" [value]="docType.id">
+                  {{ docType.nombre }}
+                </option>
+              </select>
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('document_type')">
+                {{ getFieldError('document_type') }}
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <label for="first_name" class="form-label">
+                Nombres <span class="text-danger">*</span>
+              </label>
+              <input 
+                type="text" 
+                class="form-control"
+                [class.is-invalid]="isFieldInvalid('first_name')"
+                id="first_name" 
+                formControlName="first_name"
+                placeholder="Nombres">
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('first_name')">
+                {{ getFieldError('first_name') }}
+              </div>
+            </div>
+            
+            <div class="col-md-4">
+              <label for="apellido_paterno" class="form-label">
+                Apellido Paterno <span class="text-danger">*</span>
+              </label>
+              <input 
+                type="text" 
+                class="form-control"
+                [class.is-invalid]="isFieldInvalid('apellido_paterno')"
+                id="apellido_paterno" 
+                formControlName="apellido_paterno"
+                placeholder="Apellido Paterno">
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('apellido_paterno')">
+                {{ getFieldError('apellido_paterno') }}
+              </div>
+            </div>
+            
+            <div class="col-md-4">
+              <label for="apellido_materno" class="form-label">
+                Apellido Materno
+              </label>
+              <input 
+                type="text" 
+                class="form-control"
+                id="apellido_materno" 
+                formControlName="apellido_materno"
+                placeholder="Apellido Materno">
+            </div>
+            
+            <div class="col-md-6">
+              <label for="phone" class="form-label">
+                Teléfono <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-phone"></i>
+                </span>
+                <input 
+                  type="tel" 
+                  class="form-control"
+                  [class.is-invalid]="isFieldInvalid('phone')"
+                  id="phone" 
+                  formControlName="phone"
+                  placeholder="987654321">
+              </div>
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('phone')">
+                {{ getFieldError('phone') }}
+              </div>
+            </div>
+            
+            
+            <div class="col-md-6">
+              <label for="birth_date" class="form-label">
+                Fecha de Nacimiento <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-calendar"></i>
+                </span>
+                <input 
+                  type="date" 
+                  class="form-control"
+                  [class.is-invalid]="isFieldInvalid('birth_date')"
+                  id="birth_date" 
+                  formControlName="birth_date">
+              </div>
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('birth_date')">
+                {{ getFieldError('birth_date') }}
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <label for="gender" class="form-label">
+                Género <span class="text-danger">*</span>
+              </label>
+              <select 
+                class="form-select"
+                [class.is-invalid]="isFieldInvalid('gender')"
+                id="gender" 
+                formControlName="gender">
+                <option value="">Seleccione género</option>
+                <option *ngFor="let gender of genders" [value]="gender.id">
+                  {{ gender.name }}
+                </option>
+              </select>
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('gender')">
+                {{ getFieldError('gender') }}
+              </div>
+            </div>
+            
+            <!-- Avatar Upload -->
+            <div class="col-12">
+              <label for="avatar" class="form-label">
+                Avatar/Foto de Perfil
+              </label>
+              <div class="row">
+                <div class="col-md-8">
+                  <input 
+                    type="file" 
+                    class="form-control"
+                    id="avatar" 
+                    accept="image/*"
+                    (change)="onFileSelected($event)">
+                  <div class="form-text">
+                    Formatos soportados: JPG, PNG, GIF. Tamaño máximo: 2MB
+                  </div>
+                </div>
+                <div class="col-md-4" *ngIf="previewUrl">
+                  <div class="text-center">
+                    <img [src]="previewUrl" class="img-thumbnail avatar-preview" alt="Preview">
+                    <br>
+                    <button type="button" class="btn btn-sm btn-outline-danger mt-2" (click)="removeImage()">
+                      <i class="fas fa-trash"></i> Eliminar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECCIÓN: Direcciones -->
+          <div class="section-divider mb-4 mt-5 pt-2">
+            <h5 class="section-title">
+              <i class="fas fa-map-marker-alt text-info me-2"></i>
+              Direcciones
+            </h5>
+          </div>
+
+          <div formArrayName="addresses">
+            <div *ngFor="let address of addresses.controls; let i = index" 
+                 [formGroupName]="i" 
+                 class="address-card mb-4">
+              
+              <div class="card border-light">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                  <h6 class="mb-0">
+                    <i class="fas fa-home me-2"></i>
+                    Dirección {{ i + 1 }}
+                  </h6>
+                  <div class="btn-group" role="group">
+                    <button 
+                      type="button" 
+                      class="btn btn-sm btn-outline-success"
+                      *ngIf="i === addresses.length - 1"
+                      (click)="addAddress()">
+                      <i class="fas fa-plus"></i>
+                    </button>
+                    <button 
+                      type="button" 
+                      class="btn btn-sm btn-outline-danger"
+                      *ngIf="addresses.length > 1"
+                      (click)="removeAddress(i)">
+                      <i class="fas fa-minus"></i>
+                    </button>
+                  </div>
+                </div>
+                
+                <div class="card-body">
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label">
+                        Etiqueta <span class="text-danger">*</span>
+                      </label>
+                      <div class="input-group">
+                        <span class="input-group-text">
+                          <i class="fas fa-tag"></i>
+                        </span>
+                        <input 
+                          type="text" 
+                          class="form-control"
+                          [class.is-invalid]="isAddressFieldInvalid(i, 'label')"
+                          formControlName="label"
+                          placeholder="Ej: Casa, Oficina">
+                      </div>
+                    </div>
+
+                    <div class="col-12">
+                      <label class="form-label">
+                        Detalle de Dirección <span class="text-danger">*</span>
+                      </label>
+                      <div class="input-group">
+                        <span class="input-group-text">
+                          <i class="fas fa-map-marker-alt"></i>
+                        </span>
+                        <input 
+                          type="text" 
+                          class="form-control"
+                          [class.is-invalid]="isAddressFieldInvalid(i, 'detalle_direccion')"
+                          formControlName="detalle_direccion"
+                          placeholder="Ej: Av. Los Libertadores 123, Urbanización San Miguel, Casa 5">
+                      </div>
+                      <div class="invalid-feedback" *ngIf="isAddressFieldInvalid(i, 'detalle_direccion')">
+                        {{ getAddressFieldError(i, 'detalle_direccion') }}
+                      </div>
+                    </div>
+                    
+                   <div class="col-md-4">
+                      <label class="form-label">
+                        Departamento <span class="text-danger">*</span>
+                      </label>
+                      <select 
+                        class="form-select"
+                        [class.is-invalid]="isAddressFieldInvalid(i, 'department')"
+                        formControlName="department"
+                        (change)="onDepartmentChange($event, i)">
+                        <option value="">Seleccionar</option>
+                        <option *ngFor="let department of departments" [value]="department.id_ubigeo">
+                          {{ department.nombre }}
+                        </option>
+                      </select>
+                    </div>
+
+                    <div class="col-md-4">
+                      <label class="form-label">
+                        Provincia <span class="text-danger">*</span>
+                      </label>
+                      <select 
+                        class="form-select"
+                        [class.is-invalid]="isAddressFieldInvalid(i, 'province')"
+                        formControlName="province"
+                        (change)="onProvinceChange($event, i)">
+                        <option value="">Seleccionar</option>
+                        <option *ngFor="let province of getProvincesForAddress(i)" [value]="province.id_ubigeo">
+                          {{ province.nombre }}
+                        </option>
+                      </select>
+                    </div>
+
+                    <div class="col-md-4">
+                      <label class="form-label">
+                        Distrito <span class="text-danger">*</span>
+                      </label>
+                      <select 
+                        class="form-select"
+                        [class.is-invalid]="isAddressFieldInvalid(i, 'district')"
+                        formControlName="district">
+                        <option value="">Seleccionar</option>
+                        <option *ngFor="let district of getDistrictsForAddress(i)" [value]="district.id_ubigeo">
+                          {{ district.nombre }}
+                        </option>
+                      </select>
+                    </div>
+
+                    <div class="invalid-feedback" *ngIf="isAddressFieldInvalid(i, 'district')">
+                      {{ getAddressFieldError(i, 'district') }}
+                    </div>
+                    
+                    <div class="col-md-6">
+                      <label class="form-label">Código Postal</label>
+                      <div class="input-group">
+                        <span class="input-group-text">
+                          <i class="fas fa-mail-bulk"></i>
+                        </span>
+                        <input 
+                          type="text" 
+                          class="form-control"
+                          formControlName="postal_code"
+                          placeholder="15001">
+                      </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                      <label class="form-label">
+                        País <span class="text-danger">*</span>
+                      </label>
+                      <select 
+                        class="form-select"
+                        [class.is-invalid]="isAddressFieldInvalid(i, 'country')"
+                        formControlName="country">
+                        <option value="">Seleccione país</option>
+                        <option *ngFor="let country of countries" [value]="country.id">
+                          {{ country.name }}
+                        </option>
+                      </select>
+                    </div>
+                    
+                    <div class="col-12">
+                      <div class="form-check">
+                        <input 
+                          class="form-check-input" 
+                          type="checkbox" 
+                          formControlName="is_default"
+                          [id]="'is_default_' + i"
+                          (change)="onDefaultAddressChange(i)">
+                        <label class="form-check-label" [for]="'is_default_' + i">
+                          <i class="fas fa-star text-warning me-1"></i>
+                          Dirección principal
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Botones de Acción -->
+          <div class="row mt-4 mt-5 pt-2">
+            <div class="col-12">
+              <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <button type="button" class="btn btn-outline-secondary btn-lg me-md-2" (click)="irListaUsuarios()">
+                    <i class="fas fa-times me-2"></i> Cancelar
+                </button>
+                <button 
+                  type="submit" 
+                  class="btn btn-primary btn-lg"
+                  >
+                  <i class="fas fa-save me-2"></i>
+                  Registrar Usuario
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Debug Info (Solo para desarrollo - Eliminar en producción) -->
+          <div class="mt-4 p-3 bg-light rounded" *ngIf="false">
+            <h6>Debug Info:</h6>
+            <p><strong>Form Valid:</strong> {{ userForm.valid }}</p>
+            <p><strong>Form Value:</strong></p>
+            <pre>{{ userForm.value | json }}</pre>
+          </div>
+          
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

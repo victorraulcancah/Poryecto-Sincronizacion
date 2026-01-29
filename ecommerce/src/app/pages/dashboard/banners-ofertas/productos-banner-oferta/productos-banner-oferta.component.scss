@@ -1,0 +1,36 @@
+.producto-item {
+  border: 1px solid #E5E7EB;
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #F9FAFB;
+    border-color: #3B82F6;
+  }
+
+  &.selected {
+    background-color: #EFF6FF;
+    border-color: #3B82F6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+}
+
+.productos-list {
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #F3F4F6;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #D1D5DB;
+    border-radius: 4px;
+
+    &:hover {
+      background: #9CA3AF;
+    }
+  }
+}

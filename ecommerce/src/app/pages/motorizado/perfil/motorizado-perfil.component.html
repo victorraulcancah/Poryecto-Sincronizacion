@@ -1,0 +1,189 @@
+  <div class="perfil-container">
+      <!-- Header -->
+      <div class="page-header">
+        <div class="header-content">
+          <h1>
+            <i class="fas fa-user"></i>
+            Mi Perfil
+          </h1>
+          <button class="btn btn-back" routerLink="/motorizado/dashboard">
+            <i class="fas fa-arrow-left"></i>
+            Volver al Dashboard
+          </button>
+        </div>
+      </div>
+
+      <!-- Perfil Card -->
+      <div class="profile-card">
+        <div class="profile-header">
+          <div class="avatar">
+            <i class="fas fa-motorcycle"></i>
+          </div>
+          <div class="profile-info">
+            <h2>{{currentUser?.name}}</h2>
+            <p class="unit-badge">{{currentUser?.numero_unidad}}</p>
+            <p class="email">{{currentUser?.email}}</p>
+          </div>
+          <div class="profile-status">
+            <span class="status-badge online">
+              <i class="fas fa-circle"></i>
+              En línea
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon total">
+            <i class="fas fa-box"></i>
+          </div>
+          <div class="stat-content">
+            <h3>{{estadisticas.total_entregas || 0}}</h3>
+            <p>Total Entregas</p>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon rating">
+            <i class="fas fa-star"></i>
+          </div>
+          <div class="stat-content">
+            <h3>{{estadisticas.calificacion || '4.8'}}</h3>
+            <p>Calificación</p>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon time">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div class="stat-content">
+            <h3>{{estadisticas.tiempo_promedio || '25'}} min</h3>
+            <p>Tiempo Promedio</p>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon money">
+            <i class="fas fa-coins"></i>
+          </div>
+          <div class="stat-content">
+            <h3>S/ {{estadisticas.ganancias_mes || '1,250'}}</h3>
+            <p>Este Mes</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Información Detallada -->
+      <div class="details-section">
+        <div class="detail-card">
+          <h3>
+            <i class="fas fa-user-circle"></i>
+            Información Personal
+          </h3>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="label">Nombre Completo:</span>
+              <span class="value">{{motorizadoData?.nombre_completo || currentUser?.name}}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Correo Electrónico:</span>
+              <span class="value">{{currentUser?.email}}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Teléfono:</span>
+              <span class="value">{{motorizadoData?.telefono || 'No registrado'}}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Número de Unidad:</span>
+              <span class="value">{{currentUser?.numero_unidad}}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Documento:</span>
+              <span class="value">{{motorizadoData?.tipo_documento}} - {{motorizadoData?.numero_documento}}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Usuario de Sistema:</span>
+              <span class="value">{{currentUser?.username}}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <h3>
+            <i class="fas fa-motorcycle"></i>
+            Información del Vehículo
+          </h3>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="label">Marca y Modelo:</span>
+              <span class="value">{{motorizadoData?.vehiculo_marca}} {{motorizadoData?.vehiculo_modelo}}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Año:</span>
+              <span class="value">{{motorizadoData?.vehiculo_ano}}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Placa:</span>
+              <span class="value">{{motorizadoData?.vehiculo_placa}}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Cilindraje:</span>
+              <span class="value">{{motorizadoData?.vehiculo_cilindraje}}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Color:</span>
+              <span class="value">{{motorizadoData?.vehiculo_color_principal}} {{motorizadoData?.vehiculo_color_secundario ? '/ ' + motorizadoData?.vehiculo_color_secundario : ''}}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <h3>
+            <i class="fas fa-id-card"></i>
+            Licencia de Conducir
+          </h3>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="label">Número de Licencia:</span>
+              <span class="value">{{motorizadoData?.licencia_numero}}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Categoría:</span>
+              <span class="value">{{motorizadoData?.licencia_categoria}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Historial Reciente -->
+      <div class="history-section">
+        <h3>
+          <i class="fas fa-history"></i>
+          Entregas Recientes
+        </h3>
+        <div class="history-list">
+          <div class="history-item" *ngFor="let entrega of historialReciente">
+            <div class="history-info">
+              <div class="history-header">
+                <span class="pedido-number">Pedido #{{entrega.numero}}</span>
+                <span class="history-date">{{entrega.fecha | date:'dd/MM/yyyy HH:mm'}}</span>
+              </div>
+              <div class="history-details">
+                <span class="cliente">{{entrega.cliente}}</span>
+                <span class="direccion">{{entrega.direccion}}</span>
+              </div>
+            </div>
+            <div class="history-status">
+              <span class="status-badge success">
+                <i class="fas fa-check"></i>
+                Entregado
+              </span>
+              <span class="amount">S/ {{entrega.total}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>

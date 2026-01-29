@@ -1,0 +1,247 @@
+<div class="position-fixed" style="bottom: 160px; right: 25px; z-index: 1050;">
+  <!-- Botón principal redondo -->
+  <div 
+    class="btn d-flex align-items-center justify-content-center shadow cursor-pointer transition-3"
+    (click)="toggleExpansion()"
+    style="
+      background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); 
+      border: none; 
+      border-radius: 50%;
+      width: 60px; 
+      height: 60px;
+      box-shadow: 0 8px 25px rgba(37, 211, 102, 0.4);
+    "
+    onmouseover="
+      this.style.transform='scale(1.1) translateY(-2px)'; 
+      this.style.boxShadow='0 12px 35px rgba(37, 211, 102, 0.5)';
+    "
+    onmouseout="
+      this.style.transform='scale(1) translateY(0)'; 
+      this.style.boxShadow='0 8px 25px rgba(37, 211, 102, 0.4)';
+    "
+  >
+    <i class="ph-fill ph-whatsapp-logo text-white" style="font-size: 28px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));"></i>
+    
+    <!-- Indicador de notificación -->
+    <div class="position-absolute rounded-circle" style="
+      top: 8px;
+      right: 8px;
+      width: 12px;
+      height: 12px;
+      background: #ff4444;
+      border: 2px solid white;
+      box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.4);
+    "></div>
+  </div>
+
+  <!-- Panel expandido con diseño mejorado -->
+  <div 
+    class="position-absolute bg-white shadow-lg transition-3 rounded-3"
+    [class.d-none]="!isExpanded"
+    style="
+      bottom: 80px; 
+      right: 0; 
+      width: 340px; 
+      max-height: 450px; 
+      overflow: hidden;
+      border: 1px solid rgba(37, 211, 102, 0.1);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 20px 60px rgba(37, 211, 102, 0.15);
+    "
+  >
+    <!-- Header con gradiente mejorado -->
+    <div class="d-flex justify-content-between align-items-center p-3 text-white position-relative"
+         style="
+           background: linear-gradient(135deg, #25D366 0%, #128C7E 50%, #075E54 100%);
+           border-bottom: 1px solid rgba(255,255,255,0.1);
+           overflow: hidden;
+         ">
+      
+      <div class="d-flex align-items-center gap-2">
+        <div class="rounded-circle d-flex align-items-center justify-content-center" style="
+          width: 32px;
+          height: 32px;
+          background: rgba(255,255,255,0.15);
+          backdrop-filter: blur(10px);
+        ">
+          <i class="ph-fill ph-users" style="font-size: 16px;"></i>
+        </div>
+        <div style="margin-left: 8px; margin-top: 4px;">
+          <h6 class="mb-1 fw-semibold" style="font-size: 15px; letter-spacing: 0.5px;">Asesores disponibles</h6>
+          <small class="opacity-85" style="font-size: 11px; margin-top: -2px; display: block;">Respuesta inmediata</small>
+        </div>
+      </div>
+      
+      <button 
+        class="btn btn-sm text-white rounded-circle transition-2 d-flex align-items-center justify-content-center" 
+        (click)="toggleExpansion()" 
+        style="
+          width: 32px; 
+          height: 32px; 
+          background: rgba(255,255,255,0.15); 
+          border: none;
+          backdrop-filter: blur(10px);
+        "
+        onmouseover="
+          this.style.background='rgba(255,255,255,0.25)';
+          this.style.transform='rotate(90deg)';
+        "
+        onmouseout="
+          this.style.background='rgba(255,255,255,0.15)';
+          this.style.transform='rotate(0deg)';
+        "
+      >
+        <i class="ph ph-x" style="font-size: 14px;"></i>
+      </button>
+    </div>
+
+    <!-- Loading con animación mejorada -->
+    <div *ngIf="isLoadingAsesores" class="text-center py-5" style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);">
+      <div class="position-relative d-inline-block">
+        <div class="spinner-border text-success" style="width: 3rem; height: 3rem; border-width: 3px;"></div>
+        <div class="position-absolute top-50 start-50 translate-middle">
+          <i class="ph-fill ph-whatsapp-logo text-success" style="font-size: 16px;"></i>
+        </div>
+      </div>
+      <p class="text-muted mt-3 mb-0 fw-medium">Conectando con nuestros asesores...</p>
+      <div class="mt-2">
+        <div class="d-inline-flex gap-1">
+          <div class="bg-success rounded-circle" style="width: 4px; height: 4px;"></div>
+          <div class="bg-success rounded-circle" style="width: 4px; height: 4px;"></div>
+          <div class="bg-success rounded-circle" style="width: 4px; height: 4px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de asesores con diseño premium -->
+    <div *ngIf="!isLoadingAsesores" class="p-3" style="max-height: 320px; overflow-y: auto; background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);">
+      <div 
+        *ngFor="let asesor of asesorDisponibles"
+        class="d-flex align-items-center p-3 mb-3 cursor-pointer transition-3 rounded-3"
+        (click)="contactarAsesor(asesor)"
+        style="
+          border: 1px solid rgba(37, 211, 102, 0.1);
+          background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+          box-shadow: 0 4px 15px rgba(37, 211, 102, 0.05);
+        "
+        onmouseover="
+          this.style.backgroundColor='#ffffff';
+          this.style.borderColor='#25D366';
+          this.style.transform='translateY(-3px)';
+          this.style.boxShadow='0 8px 25px rgba(37, 211, 102, 0.15)';
+        "
+        onmouseout="
+          this.style.backgroundColor='#f8f9fa';
+          this.style.borderColor='rgba(37, 211, 102, 0.1)';
+          this.style.transform='translateY(0)';
+          this.style.boxShadow='0 4px 15px rgba(37, 211, 102, 0.05)';
+        "
+      >
+        <div class="position-relative">
+          <!-- Mostrar imagen si existe -->
+          <img 
+            *ngIf="!mostrarInicialAsesor(asesor)"
+            [src]="obtenerUrlAvatarAsesor(asesor)"
+            [alt]="asesor.name"
+            class="rounded-circle me-3"
+            style="
+              width: 50px; 
+              height: 50px; 
+              object-fit: cover; 
+              border: 3px solid #25D366; 
+              box-shadow: 0 4px 12px rgba(37, 211, 102, 0.2);
+              filter: brightness(1.05);
+            "
+          >
+          
+          <!-- Mostrar inicial si no hay imagen -->
+          <div 
+            *ngIf="mostrarInicialAsesor(asesor)"
+            class="rounded-circle me-3 d-flex align-items-center justify-content-center"
+            style="
+              width: 50px; 
+              height: 50px; 
+              background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+              border: 3px solid #25D366; 
+              box-shadow: 0 4px 12px rgba(37, 211, 102, 0.2);
+              color: white;
+              font-size: 20px;
+              font-weight: bold;
+            "
+          >
+            {{ obtenerInicialAsesor(asesor) }}
+          </div>
+          <!-- Indicador de estado online -->
+          <div class="position-absolute rounded-circle" style="
+            bottom: 2px;
+            right: 10px;
+            width: 16px;
+            height: 16px;
+            background: #4caf50;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+          "></div>
+        </div>
+        
+        <div class="flex-grow-1">
+          <h6 class="mb-1 fw-semibold" style="
+            font-size: 15px; 
+            color: #2c3e50;
+            letter-spacing: 0.3px;
+          ">{{ asesor.name }}</h6>
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <div class="bg-success rounded-circle" style="width: 8px; height: 8px;"></div>
+            <small class="text-success fw-medium" style="font-size: 12px;">Disponible ahora</small>
+          </div>
+          <small class="text-muted" style="font-size: 11px;">
+            <i class="ph ph-clock me-1"></i>
+            Respuesta en menos de 1 min
+          </small>
+        </div>
+        
+        <div class="btn btn-success btn-sm rounded-circle transition-2 d-flex align-items-center justify-content-center" style="
+          width: 42px;
+          height: 42px;
+          background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+          border: none;
+          box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+        ">
+          <i class="ph-fill ph-whatsapp-logo text-white" style="font-size: 18px;"></i>
+        </div>
+      </div>
+
+      <!-- Estado sin asesores mejorado -->
+      <div *ngIf="asesorDisponibles.length === 0" class="text-center py-5 rounded-3" style="
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        border: 1px solid rgba(37, 211, 102, 0.1);
+      ">
+        <div class="mb-3 rounded-circle d-flex align-items-center justify-content-center mx-auto" style="
+          width: 60px;
+          height: 60px;
+          background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+          opacity: 0.8;
+        ">
+          <i class="ph ph-clock text-white" style="font-size: 24px;"></i>
+        </div>
+        <p class="text-muted mb-2 fw-medium" style="font-size: 15px; color: #2c3e50 !important;">
+          No hay asesores disponibles
+        </p>
+        <small class="text-muted" style="font-size: 12px;">
+          Nuestro horario de atención: Lun-Vie 9:00-18:00
+        </small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay mejorado -->
+  <div 
+    *ngIf="isExpanded" 
+    class="position-fixed top-0 start-0 w-100 h-100"
+    style="
+      z-index: -1;
+      background: rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(2px);
+    "
+    (click)="toggleExpansion()"
+  ></div>
+</div>

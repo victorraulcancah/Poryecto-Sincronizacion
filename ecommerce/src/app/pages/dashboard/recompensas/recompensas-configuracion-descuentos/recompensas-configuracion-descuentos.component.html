@@ -1,0 +1,224 @@
+<div class="recompensas-configuracion-descuentos">
+  <div class="row">
+    <!-- Formulario de Configuración -->
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-percentage me-2 text-primary"></i>
+            Configuración de Descuentos
+          </h5>
+        </div>
+        <div class="card-body">
+          <form [formGroup]="configuracionForm" (ngSubmit)="guardarConfiguracion()">
+            <div class="row g-3">
+              <!-- Tipo de Descuento -->
+              <div class="col-md-6">
+                <label class="form-label">Tipo de Descuento *</label>
+                <select class="form-select" formControlName="tipo_descuento">
+                  <option *ngFor="let tipo of tiposDescuento" [value]="tipo.value">
+                    {{ tipo.label }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Valor del Descuento -->
+              <div class="col-md-6">
+                <label class="form-label">
+                  Valor del Descuento * 
+                  <span class="text-muted">({{ getTipoDescuentoLabel() }})</span>
+                </label>
+                <input 
+                  type="number" 
+                  class="form-control" 
+                  formControlName="valor_descuento"
+                  [min]="0"
+                  [step]="configuracionForm.get('tipo_descuento')?.value === 'porcentaje' ? 0.1 : 1"
+                >
+              </div>
+
+              <!-- Compra Mínima -->
+              <div class="col-md-6">
+                <label class="form-label">Compra Mínima (S/) *</label>
+                <input 
+                  type="number" 
+                  class="form-control" 
+                  formControlName="compra_minima"
+                  min="0"
+                  step="0.01"
+                >
+                <div class="form-text">Monto mínimo para aplicar el descuento</div>
+              </div>
+
+              <!-- Máximo Descuento (solo para porcentaje) -->
+              <div class="col-md-6" *ngIf="getMaximoDescuentoVisible()">
+                <label class="form-label">Máximo Descuento (S/)</label>
+                <input 
+                  type="number" 
+                  class="form-control" 
+                  formControlName="maximo_descuento"
+                  min="0"
+                  step="0.01"
+                >
+                <div class="form-text">Límite máximo del descuento en soles</div>
+              </div>
+
+              <!-- Opciones Adicionales -->
+              <div class="col-12">
+                <div class="card bg-light">
+                  <div class="card-body">
+                    <h6 class="card-title">Opciones Adicionales</h6>
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <div class="form-check">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            formControlName="aplicable_primera_compra"
+                            id="primeraCompra"
+                          >
+                          <label class="form-check-label" for="primeraCompra">
+                            Aplicable solo en primera compra
+                          </label>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="form-check">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            formControlName="combinable_con_ofertas"
+                            id="combinableOfertas"
+                          >
+                          <label class="form-check-label" for="combinableOfertas">
+                            Combinable con otras ofertas
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Botones de Acción -->
+              <div class="col-12">
+                <div class="d-flex gap-2">
+                  <button 
+                    type="submit" 
+                    class="btn btn-primary"
+                    [disabled]="configuracionForm.invalid || loading"
+                  >
+                    <i class="fas fa-save me-2"></i>
+                    <span *ngIf="!loading">Guardar Configuración</span>
+                    <span *ngIf="loading">Guardando...</span>
+                  </button>
+                  
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-info"
+                    (click)="validarConfiguracion()"
+                    [disabled]="configuracionForm.invalid || loading"
+                  >
+                    <i class="fas fa-check-circle me-2"></i>
+                    Validar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Simulador -->
+    <div class="col-lg-4">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-calculator me-2 text-success"></i>
+            Simulador de Descuentos
+          </h5>
+        </div>
+        <div class="card-body">
+          <!-- Input de Monto -->
+          <div class="mb-3">
+            <label class="form-label">Monto de Compra (S/)</label>
+            <div class="input-group">
+              <input 
+                type="number" 
+                class="form-control" 
+                [(ngModel)]="simulacion.monto_compra"
+                [ngModelOptions]="{standalone: true}"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+              >
+              <button 
+                class="btn btn-outline-primary" 
+                type="button"
+                (click)="simularDescuento()"
+                [disabled]="simulacion.monto_compra <= 0 || simulacion.calculando"
+              >
+                <i class="fas fa-calculator"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Ejemplos Rápidos -->
+          <div class="mb-3">
+            <label class="form-label">Ejemplos Rápidos</label>
+            <div class="d-grid gap-1">
+              <button 
+                *ngFor="let ejemplo of ejemplosSimulacion"
+                type="button"
+                class="btn btn-sm btn-outline-secondary"
+                (click)="simularConEjemplo(ejemplo.monto)"
+              >
+                S/ {{ ejemplo.monto }} - {{ ejemplo.label }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Resultados -->
+          <div *ngIf="simulacion.descuento_aplicado > 0" class="alert alert-success">
+            <h6 class="alert-heading">
+              <i class="fas fa-check-circle me-2"></i>
+              Resultado de la Simulación
+            </h6>
+            <hr>
+            <div class="row g-2">
+              <div class="col-6">
+                <small class="text-muted">Monto Original:</small>
+                <div class="fw-bold">S/ {{ simulacion.monto_compra | number:'1.2-2' }}</div>
+              </div>
+              <div class="col-6">
+                <small class="text-muted">Descuento:</small>
+                <div class="fw-bold text-success">-S/ {{ simulacion.descuento_aplicado | number:'1.2-2' }}</div>
+              </div>
+              <div class="col-12">
+                <hr class="my-2">
+                <small class="text-muted">Total a Pagar:</small>
+                <div class="h5 text-primary mb-0">S/ {{ simulacion.monto_final | number:'1.2-2' }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mensaje de Compra Mínima -->
+          <div *ngIf="simulacion.monto_compra > 0 && simulacion.descuento_aplicado === 0" class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <small>
+              El descuento no aplica. 
+              Compra mínima requerida: S/ {{ configuracionForm.get('compra_minima')?.value | number:'1.2-2' }}
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mensaje de Error -->
+  <div *ngIf="error" class="alert alert-danger mt-3">
+    <i class="fas fa-exclamation-circle me-2"></i>
+    {{ error }}
+  </div>
+</div>

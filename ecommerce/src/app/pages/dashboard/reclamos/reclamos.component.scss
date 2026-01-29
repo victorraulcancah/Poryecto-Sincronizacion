@@ -1,0 +1,319 @@
+// Configuración base del datatable
+::ng-deep .reclamos-table {
+  box-shadow: none !important;
+  border: none !important;
+  font-size: 13px;
+  width: 100% !important;
+}
+
+// Header de la tabla
+::ng-deep .reclamos-table .datatable-header {
+  background-color: #f8f9fa !important;
+  border-bottom: 1px solid #dee2e6 !important;
+  height: 50px !important;
+}
+
+::ng-deep .reclamos-table .datatable-header-cell {
+  font-weight: 600 !important;
+  color: #495057 !important;
+  font-size: 12px !important;
+  padding: 12px 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  border-right: 1px solid #e9ecef !important;
+}
+
+::ng-deep .reclamos-table .datatable-header-cell:last-child {
+  border-right: none !important;
+}
+
+// Celdas del cuerpo
+::ng-deep .reclamos-table .datatable-body-cell {
+  padding: 8px !important;
+  border-bottom: 1px solid #f1f3f4 !important;
+  border-right: 1px solid #f8f9fa !important;
+  font-size: 13px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 80px !important;
+  vertical-align: middle !important;
+}
+
+::ng-deep .reclamos-table .datatable-body-cell:last-child {
+  border-right: none !important;
+}
+
+// Filas alternadas
+::ng-deep .reclamos-table .datatable-row-even {
+  background-color: #ffffff !important;
+}
+
+::ng-deep .reclamos-table .datatable-row-odd {
+  background-color: #fafbfc !important;
+}
+
+// Hover en filas
+::ng-deep .reclamos-table .datatable-body-row:hover {
+  background-color: #f5f5f5 !important;
+}
+
+// Estilos específicos para reclamos
+.reclamo-info {
+  text-align: left;
+  width: 100%;
+}
+
+.reclamo-numero {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #0d6efd !important;
+  margin-bottom: 2px !important;
+}
+
+.reclamo-monto {
+  font-size: 11px !important;
+  color: #6c757d !important;
+}
+
+.cliente-info {
+  text-align: left;
+  width: 100%;
+}
+
+.cliente-nombre {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #212529 !important;
+  margin-bottom: 2px !important;
+}
+
+.cliente-email {
+  font-size: 11px !important;
+  color: #6c757d !important;
+}
+
+.tipo-badge {
+  font-size: 10px !important;
+  padding: 4px 8px !important;
+  border-radius: 12px !important;
+  font-weight: 500 !important;
+  white-space: nowrap;
+}
+
+.tipo-bien {
+  font-size: 10px !important;
+  color: #6c757d !important;
+  margin-top: 4px;
+}
+
+.estado-badge {
+  font-size: 10px !important;
+  padding: 4px 8px !important;
+  border-radius: 12px !important;
+  font-weight: 500 !important;
+}
+
+.fecha-info {
+  text-align: left;
+  width: 100%;
+}
+
+.fecha-dia {
+  font-size: 12px !important;
+  color: #212529 !important;
+  margin-bottom: 2px;
+}
+
+.fecha-hora {
+  font-size: 10px !important;
+  color: #6c757d !important;
+}
+
+.dias-badge {
+  font-size: 9px !important;
+  padding: 3px 6px !important;
+  border-radius: 10px !important;
+  font-weight: 500 !important;
+  white-space: nowrap;
+}
+
+.action-buttons {
+  display: flex !important;
+  gap: 4px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-wrap: nowrap !important;
+}
+
+.action-btn {
+  width: 24px !important;
+  height: 24px !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 4px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+  font-size: 10px !important;
+  min-width: 24px !important;
+}
+
+.view-btn {
+  background-color: #cfe2ff !important;
+  color: #084298 !important;
+}
+
+.dropdown-btn {
+  background-color: #f8f9fa !important;
+  color: #6c757d !important;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.view-btn:hover {
+  background-color: #b6d4fe !important;
+  color: #052c65 !important;
+}
+
+.dropdown-btn:hover {
+  background-color: #e9ecef !important;
+  color: #495057 !important;
+}
+
+// Footer
+::ng-deep .reclamos-table .datatable-footer {
+  background-color: #f8f9fa !important;
+  border-top: 1px solid #dee2e6 !important;
+  padding: 8px 16px !important;
+  font-size: 12px !important;
+  height: 50px !important;
+}
+
+::ng-deep .reclamos-table .datatable-pager {
+  margin: 0 !important;
+}
+
+::ng-deep .reclamos-table .datatable-pager .pager .pages .page {
+  padding: 4px 8px !important;
+  margin: 0 1px !important;
+  border-radius: 4px !important;
+  font-size: 11px !important;
+}
+
+::ng-deep .reclamos-table .datatable-pager .pager .pages .page.active {
+  background-color: #0d6efd !important;
+  color: white !important;
+}
+
+// Eliminar espacios innecesarios
+::ng-deep .reclamos-table .datatable-body {
+  width: 100% !important;
+}
+
+::ng-deep .reclamos-table .datatable-row-wrapper {
+  width: 100% !important;
+}
+
+// Stats cards y otros estilos del dashboard
+.stats-card {
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.hover-shadow {
+  transition: box-shadow 0.3s ease;
+  
+  &:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+  }
+}
+
+// Modal styles
+.detalle-modal {
+  .modal-content {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+  }
+  
+  .modal-header {
+    background: linear-gradient(135deg, #0d6efd 0%, rgba(13, 110, 253, 0.8) 100%);
+    color: white;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    border-bottom: none;
+  }
+  
+  .info-section {
+    background: rgba(248, 249, 250, 0.5);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    
+    .info-label {
+      font-weight: 600;
+      color: #495057;
+      font-size: 0.875rem;
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  ::ng-deep .reclamos-table .datatable-header-cell,
+  ::ng-deep .reclamos-table .datatable-body-cell {
+    font-size: 11px !important;
+    padding: 6px 4px !important;
+  }
+  
+  .reclamo-numero, .cliente-nombre {
+    font-size: 12px !important;
+  }
+  
+  .action-btn {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  .action-buttons {
+    gap: 2px !important;
+  }
+
+  .tipo-badge, .estado-badge, .dias-badge {
+    font-size: 8px !important;
+    padding: 2px 4px !important;
+  }
+}
+
+// Animaciones
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+// Utilidades personalizadas
+.text-truncate-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.border-start-4 {
+  border-left-width: 4px !important;
+}

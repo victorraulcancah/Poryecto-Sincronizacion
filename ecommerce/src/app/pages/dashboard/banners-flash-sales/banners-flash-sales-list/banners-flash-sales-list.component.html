@@ -1,0 +1,177 @@
+   <div class="container-fluid">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-24">
+        <div>
+          <h4 class="text-heading fw-semibold mb-8">Banners Flash Sales</h4>
+          <p class="text-gray-500 mb-0">Administra los banners de ventas flash</p>
+        </div>
+        <button class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8"
+                data-bs-toggle="modal"
+                data-bs-target="#modalCrearBannerFlash">
+          <i class="ph ph-plus me-8"></i>
+          Nuevo Banner Flash
+        </button>
+      </div>
+
+      <!-- Loading state -->
+      <div *ngIf="isLoading" class="text-center py-40">
+        <div class="spinner-border text-main-600" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="text-gray-500 mt-12 mb-0">Cargando banners...</p>
+      </div>
+
+      <!-- Flash Sales - Estilo Index -->
+      <div *ngIf="!isLoading && banners.length > 0" class="row gy-4">
+        <div class="col-lg-6" *ngFor="let banner of banners; let i = index">
+          <div class="flash-sales-item rounded-16 overflow-hidden z-1 position-relative flex-align flex-0 justify-content-between gap-8 ps-56-px"
+               style="background-color: #f8f9fa;">
+
+            <!-- Imagen de fondo -->
+            <img [src]="banner.imagen_url || 'assets/images/bg/flash-sale-bg1.png'"
+                 [alt]="banner.nombre"
+                 class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover z-n1 flash-sales-item__bg"
+                 style="opacity: 0.9;">
+
+            <!-- Contenido -->
+            <div class="flash-sales-item__content">
+              <!-- Badge con el nombre del banner (color dinámico) -->
+              <span class="badge text-white px-16 py-8 rounded-pill mb-12"
+                    [style.background-color]="banner.color_badge || '#DC2626'"
+                    style="font-size: 18px; display: inline-block; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                <i class="ph ph-lightning me-6"></i>
+                {{ banner.nombre }}
+              </span>
+            </div>
+
+            <!-- Countdown (reposicionado a la esquina inferior derecha) -->
+            <div class="position-absolute bottom-0 end-0 m-3" style="z-index: 10;">
+              <div class="countdown">
+                <ul class="countdown-list flex-align flex-wrap gap-2">
+                  <li class="countdown-list__item py-10 px-14 text-heading flex-align gap-2 fw-bold rounded-6"
+                      style="background: white;
+                             color: #3B82F6;
+                             min-width: 50px;
+                             font-size: 15px;
+                             justify-content: center;
+                             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                             border: 2px solid #3B82F6;">
+                    <span>{{ getCountdown(banner).dias }}</span>d
+                  </li>
+                  <li class="countdown-list__item py-10 px-14 text-heading flex-align gap-2 fw-bold rounded-6"
+                      style="background: white;
+                             color: #3B82F6;
+                             min-width: 50px;
+                             font-size: 15px;
+                             justify-content: center;
+                             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                             border: 2px solid #3B82F6;">
+                    <span>{{ getCountdown(banner).horas }}</span>h
+                  </li>
+                  <li class="countdown-list__item py-10 px-14 text-heading flex-align gap-2 fw-bold rounded-6"
+                      style="background: white;
+                             color: #3B82F6;
+                             min-width: 50px;
+                             font-size: 15px;
+                             justify-content: center;
+                             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                             border: 2px solid #3B82F6;">
+                    <span>{{ getCountdown(banner).minutos }}</span>m
+                  </li>
+                  <li class="countdown-list__item py-10 px-14 text-heading flex-align gap-2 fw-bold rounded-6"
+                      style="background: white;
+                             color: #3B82F6;
+                             min-width: 50px;
+                             font-size: 15px;
+                             justify-content: center;
+                             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                             border: 2px solid #3B82F6;">
+                    <span>{{ getCountdown(banner).segundos }}</span>s
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Info adicional (parte inferior izquierda) -->
+            <div class="position-absolute bottom-0 start-0 m-3" style="z-index: 10;">
+              <!-- Badges de estado y fechas -->
+              <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                <span class="badge" [class]="getEstadoFecha(banner).class">
+                  {{ getEstadoFecha(banner).texto }}
+                </span>
+                <span class="badge"
+                      [class.bg-success-100]="banner.activo"
+                      [class.text-success-600]="banner.activo"
+                      [class.bg-danger-100]="!banner.activo"
+                      [class.text-danger-600]="!banner.activo">
+                  {{ banner.activo ? 'Activo' : 'Inactivo' }}
+                </span>
+              </div>
+
+              <!-- Botón preview -->
+              <a class="btn d-inline-flex align-items-center rounded-pill gap-8 mt-24"
+                 [style.background-color]="banner.color_boton || '#3B82F6'"
+                 style="color: white;">
+                {{ banner.texto_boton || 'Compra ahora' }}
+                <span class="icon text-xl d-flex">
+                  <i class="ph ph-arrow-right"></i>
+                </span>
+              </a>
+            </div>
+
+            <!-- Acciones (en la esquina) -->
+            <div class="position-absolute top-0 end-0 p-2" style="z-index: 10;">
+              <div class="d-flex gap-2">
+                <!-- Toggle Activo -->
+                <button class="btn btn-sm rounded-circle"
+                        [class.bg-success-600]="banner.activo"
+                        [class.text-white]="banner.activo"
+                        [class.bg-white]="!banner.activo"
+                        [class.text-gray-600]="!banner.activo"
+                        [title]="banner.activo ? 'Desactivar' : 'Activar'"
+                        (click)="toggleActivo(banner)"
+                        style="width: 32px; height: 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                  <i class="ph" [class.ph-check-circle]="banner.activo" [class.ph-x-circle]="!banner.activo"></i>
+                </button>
+
+                <!-- Editar -->
+                <button class="btn btn-sm bg-white text-main-600 rounded-circle"
+                        title="Editar"
+                        (click)="editarBanner(banner)"
+                        style="width: 32px; height: 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                  <i class="ph ph-pencil"></i>
+                </button>
+
+                <!-- Eliminar -->
+                <button class="btn btn-sm bg-white text-danger-600 rounded-circle"
+                        title="Eliminar"
+                        (click)="eliminarBanner(banner.id!)"
+                        style="width: 32px; height: 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                  <i class="ph ph-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div *ngIf="!isLoading && banners.length === 0" class="text-center py-40">
+        <i class="ph ph-lightning text-gray-300 text-6xl mb-16"></i>
+        <h6 class="text-heading fw-semibold mb-8">No hay banners flash sales</h6>
+        <p class="text-gray-500 mb-16">Aún no has creado ningún banner flash sale</p>
+        <button class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8"
+                data-bs-toggle="modal"
+                data-bs-target="#modalCrearBannerFlash">
+          <i class="ph ph-plus me-8"></i>
+          Crear primer banner
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal para crear/editar -->
+    <app-banner-flash-sale-modal
+      [banner]="bannerParaEditar"
+      (bannerGuardado)="onBannerGuardado()"
+      (modalCerrado)="onModalCerrado()">
+    </app-banner-flash-sale-modal>

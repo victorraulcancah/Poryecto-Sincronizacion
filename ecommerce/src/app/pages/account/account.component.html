@@ -1,0 +1,162 @@
+<!-- src/app/pages/account/account.component.html -->
+<!-- ========================= Breadcrumb Start =============================== -->
+<app-breadcrumb title="Iniciar Sesión" subtitle="Cuenta"></app-breadcrumb>
+
+<!-- ========================= Breadcrumb End =============================== -->
+
+<!-- Mensajes flotantes -->
+<div style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
+  <!-- Mensaje de éxito -->
+  <div *ngIf="showSuccessMessage" 
+       [class.show]="showSuccessMessage"
+       style="min-width: 300px; padding: 16px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); margin-bottom: 10px; background-color: #d4edda; border-left: 4px solid #28a745; color: #155724; opacity: 0; transform: translateX(100%); transition: all 0.3s ease-in-out;"
+       [style.opacity]="showSuccessMessage ? '1' : '0'"
+       [style.transform]="showSuccessMessage ? 'translateX(0)' : 'translateX(100%)'">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <i class="ph ph-check-circle" style="font-size: 20px; flex-shrink: 0;"></i>
+      <span style="font-size: 14px; font-weight: 500; line-height: 1.4;">{{ successMessage }}</span>
+    </div>
+  </div>
+  
+  <!-- Mensaje informativo -->
+  <div *ngIf="showInfoMessage" 
+       [class.show]="showInfoMessage"
+       style="min-width: 300px; padding: 16px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); margin-bottom: 10px; background-color: #d1ecf1; border-left: 4px solid #17a2b8; color: #0c5460; opacity: 0; transform: translateX(100%); transition: all 0.3s ease-in-out;"
+       [style.opacity]="showInfoMessage ? '1' : '0'"
+       [style.transform]="showInfoMessage ? 'translateX(0)' : 'translateX(100%)'">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <i class="ph ph-info" style="font-size: 20px; flex-shrink: 0;"></i>
+      <span style="font-size: 14px; font-weight: 500; line-height: 1.4;">{{ infoMessage }}</span>
+    </div>
+  </div>
+</div>
+
+<!-- =============================== Account Section Start =========================== -->
+
+<!-- ========================= Breadcrumb End =============================== -->
+
+<!-- =============================== Account Section Start =========================== -->
+<section class="account py-80">
+    <div class="container container-lg">
+        <div class="row justify-content-center">
+            <!-- Login Card Start -->
+            <div class="col-xl-6 col-lg-8">
+                <div class="border border-gray-100 hover-border-main-600 transition-1 rounded-16 px-24 py-40">
+                    <h6 class="text-xl mb-32 text-center">Iniciar Sesión</h6>
+                    
+                    <!-- Mensaje de error -->
+                    <div *ngIf="loginError" class="alert alert-danger mb-3">
+                        {{ loginError }}
+                    </div>
+                    
+                    <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
+                        <div class="mb-24">
+                            <label for="email" class="text-neutral-900 text-lg mb-8 fw-medium">
+                                Correo electrónico <span class="text-danger">*</span>
+                            </label>
+                            <input 
+                                type="email" 
+                                class="common-input" 
+                                id="email" 
+                                formControlName="email"
+                                placeholder="Ingresa tu correo electrónico"
+                                [ngClass]="{'is-invalid': loginEmail?.invalid && loginEmail?.touched}"
+                            >
+                            <div *ngIf="loginEmail?.invalid && loginEmail?.touched" class="text-danger mt-1">
+                                <small *ngIf="loginEmail?.errors?.['required']">El correo electrónico es requerido</small>
+                                <small *ngIf="loginEmail?.errors?.['email']">Ingresa un correo electrónico válido</small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-24">
+                            <label for="password" class="text-neutral-900 text-lg mb-8 fw-medium">
+                                Contraseña <span class="text-danger">*</span>
+                            </label>
+                            <div class="position-relative">
+                                <input 
+                                    [type]="showPassword ? 'text' : 'password'" 
+                                    class="common-input" 
+                                    id="password" 
+                                    formControlName="password"
+                                    placeholder="Ingresa tu contraseña"
+                                    [ngClass]="{'is-invalid': loginPassword?.invalid && loginPassword?.touched}"
+                                >
+                                <span
+                                    class="toggle-password position-absolute top-50 inset-inline-end-0 me-16 translate-middle-y cursor-pointer"
+                                    [class.ph-eye]="showPassword"
+                                    [class.ph-eye-slash]="!showPassword"
+                                    (click)="togglePasswordVisibility()"
+                                ></span>
+                            </div>
+                            <div *ngIf="loginPassword?.invalid && loginPassword?.touched" class="text-danger mt-1">
+                                <small *ngIf="loginPassword?.errors?.['required']">La contraseña es requerida</small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-24 mt-48">
+                            <div class="flex-align gap-48 flex-wrap">
+                                <button 
+                                    type="submit" 
+                                    class="btn btn-main py-18 px-40"
+                                    [disabled]="isLoading"
+                                >
+                                    <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    Iniciar Sesión
+                                </button>
+                                <div class="form-check common-check">
+                                    <input class="form-check-input" type="checkbox" formControlName="remember" id="remember">
+                                    <label class="form-check-label flex-grow-1" for="remember">Recordarme</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-48 text-center">
+                            <!-- DESPUÉS: -->
+                            <a routerLink="/forgot-password" class="text-danger-600 text-sm fw-semibold hover-text-decoration-underline">
+                                ¿Olvidaste tu contraseña?
+                            </a>
+                        </div>
+
+                        <!-- Botón de Login con Google -->
+                        <div class="mt-24">
+                            <button 
+                                type="button"
+                                class="btn d-flex align-items-center justify-content-center gap-2 w-100 border border-gray-300 rounded-12 py-12 hover-bg-main-50 transition-1"
+                                (click)="loginWithGoogle()"
+                            >
+                                <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo" width="20" height="20" style="margin-right: 5px;">
+                                <span class="fw-medium text-neutral-800"> Continuar con Google</span>
+                            </button>
+                        </div>
+
+                        <!-- Agrega esto justo después del botón de Google y antes del div con "¿No tienes una cuenta?" -->
+                        <div class="mt-16 text-center">
+                        <p class="text-gray-500 text-xs">
+                            Al iniciar sesión, aceptas nuestra 
+                            <a routerLink="/privacy-policy" class="text-main-600 text-decoration-underline">
+                            Política de Privacidad
+                            </a>
+                            y el tratamiento de tus datos personales.
+                        </p>
+                        </div>
+
+                        <div class="mt-32 text-center">
+                            <p class="text-gray-500 mb-0">
+                                ¿No tienes una cuenta? 
+                                <a routerLink="/register" class="text-main-600 fw-semibold hover-text-decoration-underline">
+                                    Regístrate aquí
+                                </a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- Login Card End -->
+        </div>
+    </div>
+</section>
+<!-- =============================== Account Section End =========================== -->
+
+<!-- ========================== Shipping Section Start ============================ -->
+<app-shipping></app-shipping>
+<!-- ========================== Shipping Section End ============================ -->

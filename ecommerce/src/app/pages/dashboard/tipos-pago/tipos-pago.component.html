@@ -1,0 +1,205 @@
+<!-- Header -->
+<div class="border border-gray-100 rounded-16 overflow-hidden bg-white">
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <div class="flex-between align-items-center gap-16 flex-wrap">
+      <div>
+        <h4 class="mb-4 text-heading">Gestión de Tipos de Pago</h4>
+        <p class="text-gray-500 mb-0 text-sm">Administra los métodos de pago disponibles para tus clientes</p>
+      </div>
+      <button class="btn bg-main-600" (click)="openModal()">
+        <i class="ph ph-plus me-8"></i>
+        Nuevo Tipo de Pago
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros y Estadísticas -->
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-12">
+      <div class="d-flex align-items-center gap-16">
+        <span class="text-sm text-gray-600">Gestión de configuración de pagos</span>
+      </div>
+      <div class="d-flex align-items-center gap-4">
+        <span class="text-sm fw-medium text-dark">Total:</span>
+        <span class="badge bg-main-50 text-main-600">{{ tiposPago.length }}</span>
+        <span class="text-sm fw-medium text-dark">Activos:</span>
+        <span class="badge bg-success-50 text-success-600">{{ tiposPagoActivos }}</span>
+        <span class="text-sm fw-medium text-dark">Inactivos:</span>
+        <span class="badge bg-danger-50 text-danger-600">{{ tiposPagoInactivos }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla Moderna usando clases globales -->
+  <div class="modern-data-table">
+    <!-- Loading state -->
+    <div *ngIf="isLoading" class="modern-data-table__loading">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="loading-text">Cargando tipos de pago...</p>
+    </div>
+
+    <!-- Empty state -->
+    <div *ngIf="!isLoading && tiposPago.length === 0" class="text-center py-5">
+      <i class="ph ph-credit-card text-gray-300" style="font-size: 4rem;"></i>
+      <p class="text-gray-500 mt-3">No hay tipos de pago registrados</p>
+      <button class="btn bg-main-600 btn-sm mt-2" (click)="openModal()">
+        <i class="ph ph-plus me-2"></i>Crear Primer Tipo de Pago
+      </button>
+    </div>
+
+    <!-- Tabla moderna -->
+    <div class="modern-data-table__container" *ngIf="!isLoading && tiposPago.length > 0">
+      <table class="table table-borderless mb-0">
+        <thead>
+          <tr>
+            <th>ORDEN</th>
+            <th>NOMBRE</th>
+            <th>CÓDIGO</th>
+            <th>ICONO</th>
+            <th>ESTADO</th>
+            <th class="text-end">ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let tipo of tiposPago">
+            <td>
+              <span class="badge bg-neutral-50 text-neutral-600">{{ tipo.orden }}</span>
+            </td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <i class="ph ph-credit-card text-main-600"></i>
+                <span class="fw-medium">{{ tipo.nombre }}</span>
+              </div>
+            </td>
+            <td>
+              <code class="bg-neutral-50 px-2 py-1 rounded">{{ tipo.codigo }}</code>
+            </td>
+            <td>
+              <i *ngIf="tipo.icono" class="ph text-xl text-primary-600" [ngClass]="tipo.icono"></i>
+              <span *ngIf="!tipo.icono" class="text-gray-400 text-xs">Sin icono</span>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="tipo.activo ? 'bg-success-50 text-success-600' : 'bg-danger-50 text-danger-600'">
+                {{ tipo.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td>
+              <div class="d-flex justify-content-end gap-2">
+                <button class="btn btn-sm btn-outline-primary-600 radius-8 px-12 py-6"
+                        (click)="openModal(tipo)"
+                        title="Editar">
+                  <i class="ph ph-pencil"></i>
+                </button>
+                <button class="btn btn-sm radius-8 px-12 py-6"
+                        [ngClass]="tipo.activo ? 'btn-outline-warning-600' : 'btn-outline-success-600'"
+                        (click)="toggleEstado(tipo.id!)"
+                        [title]="tipo.activo ? 'Desactivar' : 'Activar'">
+                  <i class="ph" [ngClass]="tipo.activo ? 'ph-eye-slash' : 'ph-eye'"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger-600 radius-8 px-12 py-6"
+                        (click)="eliminar(tipo.id!)"
+                        title="Eliminar">
+                  <i class="ph ph-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" [class.show]="showModal" [style.display]="showModal ? 'block' : 'none'" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-12">
+      <div class="modal-header bg-main-50 border-bottom border-gray-100 px-24 py-16">
+        <h5 class="modal-title fw-semibold text-heading">
+          <i class="ph ph-credit-card me-2 text-main-600"></i>
+          {{ isEditMode ? 'Editar' : 'Nuevo' }} Tipo de Pago
+        </h5>
+        <button type="button" class="btn-close" (click)="closeModal()"></button>
+      </div>
+      <form [formGroup]="tipoPagoForm" (ngSubmit)="onSubmit()">
+        <div class="modal-body px-24 py-20">
+          <div class="mb-16">
+            <label class="form-label fw-semibold text-sm text-heading mb-8">Nombre <span class="text-danger-600">*</span></label>
+            <input type="text"
+                   class="form-control radius-8 border-gray-200"
+                   formControlName="nombre"
+                   placeholder="Ej: Tarjeta de crédito"
+                   [class.is-invalid]="tipoPagoForm.get('nombre')?.invalid && tipoPagoForm.get('nombre')?.touched">
+            <div *ngIf="tipoPagoForm.get('nombre')?.invalid && tipoPagoForm.get('nombre')?.touched" class="text-danger-600 text-xs mt-4">
+              El nombre es requerido
+            </div>
+          </div>
+
+          <div class="mb-16">
+            <label class="form-label fw-semibold text-sm text-heading mb-8">Código <span class="text-danger-600">*</span></label>
+            <input type="text"
+                   class="form-control radius-8 border-gray-200"
+                   formControlName="codigo"
+                   placeholder="Ej: tarjeta"
+                   [class.is-invalid]="tipoPagoForm.get('codigo')?.invalid && tipoPagoForm.get('codigo')?.touched">
+            <small class="text-gray-500 text-xs">Código único sin espacios</small>
+            <div *ngIf="tipoPagoForm.get('codigo')?.invalid && tipoPagoForm.get('codigo')?.touched" class="text-danger-600 text-xs mt-4">
+              El código es requerido
+            </div>
+          </div>
+
+          <div class="mb-16">
+            <label class="form-label fw-semibold text-sm text-heading mb-8">Descripción</label>
+            <textarea class="form-control radius-8 border-gray-200"
+                      formControlName="descripcion"
+                      rows="2"
+                      placeholder="Descripción opcional del tipo de pago"></textarea>
+          </div>
+
+          <div class="mb-16">
+            <label class="form-label fw-semibold text-sm text-heading mb-8">Icono</label>
+            <input type="text"
+                   class="form-control radius-8 border-gray-200"
+                   formControlName="icono"
+                   placeholder="Ej: ph-credit-card">
+            <small class="text-gray-500 text-xs">
+              Clase CSS del icono (phosphor icons).
+              <a href="https://phosphoricons.com/" target="_blank" class="text-primary-600">Ver iconos</a>
+            </small>
+          </div>
+
+          <div class="mb-16">
+            <label class="form-label fw-semibold text-sm text-heading mb-8">Orden <span class="text-danger-600">*</span></label>
+            <input type="number"
+                   class="form-control radius-8 border-gray-200"
+                   formControlName="orden"
+                   min="0"
+                   placeholder="0">
+            <small class="text-gray-500 text-xs">Define el orden de visualización</small>
+          </div>
+
+          <div class="mb-16">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" formControlName="activo" id="activoCheck">
+              <label class="form-check-label fw-medium text-sm" for="activoCheck">
+                Activo
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer bg-neutral-30 border-top border-gray-100 px-24 py-16">
+          <button type="button" class="btn btn-outline-gray-300 radius-8 px-20 py-8" (click)="closeModal()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn bg-main-600 radius-8 px-20 py-8" [disabled]="tipoPagoForm.invalid">
+            <i class="ph ph-check me-8"></i>
+            {{ isEditMode ? 'Actualizar' : 'Crear' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade" [class.show]="showModal" *ngIf="showModal"></div>

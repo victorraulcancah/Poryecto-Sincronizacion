@@ -1,0 +1,278 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.modal-container {
+  background: white;
+  border-radius: 12px;
+  max-width: 550px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  padding: 20px 24px;
+  background: var(--main-600);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .header-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+  }
+
+  .header-icon {
+    background: rgba(255, 255, 255, 0.2);
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    i {
+      font-size: 20px;
+    }
+  }
+
+  .header-text {
+    h5 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    small {
+      opacity: 0.9;
+      font-size: 13px;
+    }
+  }
+
+  .btn-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: white;
+    transition: background 0.2s;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    i {
+      font-size: 18px;
+    }
+  }
+}
+
+.modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.comprobante-info {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+
+    &:not(:last-child) {
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .label {
+      color: #6c757d;
+      font-size: 13px;
+    }
+
+    .value {
+      font-weight: 600;
+      color: #212529;
+      font-size: 14px;
+    }
+  }
+}
+
+.form-group {
+  margin-bottom: 20px;
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #212529;
+    font-size: 14px;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: var(--main-600);
+    }
+
+    &.invalid {
+      border-color: #dc3545;
+    }
+  }
+
+  textarea.form-control {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  .help-text {
+    display: block;
+    margin-top: 6px;
+    color: #6c757d;
+    font-size: 12px;
+  }
+}
+
+.tipo-envio-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+
+  .tipo-btn {
+    padding: 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+
+    i {
+      font-size: 28px;
+      color: #6c757d;
+    }
+
+    span {
+      font-weight: 500;
+      color: #495057;
+      font-size: 14px;
+    }
+
+    &:hover {
+      border-color: var(--main-600);
+      background: #f8f9fa;
+    }
+
+    &.active {
+      border-color: var(--main-600);
+      background: rgba(var(--main-600-rgb), 0.1);
+
+      i {
+        color: var(--main-600);
+      }
+
+      span {
+        color: var(--main-600);
+      }
+    }
+  }
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+
+  .btn {
+    padding: 10px 20px;
+    border-radius: 6px;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+
+    i {
+      font-size: 16px;
+    }
+
+    &.btn-secondary {
+      background: white;
+      color: #6c757d;
+      border: 1px solid #dee2e6;
+
+      &:hover {
+        background: #e9ecef;
+      }
+    }
+
+    &.btn-primary {
+      background: var(--main-600);
+      color: white;
+
+      &:hover:not(:disabled) {
+        background: var(--main-700);
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+// Animación de spinner
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ph-spin {
+  animation: spin 1s linear infinite;
+}

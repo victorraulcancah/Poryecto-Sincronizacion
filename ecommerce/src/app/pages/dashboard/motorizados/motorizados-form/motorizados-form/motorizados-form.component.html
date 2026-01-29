@@ -1,0 +1,639 @@
+<div class="usuarios-container p-24">
+  <div class="usuarios-header">
+    <div class="header-content">
+      <div class="title-section">
+        <h1 class="page-title">
+          <i class="fas fa-motorcycle text-main-600"></i>
+          {{isEditMode ? 'Editar' : 'Nuevo'}} Motorizado
+        </h1>
+        <p class="page-subtitle text-gray-600">{{isEditMode ? 'Modifica los datos del motorizado' : 'Registra un nuevo motorizado de delivery'}}</p>
+      </div>
+      <button type="button" class="btn btn-secondary" (click)="onCancel()">
+        <i class="fas fa-times"></i>
+        Cancelar
+      </button>
+    </div>
+  </div>
+
+  <div class="table-container" *ngIf="!isLoading">
+    <form [formGroup]="motorizadoForm" (ngSubmit)="onSubmit()">
+      <!-- Personal Information Section -->
+      <div class="form-section border border-gray-100 rounded-8 p-24 mb-24 bg-white">
+        <div class="table-header">
+          <h2 class="table-title text-xl mb-0">
+            <i class="fas fa-user text-main-600 me-8"></i>
+            Información Personal
+          </h2>
+        </div>
+
+        <div class="form-content mt-24">
+          <!-- Primera fila: Foto + Campos principales -->
+          <div class="row g-16 align-items-start">
+            <!-- Columna de la foto -->
+            <div class="col-md-2">
+              <label class="form-label d-block text-center fw-semibold text-gray-700">
+                <i class="fas fa-camera text-main-600 me-8"></i>
+                Foto del Motorizado
+              </label>
+              <div class="photo-upload-container d-flex justify-content-center">
+
+                <!-- Photo Preview -->
+                <div class="photo-preview position-relative d-inline-block" *ngIf="previewUrl">
+                  <div class="border border-main-600 border-4 rounded-circle overflow-hidden position-relative" style="width: 140px; height: 140px; padding: 3px;">
+                    <img [src]="previewUrl" alt="Vista previa" class="w-100 h-100 object-fit-cover rounded-circle">
+                  </div>
+                  <button type="button"
+                          class="btn btn-danger btn-sm rounded-circle position-absolute"
+                          (click)="removeImage()"
+                          style="top: 8px; right: 8px; width: 28px; height: 28px; z-index: 10;">
+                    <i class="fas fa-times" style="font-size: 12px;"></i>
+                  </button>
+                </div>
+
+                <!-- Upload Area -->
+                <div class="upload-area position-relative d-inline-block" *ngIf="!previewUrl">
+                  <input
+                    type="file"
+                    id="foto-input"
+                    accept="image/*"
+                    (change)="onFileSelected($event)"
+                    class="d-none">
+                  <label for="foto-input"
+                         class="border border-main-600 border-3 border-dashed rounded-circle bg-main-50 d-flex flex-column align-items-center justify-content-center cursor-pointer"
+                         style="width: 140px; height: 140px;">
+                    <div class="text-center">
+                      <i class="fas fa-camera-retro text-main-600 mb-2" style="font-size: 28px; opacity: 0.8;"></i>
+                      <div class="text-main-600 fw-semibold" style="font-size: 11px; line-height: 1.2;">
+                        Subir<br>Foto
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- File Info -->
+              <div class="file-info mt-12 p-2 bg-light border border-gray-200 rounded-3 d-flex align-items-center gap-2" *ngIf="selectedFileName && !previewUrl" style="font-size: 10px;">
+                <i class="fas fa-file-image text-main-600" style="font-size: 12px;"></i>
+                <span class="text-gray-700 text-truncate flex-grow-1">{{selectedFileName}}</span>
+                <button type="button"
+                        (click)="removeImage()"
+                        class="btn btn-danger btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center"
+                        style="width: 18px; height: 18px; font-size: 8px;">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+
+              <div class="mt-8 text-center">
+                <small class="text-gray-500" style="font-size: 10px; font-style: italic;">
+                  JPG, PNG, GIF (Max: 2MB)
+                </small>
+              </div>
+            </div>
+
+            <!-- Columna izquierda: Nombre, Correo, Teléfono -->
+            <div class="col-md-4">
+              <div class="form-group mb-20">
+                <label for="nombre_completo" class="form-label">Nombre Completo *</label>
+                <input
+                  type="text"
+                  id="nombre_completo"
+                  formControlName="nombre_completo"
+                  class="form-control px-16 py-12 border rounded-8"
+                  [class.is-invalid]="isFieldInvalid('nombre_completo')"
+                  placeholder="Ingrese el nombre completo">
+                <div *ngIf="isFieldInvalid('nombre_completo')" class="invalid-feedback">
+                  {{getFieldError('nombre_completo')}}
+                </div>
+              </div>
+
+              <div class="form-group mb-20">
+                <label for="correo" class="form-label">Correo Electrónico *</label>
+                <input
+                  type="email"
+                  id="correo"
+                  formControlName="correo"
+                  class="form-control px-16 py-12 border rounded-8"
+                  [class.is-invalid]="isFieldInvalid('correo')"
+                  (blur)="onEmailBlur()"
+                  placeholder="correo@ejemplo.com">
+
+                <!-- Mensaje de validación de correo -->
+                <div class="email-validation-message mt-2" *ngIf="emailMessage"
+                     [class.text-success]="emailValid"
+                     [class.text-danger]="!emailValid"
+                     style="font-size: 12px;">
+                  <i class="fas fa-spinner fa-spin" *ngIf="emailChecking"></i>
+                  <i class="fas fa-check-circle" *ngIf="!emailChecking && emailValid"></i>
+                  <i class="fas fa-times-circle" *ngIf="!emailChecking && !emailValid"></i>
+                  {{emailMessage}}
+                </div>
+
+                <div *ngIf="isFieldInvalid('correo')" class="invalid-feedback">
+                  {{getFieldError('correo')}}
+                </div>
+              </div>
+
+              <div class="form-group mb-20">
+                <label for="telefono" class="form-label">Teléfono *</label>
+                <input
+                  type="tel"
+                  id="telefono"
+                  formControlName="telefono"
+                  class="form-control px-16 py-12 border rounded-8"
+                  [class.is-invalid]="isFieldInvalid('telefono')"
+                  placeholder="Número de teléfono">
+                <div *ngIf="isFieldInvalid('telefono')" class="invalid-feedback">
+                  {{getFieldError('telefono')}}
+                </div>
+              </div>
+            </div>
+
+            <!-- Columna derecha: Tipo y Número de documento -->
+            <div class="col-md-4">
+              <div class="form-group mb-20">
+                <label for="tipo_documento_id" class="form-label">Tipo de Documento *</label>
+                <select
+                  id="tipo_documento_id"
+                  formControlName="tipo_documento_id"
+                  class="form-control px-16 py-12 border rounded-8"
+                  [class.is-invalid]="isFieldInvalid('tipo_documento_id')">
+                  <option value="">Seleccionar</option>
+                  <option *ngFor="let tipo of documentTypes" [value]="tipo.id">{{tipo.nombre}}</option>
+                </select>
+                <div *ngIf="isFieldInvalid('tipo_documento_id')" class="invalid-feedback">
+                  {{getFieldError('tipo_documento_id')}}
+                </div>
+              </div>
+
+              <div class="form-group mb-20">
+                <label for="numero_documento" class="form-label">Número de Documento *</label>
+                <input
+                  type="text"
+                  id="numero_documento"
+                  formControlName="numero_documento"
+                  class="form-control px-16 py-12 border rounded-8"
+                  [class.is-invalid]="isFieldInvalid('numero_documento')"
+                  placeholder="Número de documento">
+                <div *ngIf="isFieldInvalid('numero_documento')" class="invalid-feedback">
+                  {{getFieldError('numero_documento')}}
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-2"></div>
+          </div>
+
+          <!-- Segunda fila: Licencia y Categoría -->
+          <div class="row g-16">
+            <div class="col-md-10">
+              <div class="row g-16">
+                <div class="col-md-6">
+                  <label for="licencia_numero" class="form-label">N° Licencia *</label>
+                  <input
+                    type="text"
+                    id="licencia_numero"
+                    formControlName="licencia_numero"
+                    class="form-control px-16 py-12 border rounded-8"
+                    [class.is-invalid]="isFieldInvalid('licencia_numero')"
+                    placeholder="Número de licencia">
+                  <div *ngIf="isFieldInvalid('licencia_numero')" class="invalid-feedback">
+                    {{getFieldError('licencia_numero')}}
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <label for="licencia_categoria" class="form-label">Categoría *</label>
+                  <select
+                    id="licencia_categoria"
+                    formControlName="licencia_categoria"
+                    class="form-control px-16 py-12 border rounded-8"
+                    [class.is-invalid]="isFieldInvalid('licencia_categoria')">
+                    <option value="">Seleccionar</option>
+                    <option *ngFor="let categoria of categoriasLicencia | keyvalue" [value]="categoria.key">
+                      {{categoria.value}}
+                    </option>
+                  </select>
+                  <div *ngIf="isFieldInvalid('licencia_categoria')" class="invalid-feedback">
+                    {{getFieldError('licencia_categoria')}}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-2"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Address Section -->
+      <div class="form-section border border-gray-100 rounded-8 p-24 mb-24 bg-white">
+        <div class="table-header">
+          <h2 class="table-title text-xl mb-0">
+            <i class="fas fa-map-marker-alt text-main-600 me-8"></i>
+            Información de Dirección
+          </h2>
+        </div>
+
+        <div class="form-content mt-24">
+          <div class="row g-16">
+            <div class="col-md-4">
+              <label for="departamento" class="form-label">Departamento *</label>
+              <select
+                id="departamento"
+                formControlName="departamento"
+                class="form-control px-16 py-12 border rounded-8"
+                [class.is-invalid]="isFieldInvalid('departamento')"
+                (change)="onDepartamentoChange()">
+                <option value="">Seleccionar</option>
+                <option *ngFor="let dept of departamentos" [value]="dept.id_ubigeo">{{dept.nombre}}</option>
+              </select>
+              <div *ngIf="isFieldInvalid('departamento')" class="invalid-feedback">
+                {{getFieldError('departamento')}}
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <label for="provincia" class="form-label">Provincia *</label>
+              <select
+                id="provincia"
+                formControlName="provincia"
+                class="form-control px-16 py-12 border rounded-8"
+                [class.is-invalid]="isFieldInvalid('provincia')"
+                (change)="onProvinciaChange()">
+                <option value="">Seleccionar</option>
+                <option *ngFor="let prov of provincias" [value]="prov.id_ubigeo">{{prov.nombre}}</option>
+              </select>
+              <div *ngIf="isFieldInvalid('provincia')" class="invalid-feedback">
+                {{getFieldError('provincia')}}
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <label for="ubigeo" class="form-label">Distrito *</label>
+              <select
+                id="ubigeo"
+                formControlName="ubigeo"
+                class="form-control px-16 py-12 border rounded-8"
+                [class.is-invalid]="isFieldInvalid('ubigeo')">
+                <option value="">Seleccionar</option>
+                <option *ngFor="let dist of distritos" [value]="dist.id_ubigeo">{{dist.nombre}}</option>
+              </select>
+              <div *ngIf="isFieldInvalid('ubigeo')" class="invalid-feedback">
+                {{getFieldError('ubigeo')}}
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-16 mt-16">
+            <div class="col-12">
+              <label for="direccion_detalle" class="form-label">Dirección Detalle *</label>
+              <input
+                type="text"
+                id="direccion_detalle"
+                formControlName="direccion_detalle"
+                class="form-control px-16 py-12 border rounded-8"
+                [class.is-invalid]="isFieldInvalid('direccion_detalle')"
+                placeholder="Ingrese la dirección completa">
+              <div *ngIf="isFieldInvalid('direccion_detalle')" class="invalid-feedback">
+                {{getFieldError('direccion_detalle')}}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vehicle Information Section -->
+      <div class="form-section border border-gray-100 rounded-8 p-24 mb-24 bg-white">
+        <div class="table-header">
+          <h2 class="table-title text-xl mb-0">
+            <i class="fas fa-motorcycle text-main-600 me-8"></i>
+            Información del Vehículo
+          </h2>
+        </div>
+
+        <div class="form-content mt-24">
+          <div class="row g-16">
+            <div class="col-md-4">
+              <label for="vehiculo_marca" class="form-label">Marca *</label>
+              <input
+                type="text"
+                id="vehiculo_marca"
+                formControlName="vehiculo_marca"
+                class="form-control px-16 py-12 border rounded-8"
+                [class.is-invalid]="isFieldInvalid('vehiculo_marca')"
+                placeholder="Marca del vehículo">
+              <div *ngIf="isFieldInvalid('vehiculo_marca')" class="invalid-feedback">
+                {{getFieldError('vehiculo_marca')}}
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <label for="vehiculo_modelo" class="form-label">Modelo *</label>
+              <input
+                type="text"
+                id="vehiculo_modelo"
+                formControlName="vehiculo_modelo"
+                class="form-control px-16 py-12 border rounded-8"
+                [class.is-invalid]="isFieldInvalid('vehiculo_modelo')"
+                placeholder="Modelo">
+              <div *ngIf="isFieldInvalid('vehiculo_modelo')" class="invalid-feedback">
+                {{getFieldError('vehiculo_modelo')}}
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <label for="vehiculo_ano" class="form-label">Año *</label>
+              <input
+                type="number"
+                id="vehiculo_ano"
+                formControlName="vehiculo_ano"
+                class="form-control px-16 py-12 border rounded-8"
+                [class.is-invalid]="isFieldInvalid('vehiculo_ano')"
+                [min]="1950"
+                [max]="currentYear + 1"
+                placeholder="Año">
+              <div *ngIf="isFieldInvalid('vehiculo_ano')" class="invalid-feedback">
+                {{getFieldError('vehiculo_ano')}}
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-16 mt-16">
+            <div class="col-md-4">
+              <label for="vehiculo_cilindraje" class="form-label">Cilindraje *</label>
+              <input
+                type="text"
+                id="vehiculo_cilindraje"
+                formControlName="vehiculo_cilindraje"
+                class="form-control px-16 py-12 border rounded-8"
+                [class.is-invalid]="isFieldInvalid('vehiculo_cilindraje')"
+                placeholder="Ej: 150cc">
+              <div *ngIf="isFieldInvalid('vehiculo_cilindraje')" class="invalid-feedback">
+                {{getFieldError('vehiculo_cilindraje')}}
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <label for="vehiculo_placa" class="form-label">Placa *</label>
+              <input
+                type="text"
+                id="vehiculo_placa"
+                formControlName="vehiculo_placa"
+                class="form-control px-16 py-12 border rounded-8 text-uppercase"
+                [class.is-invalid]="isFieldInvalid('vehiculo_placa')"
+                placeholder="Número de placa">
+              <div *ngIf="isFieldInvalid('vehiculo_placa')" class="invalid-feedback">
+                {{getFieldError('vehiculo_placa')}}
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <label for="vehiculo_color_principal" class="form-label">Color Principal *</label>
+              <input
+                type="text"
+                id="vehiculo_color_principal"
+                formControlName="vehiculo_color_principal"
+                class="form-control px-16 py-12 border rounded-8"
+                [class.is-invalid]="isFieldInvalid('vehiculo_color_principal')"
+                placeholder="Color principal">
+              <div *ngIf="isFieldInvalid('vehiculo_color_principal')" class="invalid-feedback">
+                {{getFieldError('vehiculo_color_principal')}}
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-16 mt-16">
+            <div class="col-md-4">
+              <label for="vehiculo_color_secundario" class="form-label">Color Secundario</label>
+              <input
+                type="text"
+                id="vehiculo_color_secundario"
+                formControlName="vehiculo_color_secundario"
+                class="form-control px-16 py-12 border rounded-8"
+                placeholder="Color secundario (opcional)">
+            </div>
+
+            <div class="col-md-4">
+              <label for="vehiculo_motor" class="form-label">Número de Motor *</label>
+              <input
+                type="text"
+                id="vehiculo_motor"
+                formControlName="vehiculo_motor"
+                class="form-control px-16 py-12 border rounded-8"
+                [class.is-invalid]="isFieldInvalid('vehiculo_motor')"
+                placeholder="Número de motor">
+              <div *ngIf="isFieldInvalid('vehiculo_motor')" class="invalid-feedback">
+                {{getFieldError('vehiculo_motor')}}
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <label for="vehiculo_chasis" class="form-label">Número de Chasis *</label>
+              <input
+                type="text"
+                id="vehiculo_chasis"
+                formControlName="vehiculo_chasis"
+                class="form-control px-16 py-12 border rounded-8"
+                [class.is-invalid]="isFieldInvalid('vehiculo_chasis')"
+                placeholder="Número de chasis">
+              <div *ngIf="isFieldInvalid('vehiculo_chasis')" class="invalid-feedback">
+                {{getFieldError('vehiculo_chasis')}}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Observations Section -->
+      <div class="form-section border border-gray-100 rounded-8 p-24 mb-24 bg-white">
+        <div class="table-header">
+          <h2 class="table-title text-xl mb-0">
+            <i class="fas fa-clipboard text-main-600 me-8"></i>
+            Observaciones
+          </h2>
+        </div>
+
+        <div class="form-content mt-24">
+          <div class="row g-16">
+            <div class="col-12">
+              <label for="comentario" class="form-label">Comentarios/Observaciones</label>
+              <textarea
+                id="comentario"
+                formControlName="comentario"
+                class="form-control px-16 py-12 border rounded-8"
+                rows="4"
+                placeholder="Ingrese observaciones adicionales sobre el motorizado (opcional)"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Credentials Section - Solo en modo crear -->
+      <div class="form-section border border-gray-100 rounded-8 p-24 mb-24 bg-white" *ngIf="!isEditMode">
+        <div class="table-header">
+          <h2 class="table-title text-xl mb-0">
+            <i class="fas fa-user-lock text-main-600 me-8"></i>
+            Credenciales de Acceso
+          </h2>
+        </div>
+
+        <div class="form-content mt-24">
+          <div class="row g-16">
+            <div class="col-12">
+              <div class="form-check d-flex align-items-center gap-10">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="crear_usuario"
+                  formControlName="crear_usuario">
+                <label class="form-check-label fw-medium" for="crear_usuario">
+                  <i class="fas fa-key text-main-600 me-8"></i>
+                  Crear usuario para acceso al sistema de delivery
+                </label>
+              </div>
+              <small class="text-muted d-block mt-2 ms-5">
+                El motorizado podrá ingresar al sistema para gestionar sus pedidos asignados
+              </small>
+            </div>
+          </div>
+
+          <!-- Campos de credenciales -->
+          <div class="credentials-section border-start border-main-600 border-4 mt-20 p-20 bg-light rounded-8" *ngIf="motorizadoForm.get('crear_usuario')?.value">
+            <div class="row g-16">
+              <div class="col-md-6">
+                <label class="form-label">
+                  <i class="fas fa-envelope text-main-600 me-8"></i>
+                  Usuario de Acceso
+                </label>
+                <input
+                  type="text"
+                  class="form-control px-16 py-12 border rounded-8 bg-gray-100 text-gray-600"
+                  [value]="motorizadoForm.get('correo')?.value || 'El correo electrónico será el usuario'"
+                  readonly>
+                <small class="text-muted">El motorizado usará su correo electrónico para ingresar</small>
+              </div>
+
+              <div class="col-md-6">
+                <label for="password" class="form-label">
+                  <i class="fas fa-lock text-main-600 me-8"></i>
+                  Contraseña
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  formControlName="password"
+                  class="form-control px-16 py-12 border rounded-8"
+                  [class.is-invalid]="motorizadoForm.get('password')?.invalid && motorizadoForm.get('password')?.touched && motorizadoForm.get('password')?.value?.trim() !== ''"
+                  [class.is-valid]="motorizadoForm.get('password')?.valid && motorizadoForm.get('password')?.value?.trim() !== ''"
+                  placeholder="Ingresa una contraseña o déjalo vacío para generar automáticamente">
+
+                <!-- Mensaje de error para contraseña -->
+                <div *ngIf="motorizadoForm.get('password')?.invalid && motorizadoForm.get('password')?.touched && motorizadoForm.get('password')?.value?.trim() !== ''"
+                     class="invalid-feedback">
+                  La contraseña debe tener al menos 6 caracteres
+                </div>
+
+                <!-- Mensaje de éxito para contraseña -->
+                <div *ngIf="motorizadoForm.get('password')?.valid && motorizadoForm.get('password')?.value?.trim() !== ''"
+                     class="valid-feedback">
+                  Contraseña válida - se usará esta contraseña
+                </div>
+
+                <small class="text-muted">Mínimo 6 caracteres. Si especificas una contraseña, debe ser segura (mín. 6 caracteres)</small>
+              </div>
+            </div>
+
+            <div class="alert alert-info d-flex align-items-center gap-10 mt-16 mb-0">
+              <i class="fas fa-info-circle text-info"></i>
+              <span class="text-sm">
+                Las credenciales se mostrarán una sola vez después de crear el motorizado.
+                Asegúrate de anotarlas o comunicárselas al motorizado.
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions p-20 text-end border-top border-gray-100">
+        <button type="button" class="btn btn-secondary me-10" (click)="onCancel()">
+          <i class="fas fa-times me-8"></i>
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-main" [disabled]="isSubmitting || motorizadoForm.invalid">
+          <i *ngIf="isSubmitting" class="fas fa-spinner fa-spin me-8"></i>
+          <i *ngIf="!isSubmitting" class="fas fa-save me-8"></i>
+          {{isSubmitting ? 'Guardando...' : (isEditMode ? 'Actualizar' : 'Crear')}} Motorizado
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-overlay text-center py-60" *ngIf="isLoading">
+    <div class="spinner-border text-main-600 mb-16"></div>
+    <p class="text-gray-600">Cargando información del motorizado...</p>
+  </div>
+
+  <!-- Modal de Credenciales -->
+  <div class="modal-overlay position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+       *ngIf="showCredencialesModal"
+       style="background-color: rgba(0,0,0,0.5); z-index: 9999;">
+    <div class="modal-content bg-white rounded-12 p-30 shadow-lg" style="max-width: 500px; width: 90%;">
+      <div class="modal-header text-center mb-24">
+        <div class="w-60 h-60 bg-success rounded-circle mx-auto mb-16 d-flex align-items-center justify-content-center">
+          <i class="fas fa-check text-white" style="font-size: 24px;"></i>
+        </div>
+        <h3 class="mb-0 text-heading fw-semibold">¡Motorizado Creado Exitosamente!</h3>
+        <p class="mt-10 mb-0 text-gray-600">Se han generado las credenciales de acceso</p>
+      </div>
+
+      <div class="credentials-info bg-light rounded-8 p-20 mb-24 border-start border-main-600 border-4">
+        <h4 class="mb-16 text-heading fw-semibold text-md">
+          <i class="fas fa-key text-main-600 me-8"></i>
+          Credenciales de Acceso
+        </h4>
+
+        <div class="credential-item mb-16">
+          <label class="d-block fw-semibold text-gray-700 mb-2">Usuario:</label>
+          <div class="d-flex align-items-center gap-10">
+            <input type="text" [value]="credencialesGeneradas?.username" readonly
+                   class="form-control px-16 py-12 border rounded-8 bg-gray-100 text-gray-700" style="font-family: monospace;">
+          </div>
+        </div>
+
+        <div class="credential-item mb-16">
+          <label class="d-block fw-semibold text-gray-700 mb-2">Contraseña:</label>
+          <div class="d-flex align-items-center gap-10">
+            <input type="text" [value]="credencialesGeneradas?.password" readonly
+                   class="form-control px-16 py-12 border rounded-8 bg-gray-100 text-gray-700" style="font-family: monospace;">
+          </div>
+        </div>
+
+        <button type="button" (click)="copiarCredenciales()"
+                class="btn btn-main w-100">
+          <i class="fas fa-copy me-8"></i>
+          Copiar Credenciales
+        </button>
+      </div>
+
+      <div class="alert alert-warning d-flex align-items-center gap-10 mb-24">
+        <i class="fas fa-exclamation-triangle text-warning fs-18"></i>
+        <div class="flex-grow-1">
+          <strong class="text-warning">¡Importante!</strong>
+          <p class="mb-0 mt-2 text-warning text-sm">
+            Guarda estas credenciales de forma segura. No se mostrarán nuevamente.
+            El motorizado las necesitará para acceder al sistema de delivery.
+          </p>
+        </div>
+      </div>
+
+      <div class="modal-actions d-flex gap-10">
+        <button type="button" (click)="cerrarModalCredenciales()"
+                class="btn btn-success flex-grow-1">
+          <i class="fas fa-check me-8"></i>
+          Entendido, Continuar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

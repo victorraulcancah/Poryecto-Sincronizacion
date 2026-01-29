@@ -1,0 +1,265 @@
+.whatsapp-float-container {
+  position: fixed;
+  bottom: 90px; // 10-15px encima del chatbot
+  right: 20px;
+  z-index: 1050;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  @media (max-width: 768px) {
+    bottom: 85px;
+    right: 16px;
+  }
+}
+
+.whatsapp-main-btn {
+  background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 25px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+  min-width: 60px;
+  justify-content: center;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5);
+    background: linear-gradient(135deg, #128C7E 0%, #25D366 100%);
+  }
+
+  &.expanded {
+    border-radius: 30px;
+    padding: 14px;
+    min-width: 56px;
+
+    .whatsapp-icon {
+      font-size: 24px;
+    }
+  }
+
+  .whatsapp-icon {
+    font-size: 20px;
+    transition: font-size 0.3s ease;
+  }
+
+  .whatsapp-text {
+    font-weight: 600;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+}
+
+.whatsapp-panel {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  width: 320px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px) scale(0.95);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-bottom: 10px;
+  overflow: hidden;
+
+  @media (max-width: 768px) {
+    width: 280px;
+    right: -10px;
+  }
+
+  @media (max-width: 480px) {
+    width: 260px;
+    right: -20px;
+  }
+
+  &.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.whatsapp-header {
+  background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+  color: white;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  h6 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    i {
+      font-size: 16px;
+    }
+  }
+}
+
+.asesores-list {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 8px 0;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #25D366;
+    border-radius: 2px;
+  }
+}
+
+.asesor-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  border-bottom: 1px solid #f0f0f0;
+
+  &:hover {
+    background: #f8f9fa;
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.asesor-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e9ecef;
+  margin-right: 12px;
+}
+
+.asesor-info {
+  flex: 1;
+  min-width: 0;
+
+  .asesor-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 2px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .asesor-status {
+    font-size: 12px;
+    color: #28a745;
+    font-weight: 500;
+  }
+}
+
+.whatsapp-btn {
+  background: #25D366;
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #128C7E;
+    transform: scale(1.1);
+  }
+}
+
+.whatsapp-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent;
+  z-index: -1;
+}
+
+// Animaciones
+@keyframes bounce {
+
+  0%,
+  20%,
+  53%,
+  80%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  40%,
+  43% {
+    transform: translate3d(0, -8px, 0);
+  }
+
+  70% {
+    transform: translate3d(0, -4px, 0);
+  }
+
+  90% {
+    transform: translate3d(0, -2px, 0);
+  }
+}
+
+.whatsapp-main-btn:active {
+  animation: bounce 1s;
+}
+
+// Responsive improvements
+@media (max-width: 320px) {
+  .whatsapp-panel {
+    width: 240px;
+    right: -30px;
+  }
+
+  .asesor-item {
+    padding: 10px 12px;
+  }
+
+  .asesor-avatar {
+    width: 36px;
+    height: 36px;
+  }
+}

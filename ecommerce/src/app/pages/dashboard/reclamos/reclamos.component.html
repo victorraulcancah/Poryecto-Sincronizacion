@@ -1,0 +1,559 @@
+<div class="container-fluid">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h4 class="fw-semibold mb-2">Gestión de Reclamos</h4>
+      <p class="text-muted mb-0">Administra todos los reclamos y quejas de los clientes</p>
+    </div>
+    <button class="btn bg-main-600 hover-bg-main-700 text-white"
+            (click)="exportarDatos()"
+            [disabled]="isLoading">
+      <i class="ph ph-download me-2"></i>
+      Exportar Datos
+    </button>
+  </div>
+
+  <!-- Estadísticas -->
+  <div class="row mb-4" *ngIf="!isLoadingStats">
+    <div class="col-lg-3 col-md-6 col-sm-6 mb-3">
+      <div class="card border-0 shadow-sm stats-card">
+        <div class="card-body p-3">
+          <div class="d-flex align-items-center">
+            <div class="flex-shrink-0 me-3">
+              <div class="bg-main-50 text-main-600 rounded p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                <i class="ph ph-file-text fs-5"></i>
+              </div>
+            </div>
+            <div>
+              <h4 class="text-heading fw-bold mb-1">{{ estadisticas.total_reclamos || 0 }}</h4>
+              <p class="text-gray-500 mb-0 small">Total de reclamos</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 col-sm-6 mb-3">
+      <div class="card border-0 shadow-sm stats-card">
+        <div class="card-body p-3">
+          <div class="d-flex align-items-center">
+            <div class="flex-shrink-0 me-3">
+              <div class="bg-warning-50 text-warning-600 rounded p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                <i class="ph ph-clock fs-5"></i>
+              </div>
+            </div>
+            <div>
+              <h4 class="text-heading fw-bold mb-1">{{ estadisticas.reclamos_pendientes || 0 }}</h4>
+              <p class="text-gray-500 mb-0 small">Pendientes</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 col-sm-6 mb-3">
+      <div class="card border-0 shadow-sm stats-card">
+        <div class="card-body p-3">
+          <div class="d-flex align-items-center">
+            <div class="flex-shrink-0 me-3">
+              <div class="bg-success-50 text-success-600 rounded p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                <i class="ph ph-check-circle fs-5"></i>
+              </div>
+            </div>
+            <div>
+              <h4 class="text-heading fw-bold mb-1">{{ estadisticas.reclamos_resueltos || 0 }}</h4>
+              <p class="text-gray-500 mb-0 small">Resueltos</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 col-sm-6 mb-3">
+      <div class="card border-0 shadow-sm stats-card">
+        <div class="card-body p-3">
+          <div class="d-flex align-items-center">
+            <div class="flex-shrink-0 me-3">
+              <div class="bg-danger-50 text-danger-600 rounded p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                <i class="ph ph-warning-circle fs-5"></i>
+              </div>
+            </div>
+            <div>
+              <h4 class="text-heading fw-bold mb-1">{{ estadisticas.reclamos_vencidos || 0 }}</h4>
+              <p class="text-gray-500 mb-0 small">Vencidos</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label fw-semibold small">Buscar</label>
+          <input 
+            type="text" 
+            class="form-control"
+            placeholder="Número, nombre, email..."
+            [(ngModel)]="filtros.search"
+            (keyup.enter)="aplicarFiltros()">
+        </div>
+        
+        <div class="col-md-2">
+          <label class="form-label fw-semibold small">Estado</label>
+          <select class="form-select" [(ngModel)]="filtros.estado">
+            <option value="">Todos los estados</option>
+            <option *ngFor="let estado of estadosDisponibles" [value]="estado.value">
+              {{ estado.label }}
+            </option>
+          </select>
+        </div>
+        
+        <div class="col-md-2">
+          <label class="form-label fw-semibold small">Tipo</label>
+          <select class="form-select" [(ngModel)]="filtros.tipo_solicitud">
+            <option value="">Todos los tipos</option>
+            <option value="reclamo">Reclamo</option>
+            <option value="queja">Queja</option>
+          </select>
+        </div>
+        
+        <div class="col-md-2">
+          <label class="form-label fw-semibold small">Desde</label>
+          <input 
+            type="date" 
+            class="form-control"
+            [(ngModel)]="filtros.fecha_desde">
+        </div>
+        
+        <div class="col-md-2">
+          <label class="form-label fw-semibold small">Hasta</label>
+          <input 
+            type="date" 
+            class="form-control"
+            [(ngModel)]="filtros.fecha_hasta">
+        </div>
+        
+        <div class="col-md-1 d-flex align-items-end">
+          <div class="d-flex gap-2">
+            <button 
+              class="btn btn-main btn-sm"
+              (click)="aplicarFiltros()"
+              [disabled]="isLoading"
+              title="Aplicar filtros">
+              <i class="ph ph-funnel"></i>
+            </button>
+            <button 
+              class="btn bg-main-200 border-main-500 text-main-600 btn-sm"
+              (click)="limpiarFiltros()"
+              [disabled]="isLoading"
+              title="Limpiar filtros">
+              <i class="ph ph-eraser text-main-600"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla con NGX-Datatable -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+      
+      <!-- Loading state -->
+      <div *ngIf="isLoading" class="text-center py-5">
+        <div class="spinner-border text-main-600" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="text-muted mt-3 mb-0">Cargando reclamos...</p>
+      </div>
+
+      <!-- Datatable -->
+      <ngx-datatable
+        *ngIf="!isLoading"
+        class="bootstrap reclamos-table"
+        [columns]="columns"
+        [rows]="reclamos"
+        [columnMode]="ColumnMode.flex"
+        [headerHeight]="50"
+        [footerHeight]="50"
+        [rowHeight]="80"
+        [limit]="itemsPerPage"
+        [scrollbarV]="true"
+        [scrollbarH]="false"
+        [loadingIndicator]="isLoading"
+        [trackByProp]="'id'"
+        [sortType]="SortType.single"
+        [selectionType]="SelectionType.single"
+      >
+        <!-- Columna Reclamo -->
+        <ngx-datatable-column
+          name="Reclamo"
+          prop="numero_reclamo"
+          [flexGrow]="1.5"
+          [sortable]="true"
+        >
+          <ng-template let-row="row" ngx-datatable-cell-template>
+            <div class="reclamo-info">
+              <div class="reclamo-numero">{{ row.numero_reclamo }}</div>
+              <div class="reclamo-monto">S/ {{ row.monto_reclamado }}</div>
+            </div>
+          </ng-template>
+        </ngx-datatable-column>
+
+        <!-- Columna Cliente -->
+        <ngx-datatable-column
+          name="Cliente"
+          prop="consumidor_nombre"
+          [flexGrow]="2"
+          [sortable]="true"
+        >
+          <ng-template let-row="row" ngx-datatable-cell-template>
+            <div class="cliente-info">
+              <div class="cliente-nombre">{{ row.consumidor_nombre }}</div>
+              <div class="cliente-email">{{ row.consumidor_email }}</div>
+            </div>
+          </ng-template>
+        </ngx-datatable-column>
+
+        <!-- Columna Tipo -->
+        <ngx-datatable-column
+          name="Tipo"
+          prop="tipo_solicitud"
+          [flexGrow]="1"
+          [sortable]="true"
+        >
+          <ng-template let-row="row" ngx-datatable-cell-template>
+            <div class="text-center">
+              <span class="badge bg-info-50 text-info-600 tipo-badge">
+                {{ getTipoSolicitudLabel(row.tipo_solicitud || '') }}
+              </span>
+              <div class="tipo-bien">{{ getTipoBienLabel(row.tipo_bien || '') }}</div>
+            </div>
+          </ng-template>
+        </ngx-datatable-column>
+
+        <!-- Columna Estado -->
+        <ngx-datatable-column
+          name="Estado"
+          prop="estado"
+          [flexGrow]="1"
+          [sortable]="true"
+        >
+          <ng-template let-row="row" ngx-datatable-cell-template>
+            <span class="badge estado-badge" [ngClass]="getEstadoClass(row.estado || '')">
+              {{ getEstadoLabel(row.estado || '') }}
+            </span>
+          </ng-template>
+        </ngx-datatable-column>
+
+        <!-- Columna Fecha -->
+        <ngx-datatable-column
+          name="Fecha"
+          prop="created_at"
+          [flexGrow]="1.2"
+          [sortable]="true"
+        >
+          <ng-template let-row="row" ngx-datatable-cell-template>
+            <div class="fecha-info">
+              <div class="fecha-dia">{{ row.created_at | date:'dd/MM/yyyy' }}</div>
+              <div class="fecha-hora">{{ row.created_at | date:'HH:mm' }}</div>
+            </div>
+          </ng-template>
+        </ngx-datatable-column>
+
+        <!-- Columna Días Restantes -->
+        <ngx-datatable-column
+          name="Días Rest."
+          [flexGrow]="1"
+          [sortable]="false"
+        >
+          <ng-template let-row="row" ngx-datatable-cell-template>
+            <div class="text-center">
+              <span *ngIf="row.estado === 'pendiente' || row.estado === 'en_proceso'"
+                    class="badge dias-badge"
+                    [class]="isReclamoVencido(row.fecha_limite_respuesta || '', row.estado || '') ? 'bg-danger-50 text-danger-600' : 'bg-warning-50 text-warning-600'">
+                {{ isReclamoVencido(row.fecha_limite_respuesta || '', row.estado || '') ? 'Vencido' : 
+                   calcularDiasRestantes(row.fecha_limite_respuesta || '') + ' días' }}
+              </span>
+              <span *ngIf="row.estado === 'resuelto'" 
+                    class="badge bg-success-50 text-success-600 dias-badge">Resuelto</span>
+              <span *ngIf="row.estado === 'cerrado'" 
+                    class="badge bg-gray-100 text-gray-600 dias-badge">Cerrado</span>
+            </div>
+          </ng-template>
+        </ngx-datatable-column>
+
+        <!-- Columna Acciones -->
+        <ngx-datatable-column
+          name="Acciones"
+          [flexGrow]="1.5"
+          [sortable]="false"
+          [canAutoResize]="false"
+        >
+          <ng-template let-row="row" ngx-datatable-cell-template>
+            <div class="action-buttons">
+              <button class="btn action-btn view-btn"
+                      (click)="verDetalle(row)"
+                      title="Ver detalle">
+                <i class="ph ph-eye"></i>
+              </button>
+              
+              <div class="dropdown" *ngIf="row.estado !== 'cerrado'">
+                <button class="btn action-btn dropdown-btn"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        title="Más opciones">
+                  <i class="ph ph-dots-three-vertical"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li *ngFor="let estado of estadosDisponibles">
+                    <button class="dropdown-item"
+                            (click)="cambiarEstado(row, estado.value)"
+                            [disabled]="row.estado === estado.value">
+                      <i class="ph ph-arrow-right me-8"></i>
+                      {{ estado.label }}
+                    </button>
+                  </li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li>
+                    <button class="dropdown-item text-danger"
+                            (click)="eliminarReclamo(row)">
+                      <i class="ph ph-trash me-8"></i>
+                      Eliminar
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </ng-template>
+        </ngx-datatable-column>
+      </ngx-datatable>
+
+      <!-- Empty state -->
+      <div *ngIf="!isLoading && reclamos.length === 0" class="text-center py-5">
+        <i class="ph ph-file-text text-muted display-1 mb-3"></i>
+        <h6 class="fw-semibold mb-2">
+          {{ hayFiltrosActivos ? 'No se encontraron reclamos' : 'No hay reclamos registrados' }}
+        </h6>
+        <p class="text-muted mb-3">
+          {{ hayFiltrosActivos ? 'Intenta ajustar los filtros de búsqueda' : 'Los reclamos de los clientes aparecerán aquí' }}
+        </p>
+        <button *ngIf="hayFiltrosActivos"
+                class="btn bg-main-600 hover-bg-main-700 text-white"
+                (click)="limpiarFiltros()">
+          <i class="ph ph-eraser me-2"></i>
+          Limpiar filtros
+        </button>
+      </div>
+    </div>
+  </div>
+
+<!-- Modal de Detalle del Reclamo -->
+<div class="modal fade detalle-modal" id="detalleReclamoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content" *ngIf="reclamoSeleccionado">
+      <div class="modal-header">
+        <h5 class="modal-title d-flex align-items-center">
+          <i class="ph ph-user-circle me-2"></i>
+          Reclamo {{ reclamoSeleccionado.numero_reclamo }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="row">
+          <!-- Información del Cliente -->
+          <div class="col-md-6 mb-4">
+            <div class="info-section">
+              <h6 class="info-label mb-3">
+                <i class="ph ph-user me-2"></i>
+                Información del Cliente
+              </h6>
+              <div class="row g-2">
+                <div class="col-12">
+                  <strong>Nombre:</strong> {{ reclamoSeleccionado.consumidor_nombre }}
+                </div>
+                <div class="col-6">
+                  <strong>DNI:</strong> {{ reclamoSeleccionado.consumidor_dni }}
+                </div>
+                <div class="col-6">
+                  <strong>Teléfono:</strong> {{ reclamoSeleccionado.consumidor_telefono }}
+                </div>
+                <div class="col-12">
+                  <strong>Email:</strong> {{ reclamoSeleccionado.consumidor_email }}
+                </div>
+                <div class="col-12">
+                  <strong>Dirección:</strong> {{ reclamoSeleccionado.consumidor_direccion }}
+                </div>
+              </div>
+              
+              <!-- Datos del Apoderado si es menor de edad -->
+              <div *ngIf="reclamoSeleccionado.es_menor_edad" class="mt-3 pt-3 border-top">
+                <h6 class="info-label mb-2 text-warning">
+                  <i class="ph ph-shield-warning me-2"></i>
+                  Datos del Apoderado (Menor de edad)
+                </h6>
+                <div class="row g-2 text-sm">
+                  <div class="col-12">
+                    <strong>Nombre:</strong> {{ reclamoSeleccionado.apoderado_nombre }}
+                  </div>
+                  <div class="col-6">
+                    <strong>DNI:</strong> {{ reclamoSeleccionado.apoderado_dni }}
+                  </div>
+                  <div class="col-6">
+                    <strong>Email:</strong> {{ reclamoSeleccionado.apoderado_email }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Información del Reclamo -->
+          <div class="col-md-6 mb-4">
+            <div class="info-section">
+              <h6 class="info-label mb-3">
+                <i class="ph ph-info me-2"></i>
+                Información del Reclamo
+              </h6>
+              <div class="row g-2">
+                <div class="col-6">
+                  <strong>Estado:</strong>
+                  <span class="badge ms-1" [ngClass]="getEstadoClass(reclamoSeleccionado.estado || '')">
+                    {{ getEstadoLabel(reclamoSeleccionado.estado || '') }}
+                  </span>
+                </div>
+                <div class="col-6">
+                  <strong>Tipo:</strong> {{ getTipoSolicitudLabel(reclamoSeleccionado.tipo_solicitud || '') }}
+                </div>
+                <div class="col-6">
+                  <strong>Bien:</strong> {{ getTipoBienLabel(reclamoSeleccionado.tipo_bien || '') }}
+                </div>
+                <div class="col-6">
+                  <strong>Monto:</strong> S/ {{ reclamoSeleccionado.monto_reclamado }}
+                </div>
+                <div class="col-6">
+                  <strong>Fecha:</strong> {{ reclamoSeleccionado.created_at | date:'dd/MM/yyyy HH:mm' }}
+                </div>
+                <div class="col-6">
+                  <strong>Límite respuesta:</strong> {{ reclamoSeleccionado.fecha_limite_respuesta | date:'dd/MM/yyyy' }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Detalle del Reclamo -->
+        <div class="info-section mb-4">
+          <h6 class="info-label mb-3">
+            <i class="ph ph-note me-2"></i>
+            Detalle del Reclamo
+          </h6>
+          <div class="mb-3">
+            <strong>Descripción del bien/servicio:</strong>
+            <p class="mt-2 mb-0">{{ reclamoSeleccionado.descripcion_bien }}</p>
+          </div>
+          <div class="mb-3">
+            <strong>Detalle del reclamo:</strong>
+            <p class="mt-2 mb-0">{{ reclamoSeleccionado.detalle_reclamo }}</p>
+          </div>
+          <div>
+            <strong>Pedido del consumidor:</strong>
+            <p class="mt-2 mb-0">{{ reclamoSeleccionado.pedido_consumidor }}</p>
+          </div>
+        </div>
+        
+        <!-- Respuesta del Proveedor -->
+        <div class="info-section">
+          <h6 class="info-label mb-3">
+            <i class="ph ph-chat-circle me-2"></i>
+            Respuesta del Proveedor
+          </h6>
+          
+          <!-- Mostrar respuesta existente -->
+          <div *ngIf="reclamoSeleccionado.respuesta_proveedor && !mostrandoFormularioRespuesta">
+            <div class="mb-2">
+              <strong>Fecha de respuesta:</strong> 
+              {{ reclamoSeleccionado.fecha_respuesta | date:'dd/MM/yyyy' }}
+            </div>
+            <div>
+              <strong>Respuesta:</strong>
+              <p class="mt-2 mb-0 p-3 bg-light rounded">{{ reclamoSeleccionado.respuesta_proveedor }}</p>
+            </div>
+          </div>
+          
+          <!-- Sin respuesta aún -->
+          <div *ngIf="!reclamoSeleccionado.respuesta_proveedor && !mostrandoFormularioRespuesta">
+            <p class="text-muted fst-italic">Sin respuesta aún</p>
+          </div>
+          
+          <!-- Formulario de respuesta -->
+          <div *ngIf="mostrandoFormularioRespuesta">
+            <form (ngSubmit)="enviarRespuesta()">
+              <div class="mb-3">
+                <label for="respuestaTexto" class="form-label fw-semibold">Respuesta:</label>
+                <textarea 
+                  id="respuestaTexto"
+                  class="form-control" 
+                  rows="4" 
+                  placeholder="Escriba la respuesta del proveedor..."
+                  [(ngModel)]="respuestaTexto"
+                  name="respuestaTexto"
+                  required
+                  [disabled]="isUpdatingReclamo"></textarea>
+                <div class="form-text">Mínimo 10 caracteres</div>
+              </div>
+              
+              <div class="mb-3">
+                <label for="fechaRespuestaInput" class="form-label fw-semibold">Fecha de respuesta:</label>
+                <input 
+                  type="date" 
+                  id="fechaRespuestaInput"
+                  class="form-control"
+                  [(ngModel)]="fechaRespuesta"
+                  name="fechaRespuesta"
+                  required
+                  [disabled]="isUpdatingReclamo">
+              </div>
+              
+              <div class="d-flex gap-2">
+                <button 
+                  type="submit" 
+                  class="btn btn-main"
+                  [disabled]="isUpdatingReclamo || respuestaTexto.trim().length < 10">
+                  <span *ngIf="isUpdatingReclamo" class="spinner-border spinner-border-sm me-2"></span>
+                  <i *ngIf="!isUpdatingReclamo" class="ph ph-paper-plane-tilt me-2"></i>
+                  Enviar Respuesta
+                </button>
+                <button 
+                  type="button" 
+                  class="btn bg-gray-400"
+                  (click)="cancelarRespuesta()"
+                  [disabled]="isUpdatingReclamo">
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cerrar
+        </button>
+        <button 
+          *ngIf="!reclamoSeleccionado.respuesta_proveedor && !mostrandoFormularioRespuesta"
+          type="button" 
+          class="btn btn-main"
+          (click)="responderReclamo()">
+          <i class="ph ph-paper-plane-tilt me-2"></i>
+          Responder
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

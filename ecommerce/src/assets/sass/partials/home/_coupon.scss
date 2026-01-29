@@ -1,0 +1,913 @@
+// ========================= CUPÓN ESTILO TICKET - DISEÑO LIMPIO =========================
+.coupon-section {
+  position: relative;
+}
+
+.coupon-banner {
+  // �️ IDISEÑO BASE: ESTILO TICKET CON BORDE PUNTEADO
+  background: white;
+  border: 3px dashed #06b6d4;
+  border-radius: 16px;
+  padding: 28px 36px;
+  margin: 0 auto 24px;
+  max-width: 1100px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  position: relative;
+  overflow: visible;
+  min-height: 160px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  }
+
+  // ✨ Círculos decorativos en los bordes (efecto ticket perforado)
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    background: #f9fafb;
+    border-radius: 50%;
+    border: 3px dashed #06b6d4;
+    z-index: 1;
+  }
+
+  &::before {
+    left: -16px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  &::after {
+    right: -16px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  // ========================= 🎨 VARIANTES DE COLOR =========================
+  
+  // 🔵 TURQUESA (Por defecto)
+  &.coupon-turquoise {
+    border-color: #06b6d4;
+
+    &::before,
+    &::after {
+      border-color: #06b6d4;
+      background: #f0fdfa;
+    }
+
+    .discount-circle-wrapper {
+      .discount-circle {
+        background: #06b6d4;
+
+        .discount-value,
+        .discount-label {
+          color: white !important;
+        }
+      }
+    }
+
+    .coupon-badge {
+      background: #06b6d4;
+      color: white;
+      border-color: #0891b2;
+    }
+
+    .coupon-title {
+      color: #0e7490;
+    }
+
+    .coupon-description {
+      color: #475569;
+    }
+
+    .coupon-code-box {
+      background: #ecfeff;
+      border-color: #06b6d4;
+
+      .coupon-code-label {
+        color: #0e7490;
+      }
+
+      .coupon-code {
+        color: #0891b2;
+      }
+
+      .coupon-copy-btn {
+        background: #06b6d4;
+        border-color: #0891b2;
+        color: white;
+
+        &:hover {
+          background: #0891b2;
+        }
+      }
+    }
+
+    .coupon-info {
+      background: #ecfeff;
+      color: #0e7490;
+    }
+
+    .coupon-more-link {
+      background: #ecfeff;
+      border-color: #06b6d4;
+      color: #0891b2;
+
+      &:hover {
+        background: #06b6d4;
+        color: white;
+      }
+    }
+  }
+
+  // 🩷 ROSA
+  &.coupon-pink {
+    border-color: #ec4899;
+
+    &::before,
+    &::after {
+      border-color: #ec4899;
+      background: #fdf2f8;
+    }
+
+    .discount-circle-wrapper {
+      .discount-circle {
+        background: #ec4899;
+
+        .discount-value,
+        .discount-label {
+          color: white !important;
+        }
+      }
+    }
+
+    .coupon-badge {
+      background: #ec4899;
+      color: white;
+      border-color: #db2777;
+    }
+
+    .coupon-title {
+      color: #be185d;
+    }
+
+    .coupon-description {
+      color: #475569;
+    }
+
+    .coupon-code-box {
+      background: #fdf2f8;
+      border-color: #ec4899;
+
+      .coupon-code-label {
+        color: #be185d;
+      }
+
+      .coupon-code {
+        color: #db2777;
+      }
+
+      .coupon-copy-btn {
+        background: #ec4899;
+        border-color: #db2777;
+        color: white;
+
+        &:hover {
+          background: #db2777;
+        }
+      }
+    }
+
+    .coupon-info {
+      background: #fdf2f8;
+      color: #be185d;
+    }
+
+    .coupon-more-link {
+      background: #fdf2f8;
+      border-color: #ec4899;
+      color: #db2777;
+
+      &:hover {
+        background: #ec4899;
+        color: white;
+      }
+    }
+  }
+
+  // 🟢 VERDE
+  &.coupon-green {
+    border-color: #10b981;
+
+    &::before,
+    &::after {
+      border-color: #10b981;
+      background: #f0fdf4;
+    }
+
+    .discount-circle-wrapper {
+      .discount-circle {
+        background: #10b981;
+
+        .discount-value,
+        .discount-label {
+          color: white !important;
+        }
+      }
+    }
+
+    .coupon-badge {
+      background: #10b981;
+      color: white;
+      border-color: #059669;
+    }
+
+    .coupon-title {
+      color: #047857;
+    }
+
+    .coupon-description {
+      color: #475569;
+    }
+
+    .coupon-code-box {
+      background: #f0fdf4;
+      border-color: #10b981;
+
+      .coupon-code-label {
+        color: #047857;
+      }
+
+      .coupon-code {
+        color: #059669;
+      }
+
+      .coupon-copy-btn {
+        background: #10b981;
+        border-color: #059669;
+        color: white;
+
+        &:hover {
+          background: #059669;
+        }
+      }
+    }
+
+    .coupon-info {
+      background: #f0fdf4;
+      color: #047857;
+    }
+
+    .coupon-more-link {
+      background: #f0fdf4;
+      border-color: #10b981;
+      color: #059669;
+
+      &:hover {
+        background: #10b981;
+        color: white;
+      }
+    }
+  }
+
+  // 🟣 MORADO
+  &.coupon-purple {
+    border-color: #8b5cf6;
+
+    &::before,
+    &::after {
+      border-color: #8b5cf6;
+      background: #faf5ff;
+    }
+
+    .discount-circle-wrapper {
+      .discount-circle {
+        background: #8b5cf6;
+
+        .discount-value,
+        .discount-label {
+          color: white !important;
+        }
+      }
+    }
+
+    .coupon-badge {
+      background: #8b5cf6;
+      color: white;
+      border-color: #7c3aed;
+    }
+
+    .coupon-title {
+      color: #6d28d9;
+    }
+
+    .coupon-description {
+      color: #475569;
+    }
+
+    .coupon-code-box {
+      background: #faf5ff;
+      border-color: #8b5cf6;
+
+      .coupon-code-label {
+        color: #6d28d9;
+      }
+
+      .coupon-code {
+        color: #7c3aed;
+      }
+
+      .coupon-copy-btn {
+        background: #8b5cf6;
+        border-color: #7c3aed;
+        color: white;
+
+        &:hover {
+          background: #7c3aed;
+        }
+      }
+    }
+
+    .coupon-info {
+      background: #faf5ff;
+      color: #6d28d9;
+    }
+
+    .coupon-more-link {
+      background: #faf5ff;
+      border-color: #8b5cf6;
+      color: #7c3aed;
+
+      &:hover {
+        background: #8b5cf6;
+        color: white;
+      }
+    }
+  }
+
+  // 🔴 ROJO
+  &.coupon-red {
+    border-color: #ef4444;
+
+    &::before,
+    &::after {
+      border-color: #ef4444;
+      background: #fef2f2;
+    }
+
+    .discount-circle-wrapper {
+      .discount-circle {
+        background: #ef4444;
+
+        .discount-value,
+        .discount-label {
+          color: white !important;
+        }
+      }
+    }
+
+    .coupon-badge {
+      background: #ef4444;
+      color: white;
+      border-color: #dc2626;
+    }
+
+    .coupon-title {
+      color: #b91c1c;
+    }
+
+    .coupon-description {
+      color: #475569;
+    }
+
+    .coupon-code-box {
+      background: #fef2f2;
+      border-color: #ef4444;
+
+      .coupon-code-label {
+        color: #b91c1c;
+      }
+
+      .coupon-code {
+        color: #dc2626;
+      }
+
+      .coupon-copy-btn {
+        background: #ef4444;
+        border-color: #dc2626;
+        color: white;
+
+        &:hover {
+          background: #dc2626;
+        }
+      }
+    }
+
+    .coupon-info {
+      background: #fef2f2;
+      color: #b91c1c;
+    }
+
+    .coupon-more-link {
+      background: #fef2f2;
+      border-color: #ef4444;
+      color: #dc2626;
+
+      &:hover {
+        background: #ef4444;
+        color: white;
+      }
+    }
+  }
+
+  // 🔵 AZUL
+  &.coupon-blue {
+    border-color: #3b82f6;
+
+    &::before,
+    &::after {
+      border-color: #3b82f6;
+      background: #eff6ff;
+    }
+
+    .discount-circle-wrapper {
+      .discount-circle {
+        background: #3b82f6;
+
+        .discount-value,
+        .discount-label {
+          color: white !important;
+        }
+      }
+    }
+
+    .coupon-badge {
+      background: #3b82f6;
+      color: white;
+      border-color: #2563eb;
+    }
+
+    .coupon-title {
+      color: #1e40af;
+    }
+
+    .coupon-description {
+      color: #475569;
+    }
+
+    .coupon-code-box {
+      background: #eff6ff;
+      border-color: #3b82f6;
+
+      .coupon-code-label {
+        color: #1e40af;
+      }
+
+      .coupon-code {
+        color: #2563eb;
+      }
+
+      .coupon-copy-btn {
+        background: #3b82f6;
+        border-color: #2563eb;
+        color: white;
+
+        &:hover {
+          background: #2563eb;
+        }
+      }
+    }
+
+    .coupon-info {
+      background: #eff6ff;
+      color: #1e40af;
+    }
+
+    .coupon-more-link {
+      background: #eff6ff;
+      border-color: #3b82f6;
+      color: #2563eb;
+
+      &:hover {
+        background: #3b82f6;
+        color: white;
+      }
+    }
+  }
+
+  // ========================= CUADRADO DE DESCUENTO (Izquierda) - ESTILO TICKET CON BORDES CORTADOS =========================
+  .discount-circle-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    padding: 8px;
+    position: relative;
+    z-index: 2;
+
+    .discount-circle {
+      width: 140px;
+      height: 140px;
+      background: #68E1E0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: all 0.3s ease;
+
+      // ✨ BORDES CORTADOS EN LAS 4 ESQUINAS (efecto ticket perforado)
+      // Usando border-radius para crear las curvas hacia adentro
+      border-radius: 8px;
+
+      // Crear los cortes semicirculares en las esquinas usando clip-path
+      clip-path: polygon(
+        0 15px,
+        8px 8px,
+        15px 0,
+        calc(100% - 15px) 0,
+        calc(100% - 8px) 8px,
+        100% 15px,
+        100% calc(100% - 15px),
+        calc(100% - 8px) calc(100% - 8px),
+        calc(100% - 15px) 100%,
+        15px 100%,
+        8px calc(100% - 8px),
+        0 calc(100% - 15px)
+      );
+
+      &:hover {
+        transform: scale(1.02);
+      }
+
+      .discount-value {
+        color: white;
+        font-size: 3rem;
+        font-weight: 900;
+        line-height: 0.9;
+        display: block;
+        position: relative;
+        z-index: 5;
+      }
+
+      .discount-label {
+        color: white;
+        font-size: 1.1rem;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        margin-top: 8px;
+        position: relative;
+        z-index: 5;
+      }
+    }
+  }
+
+  // ========================= CONTENIDO PRINCIPAL (Centro) =========================
+  .coupon-content {
+    padding: 0 24px;
+    position: relative;
+    z-index: 2;
+    
+    .coupon-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #06b6d4;
+      color: white;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      border: 1.5px solid #0891b2;
+      transition: all 0.3s ease;
+      
+      i {
+        font-size: 0.9rem;
+      }
+
+      &:hover {
+        background: #0891b2;
+        transform: translateY(-1px);
+      }
+    }
+    
+    .coupon-title {
+      color: #0e7490;
+      font-weight: 800;
+      font-size: 1.5rem;
+      line-height: 1.3;
+      margin: 0;
+    }
+    
+    .coupon-description {
+      color: #475569;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      font-weight: 500;
+      margin: 0;
+    }
+  }
+
+  // ========================= ACCIONES Y CÓDIGO (Derecha) =========================
+  .coupon-actions {
+    padding: 0 12px;
+    position: relative;
+    z-index: 2;
+    
+    .coupon-code-box {
+      background: #ecfeff;
+      border: 2px dashed #06b6d4;
+      border-radius: 12px;
+      padding: 14px;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: #cffafe;
+        transform: translateY(-2px);
+      }
+      
+      .coupon-code-label {
+        color: #0e7490;
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+        text-align: center;
+        display: block;
+      }
+      
+      .coupon-code-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        
+        .coupon-code {
+          color: #0891b2;
+          font-weight: 900;
+          font-size: 1.2rem;
+          letter-spacing: 2px;
+          text-transform: uppercase;
+        }
+        
+        .coupon-copy-btn {
+          background: #06b6d4;
+          border: 1.5px solid #0891b2;
+          color: white;
+          width: 36px;
+          height: 36px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          flex-shrink: 0;
+          
+          i {
+            font-size: 1.1rem;
+          }
+          
+          &:hover {
+            background: #0891b2;
+            transform: scale(1.1);
+          }
+
+          &:active {
+            transform: scale(0.95);
+          }
+        }
+      }
+    }
+    
+    .coupon-info {
+      background: #ecfeff;
+      color: #0e7490;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      
+      i {
+        font-size: 0.9rem;
+      }
+    }
+    
+    .coupon-more-link {
+      background: #ecfeff;
+      border: 1.5px solid #06b6d4;
+      color: #0891b2;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+      
+      i {
+        font-size: 1rem;
+      }
+      
+      &:hover {
+        background: #06b6d4;
+        color: white;
+        transform: translateY(-2px);
+      }
+    }
+  }
+}
+
+// ========================= RESPONSIVE DESIGN =========================
+
+// Tablets y pantallas medianas
+@media (max-width: 991px) {
+  .coupon-banner {
+    padding: 24px 20px;
+    min-height: auto;
+    border-radius: 14px;
+
+    .discount-circle-wrapper {
+      margin-bottom: 20px;
+
+      .discount-circle {
+        width: 120px;
+        height: 120px;
+
+        .discount-value {
+          font-size: 2.5rem;
+        }
+
+        .discount-label {
+          font-size: 0.95rem;
+        }
+      }
+    }
+    
+    .coupon-content {
+      padding: 0 0 20px 0;
+      text-align: center;
+      
+      .coupon-badge {
+        font-size: 0.65rem;
+        padding: 5px 12px;
+      }
+      
+      .coupon-title {
+        font-size: 1.3rem;
+      }
+      
+      .coupon-description {
+        font-size: 0.9rem;
+      }
+    }
+    
+    .coupon-actions {
+      padding: 0;
+
+      .coupon-code-box {
+        padding: 12px;
+      }
+    }
+  }
+}
+
+// Móviles
+@media (max-width: 767px) {
+  .coupon-banner {
+    padding: 20px 16px;
+    border-radius: 12px;
+
+    .discount-circle-wrapper {
+      margin-bottom: 16px;
+
+      .discount-circle {
+        width: 100px;
+        height: 100px;
+
+        .discount-value {
+          font-size: 2.2rem;
+        }
+
+        .discount-label {
+          font-size: 0.8rem;
+        }
+      }
+    }
+    
+    .coupon-content {
+      padding: 0 0 16px 0;
+      
+      .coupon-badge {
+        font-size: 0.6rem;
+        padding: 4px 10px;
+        gap: 4px;
+
+        i {
+          font-size: 0.75rem;
+        }
+      }
+      
+      .coupon-title {
+        font-size: 1.15rem;
+      }
+      
+      .coupon-description {
+        font-size: 0.85rem;
+      }
+    }
+    
+    .coupon-actions {
+      .coupon-code-box {
+        padding: 10px;
+        border-radius: 10px;
+        
+        .coupon-code-container {
+          gap: 8px;
+
+          .coupon-code {
+            font-size: 1rem;
+            letter-spacing: 1.5px;
+          }
+
+          .coupon-copy-btn {
+            width: 32px;
+            height: 32px;
+
+            i {
+              font-size: 1rem;
+            }
+          }
+        }
+      }
+      
+      .coupon-info {
+        font-size: 0.7rem;
+        padding: 5px 10px;
+      }
+      
+      .coupon-more-link {
+        font-size: 0.75rem;
+        padding: 8px 12px;
+      }
+    }
+  }
+}
+
+// Móviles pequeños
+@media (max-width: 575px) {
+  .coupon-banner {
+    padding: 18px 14px;
+
+    .discount-circle-wrapper {
+      .discount-circle {
+        width: 90px;
+        height: 90px;
+
+        .discount-value {
+          font-size: 2rem;
+        }
+
+        .discount-label {
+          font-size: 0.75rem;
+        }
+      }
+    }
+    
+    .coupon-content {
+      .coupon-title {
+        font-size: 1rem;
+      }
+      
+      .coupon-description {
+        font-size: 0.8rem;
+      }
+    }
+    
+    .coupon-actions {
+      .coupon-code-box {
+        .coupon-code-container {
+          .coupon-code {
+            font-size: 0.9rem;
+          }
+        }
+      }
+    }
+  }
+}

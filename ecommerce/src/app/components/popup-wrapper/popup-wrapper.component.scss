@@ -1,0 +1,12 @@
+.popup-wrapper {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1050; /* sobre header */
+}
+
+.popup-wrapper app-popup-cliente {
+  pointer-events: auto;
+}
+
+

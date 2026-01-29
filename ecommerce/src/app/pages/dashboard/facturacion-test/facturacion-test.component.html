@@ -1,0 +1,281 @@
+<div class="test-container">
+  <!-- Header -->
+  <div class="test-header">
+    <h2 class="mb-0">
+      <i class="fas fa-flask me-2"></i>
+      Prueba de Facturación Electrónica
+    </h2>
+    <p class="text-muted mb-0">Genera boletas y facturas de prueba</p>
+  </div>
+
+  <div class="row g-4">
+    <!-- Panel de Datos -->
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="fas fa-shopping-cart me-2"></i>
+            Datos de la Venta
+          </h5>
+        </div>
+        <div class="card-body">
+          <!-- Cliente -->
+          <div class="mb-4">
+            <h6 class="text-primary">Cliente</h6>
+            <div class="row g-2">
+              <div class="col-3">
+                <select class="form-select form-select-sm" [(ngModel)]="ventaForm.cliente.tipo_documento">
+                  <option [value]="TIPOS_DOCUMENTO.DNI">DNI</option>
+                  <option [value]="TIPOS_DOCUMENTO.RUC">RUC</option>
+                  <option [value]="TIPOS_DOCUMENTO.CE">CE</option>
+                </select>
+              </div>
+              <div class="col-4">
+                <input type="text" class="form-control form-control-sm" [(ngModel)]="ventaForm.cliente.numero_documento" placeholder="Número">
+              </div>
+              <div class="col-5">
+                <input type="text" class="form-control form-control-sm" [(ngModel)]="ventaForm.cliente.nombre" placeholder="Nombre">
+              </div>
+            </div>
+            <div class="row g-2 mt-2">
+              <div class="col-6">
+                <input type="text" class="form-control form-control-sm" [(ngModel)]="ventaForm.cliente.direccion" placeholder="Dirección">
+              </div>
+              <div class="col-3">
+                <input type="text" class="form-control form-control-sm" [(ngModel)]="ventaForm.cliente.telefono" placeholder="Teléfono">
+              </div>
+              <div class="col-3">
+                <input type="email" class="form-control form-control-sm" [(ngModel)]="ventaForm.cliente.email" placeholder="Email">
+              </div>
+            </div>
+          </div>
+
+          <!-- Items -->
+          <div class="mb-4">
+            <h6 class="text-primary">Productos</h6>
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <thead>
+                  <tr>
+                    <th>Descripción</th>
+                    <th width="60">Cant.</th>
+                    <th width="80">Precio</th>
+                    <th width="80">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of ventaForm.items">
+                    <td>{{ item.descripcion }}</td>
+                    <td>
+                      <input type="number" class="form-control form-control-sm" [(ngModel)]="item.cantidad" min="1" (ngModelChange)="calcularItems()">
+                    </td>
+                    <td>
+                      <input type="number" class="form-control form-control-sm" [(ngModel)]="item.precio_unitario" min="0" step="0.01" (ngModelChange)="calcularItems()">
+                    </td>
+                    <td class="text-end">
+                      <strong>S/ {{ item.total | number:'1.2-2' }}</strong>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Resumen -->
+          <div class="resumen-venta">
+            <h6 class="text-primary">Resumen</h6>
+            <div class="d-flex justify-content-between mb-1">
+              <span>Subtotal:</span>
+              <span>S/ {{ subtotal | number:'1.2-2' }}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-1">
+              <span>IGV (18%):</span>
+              <span>S/ {{ igv | number:'1.2-2' }}</span>
+            </div>
+            <hr>
+            <div class="d-flex justify-content-between mb-3">
+              <strong>TOTAL:</strong>
+              <strong class="text-primary">S/ {{ total | number:'1.2-2' }}</strong>
+            </div>
+            
+            <div class="d-grid gap-2">
+              <button class="btn btn-success" (click)="generarBoleta()">
+                <i class="fas fa-receipt me-2"></i>
+                Generar Boleta
+              </button>
+              <button class="btn btn-primary" (click)="generarFactura()">
+                <i class="fas fa-file-invoice me-2"></i>
+                Generar Factura
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel de Comprobante -->
+    <div class="col-lg-6" *ngIf="mostrarComprobante && comprobanteGenerado">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="fas fa-file-invoice me-2"></i>
+            Comprobante Generado
+          </h5>
+        </div>
+        <div class="card-body">
+          <!-- Datos del Comprobante -->
+          <div class="comprobante-preview">
+            <div class="text-center mb-4">
+              <h4 class="text-primary">{{ comprobanteGenerado.tipo_comprobante === '01' ? 'FACTURA' : 'BOLETA DE VENTA' }}</h4>
+              <h5 class="mb-0">{{ comprobanteGenerado.numero_completo }}</h5>
+              <small class="text-muted">{{ comprobanteGenerado.fecha_emision }} {{ comprobanteGenerado.hora_emision }}</small>
+            </div>
+
+            <!-- Empresa -->
+            <div class="mb-3">
+              <h6 class="text-primary">Emisor</h6>
+              <p class="mb-1"><strong>MI EMPRESA SAC</strong></p>
+              <p class="mb-1">RUC: 20123456789</p>
+              <p class="mb-0">Av. Principal 123, Lima</p>
+            </div>
+
+            <!-- Cliente -->
+            <div class="mb-3">
+              <h6 class="text-primary">Cliente</h6>
+              <p class="mb-1"><strong>{{ comprobanteGenerado.cliente_nombre }}</strong></p>
+              <p class="mb-1">{{ comprobanteGenerado.cliente_tipo_documento }}: {{ comprobanteGenerado.cliente_numero_documento }}</p>
+              <p class="mb-0">{{ comprobanteGenerado.cliente_direccion }}</p>
+            </div>
+
+            <!-- Items -->
+            <div class="mb-3">
+              <h6 class="text-primary">Detalle</h6>
+              <div class="table-responsive">
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Descripción</th>
+                      <th width="60">Cant.</th>
+                      <th width="80">Precio</th>
+                      <th width="80">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let item of comprobanteGenerado.items">
+                      <td>{{ item.descripcion }}</td>
+                      <td>{{ item.cantidad }}</td>
+                      <td class="text-end">S/ {{ item.precio_unitario | number:'1.2-2' }}</td>
+                      <td class="text-end">S/ {{ item.total | number:'1.2-2' }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Totales -->
+            <div class="mb-3">
+              <div class="d-flex justify-content-between">
+                <span>Subtotal:</span>
+                <span>S/ {{ comprobanteGenerado.subtotal | number:'1.2-2' }}</span>
+              </div>
+              <div class="d-flex justify-content-between">
+                <span>IGV (18%):</span>
+                <span>S/ {{ comprobanteGenerado.igv | number:'1.2-2' }}</span>
+              </div>
+              <hr>
+              <div class="d-flex justify-content-between">
+                <strong>TOTAL:</strong>
+                <strong class="text-primary">S/ {{ comprobanteGenerado.total | number:'1.2-2' }}</strong>
+              </div>
+            </div>
+
+            <!-- Leyendas -->
+            <div class="mb-3" *ngIf="comprobanteGenerado.leyendas">
+              <h6 class="text-primary">Leyendas</h6>
+              <p class="mb-0 small">{{ comprobanteGenerado.leyendas[0].valor }}</p>
+            </div>
+
+            <!-- Estado SUNAT -->
+            <div class="mb-3">
+              <div class="alert alert-success">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong>Estado:</strong> {{ comprobanteGenerado.estado_sunat }}
+                <br>
+                <small>{{ comprobanteGenerado.mensaje_sunat }}</small>
+              </div>
+            </div>
+
+            <!-- QR Code Placeholder -->
+            <div class="text-center mb-3">
+              <div class="qr-placeholder">
+                <i class="fas fa-qrcode fa-3x text-muted"></i>
+                <p class="small text-muted mt-2">Código QR</p>
+              </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="d-grid gap-2">
+              <button class="btn btn-primary" (click)="imprimirComprobante()">
+                <i class="fas fa-print me-2"></i>
+                Imprimir
+              </button>
+              <button class="btn btn-success" (click)="descargarPDF()">
+                <i class="fas fa-download me-2"></i>
+                Descargar PDF
+              </button>
+              <button class="btn btn-info" (click)="enviarEmail()" *ngIf="ventaForm.cliente.email">
+                <i class="fas fa-envelope me-2"></i>
+                Enviar por Email
+              </button>
+              <button class="btn btn-outline-secondary" (click)="nuevaVenta()">
+                <i class="fas fa-plus me-2"></i>
+                Nueva Venta
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel de Instrucciones -->
+    <div class="col-lg-6" *ngIf="!mostrarComprobante">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="fas fa-info-circle me-2"></i>
+            Instrucciones
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-info">
+            <h6><i class="fas fa-lightbulb me-2"></i>¿Cómo usar esta prueba?</h6>
+            <ol class="mb-0">
+              <li>Modifica los datos del cliente si lo deseas</li>
+              <li>Ajusta las cantidades y precios de los productos</li>
+              <li>Haz clic en "Generar Boleta" o "Generar Factura"</li>
+              <li>El sistema simulará la emisión del comprobante</li>
+              <li>Podrás imprimir, descargar PDF o enviar por email</li>
+            </ol>
+          </div>
+          
+          <div class="alert alert-warning">
+            <h6><i class="fas fa-exclamation-triangle me-2"></i>Nota Importante</h6>
+            <p class="mb-0">Esta es una <strong>simulación</strong> para pruebas. Los comprobantes generados no son válidos para efectos tributarios reales.</p>
+          </div>
+
+          <div class="alert alert-success">
+            <h6><i class="fas fa-check-circle me-2"></i>Funcionalidades Incluidas</h6>
+            <ul class="mb-0">
+              <li>✅ Cálculo automático de IGV</li>
+              <li>✅ Generación de número de comprobante</li>
+              <li>✅ Conversión de números a letras</li>
+              <li>✅ Código QR simulado</li>
+              <li>✅ Hash de comprobante</li>
+              <li>✅ Estado SUNAT simulado</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

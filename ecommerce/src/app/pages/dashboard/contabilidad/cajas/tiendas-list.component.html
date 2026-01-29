@@ -1,0 +1,102 @@
+<div class="modern-data-table">
+  <div class="modern-data-table__header">
+    <div class="d-flex justify-content-between align-items-center">
+      <h5 class="mb-0" style="font-size: 18px; font-weight: 600;">Gestión de Tiendas</h5>
+      <button class="btn btn-primary" (click)="abrirModalCrear()">
+        <i class="ph ph-plus me-2"></i>
+        Nueva Tienda
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="modern-data-table__loading">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="loading-text">Cargando tiendas...</p>
+  </div>
+
+  <div *ngIf="!loading && tiendas.length === 0" class="empty-state">
+    <div class="empty-state__icon">
+      <i class="ph ph-storefront"></i>
+    </div>
+    <h3 class="empty-state__title">No hay tiendas registradas</h3>
+    <p class="empty-state__description">
+      Cree la primera tienda para comenzar a gestionar sus cajas.
+    </p>
+    <button class="btn btn-primary" (click)="abrirModalCrear()">
+      <i class="ph ph-plus me-2"></i>
+      Crear Primera Tienda
+    </button>
+  </div>
+
+  <div *ngIf="!loading && tiendas.length > 0" class="modern-data-table__container">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>NOMBRE</th>
+          <th>DESCRIPCIÓN</th>
+          <th>ESTADO</th>
+          <th>FECHA CREACIÓN</th>
+          <th class="text-end">ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let tienda of tiendas">
+          <td>
+            <span class="client-info__subtitle">#{{ tienda.id }}</span>
+          </td>
+          <td>
+            <div class="client-info">
+              <div class="client-info__name">{{ tienda.nombre }}</div>
+              <div class="client-info__subtitle" *ngIf="tienda.logo">
+                <i class="ph ph-image me-1"></i>Con logo
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="client-info__subtitle">{{ tienda.descripcion || '-' }}</span>
+          </td>
+          <td>
+            <span class="status-badge" 
+                  [ngClass]="tienda.estado === 'ACTIVA' ? 'status-badge--active' : 'status-badge--inactive'">
+              {{ tienda.estado }}
+            </span>
+          </td>
+          <td>
+            <div class="date-info">
+              <div class="date-info__main">
+                {{ tienda.created_at | date:'dd/MM/yyyy' }}
+              </div>
+              <div class="date-info__relative">
+                {{ tienda.created_at | date:'HH:mm' }}
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button class="action-buttons__btn action-buttons__btn--edit" 
+                      (click)="abrirModalEditar(tienda)" 
+                      title="Editar">
+                <i class="ph ph-pencil"></i>
+              </button>
+              <button class="action-buttons__btn action-buttons__btn--delete" 
+                      (click)="eliminarTienda(tienda)" 
+                      title="Eliminar">
+                <i class="ph ph-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<app-tienda-form-modal
+  [(visible)]="mostrarModal"
+  [tienda]="tiendaEditando"
+  [procesando]="procesando"
+  (onGuardar)="guardarTienda($event)">
+</app-tienda-form-modal>

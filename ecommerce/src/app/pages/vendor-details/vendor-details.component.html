@@ -1,0 +1,347 @@
+<!-- ========================= Breadcrumb Start =============================== -->
+<app-breadcrumb title="Shop" subtitle="Vendor List"></app-breadcrumb>
+
+<!-- ========================= Breadcrumb End =============================== -->
+
+<!-- =================================== Vendors List section start ===================================== -->
+<section class="vendors-list py-80">
+    <div class="container container-lg">
+        <div class="row gy-4">
+            <div class="col-xxl-2 col-xl-3 col-lg-4">
+                <div class="shop-sidebar">
+                    <button type="button"
+                        class="shop-sidebar__close d-lg-none d-flex w-32 h-32 flex-center border border-gray-100 rounded-circle hover-bg-main-600 position-absolute inset-inline-end-0 me-10 mt-8 hover-text-white hover-border-main-600">
+                        <i class="ph ph-x"></i>
+                    </button>
+                    <div class="d-flex flex-column gap-12 px-lg-0 px-16 py-lg-0 py-24">
+                        <div class="vendor-card style-two text-center px-16 pb-24 bg-main-50">
+                            <img src="assets/images/thumbs/vendor-logo2.png" alt="" class="vendor-card__logo m-12">
+                            <h6 class="title mt-32">Safeway</h6>
+                            <span class="text-neutral-600 text-sm d-block fw-semibold">New Street, 520, New York</span>
+                            <span class="bg-white text-neutral-900 rounded-pill py-6 px-16 text-12 mt-8">Since
+                                2009</span>
+                            <p class="text-neutral-600 my-24">It's easy and free to link or sign up for our loyalty
+                                program, and it only takes a few seconds.</p>
+                            <ul class="flex-center gap-8 flex-wrap">
+                                <li>
+                                    <a href="https://www.facebook.com"
+                                        class="w-36 h-36 flex-center bg-white text-main-600 text-lg rounded-circle hover-bg-main-600 hover-text-white">
+                                        <i class="ph-fill ph-facebook-logo"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="https://www.twitter.com"
+                                        class="w-36 h-36 flex-center bg-white text-main-600 text-lg rounded-circle hover-bg-main-600 hover-text-white">
+                                        <i class="ph-fill ph-twitter-logo"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="https://www.linkedin.com"
+                                        class="w-36 h-36 flex-center bg-white text-main-600 text-lg rounded-circle hover-bg-main-600 hover-text-white">
+                                        <i class="ph-fill ph-instagram-logo"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="https://www.pinterest.com"
+                                        class="w-36 h-36 flex-center bg-white text-main-600 text-lg rounded-circle hover-bg-main-600 hover-text-white">
+                                        <i class="ph-fill ph-linkedin-logo"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                            <a [routerLink]="['contact']"
+                                class="btn btn-main rounded-pill py-16 px-32 mt-28 w-100">Contact Seller</a>
+                        </div>
+                        <div class="border border-gray-50 rounded-8 p-24">
+                            <h6 class="text-xl border-bottom border-gray-100 pb-24 mb-24">Product Category</h6>
+                            <ul class="max-h-326 overflow-y-auto scroll-sm">
+                                <li *ngFor="let category of categories; let last = last"
+                                    [ngClass]="last ? 'mb-0' : 'mb-24'">
+                                    <a [routerLink]="['product-details-two']" class="text-gray-900 hover-text-main-600">
+                                        {{ category.name }} ({{ category.count }})
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="border border-gray-50 rounded-8 p-24">
+                            <h6 class="text-xl border-bottom border-gray-100 pb-24 mb-24">Filter by Price</h6>
+                            <div class="custom--range">
+                                <div id="slider-range"></div>
+                                <div class="flex-between flex-wrap-reverse gap-8 mt-24 ">
+                                    <button type="button" class="btn btn-main h-40 flex-align">Filter </button>
+                                    <div class="custom--range__content flex-align gap-8">
+                                        <span class="text-gray-500 text-md flex-shrink-0">Price:</span>
+                                        <input type="text"
+                                            class="custom--range__prices text-neutral-600 text-start text-md fw-medium"
+                                            id="amount" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="border border-gray-50 rounded-8 p-24">
+                            <h6 class="text-xl border-bottom border-gray-100 pb-24 mb-24">Filter by Rating</h6>
+                            <div class="flex-align gap-8 position-relative mb-20">
+                                <label class="position-absolute w-100 h-100 cursor-pointer" for="rating5"> </label>
+                                <div class="common-check common-radio mb-0">
+                                    <input class="form-check-input" type="radio" name="flexRadioDefault" id="rating5">
+                                </div>
+                                <div class="flex-align gap-4">
+                                    <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                            class="ph-fill ph-star"></i></span>
+                                    <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                            class="ph-fill ph-star"></i></span>
+                                    <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                            class="ph-fill ph-star"></i></span>
+                                    <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                            class="ph-fill ph-star"></i></span>
+                                    <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                            class="ph-fill ph-star"></i></span>
+                                </div>
+                                <span class="text-gray-900 flex-shrink-0">124</span>
+                            </div>
+                            <div class="flex-align gap-8 position-relative mb-20">
+                                <label class="position-absolute w-100 h-100 cursor-pointer" for="rating4"> </label>
+                                <div class="common-check common-radio mb-0">
+                                    <input class="form-check-input" type="radio" name="flexRadioDefault" id="rating4">
+                                </div>
+                                <div class="flex-align gap-4">
+                                    <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                            class="ph-fill ph-star"></i></span>
+                                    <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                            class="ph-fill ph-star"></i></span>
+                                    <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                            class="ph-fill ph-star"></i></span>
+                                    <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                            class="ph-fill ph-star"></i></span>
+                                    <span class="text-xs fw-medium text-gray-400 d-flex"><i
+                                            class="ph-fill ph-star"></i></span>
+                                </div>
+                                <span class="text-gray-900 flex-shrink-0">52</span>
+                            </div>
+                            <div class="flex-align gap-8 position-relative mb-20">
+                                <label class="position-absolute w-100 h-100 cursor-pointer" for="rating3"> </label>
+                                <div class="common-check common-radio mb-0">
+                                    <input class="form-check-input" type="radio" name="flexRadioDefault" id="rating3">
+                                </div>
+                                <div class="flex-align gap-4">
+                                    <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                            class="ph-fill ph-star"></i></span>
+                                    <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                            class="ph-fill ph-star"></i></span>
+                                    <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                            class="ph-fill ph-star"></i></span>
+                                    <span class="text-xs fw-medium text-gray-400 d-flex"><i
+                                            class="ph-fill ph-star"></i></span>
+                                    <span class="text-xs fw-medium text-gray-400 d-flex"><i
+                                            class="ph-fill ph-star"></i></span>
+                                </div>
+                                <span class="text-gray-900 flex-shrink-0">12</span>
+                            </div>
+                            <div class="flex-align gap-8 position-relative mb-20">
+                                <label class="position-absolute w-100 h-100 cursor-pointer" for="rating2"> </label>
+                                <div class="common-check common-radio mb-0">
+                                    <input class="form-check-input" type="radio" name="flexRadioDefault" id="rating2">
+                                </div>
+                                <div class="flex-align gap-4">
+                                    <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                            class="ph-fill ph-star"></i></span>
+                                    <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                            class="ph-fill ph-star"></i></span>
+                                    <span class="text-xs fw-medium text-gray-400 d-flex"><i
+                                            class="ph-fill ph-star"></i></span>
+                                    <span class="text-xs fw-medium text-gray-400 d-flex"><i
+                                            class="ph-fill ph-star"></i></span>
+                                    <span class="text-xs fw-medium text-gray-400 d-flex"><i
+                                            class="ph-fill ph-star"></i></span>
+                                </div>
+                                <span class="text-gray-900 flex-shrink-0">5</span>
+                            </div>
+                            <div class="flex-align gap-8 position-relative mb-0">
+                                <label class="position-absolute w-100 h-100 cursor-pointer" for="rating1"> </label>
+                                <div class="common-check common-radio mb-0">
+                                    <input class="form-check-input" type="radio" name="flexRadioDefault" id="rating1">
+                                </div>
+                                <div class="flex-align gap-4">
+                                    <span class="text-xs fw-medium text-warning-600 d-flex"><i
+                                            class="ph-fill ph-star"></i></span>
+                                    <span class="text-xs fw-medium text-gray-400 d-flex"><i
+                                            class="ph-fill ph-star"></i></span>
+                                    <span class="text-xs fw-medium text-gray-400 d-flex"><i
+                                            class="ph-fill ph-star"></i></span>
+                                    <span class="text-xs fw-medium text-gray-400 d-flex"><i
+                                            class="ph-fill ph-star"></i></span>
+                                    <span class="text-xs fw-medium text-gray-400 d-flex"><i
+                                            class="ph-fill ph-star"></i></span>
+                                </div>
+                                <span class="text-gray-900 flex-shrink-0">2</span>
+                            </div>
+                        </div>
+                        <div class="bg-main-50 rounded-8 p-16 text-center">
+                            <span class="text-2xl text-neutral-600 mb-8">Fresh Vegetables</span>
+                            <h5 class="text-32 text-main-600">Up to 25% Off</h5>
+                            <div class="mt-52">
+                                <img src="assets/images/thumbs/advertiser-img.png" alt="">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xxl-10 col-xl-9 col-lg-8">
+                <!-- Top Search -->
+                <div class="flex-between flex-wrap gap-8 mb-40">
+                    <form action="#" class="search-form__wrapper position-relative d-block">
+                        <input type="text" class="search-form__input common-input py-13 ps-16 pe-18 rounded-pill pe-44"
+                            placeholder="Search vendors by name or ID...">
+                        <button type="submit"
+                            class="w-32 h-32 bg-main-600 rounded-circle flex-center text-xl text-white position-absolute top-50 translate-middle-y inset-inline-end-0 me-8"><i
+                                class="ph ph-magnifying-glass"></i></button>
+                    </form>
+                    <div class="flex-align gap-16">
+                        <span
+                            class="text-neutral-600 fw-medium px-40 py-12 rounded-pill border border-neutral-100 d-md-block d-none">Showing
+                            1-20 of 85 results</span>
+                        <div class="flex-align gap-8">
+                            <span class="text-gray-900 flex-shrink-0">Sort by:</span>
+                            <select
+                                class="common-input form-select rounded-pill border border-gray-100 d-inline-block ps-20 pe-36 h-48 py-0 fw-medium">
+                                <option value="1">Latest</option>
+                                <option value="1">Old</option>
+                            </select>
+                        </div>
+                        <button type="button"
+                            class="w-44 h-44 d-lg-none d-flex flex-center border border-gray-100 rounded-6 text-2xl sidebar-btn">
+                            <i class="ph-bold ph-funnel"></i>
+                        </button>
+                    </div>
+                </div>
+                <!-- Top Search End -->
+
+                <!-- Products Start -->
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-3 row-cols-xl-4 row-cols-xxl-5 g-12">
+                    <div class="col" *ngFor="let product of products" [attr.data-aos]="'fade-up'"
+                        [attr.data-aos-duration]="product.duration">
+                        <div
+                            class="product-card h-100 p-8 border border-gray-100 hover-border-main-600 rounded-16 position-relative transition-2">
+
+                            <!-- Optional Badge -->
+                            <span *ngIf="product.badge"
+                                class="product-card__badge {{product.badgeClass}} px-8 py-4 text-sm text-white">
+                                {{ product.badge }}
+                            </span>
+
+                            <!-- Product Image -->
+                            <a [href]="product.link" class="product-card__thumb flex-center overflow-hidden">
+                                <img [src]="product.image" [alt]="product.title" />
+                            </a>
+
+                            <!-- Product Content -->
+                            <div class="product-card__content p-sm-2 w-100">
+                                <h6 class="title text-lg fw-semibold mt-12 mb-8">
+                                    <a [href]="product.link" class="link text-line-2">{{ product.title }}</a>
+                                </h6>
+
+                                <div class="flex-align gap-4">
+                                    <span class="text-main-600 text-md d-flex"><i
+                                            class="ph-fill ph-storefront"></i></span>
+                                    <span class="text-gray-500 text-xs">By {{ product.store }}</span>
+                                </div>
+
+                                <div class="product-card__content mt-12">
+                                    <!-- Price -->
+                                    <div class="product-card__price mb-8">
+                                        <span class="text-heading text-md fw-semibold">
+                                            ${{ product.price }} <span class="text-gray-500 fw-normal">/Qty</span>
+                                        </span>
+                                        <span class="text-gray-400 text-md fw-semibold text-decoration-line-through">
+                                            ${{ product.oldPrice }}
+                                        </span>
+                                    </div>
+
+                                    <!-- Rating -->
+                                    <div class="flex-align gap-6">
+                                        <span class="text-xs fw-bold text-gray-600">{{ product.rating }}</span>
+                                        <span class="text-15 fw-bold text-warning-600 d-flex">
+                                            <i class="ph-fill ph-star"></i>
+                                        </span>
+                                        <span class="text-xs fw-bold text-gray-600">({{ product.reviews }})</span>
+                                    </div>
+
+                                    <!-- Add to Cart Button -->
+                                    <a [routerLink]="['cart']"
+                                        class="product-card__cart btn bg-main-50 text-main-600 hover-bg-main-600 hover-text-white py-11 px-24 rounded-pill flex-align gap-8 mt-24 w-100 justify-content-center">
+                                        Add To Cart <i class="ph ph-shopping-cart"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Products End -->
+
+                <!-- Pagination Start -->
+                <ul class="pagination flex-center flex-wrap gap-16">
+                    <li class="page-item">
+                        <a class="page-link h-64 w-64 flex-center text-xxl rounded-circle fw-medium text-neutral-600 border border-gray-100"
+                            href="#" (click)="onPageChange(currentPage - 1)" [class.disabled]="currentPage === 1">
+                            <i class="ph-bold ph-arrow-left"></i>
+                        </a>
+                    </li>
+
+                    <li *ngFor="let page of getPages()" class="page-item" [class.active]="page === currentPage">
+                        <a class="page-link h-64 w-64 flex-center text-md rounded-circle fw-medium text-neutral-600 border border-gray-100"
+                            href="#" (click)="onPageChange(page)">
+                            {{ page < 10 ? '0' + page : page }} </a>
+                    </li>
+
+                    <li class="page-item">
+                        <a class="page-link h-64 w-64 flex-center text-xxl rounded-circle fw-medium text-neutral-600 border border-gray-100"
+                            href="#" (click)="onPageChange(currentPage + 1)"
+                            [class.disabled]="currentPage === totalPages">
+                            <i class="ph-bold ph-arrow-right"></i>
+                        </a>
+                    </li>
+                </ul>
+                <!-- Pagination End -->
+
+            </div>
+        </div>
+    </div>
+</section>
+<!-- =================================== Vendors List section End ===================================== -->
+
+<!-- ========================== Shipping Section Start ============================ -->
+<app-shipping></app-shipping>
+
+<!-- ========================== Shipping Section End ============================ -->
+
+<!-- =============================== Newsletter Section Start ============================ -->
+<div class="newsletter">
+    <div class="container container-lg">
+        <div class="newsletter-box position-relative rounded-16 flex-align gap-16 flex-wrap z-1">
+            <img src="assets/images/bg/newsletter-bg.png" alt=""
+                class="position-absolute inset-block-start-0 inset-inline-start-0 z-n1 w-100 h-100 opacity-6">
+            <div class="row align-items-center">
+                <div class="col-xl-6">
+                    <div class="">
+                        <h1 class="text-white mb-12" data-aos="fade-down" data-aos-duration="800">Don't Miss Out on
+                            Grocery Deals</h1>
+                        <p class="text-white h5 mb-0" data-aos="fade-up" data-aos-duration="800">SING UP FOR THE UPDATE
+                            NEWSLETTER</p>
+                        <form action="#" class="position-relative mt-40" data-aos="zoom-in" data-aos-duration="800">
+                            <input type="email"
+                                class="form-control common-input rounded-pill text-white py-22 px-16 pe-144"
+                                placeholder="Your email address...">
+                            <button type="submit"
+                                class="btn btn-main-two rounded-pill position-absolute top-50 translate-middle-y inset-inline-end-0 me-10">Subscribe
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-xl-6 text-center d-xl-block d-none">
+                    <img src="assets/images/thumbs/newsletter-img.png" alt="" data-aos="zoom-in"
+                        data-aos-duration="800">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- =============================== Newsletter Section End ============================ -->

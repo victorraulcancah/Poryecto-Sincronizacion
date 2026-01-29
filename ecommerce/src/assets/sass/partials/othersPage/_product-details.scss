@@ -1,0 +1,193 @@
+/* ============================ Product Details Css Start ============================= */
+.product-details {
+    &__thumb {
+        &-slider {
+            padding: clampCal(48, 116);
+        }
+    }
+    .slick-initialized.slick-slider .slick-slide > div > div {
+        height: 100%;
+    }
+}
+
+.product-dContent__box, .product-dContent__header {
+    padding: 16px 40px;
+}
+
+.product-dContent {
+    &__box {
+        padding-top: 48px;
+        padding-bottom: 48px;
+    }
+}
+
+/* ===== LAYOUT VERTICAL PARA IMÁGENES CON ZOOM FUNCIONAL ===== */
+.product-details__images-container {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    
+    @media screen and (max-width: 768px) {
+        flex-direction: column;
+        gap: 16px;
+    }
+}
+
+.product-details__thumbnails {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 120px;
+    flex-shrink: 0;
+    
+    @media screen and (max-width: 768px) {
+        flex-direction: row;
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 8px;
+    }
+}
+
+.product-details__thumbnail {
+    width: 100px;
+    height: 100px;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    
+    &:hover {
+        border-color: var(--bs-primary, #007bff);
+        transform: scale(1.05);
+    }
+    
+    &.active {
+        border-color: var(--bs-primary, #007bff);
+        box-shadow: 0 0 0 1px rgba(0, 123, 255, 0.3);
+    }
+    
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+        
+        &:hover {
+            transform: scale(1.1);
+        }
+    }
+    
+    @media screen and (max-width: 768px) {
+        width: 80px;
+        height: 80px;
+        min-width: 80px;
+    }
+}
+
+.product-details__main-image {
+    flex: 1;
+    max-width: calc(100% - 140px);
+    
+    @media screen and (max-width: 768px) {
+        max-width: 100%;
+    }
+}
+
+.product-details__main-image-container {
+    width: 100%;
+    height: 500px;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: zoom-in;
+    
+    @media screen and (max-width: 768px) {
+        height: 350px;
+    }
+    
+    img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        transition: transform 0.3s ease;
+        transform-origin: center center;
+        will-change: transform;
+    }
+    
+    /* ZOOM DINÁMICO BASADO EN POSICIÓN DEL CURSOR */
+    &.zoom-active {
+        img {
+            transform: scale(2.5);
+        }
+    }
+    
+    /* Estado de zoom para móviles */
+    &.mobile-zoom {
+        img {
+            transform: scale(1.8);
+        }
+    }
+}
+
+/* Indicador de zoom */
+.zoom-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    
+    &.show {
+        opacity: 1;
+    }
+}
+
+/* Estilos para cuando no hay imágenes */
+.product-details__no-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    color: #6c757d;
+    font-size: 1.2rem;
+    border-radius: 8px;
+    
+    i {
+        margin-bottom: 12px;
+        opacity: 0.5;
+    }
+}
+
+/* Indicador de carga */
+.product-details__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    color: #6c757d;
+}
+
+/* Mejoras para la experiencia móvil */
+@media screen and (max-width: 768px) {
+    .product-details__main-image-container {
+        &.mobile-zoom {
+            cursor: zoom-out;
+        }
+    }
+}
+/* ============================ Product Details Css End ============================= */

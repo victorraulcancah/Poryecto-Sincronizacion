@@ -1,0 +1,288 @@
+<div class="border border-gray-100 rounded-16 overflow-hidden bg-white">
+  <!-- Header -->
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <div class="flex-between align-items-center gap-16 flex-wrap">
+      <div>
+        <h4 class="mb-4 text-heading">Gestión de Motorizados</h4>
+        <p class="text-gray-500 mb-0 text-sm">Administra los motorizados de tu plataforma de delivery</p>
+      </div>
+      <button
+        *ngIf="permissionsService.canCreateMotorizados()"
+        class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8 text-sm transition-2"
+        routerLink="/dashboard/motorizados/crear"
+        type="button">
+        <i class="ph ph-plus me-8"></i>
+        Crear Motorizado
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <div class="row g-16">
+      <div class="col-12 col-md-6 col-lg-7">
+        <div class="position-relative">
+          <i class="ph ph-magnifying-glass position-absolute start-0 top-50 translate-middle-y ms-12 text-gray-400"></i>
+          <input
+            type="text"
+            [(ngModel)]="filtroTexto"
+            (input)="filtrarMotorizados()"
+            class="form-control ps-40"
+            placeholder="Buscar por nombre, documento, placa o unidad...">
+        </div>
+      </div>
+      <div class="col-12 col-md-6 col-lg-5">
+        <!-- Estadísticas en layout responsive -->
+        <div class="d-flex align-items-center justify-content-start justify-content-md-end flex-wrap gap-8">
+          <div class="d-flex align-items-center gap-4">
+            <span class="text-sm fw-medium text-dark">Total:</span>
+            <span class="badge bg-main-50 text-main-600">{{ estadisticas.total }}</span>
+          </div>
+          <div class="d-flex align-items-center gap-4">
+            <span class="text-sm fw-medium text-dark">Activos:</span>
+            <span class="badge bg-success-50 text-success-600">{{ estadisticas.activos }}</span>
+          </div>
+          <div class="d-flex align-items-center gap-4">
+            <span class="text-sm fw-medium text-dark">Inactivos:</span>
+            <span class="badge bg-danger-50 text-danger-600">{{ estadisticas.inactivos }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla Moderna usando clases globales -->
+  <div class="modern-data-table mx-16 mb-24">
+    <!-- Header compacto -->
+    <div class="modern-data-table__header" *ngIf="!isLoading && motorizadosFiltrados.length > 0">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-16">
+          <span class="table-info">{{ motorizadosFiltrados.length }} motorizados encontrados</span>
+          <div class="d-flex align-items-center gap-8" *ngIf="selected.length > 0">
+            <button class="btn btn-sm btn-outline-danger px-12 py-6">
+              <i class="ph ph-trash me-4"></i>
+              Eliminar seleccionados ({{ selected.length }})
+            </button>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <span style="font-size: var(--font-xs); color: var(--gray-500);">Filas:</span>
+          <select class="page-size-selector" [(ngModel)]="pageSize" (change)="goToPage(1)">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading state -->
+    <div *ngIf="isLoading" class="modern-data-table__loading">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="loading-text">Cargando motorizados...</p>
+    </div>
+
+    <!-- Tabla moderna -->
+    <div class="modern-data-table__container" *ngIf="!isLoading">
+      <table class="table table-borderless mb-0">
+        <thead>
+          <tr>
+            <th>MOTORIZADO</th>
+            <th class="d-none d-lg-table-cell">VEHÍCULO</th>
+            <th class="d-none d-md-table-cell">UNIDAD</th>
+            <th class="d-none d-xl-table-cell">TELÉFONO</th>
+            <th>ESTADO</th>
+            <th class="d-none d-lg-table-cell">FECHA REGISTRO</th>
+            <th class="text-center">USUARIO</th>
+            <th class="text-end">ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let motorizado of getPaginatedMotorizados(); trackBy: trackByMotorizadoId">
+            <!-- Motorizado -->
+            <td>
+              <div class="d-flex align-items-center gap-12">
+                <div class="table-avatar__container">
+                  <ng-container *ngIf="getAvatarDisplay(motorizado).type === 'image'; else avatarWithInitials">
+                    <img [src]="getAvatarDisplay(motorizado).value"
+                         [alt]="motorizado.nombre_completo"
+                         class="table-avatar__img">
+                  </ng-container>
+                  <ng-template #avatarWithInitials>
+                    <div class="table-avatar__circle" [style.background-color]="getAvatarDisplay(motorizado).color">
+                      {{ getAvatarDisplay(motorizado).value }}
+                    </div>
+                  </ng-template>
+                </div>
+                <div>
+                  <div class="client-info__name">{{ motorizado.nombre_completo }}</div>
+                  <div class="client-info__subtitle">{{ motorizado.numero_documento }}</div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Vehículo (hidden on tablet) -->
+            <td class="d-none d-lg-table-cell">
+              <div class="vehiculo-info">
+                <div class="client-info__name">{{ motorizado.vehiculo_placa }}</div>
+                <div class="client-info__subtitle">{{ motorizado.vehiculo_marca }} {{ motorizado.vehiculo_modelo }}</div>
+              </div>
+            </td>
+
+            <!-- Unidad (hidden on mobile) -->
+            <td class="d-none d-md-table-cell">
+              <div class="text-center">
+                <span class="type-badge type-badge--primary">
+                  {{ motorizado.numero_unidad }}
+                </span>
+              </div>
+            </td>
+
+            <!-- Teléfono (hidden on small screens) -->
+            <td class="d-none d-xl-table-cell">
+              <div class="telefono-info">{{ motorizado.telefono }}</div>
+            </td>
+
+            <!-- Estado -->
+            <td>
+              <div class="d-flex align-items-center gap-8">
+                <span class="status-badge"
+                      [ngClass]="motorizado.estado ? 'status-badge--active' : 'status-badge--inactive'">
+                  {{ motorizado.estado ? 'Activo' : 'Inactivo' }}
+                </span>
+                <button *ngIf="canChangeStatus()"
+                        class="toggle-button"
+                        [ngClass]="motorizado.estado ? 'toggle-button--active' : ''"
+                        [title]="motorizado.estado ? 'Desactivar motorizado' : 'Activar motorizado'"
+                        (click)="toggleEstado(motorizado)">
+                  <i class="ph" [class]="motorizado.estado ? 'ph-toggle-right' : 'ph-toggle-left'"></i>
+                </button>
+              </div>
+            </td>
+
+            <!-- Fecha Registro (hidden on tablet) -->
+            <td class="d-none d-lg-table-cell">
+              <div class="text-center">
+                <div class="client-info__subtitle">{{ formatDate(motorizado.created_at) }}</div>
+              </div>
+            </td>
+
+            <!-- Usuario -->
+            <td class="text-center">
+              <div class="d-flex align-items-center justify-content-center gap-4">
+                <!-- Crear usuario si no tiene -->
+                <button *ngIf="!motorizado.tiene_usuario"
+                        class="action-buttons__btn action-buttons__btn--success"
+                        (click)="crearUsuario(motorizado.id, motorizado.nombre_completo)"
+                        title="Crear usuario">
+                  <i class="ph ph-user-plus"></i>
+                </button>
+
+                <!-- Gestión de usuario existente -->
+                <ng-container *ngIf="motorizado.tiene_usuario">
+                  <!-- Toggle estado usuario -->
+                  <button class="action-buttons__btn"
+                          [ngClass]="motorizado.estado_usuario ? 'action-buttons__btn--warning' : 'action-buttons__btn--info'"
+                          (click)="toggleUsuario(motorizado.id, motorizado.username, motorizado.estado_usuario)"
+                          [title]="motorizado.estado_usuario ? 'Desactivar usuario' : 'Activar usuario'"
+                          [disabled]="!motorizado.username || motorizado.estado_usuario === undefined">
+                    <i class="ph" [class]="motorizado.estado_usuario ? 'ph-user-minus' : 'ph-user-check'"></i>
+                  </button>
+
+                  <!-- Resetear contraseña -->
+                  <button class="action-buttons__btn action-buttons__btn--secondary"
+                          (click)="resetearPassword(motorizado.id, motorizado.username)"
+                          title="Generar nueva contraseña automática y enviarla por correo"
+                          [disabled]="!motorizado.username">
+                    <i class="ph ph-key"></i>
+                  </button>
+                </ng-container>
+              </div>
+            </td>
+
+            <!-- Acciones -->
+            <td class="text-end">
+              <div class="action-buttons">
+                <button class="action-buttons__btn action-buttons__btn--view"
+                        (click)="verDetalle(motorizado.id)"
+                        title="Ver motorizado"
+                        *ngIf="permissionsService.canViewMotorizados()">
+                  <i class="ph ph-eye"></i>
+                </button>
+                <button class="action-buttons__btn action-buttons__btn--edit"
+                        (click)="editarMotorizado(motorizado.id)"
+                        title="Editar motorizado"
+                        *ngIf="permissionsService.canEditMotorizados()">
+                  <i class="ph ph-pencil"></i>
+                </button>
+                <button class="action-buttons__btn action-buttons__btn--delete"
+                        (click)="eliminarMotorizado(motorizado.id, motorizado.nombre_completo)"
+                        title="Eliminar motorizado"
+                        *ngIf="permissionsService.canDeleteMotorizados()">
+                  <i class="ph ph-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación moderna -->
+    <div class="modern-data-table__pagination" *ngIf="!isLoading && motorizadosFiltrados.length > 0 && getTotalPages() > 1">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="pagination-info">
+          Mostrando {{ (currentPage - 1) * pageSize + 1 }} a {{ Math.min(currentPage * pageSize, motorizadosFiltrados.length) }} de {{ motorizadosFiltrados.length }} registros
+        </div>
+        <nav>
+          <ul class="pagination-controls">
+            <li [class.disabled]="currentPage === 1">
+              <button (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
+                <i class="ph ph-caret-left"></i>
+              </button>
+            </li>
+            <li *ngFor="let page of getPageNumbers()" [class.active]="page === currentPage">
+              <button (click)="goToPage(page)">{{ page }}</button>
+            </li>
+            <li [class.disabled]="currentPage === getTotalPages()">
+              <button (click)="goToPage(currentPage + 1)" [disabled]="currentPage === getTotalPages()">
+                <i class="ph ph-caret-right"></i>
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Estado vacío -->
+    <div *ngIf="!isLoading && motorizados.length === 0" class="empty-state">
+      <div class="empty-state__icon">
+        <i class="ph ph-motorcycle"></i>
+      </div>
+      <h5 class="empty-state__title">No hay motorizados registrados</h5>
+      <p class="empty-state__description">
+        Comienza registrando tu primer motorizado para gestionar las entregas.
+      </p>
+      <button class="btn btn-primary"
+              *ngIf="permissionsService.canCreateMotorizados()"
+              routerLink="/dashboard/motorizados/crear">
+        <i class="ph ph-plus me-8"></i>
+        Crear Motorizado
+      </button>
+    </div>
+
+    <!-- Sin resultados de búsqueda -->
+    <div *ngIf="!isLoading && motorizados.length > 0 && motorizadosFiltrados.length === 0" class="empty-state">
+      <div class="empty-state__icon">
+        <i class="ph ph-magnifying-glass"></i>
+      </div>
+      <h5 class="empty-state__title">No se encontraron resultados</h5>
+      <p class="empty-state__description">
+        Intenta cambiar los filtros para encontrar los motorizados que buscas.
+      </p>
+    </div>
+  </div>
+</div>

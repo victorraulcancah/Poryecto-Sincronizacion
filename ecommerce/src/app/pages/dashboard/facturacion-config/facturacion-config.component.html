@@ -1,0 +1,529 @@
+<div class="config-container">
+  <!-- Header -->
+  <div class="config-header">
+    <h2 class="mb-0">
+      <i class="fas fa-cogs me-2"></i>
+      Configuración de Facturación Electrónica
+    </h2>
+  </div>
+
+  <!-- Alertas -->
+  <div class="config-alerts" *ngIf="error || success">
+    <div class="alert alert-danger alert-dismissible fade show" *ngIf="error" role="alert">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      {{ error }}
+      <button type="button" class="btn-close" (click)="cerrarMensajes()"></button>
+    </div>
+    <div class="alert alert-success alert-dismissible fade show" *ngIf="success" role="alert">
+      <i class="fas fa-check-circle me-2"></i>
+      {{ success }}
+      <button type="button" class="btn-close" (click)="cerrarMensajes()"></button>
+    </div>
+  </div>
+
+  <!-- Tabs de Navegación -->
+  <div class="config-tabs">
+    <ul class="nav nav-tabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button 
+          class="nav-link" 
+          [class.active]="activeTab === 'empresa'"
+          (click)="setActiveTab('empresa')"
+          type="button"
+        >
+          <i class="fas fa-building me-2"></i>
+          Datos del Emisor
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button 
+          class="nav-link" 
+          [class.active]="activeTab === 'certificado'"
+          (click)="setActiveTab('certificado')"
+          type="button"
+        >
+          <i class="fas fa-certificate me-2"></i>
+          Certificado Digital
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button 
+          class="nav-link" 
+          [class.active]="activeTab === 'series'"
+          (click)="setActiveTab('series')"
+          type="button"
+        >
+          <i class="fas fa-list-ol me-2"></i>
+          Series y Correlativos
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Contenido de Tabs -->
+  <div class="tab-content">
+    
+    <!-- Tab: Datos del Emisor -->
+    <div class="tab-pane fade" [class.show]="activeTab === 'empresa'" [class.active]="activeTab === 'empresa'">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="fas fa-building me-2"></i>
+            Información de la Empresa
+          </h5>
+        </div>
+        <div class="card-body">
+          <form (ngSubmit)="guardarEmpresa()">
+            <div class="row g-3">
+              <!-- Datos Básicos -->
+              <div class="col-12">
+                <h6 class="text-primary mb-3">Datos Básicos</h6>
+              </div>
+              
+              <div class="col-md-4">
+                <label class="form-label">RUC *</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  [(ngModel)]="empresa.ruc"
+                  name="ruc"
+                  placeholder="12345678901"
+                  maxlength="11"
+                  required
+                >
+              </div>
+              
+              <div class="col-md-8">
+                <label class="form-label">Razón Social *</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  [(ngModel)]="empresa.razon_social"
+                  name="razon_social"
+                  placeholder="MI EMPRESA SAC"
+                  required
+                >
+              </div>
+              
+              <div class="col-md-6">
+                <label class="form-label">Nombre Comercial</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  [(ngModel)]="empresa.nombre_comercial"
+                  name="nombre_comercial"
+                  placeholder="Mi Empresa"
+                >
+              </div>
+              
+              <div class="col-md-6">
+                <label class="form-label">Código Local</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  [(ngModel)]="empresa.codigo_local"
+                  name="codigo_local"
+                  placeholder="0000"
+                  maxlength="4"
+                >
+              </div>
+
+              <!-- Domicilio Fiscal -->
+              <div class="col-12">
+                <h6 class="text-primary mb-3 mt-4">Domicilio Fiscal</h6>
+              </div>
+              
+              <div class="col-md-6">
+                <label class="form-label">Domicilio Fiscal *</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  [(ngModel)]="empresa.domicilio_fiscal"
+                  name="domicilio_fiscal"
+                  placeholder="Av. Principal 123"
+                  required
+                >
+              </div>
+              
+              <div class="col-md-6">
+                <label class="form-label">Ubigeo *</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  [(ngModel)]="empresa.ubigeo"
+                  name="ubigeo"
+                  placeholder="150101"
+                  maxlength="6"
+                  required
+                >
+              </div>
+              
+              <div class="col-md-4">
+                <label class="form-label">Departamento</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  [(ngModel)]="empresa.departamento"
+                  name="departamento"
+                  placeholder="LIMA"
+                >
+              </div>
+              
+              <div class="col-md-4">
+                <label class="form-label">Provincia</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  [(ngModel)]="empresa.provincia"
+                  name="provincia"
+                  placeholder="LIMA"
+                >
+              </div>
+              
+              <div class="col-md-4">
+                <label class="form-label">Distrito</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  [(ngModel)]="empresa.distrito"
+                  name="distrito"
+                  placeholder="LIMA"
+                >
+              </div>
+              
+              <div class="col-md-6">
+                <label class="form-label">Urbanización</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  [(ngModel)]="empresa.urbanizacion"
+                  name="urbanizacion"
+                  placeholder="Centro"
+                >
+              </div>
+
+              <!-- Contacto -->
+              <div class="col-12">
+                <h6 class="text-primary mb-3 mt-4">Información de Contacto</h6>
+              </div>
+              
+              <div class="col-md-4">
+                <label class="form-label">Email</label>
+                <input 
+                  type="email" 
+                  class="form-control" 
+                  [(ngModel)]="empresa.email"
+                  name="email"
+                  placeholder="facturacion@miempresa.com"
+                >
+              </div>
+              
+              <div class="col-md-4">
+                <label class="form-label">Teléfono</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  [(ngModel)]="empresa.telefono"
+                  name="telefono"
+                  placeholder="987654321"
+                >
+              </div>
+              
+              <div class="col-md-4">
+                <label class="form-label">Sitio Web</label>
+                <input 
+                  type="url" 
+                  class="form-control" 
+                  [(ngModel)]="empresa.web"
+                  name="web"
+                  placeholder="https://www.miempresa.com"
+                >
+              </div>
+
+              <!-- Configuración SOL -->
+              <div class="col-12">
+                <h6 class="text-primary mb-3 mt-4">Configuración SOL SUNAT</h6>
+              </div>
+              
+              <div class="col-md-6">
+                <label class="form-label">Usuario SOL</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  [(ngModel)]="empresa.sol_usuario"
+                  name="sol_usuario"
+                  placeholder="MODDATOS"
+                >
+              </div>
+              
+              <div class="col-md-6">
+                <label class="form-label">Ambiente</label>
+                <select 
+                  class="form-select" 
+                  [(ngModel)]="empresa.sol_endpoint"
+                  name="sol_endpoint"
+                >
+                  <option *ngFor="let endpoint of ENDPOINTS" [value]="endpoint.value">
+                    {{ endpoint.label }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Botón Guardar -->
+              <div class="col-12">
+                <div class="d-flex justify-content-end">
+                  <button 
+                    type="submit" 
+                    class="btn btn-primary"
+                    [disabled]="loading"
+                  >
+                    <i class="fas fa-save me-2" *ngIf="!loading"></i>
+                    <span class="spinner-border spinner-border-sm me-2" *ngIf="loading"></span>
+                    Guardar Configuración
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Certificado Digital -->
+    <div class="tab-pane fade" [class.show]="activeTab === 'certificado'" [class.active]="activeTab === 'certificado'">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="fas fa-certificate me-2"></i>
+            Certificado Digital
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-12">
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Importante:</strong> El certificado debe ser un archivo .pfx válido emitido por una entidad certificadora autorizada por SUNAT.
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <label class="form-label">Archivo de Certificado (.pfx)</label>
+              <input 
+                type="file" 
+                class="form-control" 
+                id="certificado"
+                accept=".pfx"
+                (change)="onCertificadoSelected($event)"
+              >
+              <div class="form-text">Seleccione el archivo .pfx de su certificado digital</div>
+            </div>
+            
+            <div class="col-md-6">
+              <label class="form-label">Contraseña del Certificado</label>
+              <input 
+                type="password" 
+                class="form-control" 
+                [(ngModel)]="certificadoPassword"
+                name="certificado_password"
+                placeholder="Ingrese la contraseña"
+              >
+              <div class="form-text">Contraseña del archivo .pfx</div>
+            </div>
+            
+            <div class="col-12">
+              <div class="d-flex justify-content-end">
+                <button 
+                  type="button" 
+                  class="btn btn-success"
+                  (click)="subirCertificado()"
+                  [disabled]="loading || !certificadoFile || !certificadoPassword"
+                >
+                  <i class="fas fa-upload me-2" *ngIf="!loading"></i>
+                  <span class="spinner-border spinner-border-sm me-2" *ngIf="loading"></span>
+                  Subir Certificado
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Series y Correlativos -->
+    <div class="tab-pane fade" [class.show]="activeTab === 'series'" [class.active]="activeTab === 'series'">
+      <div class="row g-4">
+        <!-- Formulario Nueva Serie -->
+        <div class="col-md-4">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">
+                <i class="fas fa-plus me-2"></i>
+                Nueva Serie
+              </h5>
+            </div>
+            <div class="card-body">
+              <form (ngSubmit)="agregarSerie()">
+                <div class="row g-3">
+                  <div class="col-12">
+                    <label class="form-label">Tipo de Comprobante</label>
+                    <select 
+                      class="form-select" 
+                      [(ngModel)]="nuevaSerie.tipo_comprobante"
+                      name="tipo_comprobante"
+                    >
+                      <option *ngFor="let tipo of TIPOS_COMPROBANTE" [value]="tipo.value">
+                        {{ tipo.label }}
+                      </option>
+                    </select>
+                  </div>
+                  
+                  <div class="col-12">
+                    <label class="form-label">Serie</label>
+                    <input 
+                      type="text" 
+                      class="form-control" 
+                      [(ngModel)]="nuevaSerie.serie"
+                      name="serie"
+                      placeholder="F001"
+                      maxlength="4"
+                    >
+                  </div>
+                  
+                  <div class="col-6">
+                    <label class="form-label">Correlativo Inicial</label>
+                    <input 
+                      type="number" 
+                      class="form-control" 
+                      [(ngModel)]="nuevaSerie.correlativo_actual"
+                      name="correlativo_actual"
+                      min="1"
+                    >
+                  </div>
+                  
+                  <div class="col-6">
+                    <label class="form-label">Estado</label>
+                    <select 
+                      class="form-select" 
+                      [(ngModel)]="nuevaSerie.estado"
+                      name="estado"
+                    >
+                      <option value="activo">Activo</option>
+                      <option value="inactivo">Inactivo</option>
+                    </select>
+                  </div>
+                  
+                  <div class="col-12">
+                    <label class="form-label">Descripción</label>
+                    <textarea 
+                      class="form-control" 
+                      [(ngModel)]="nuevaSerie.descripcion"
+                      name="descripcion"
+                      rows="2"
+                      placeholder="Descripción de la serie"
+                    ></textarea>
+                  </div>
+                  
+                  <div class="col-12">
+                    <button 
+                      type="submit" 
+                      class="btn btn-primary w-100"
+                      [disabled]="loading"
+                    >
+                      <i class="fas fa-plus me-2" *ngIf="!loading"></i>
+                      <span class="spinner-border spinner-border-sm me-2" *ngIf="loading"></span>
+                      Crear Serie
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lista de Series -->
+        <div class="col-md-8">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">
+                <i class="fas fa-list-ol me-2"></i>
+                Series Configuradas
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Tipo</th>
+                      <th>Serie</th>
+                      <th>Correlativo</th>
+                      <th>Estado</th>
+                      <th>Descripción</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let serie of series">
+                      <td>
+                        <span class="badge bg-primary">
+                          {{ getTipoComprobanteLabel(serie.tipo_comprobante) }}
+                        </span>
+                      </td>
+                      <td>
+                        <strong>{{ serie.serie }}</strong>
+                      </td>
+                      <td>
+                        <span class="text-muted">{{ serie.correlativo_actual | number }}</span>
+                      </td>
+                      <td>
+                        <span 
+                          class="badge"
+                          [class.bg-success]="serie.estado === 'activo'"
+                          [class.bg-secondary]="serie.estado === 'inactivo'"
+                        >
+                          {{ serie.estado }}
+                        </span>
+                      </td>
+                      <td>
+                        <small class="text-muted">{{ serie.descripcion || '-' }}</small>
+                      </td>
+                      <td>
+                        <div class="btn-group btn-group-sm">
+                          <button 
+                            class="btn btn-outline-primary"
+                            (click)="reservarCorrelativo(serie)"
+                            [disabled]="loading"
+                            title="Reservar Correlativo"
+                          >
+                            <i class="fas fa-plus"></i>
+                          </button>
+                          <button 
+                            class="btn btn-outline-secondary"
+                            (click)="actualizarSerie(serie)"
+                            [disabled]="loading"
+                            title="Actualizar"
+                          >
+                            <i class="fas fa-edit"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              
+              <div class="text-center" *ngIf="series.length === 0">
+                <div class="text-muted py-4">
+                  <i class="fas fa-inbox fa-3x mb-3"></i>
+                  <p>No hay series configuradas</p>
+                  <small>Agregue una nueva serie para comenzar</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

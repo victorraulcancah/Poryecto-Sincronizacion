@@ -1,0 +1,395 @@
+<!-- ========================= Breadcrumb Start =============================== -->
+<div class="breadcrumb py-26 bg-main-50">
+  <div class="container container-lg">
+    <div class="breadcrumb-wrapper flex-between flex-wrap gap-16">
+      <h6 class="mb-0">Dashboard Motorizado</h6>
+      <ul class="flex-align gap-8 flex-wrap">
+        <li class="text-sm">
+          <a routerLink="/" class="text-gray-900 flex-align gap-8 hover-text-main-600">
+            <i class="ph ph-house"></i>
+            Inicio
+          </a>
+        </li>
+        <li class="flex-align">
+          <i class="ph ph-caret-right"></i>
+        </li>
+        <li class="text-sm text-main-600">Dashboard</li>
+      </ul>
+    </div>
+  </div>
+</div>
+<!-- ========================= Breadcrumb End =============================== -->
+
+<div class="py-80">
+  <div class="container container-lg">
+
+    <!-- Header del Dashboard Mejorado -->
+    <div class="banner-item bg-white rounded-16 overflow-hidden position-relative shadow-sm mb-32" data-aos="fade-up" data-aos-duration="600">
+      <img src="assets/images/bg/banner-fondo.png" alt="banner background"
+           class="banner-img position-absolute inset-block-start-0 inset-inline-start-0 w-100 h-100 z-n1 object-fit-cover rounded-16"
+           style="filter: brightness(1.1) contrast(0.9); opacity: 0.1"/>
+
+      <div class="p-32">
+        <div class="flex-between flex-wrap gap-24">
+          <div class="flex-align gap-20">
+            <div class="w-80 h-80 bg-main-600 rounded-circle flex-center text-white text-2xl shadow-lg">
+              <i class="ph ph-motorcycle"></i>
+            </div>
+            <div>
+              <h3 class="text-heading fw-bold mb-8">¡Bienvenido, {{currentUser?.name}}!</h3>
+              <div class="flex-align gap-12 mb-8">
+                <span class="bg-main-50 text-main-600 px-16 py-6 rounded-pill text-sm fw-semibold">
+                  <i class="ph ph-identification-badge me-4"></i>
+                  Unidad: {{currentUser?.numero_unidad}}
+                </span>
+                <span class="bg-warning-50 text-warning-600 px-16 py-6 rounded-pill text-sm fw-semibold">
+                  <i class="ph ph-clock me-4"></i>
+                  Activo desde hoy
+                </span>
+              </div>
+              <p class="text-gray-600 text-sm mb-0">
+                <i class="ph ph-map-pin me-4"></i>
+                Listo para recibir pedidos en tu zona
+              </p>
+            </div>
+          </div>
+
+          <div class="flex-align gap-16 flex-wrap">
+            <div class="text-center">
+              <div class="w-48 h-48 bg-warning-50 text-warning-600 rounded-circle flex-center mx-auto mb-8">
+                <i class="ph ph-star text-lg"></i>
+              </div>
+              <span class="text-sm fw-medium text-gray-700">Calificación</span>
+              <div class="text-lg fw-bold text-warning-600">4.8</div>
+            </div>
+
+            <div class="border-start border-gray-200 ps-16">
+              <button
+                class="btn py-12 px-20 rounded-pill fw-semibold transition-2 shadow-sm mb-12 d-block"
+                [class]="isOnline ? 'bg-success-600 text-white hover-bg-success-700' : 'bg-danger-600 text-white hover-bg-danger-700'"
+                (click)="toggleStatus()">
+                <i class="ph ph-circle me-8"></i>
+                {{isOnline ? 'En línea' : 'Desconectado'}}
+              </button>
+              <button
+                class="btn border border-gray-300 bg-white text-gray-700 hover-bg-gray-100 py-12 px-20 rounded-pill fw-semibold transition-2 shadow-sm"
+                (click)="logout()">
+                <i class="ph ph-sign-out me-8"></i>
+                Cerrar Sesión
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estadísticas Grid Mejoradas -->
+    <div class="section-heading mb-32">
+      <h5 class="mb-0" data-aos="fade-up" data-aos-duration="600">Resumen del Día</h5>
+      <p class="text-gray-600 text-sm mt-8" data-aos="fade-up" data-aos-duration="700">Estadísticas de tu desempeño hoy</p>
+    </div>
+
+    <div class="row g-24 mb-40">
+      <div class="col-xl-3 col-sm-6" data-aos="fade-up" data-aos-duration="600">
+        <div class="product-card bg-white rounded-16 p-24 border border-gray-100 hover-border-warning-600 transition-2 shadow-sm hover-shadow-lg position-relative overflow-hidden">
+          <!-- Decorative background -->
+          <div class="position-absolute top-0 end-0 w-32 h-32 bg-warning-50 rounded-circle" style="margin-top: -16px; margin-right: -16px;"></div>
+
+          <div class="flex-between mb-16">
+            <div class="w-56 h-56 bg-warning-50 text-warning-600 rounded-16 flex-center text-xl shadow-sm">
+              <i class="ph ph-clock"></i>
+            </div>
+            <span class="text-xs px-8 py-4 bg-warning-50 text-warning-600 rounded-pill fw-medium">Pendientes</span>
+          </div>
+          <div>
+            <h2 class="text-heading fw-bold mb-8 text-2xl">{{estadisticas?.pedidos_pendientes || 0}}</h2>
+            <p class="text-gray-600 text-sm mb-8">Pedidos Pendientes</p>
+            <div class="flex-align gap-8">
+              <div class="w-100 bg-gray-100 rounded-pill h-4">
+                <div class="bg-warning-600 rounded-pill h-4" [style.width]="getProgressWidth('pendientes') + '%'"></div>
+              </div>
+              <span class="text-xs text-gray-500 fw-medium">{{getProgressWidth('pendientes')}}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-3 col-sm-6" data-aos="fade-up" data-aos-duration="700">
+        <div class="product-card bg-white rounded-16 p-24 border border-gray-100 hover-border-main-600 transition-2 shadow-sm hover-shadow-lg position-relative overflow-hidden">
+          <!-- Decorative background -->
+          <div class="position-absolute top-0 end-0 w-32 h-32 bg-main-50 rounded-circle" style="margin-top: -16px; margin-right: -16px;"></div>
+
+          <div class="flex-between mb-16">
+            <div class="w-56 h-56 bg-main-50 text-main-600 rounded-16 flex-center text-xl shadow-sm">
+              <i class="ph ph-package"></i>
+            </div>
+            <span class="text-xs px-8 py-4 bg-main-50 text-main-600 rounded-pill fw-medium">Asignados</span>
+          </div>
+          <div>
+            <h2 class="text-heading fw-bold mb-8 text-2xl">{{estadisticas?.pedidos_asignados || 0}}</h2>
+            <p class="text-gray-600 text-sm mb-8">Asignados Hoy</p>
+            <div class="flex-align gap-8">
+              <div class="w-100 bg-gray-100 rounded-pill h-4">
+                <div class="bg-main-600 rounded-pill h-4" [style.width]="getProgressWidth('asignados') + '%'"></div>
+              </div>
+              <span class="text-xs text-gray-500 fw-medium">{{getProgressWidth('asignados')}}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-3 col-sm-6" data-aos="fade-up" data-aos-duration="800">
+        <div class="product-card bg-white rounded-16 p-24 border border-gray-100 hover-border-success-600 transition-2 shadow-sm hover-shadow-lg position-relative overflow-hidden">
+          <!-- Decorative background -->
+          <div class="position-absolute top-0 end-0 w-32 h-32 bg-success-50 rounded-circle" style="margin-top: -16px; margin-right: -16px;"></div>
+
+          <div class="flex-between mb-16">
+            <div class="w-56 h-56 bg-success-50 text-success-600 rounded-16 flex-center text-xl shadow-sm">
+              <i class="ph ph-check-circle"></i>
+            </div>
+            <span class="text-xs px-8 py-4 bg-success-50 text-success-600 rounded-pill fw-medium">Completados</span>
+          </div>
+          <div>
+            <h2 class="text-heading fw-bold mb-8 text-2xl">{{estadisticas?.pedidos_entregados || 0}}</h2>
+            <p class="text-gray-600 text-sm mb-8">Entregados Hoy</p>
+            <div class="flex-align gap-8">
+              <div class="w-100 bg-gray-100 rounded-pill h-4">
+                <div class="bg-success-600 rounded-pill h-4" [style.width]="getProgressWidth('entregados') + '%'"></div>
+              </div>
+              <span class="text-xs text-gray-500 fw-medium">{{getProgressWidth('entregados')}}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-3 col-sm-6" data-aos="fade-up" data-aos-duration="900">
+        <div class="product-card bg-white rounded-16 p-24 border border-gray-100 hover-border-danger-600 transition-2 shadow-sm hover-shadow-lg position-relative overflow-hidden">
+          <!-- Decorative background -->
+          <div class="position-absolute top-0 end-0 w-32 h-32 bg-danger-50 rounded-circle" style="margin-top: -16px; margin-right: -16px;"></div>
+
+          <div class="flex-between mb-16">
+            <div class="w-56 h-56 bg-danger-50 text-danger-600 rounded-16 flex-center text-xl shadow-sm">
+              <i class="ph ph-currency-circle-dollar"></i>
+            </div>
+            <span class="text-xs px-8 py-4 bg-danger-50 text-danger-600 rounded-pill fw-medium">Ganancias</span>
+          </div>
+          <div>
+            <h2 class="text-heading fw-bold mb-8 text-2xl">S/ {{estadisticas?.ganancias_dia || '0.00'}}</h2>
+            <p class="text-gray-600 text-sm mb-8">Ganancias del Día</p>
+            <div class="flex-align gap-8">
+              <div class="w-100 bg-gray-100 rounded-pill h-4">
+                <div class="bg-danger-600 rounded-pill h-4" [style.width]="getProgressWidth('ganancias') + '%'"></div>
+              </div>
+              <span class="text-xs text-gray-500 fw-medium">Meta diaria</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Acciones Rápidas Mejoradas -->
+    <div class="section-heading mb-32">
+      <h5 class="mb-0" data-aos="fade-up" data-aos-duration="600">Acciones Rápidas</h5>
+      <p class="text-gray-600 text-sm mt-8" data-aos="fade-up" data-aos-duration="700">Accede rápidamente a las funciones principales</p>
+    </div>
+
+    <div class="row g-20 mb-40">
+      <div class="col-xl-3 col-md-6" data-aos="fade-up" data-aos-duration="600">
+        <a routerLink="/motorizado/pedidos" class="text-decoration-none">
+          <div class="product-card bg-white rounded-16 p-24 border border-gray-100 hover-border-main-600 transition-2 shadow-sm hover-shadow-lg position-relative overflow-hidden">
+            <!-- Decorative background -->
+            <div class="position-absolute top-0 end-0 w-32 h-32 bg-main-50 rounded-circle" style="margin-top: -16px; margin-right: -16px;"></div>
+
+            <div class="flex-between mb-16">
+              <div class="w-56 h-56 bg-main-50 text-main-600 rounded-16 flex-center text-xl shadow-sm">
+                <i class="ph ph-package"></i>
+              </div>
+              <span class="text-xs px-8 py-4 bg-main-50 text-main-600 rounded-pill fw-medium">Acceso</span>
+            </div>
+            <div>
+              <h6 class="text-heading fw-bold mb-8">Mis Pedidos</h6>
+              <p class="text-gray-600 text-sm mb-8">Ver pedidos asignados</p>
+              <div class="flex-align gap-8">
+                <span class="bg-main-50 text-main-600 px-12 py-6 rounded-pill text-xs fw-semibold">
+                  {{estadisticas?.pedidos_asignados || 0}} activos
+                </span>
+                <i class="ph ph-arrow-right text-gray-400 ms-auto"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-xl-3 col-md-6" data-aos="fade-up" data-aos-duration="700">
+        <a routerLink="/motorizado/rutas" class="text-decoration-none">
+          <div class="product-card bg-white rounded-16 p-24 border border-gray-100 hover-border-success-600 transition-2 shadow-sm hover-shadow-lg position-relative overflow-hidden">
+            <!-- Decorative background -->
+            <div class="position-absolute top-0 end-0 w-32 h-32 bg-success-50 rounded-circle" style="margin-top: -16px; margin-right: -16px;"></div>
+
+            <div class="flex-between mb-16">
+              <div class="w-56 h-56 bg-success-50 text-success-600 rounded-16 flex-center text-xl shadow-sm">
+                <i class="ph ph-map-pin"></i>
+              </div>
+              <span class="text-xs px-8 py-4 bg-success-50 text-success-600 rounded-pill fw-medium">Acceso</span>
+            </div>
+            <div>
+              <h6 class="text-heading fw-bold mb-8">Rutas</h6>
+              <p class="text-gray-600 text-sm mb-8">Ver rutas optimizadas</p>
+              <div class="flex-align gap-8">
+                <span class="bg-success-50 text-success-600 px-12 py-6 rounded-pill text-xs fw-semibold">
+                  Optimizadas
+                </span>
+                <i class="ph ph-arrow-right text-gray-400 ms-auto"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-xl-3 col-md-6" data-aos="fade-up" data-aos-duration="800">
+        <a routerLink="/motorizado/perfil" class="text-decoration-none">
+          <div class="product-card bg-white rounded-16 p-24 border border-gray-100 hover-border-warning-600 transition-2 shadow-sm hover-shadow-lg position-relative overflow-hidden">
+            <!-- Decorative background -->
+            <div class="position-absolute top-0 end-0 w-32 h-32 bg-warning-50 rounded-circle" style="margin-top: -16px; margin-right: -16px;"></div>
+
+            <div class="flex-between mb-16">
+              <div class="w-56 h-56 bg-warning-50 text-warning-600 rounded-16 flex-center text-xl shadow-sm">
+                <i class="ph ph-user"></i>
+              </div>
+              <span class="text-xs px-8 py-4 bg-warning-50 text-warning-600 rounded-pill fw-medium">Acceso</span>
+            </div>
+            <div>
+              <h6 class="text-heading fw-bold mb-8">Mi Perfil</h6>
+              <p class="text-gray-600 text-sm mb-8">Información personal</p>
+              <div class="flex-align gap-8">
+                <span class="bg-warning-50 text-warning-600 px-12 py-6 rounded-pill text-xs fw-semibold">
+                  Actualizar
+                </span>
+                <i class="ph ph-arrow-right text-gray-400 ms-auto"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-xl-3 col-md-6" data-aos="fade-up" data-aos-duration="900">
+        <a routerLink="/motorizado/historial" class="text-decoration-none">
+          <div class="product-card bg-white rounded-16 p-24 border border-gray-100 hover-border-danger-600 transition-2 shadow-sm hover-shadow-lg position-relative overflow-hidden">
+            <!-- Decorative background -->
+            <div class="position-absolute top-0 end-0 w-32 h-32 bg-danger-50 rounded-circle" style="margin-top: -16px; margin-right: -16px;"></div>
+
+            <div class="flex-between mb-16">
+              <div class="w-56 h-56 bg-danger-50 text-danger-600 rounded-16 flex-center text-xl shadow-sm">
+                <i class="ph ph-clock-clockwise"></i>
+              </div>
+              <span class="text-xs px-8 py-4 bg-danger-50 text-danger-600 rounded-pill fw-medium">Acceso</span>
+            </div>
+            <div>
+              <h6 class="text-heading fw-bold mb-8">Historial</h6>
+              <p class="text-gray-600 text-sm mb-8">Entregas anteriores</p>
+              <div class="flex-align gap-8">
+                <span class="bg-danger-50 text-danger-600 px-12 py-6 rounded-pill text-xs fw-semibold">
+                  {{estadisticas?.pedidos_entregados || 0}} completados
+                </span>
+                <i class="ph ph-arrow-right text-gray-400 ms-auto"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Notificaciones Mejoradas -->
+    <div *ngIf="notificaciones.length > 0" class="mb-40" data-aos="fade-up" data-aos-duration="600">
+      <div class="section-heading mb-24">
+        <div class="flex-between flex-wrap gap-16">
+          <div>
+            <h5 class="mb-0">Notificaciones Recientes</h5>
+            <p class="text-gray-600 text-sm mt-8">Mantente al día con las últimas actualizaciones</p>
+          </div>
+          <button class="btn bg-main-50 text-main-600 hover-bg-main-600 hover-text-white rounded-pill px-16 py-8 text-sm">
+            <i class="ph ph-check-circle me-8"></i>
+            Marcar todas como leídas
+          </button>
+        </div>
+      </div>
+
+      <div class="product-dContent border rounded-16 bg-white shadow-sm">
+        <div class="product-dContent__box p-0">
+          <div class="d-flex flex-column">
+            <div
+              *ngFor="let notif of notificaciones; let i = index; let last = last"
+              class="notification-item p-24 hover-bg-gray-50 transition-2"
+              [class.border-bottom]="!last"
+              [class.border-gray-100]="!last">
+
+              <div class="flex-align gap-20">
+                <!-- Icono de notificación mejorado -->
+                <div class="flex-shrink-0">
+                  <div
+                    class="w-48 h-48 rounded-circle flex-center text-white shadow-sm position-relative"
+                    [class]="notif.tipo === 'info' ? 'bg-main-600' :
+                             notif.tipo === 'warning' ? 'bg-warning-600' :
+                             notif.tipo === 'error' ? 'bg-danger-600' :
+                             'bg-success-600'">
+                    <i [class]="getNotificationIcon(notif.tipo)" class="text-lg"></i>
+                    <!-- Dot indicator para nuevas notificaciones -->
+                    <div *ngIf="notif.nuevo" class="w-12 h-12 bg-danger-600 rounded-circle position-absolute" style="top: -2px; right: -2px;"></div>
+                  </div>
+                </div>
+
+                <div class="flex-grow-1">
+                  <div class="flex-between flex-wrap gap-8 mb-8">
+                    <h6 class="text-heading fw-bold mb-0">{{notif.titulo}}</h6>
+                    <div class="flex-align gap-8">
+                      <!-- Badge del tipo de notificación -->
+                      <span
+                        class="text-xs px-8 py-4 rounded-pill fw-medium"
+                        [class]="notif.tipo === 'info' ? 'bg-main-50 text-main-600' :
+                                 notif.tipo === 'warning' ? 'bg-warning-50 text-warning-600' :
+                                 notif.tipo === 'error' ? 'bg-danger-50 text-danger-600' :
+                                 'bg-success-50 text-success-600'">
+                        {{getTipoTexto(notif.tipo)}}
+                      </span>
+                      <small class="text-gray-400 text-xs">{{getTimeAgo(notif.fecha)}}</small>
+                    </div>
+                  </div>
+
+                  <p class="text-gray-600 text-sm mb-12 line-height-20">{{notif.mensaje}}</p>
+
+                  <!-- Acciones de la notificación -->
+                  <div class="flex-align gap-12">
+                    <button *ngIf="notif.accion_url"
+                            [routerLink]="[notif.accion_url]"
+                            class="btn bg-main-600 text-white hover-bg-main-700 rounded-pill px-16 py-6 text-xs fw-medium">
+                      {{notif.accion_texto || 'Ver detalles'}}
+                      <i class="ph ph-arrow-right ms-4"></i>
+                    </button>
+                    <button class="btn bg-gray-100 text-gray-600 hover-bg-gray-200 rounded-pill px-16 py-6 text-xs fw-medium">
+                      <i class="ph ph-x me-4"></i>
+                      Descartar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estado cuando no hay notificaciones -->
+    <div *ngIf="notificaciones.length === 0" class="mb-40" data-aos="fade-up" data-aos-duration="600">
+      <div class="product-card bg-white rounded-16 p-40 border border-gray-100 text-center shadow-sm">
+        <div class="w-80 h-80 bg-gray-100 text-gray-400 rounded-circle flex-center mx-auto mb-20">
+          <i class="ph ph-bell-slash text-2xl"></i>
+        </div>
+        <h6 class="text-heading fw-semibold mb-12">No tienes notificaciones</h6>
+        <p class="text-gray-500 text-sm mb-0 max-w-400 mx-auto">
+          Cuando tengas nuevas actualizaciones, pedidos o mensajes importantes, aparecerán aquí.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</div>

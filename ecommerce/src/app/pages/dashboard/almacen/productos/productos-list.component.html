@@ -1,0 +1,478 @@
+<!-- Header -->
+<div class="border border-gray-100 rounded-16 overflow-hidden bg-white">
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <div class="flex-between align-items-center gap-16 flex-wrap">
+      <div>
+        <h4 class="mb-4 text-heading">Gestión de Productos</h4>
+        <p class="text-gray-500 mb-0 text-sm">
+          Administra el inventario de productos de tu tienda
+        </p>
+      </div>
+      <div class="d-flex gap-12">
+        <!-- Botón de Sincronización -->
+        <app-sync-button></app-sync-button>
+        
+        <!-- ❌ COMENTADO: Botón Nuevo Producto (ahora se sincronizan desde 7Power) -->
+        <!--
+        <button
+          class="btn bg-main-600"
+          *ngIf="permissionsService.canCreateProductos()"
+          (click)="nuevoProducto()"
+          data-bs-toggle="modal"
+          data-bs-target="#modalCrearProducto"
+        >
+          <i class="ph ph-plus me-8"></i>
+          Nuevo Producto
+        </button>
+        -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros y Estadísticas -->
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <!-- ✅ FILA 1: Filtros de Categoría, Marca y Buscador en la misma línea -->
+    <div
+      class="d-flex justify-content-between align-items-end flex-wrap gap-16 mb-20"
+    >
+      <!-- Filtros izquierda -->
+      <div class="d-flex align-items-end gap-12 flex-wrap">
+        <!-- Filtro por Categoría -->
+        <div>
+          <label class="text-sm fw-medium text-neutral-600 mb-8 d-block">
+            <i class="ph ph-squares-four me-4"></i>
+            Categoría
+          </label>
+          <select
+            class="form-select rounded-8 border-neutral-100"
+            style="min-width: 180px; padding: 10px 16px"
+            [(ngModel)]="filtroCategoria"
+            (change)="aplicarFiltros()"
+          >
+            <option [value]="null">Todas</option>
+            <option *ngFor="let categoria of categorias" [value]="categoria.id">
+              {{ categoria.nombre }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Filtro por Marca -->
+        <div>
+          <label class="text-sm fw-medium text-neutral-600 mb-8 d-block">
+            <i class="ph ph-tag me-4"></i>
+            Marca
+          </label>
+          <select
+            class="form-select rounded-8 border-neutral-100"
+            style="min-width: 180px; padding: 10px 16px"
+            [(ngModel)]="filtroMarca"
+            (change)="aplicarFiltros()"
+          >
+            <option [value]="null">Todas las marcas</option>
+            <option *ngFor="let marca of marcas" [value]="marca.id">
+              {{ marca.nombre }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Botón para limpiar filtros -->
+        <button
+          *ngIf="filtroCategoria !== null || filtroMarca !== null || searchTerm"
+          class="btn bg-danger-50 text-danger-600 hover-bg-danger-600 hover-text-white rounded-8"
+          (click)="limpiarFiltros()"
+          style="padding: 10px 20px; border: 1px solid transparent"
+        >
+          <i class="ph ph-x me-8"></i>
+          Limpiar filtros
+        </button>
+      </div>
+
+      <!-- ✅ Buscador a la derecha -->
+      <div style="flex: 1; max-width: 400px; min-width: 280px">
+        <label class="text-sm fw-medium text-neutral-600 mb-8 d-block">
+          <i class="ph ph-magnifying-glass me-4"></i>
+          Buscar
+        </label>
+        <div class="position-relative">
+          <i
+            class="ph ph-magnifying-glass position-absolute"
+            style="
+              left: 16px;
+              top: 50%;
+              transform: translateY(-50%);
+              font-size: 18px;
+              color: var(--gray-400);
+            "
+          ></i>
+          <input
+            type="text"
+            class="form-control rounded-8 border-neutral-100"
+            placeholder="Buscar por nombre, código..."
+            style="padding: 10px 48px 10px 48px; font-size: 14px"
+            [(ngModel)]="searchTerm"
+            (input)="onSearchChange()"
+          />
+          <button
+            *ngIf="searchTerm"
+            class="btn btn-sm position-absolute"
+            style="
+              right: 8px;
+              top: 50%;
+              transform: translateY(-50%);
+              padding: 4px 8px;
+              background: transparent;
+              border: none;
+              color: var(--gray-500);
+            "
+            (click)="searchTerm = ''; onSearchChange()"
+            title="Limpiar búsqueda"
+          >
+            <i class="ph ph-x" style="font-size: 16px"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ✅ FILA 2: Estadísticas -->
+    <div
+      class="d-flex justify-content-between align-items-center flex-wrap gap-12"
+    >
+      <div class="d-flex align-items-center gap-16">
+        <span class="text-sm text-gray-600">{{ selectionText }}</span>
+      </div>
+      <div class="d-flex align-items-center gap-8 flex-wrap">
+        <span class="text-sm fw-medium text-neutral-600">Total:</span>
+        <span class="badge bg-main-50 text-main-600 px-12 py-6">{{
+          productos.length
+        }}</span>
+        <span class="text-sm fw-medium text-neutral-600">Activos:</span>
+        <span class="badge bg-success-50 text-success-600 px-12 py-6">{{
+          getProductosActivos()
+        }}</span>
+        <span class="text-sm fw-medium text-neutral-600">Inactivos:</span>
+        <span class="badge bg-danger-50 text-danger-600 px-12 py-6">{{
+          getProductosInactivos()
+        }}</span>
+        <span class="text-sm fw-medium text-neutral-600">Stock bajo:</span>
+        <span class="badge bg-warning-50 text-warning-600 px-12 py-6">{{
+          getProductosStockBajo()
+        }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla Moderna usando clases globales -->
+  <div class="modern-data-table">
+    <!-- Header compacto -->
+    <div
+      class="modern-data-table__header"
+      *ngIf="!isLoading && productosFiltrados.length > 0"
+    >
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="table-info"
+          >{{ productosFiltrados.length }} productos encontrados</span
+        >
+        <div class="d-flex align-items-center gap-2">
+          <span style="font-size: var(--font-xs); color: var(--gray-500)"
+            >Filas:</span
+          >
+          <select
+            class="page-size-selector"
+            [(ngModel)]="pageSize"
+            (change)="goToPage(1)"
+          >
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading state -->
+    <div *ngIf="isLoading" class="modern-data-table__loading">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="loading-text">Cargando productos...</p>
+    </div>
+
+    <!-- Tabla moderna -->
+    <div class="modern-data-table__container" *ngIf="!isLoading">
+      <table class="table table-borderless mb-0">
+        <thead>
+          <tr>
+            <th>IMAGEN</th>
+            <th>PRODUCTO</th>
+            <th class="d-none d-lg-table-cell">CATEGORÍA</th>
+            <th class="d-none d-lg-table-cell">MARCA</th>
+            <th>PRECIOS</th>
+            <th class="d-none d-md-table-cell">STOCK</th>
+            <th>ESTADO</th>
+            <th class="text-end">ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="
+              let producto of getPaginatedProductos();
+              trackBy: trackByProductoId
+            "
+          >
+            <!-- Imagen -->
+            <td>
+              <div class="d-flex align-items-center gap-12">
+                <div class="table-avatar__container">
+                  <div class="product-image-container">
+                    <img
+                      *ngIf="producto.imagen_url"
+                      [src]="producto.imagen_url"
+                      [alt]="producto.nombre"
+                      class="product-image"
+                      (error)="onImageError($event)"
+                    />
+                    <i
+                      *ngIf="!producto.imagen_url"
+                      class="ph ph-package text-gray-400"
+                    ></i>
+                  </div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Producto -->
+            <td>
+              <div class="client-info__name" [title]="producto.nombre">
+                {{ producto.nombre }}
+              </div>
+              <div
+                class="client-info__subtitle"
+                [title]="producto.codigo_producto"
+              >
+                {{ producto.codigo_producto }}
+              </div>
+            </td>
+
+            <!-- Categoría (hidden on tablet) -->
+            <td class="d-none d-lg-table-cell">
+              <span
+                class="type-badge type-badge--default"
+                *ngIf="producto.categoria"
+              >
+                <i class="ph ph-folder-open"></i>
+                {{ producto.categoria.nombre }}
+              </span>
+              <span class="text-gray-400" *ngIf="!producto.categoria"
+                >Sin categoría</span
+              >
+            </td>
+
+            <!-- Marca (hidden on tablet) -->
+            <td class="d-none d-lg-table-cell">
+              <span
+                class="type-badge type-badge--manual"
+                *ngIf="producto.marca"
+              >
+                <i class="ph ph-tag"></i>
+                {{ producto.marca.nombre }}
+              </span>
+              <span class="text-gray-400" *ngIf="!producto.marca"
+                >Sin marca</span
+              >
+            </td>
+
+            <!-- Precios -->
+            <td>
+              <div class="product-price-info">
+                <div class="price-sale">S/ {{ producto.precio_venta }}</div>
+                <div class="price-buy">
+                  Compra: S/ {{ producto.precio_compra }}
+                </div>
+              </div>
+            </td>
+
+            <!-- Stock (hidden on mobile) -->
+            <td class="d-none d-md-table-cell">
+              <div class="product-stock-info">
+                <div
+                  class="stock-current"
+                  [ngClass]="
+                    producto.stock <= producto.stock_minimo ? 'stock-low' : ''
+                  "
+                >
+                  {{ producto.stock }} und.
+                </div>
+                <div class="stock-min">Mín: {{ producto.stock_minimo }}</div>
+              </div>
+            </td>
+
+            <!-- Estado -->
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <span
+                  class="status-badge"
+                  [ngClass]="
+                    producto.activo
+                      ? 'status-badge--active'
+                      : 'status-badge--inactive'
+                  "
+                >
+                  {{ producto.activo ? "Activo" : "Inactivo" }}
+                </span>
+                <button
+                  *ngIf="permissionsService.canEditProductos()"
+                  class="toggle-button"
+                  [ngClass]="producto.activo ? 'toggle-button--active' : ''"
+                  [title]="
+                    producto.activo ? 'Desactivar producto' : 'Activar producto'
+                  "
+                  (click)="toggleEstado(producto)"
+                >
+                  <i
+                    class="ph"
+                    [class]="producto.activo ? 'ph-eye-slash' : 'ph-eye'"
+                  ></i>
+                </button>
+              </div>
+            </td>
+
+            <!-- Acciones -->
+            <td class="text-end">
+              <div class="action-buttons">
+                <button
+                  class="action-buttons__btn action-buttons__btn--view"
+                  (click)="toggleDestacado(producto)"
+                  [title]="
+                    producto.destacado
+                      ? 'Quitar destacado'
+                      : 'Marcar como destacado'
+                  "
+                  *ngIf="permissionsService.canEditProductos()"
+                >
+                  <i
+                    class="ph"
+                    [ngClass]="
+                      producto.destacado ? 'ph-star ph-fill' : 'ph-star'
+                    "
+                  ></i>
+                </button>
+                <button
+                  class="action-buttons__btn action-buttons__btn--edit"
+                  (click)="editarProducto(producto)"
+                  title="Editar producto"
+                  *ngIf="permissionsService.canEditProductos()"
+                >
+                  <i class="ph ph-pencil"></i>
+                </button>
+                <button
+                  class="action-buttons__btn action-buttons__btn--delete"
+                  (click)="eliminarProducto(producto)"
+                  title="Eliminar producto"
+                  *ngIf="permissionsService.canDeleteProductos()"
+                >
+                  <i class="ph ph-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación moderna -->
+    <div
+      class="modern-data-table__pagination"
+      *ngIf="!isLoading && productosFiltrados.length > 0 && getTotalPages() > 1"
+    >
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="pagination-info">
+          Mostrando {{ (currentPage - 1) * pageSize + 1 }} a
+          {{ Math.min(currentPage * pageSize, productosFiltrados.length) }} de
+          {{ productosFiltrados.length }} registros
+        </div>
+        <nav>
+          <ul class="pagination-controls">
+            <li [class.disabled]="currentPage === 1">
+              <button
+                (click)="goToPage(currentPage - 1)"
+                [disabled]="currentPage === 1"
+              >
+                <i class="ph ph-caret-left"></i>
+              </button>
+            </li>
+            <li
+              *ngFor="let page of getPageNumbers()"
+              [class.active]="page === currentPage"
+            >
+              <button (click)="goToPage(page)">{{ page }}</button>
+            </li>
+            <li [class.disabled]="currentPage === getTotalPages()">
+              <button
+                (click)="goToPage(currentPage + 1)"
+                [disabled]="currentPage === getTotalPages()"
+              >
+                <i class="ph ph-caret-right"></i>
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Estado vacío -->
+    <div *ngIf="!isLoading && productos.length === 0" class="empty-state">
+      <div class="empty-state__icon">
+        <i class="ph ph-package"></i>
+      </div>
+      <h5 class="empty-state__title">No hay productos registrados</h5>
+      <p class="empty-state__description">
+        Los productos aparecerán aquí cuando los agregues a tu inventario.
+      </p>
+      <button
+        class="btn btn-primary"
+        *ngIf="permissionsService.canCreateProductos()"
+        (click)="nuevoProducto()"
+        data-bs-toggle="modal"
+        data-bs-target="#modalCrearProducto"
+      >
+        <i class="ph ph-plus me-8"></i>
+        Agregar primer producto
+      </button>
+    </div>
+
+    <!-- Sin resultados de búsqueda -->
+    <div
+      *ngIf="
+        !isLoading && productos.length > 0 && productosFiltrados.length === 0
+      "
+      class="empty-state"
+    >
+      <div class="empty-state__icon">
+        <i class="ph ph-magnifying-glass"></i>
+      </div>
+      <h5 class="empty-state__title">No se encontraron resultados</h5>
+      <p class="empty-state__description" *ngIf="searchTerm">
+        No se encontraron productos que coincidan con "<strong>{{
+          searchTerm
+        }}</strong
+        >"
+      </p>
+      <p class="empty-state__description" *ngIf="!searchTerm">
+        Intenta cambiar los filtros para encontrar los productos que buscas.
+      </p>
+      <button class="btn btn-outline-primary mt-3" (click)="limpiarFiltros()">
+        <i class="ph ph-arrow-counter-clockwise me-8"></i>
+        Limpiar filtros
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para crear/editar producto -->
+<app-producto-modal
+  [producto]="productoSeleccionado"
+  (productoGuardado)="onProductoGuardado($event)"
+  (modalCerrado)="onModalCerrado()"
+>
+</app-producto-modal>

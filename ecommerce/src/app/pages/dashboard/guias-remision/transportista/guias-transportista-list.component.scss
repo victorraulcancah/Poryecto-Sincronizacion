@@ -1,0 +1,16 @@
+// Importar estilos compartidos de guías de remisión
+@import '../../../../../assets/sass/components/guias-remision';
+
+// Override del botón para hacerlo más compacto
+.gre-btn-primary {
+  padding: 10px 16px !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+
+  i {
+    font-size: 16px !important;
+    margin-right: 6px !important;
+  }
+}

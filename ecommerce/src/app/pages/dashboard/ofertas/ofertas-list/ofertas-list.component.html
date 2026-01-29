@@ -1,0 +1,190 @@
+<div class="container-fluid">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-24">
+    <div>
+      <h4 class="text-heading fw-semibold mb-8">Ofertas</h4>
+      <p class="text-gray-500 mb-0">Administra las ofertas</p>
+    </div>
+    <button class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8"
+            data-bs-toggle="modal"
+            data-bs-target="#modalCrearOferta">
+      <i class="ph ph-plus me-8"></i>
+      Nueva Oferta
+    </button>
+  </div>
+
+  <!-- Vista de gestión de productos (cuando se selecciona una oferta) -->
+  <div *ngIf="mostrarProductos">
+    <div class="d-flex align-items-center gap-12 mb-24">
+      <button class="btn bg-gray-100 hover-bg-gray-200 text-gray-600 px-12 py-8 rounded-6"
+              (click)="volverAOfertas()">
+        <i class="ph ph-arrow-left me-8"></i>
+        Volver a Ofertas
+      </button>
+      <div class="vr"></div>
+      <h5 class="text-heading fw-semibold mb-0">Gestionar Productos</h5>
+    </div>
+
+    <app-productos-oferta
+      [ofertaId]="ofertaSeleccionada!.id!"
+      [ofertaTitulo]="ofertaSeleccionada!.titulo">
+    </app-productos-oferta>
+  </div>
+
+  <!-- Vista principal de ofertas -->
+  <div *ngIf="!mostrarProductos">
+
+    <!-- Loading state -->
+    <div *ngIf="isLoading" class="text-center py-40">
+      <div class="spinner-border text-main-600" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="text-gray-500 mt-12 mb-0">Cargando ofertas...</p>
+    </div>
+
+    <!-- Grid de Cards de Ofertas -->
+    <div *ngIf="!isLoading && ofertas.length > 0" class="row g-20">
+      <div class="col-12 col-md-6 col-lg-4 col-xl-3" *ngFor="let oferta of ofertas">
+        <div class="oferta-card" [class.oferta-principal]="oferta.es_oferta_principal">
+
+          <!-- Header del Card con Imagen -->
+          <div class="oferta-card-header position-relative">
+            <!-- Imagen de fondo -->
+            <div class="oferta-image-bg"
+                 [style.background-image]="oferta.imagen_url ? 'url(' + oferta.imagen_url + ')' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'">
+            </div>
+
+            <!-- Overlay -->
+            <div class="oferta-overlay"></div>
+
+            <!-- Badges superiores -->
+            <div class="oferta-badges">
+              <span *ngIf="oferta.es_oferta_principal"
+                    class="badge bg-warning-600 text-white fw-semibold">
+                <i class="ph ph-star-fill me-4"></i>PRINCIPAL
+              </span>
+              <span *ngIf="oferta.es_oferta_semana"
+                    class="badge bg-tertiary-600 text-white fw-semibold">
+                <i class="ph ph-calendar-star me-4"></i>SEMANA
+              </span>
+              <span class="badge ms-auto"
+                    [class.bg-success-600]="oferta.activo"
+                    [class.text-white]="oferta.activo"
+                    [class.bg-danger-600]="!oferta.activo"
+                    [class.text-white]="!oferta.activo">
+                {{ oferta.activo ? 'Activa' : 'Inactiva' }}
+              </span>
+            </div>
+
+            <!-- Título sobre la imagen -->
+            <div class="oferta-title-overlay">
+              <h5 class="text-white fw-bold mb-8">{{ oferta.titulo }}</h5>
+              <p class="text-white-50 mb-0 small">{{ oferta.subtitulo || 'Sin subtítulo' }}</p>
+            </div>
+
+            <!-- Descuento destacado -->
+            <div class="oferta-descuento-badge">
+              <div class="descuento-valor">
+                {{ oferta.tipo_descuento === 'porcentaje' ? oferta.valor_descuento + '%' : 'S/ ' + oferta.valor_descuento }}
+              </div>
+              <div class="descuento-label">DESCUENTO</div>
+            </div>
+          </div>
+
+          <!-- Body del Card -->
+          <div class="oferta-card-body">
+
+            <!-- Fechas -->
+            <div class="oferta-fechas mb-12">
+              <div class="fecha-item">
+                <i class="ph ph-calendar-check text-success-600 me-6"></i>
+                <span class="text-sm"><strong>Inicio:</strong> {{ formatDate(oferta.fecha_inicio) }}</span>
+              </div>
+              <div class="fecha-item mt-4">
+                <i class="ph ph-calendar-x text-danger-600 me-6"></i>
+                <span class="text-sm"><strong>Fin:</strong> {{ formatDate(oferta.fecha_fin) }}</span>
+              </div>
+              <div class="mt-8">
+                <span class="badge" [class]="getEstadoFecha(oferta).class">
+                  {{ getEstadoFecha(oferta).texto }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Prioridad -->
+            <div class="mb-12">
+              <div class="text-sm text-gray-600">
+                <strong>Prioridad:</strong> {{ oferta.prioridad }}
+              </div>
+            </div>
+
+            <!-- Productos -->
+            <div class="oferta-productos mb-16">
+              <button class="btn btn-sm bg-info-50 hover-bg-info-100 text-info-600 w-100"
+                      (click)="gestionarProductos(oferta)">
+                <i class="ph ph-package me-6"></i>
+                Gestionar Productos ({{ contarProductos(oferta) }})
+              </button>
+            </div>
+
+            <!-- Acciones -->
+            <div class="oferta-actions d-flex gap-8">
+              <!-- Toggle Oferta Principal -->
+              <button class="btn btn-sm flex-fill oferta-btn-principal"
+                      [class.activo]="oferta.es_oferta_principal"
+                      [title]="oferta.es_oferta_principal ? 'Quitar como oferta principal' : 'Marcar como oferta principal'"
+                      (click)="toggleOfertaPrincipal(oferta)">
+                <i class="ph ph-star"></i>
+              </button>
+
+              <!-- Toggle Oferta de la Semana -->
+              <button class="btn btn-sm flex-fill"
+                      [class.bg-tertiary-600]="oferta.es_oferta_semana"
+                      [class.text-white]="oferta.es_oferta_semana"
+                      [class.bg-tertiary-50]="!oferta.es_oferta_semana"
+                      [class.text-tertiary-600]="!oferta.es_oferta_semana"
+                      [title]="oferta.es_oferta_semana ? 'Quitar como oferta de la semana' : 'Marcar como oferta de la semana'"
+                      (click)="toggleOfertaSemana(oferta)">
+                <i class="ph ph-calendar-star"></i>
+              </button>
+
+              <!-- Editar -->
+              <button class="btn btn-sm bg-main-50 text-main-600 hover-bg-main-600 hover-text-white flex-fill"
+                      title="Editar"
+                      (click)="editarOferta(oferta)">
+                <i class="ph ph-pencil"></i>
+              </button>
+
+              <!-- Eliminar -->
+              <button class="btn btn-sm bg-danger-50 text-danger-600 hover-bg-danger-600 hover-text-white flex-fill"
+                      title="Eliminar"
+                      (click)="eliminarOferta(oferta.id!)">
+                <i class="ph ph-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    <div *ngIf="!isLoading && ofertas.length === 0" class="text-center py-40">
+      <i class="ph ph-tag text-gray-300 text-6xl mb-16"></i>
+      <h6 class="text-heading fw-semibold mb-8">No hay ofertas</h6>
+      <p class="text-gray-500 mb-16">Aún no has creado ninguna oferta</p>
+      <button class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8"
+              data-bs-toggle="modal"
+              data-bs-target="#modalCrearOferta">
+        <i class="ph ph-plus me-8"></i>
+        Crear primera oferta
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal para crear/editar oferta -->
+  <app-oferta-modal
+    [oferta]="ofertaParaEditar"
+    (ofertaGuardada)="onOfertaGuardada()"
+    (modalCerrado)="onModalCerrado()">
+  </app-oferta-modal>
+</div>

@@ -1,0 +1,242 @@
+<!-- Header -->
+<div class="border border-gray-100 rounded-16 overflow-hidden bg-white">
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <div class="flex-between align-items-center gap-16 flex-wrap">
+      <div>
+        <h4 class="mb-4 text-heading">Banners Promocionales</h4>
+        <p class="text-gray-500 mb-0 text-sm">Administra los banners promocionales de la sección principal</p>
+      </div>
+      <button class="btn bg-main-600"
+        *ngIf="canCreateBanner_promocionales"
+        data-bs-toggle="modal"
+        data-bs-target="#modalCrearBannerPromocional">
+        <i class="ph ph-plus me-8"></i>
+        Nuevo Banner Promocional
+      </button>
+    </div>
+  </div>
+
+  <!-- Información adicional -->
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <div class="alert alert-info border-0 bg-info-50 text-info-600 mb-0">
+      <div class="d-flex align-items-start gap-12">
+        <i class="ph ph-info text-xl"></i>
+        <div>
+          <h6 class="mb-8">Información importante</h6>
+          <p class="mb-0 text-sm">
+            Los banners promocionales aparecen en la página principal después del carousel principal.
+            Se muestran máximo 4 banners activos ordenados por el campo "Orden".
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros y Estadísticas -->
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-12">
+      <div class="d-flex align-items-center gap-16">
+        <span class="text-sm text-gray-600">{{ selectionText }}</span>
+      </div>
+      <div class="d-flex align-items-center gap-4">
+        <span class="text-sm fw-medium text-dark">Total:</span>
+        <span class="badge bg-main-50 text-main-600">{{ bannersPromocionales.length }}</span>
+        <span class="text-sm fw-medium text-dark">Activos:</span>
+        <span class="badge bg-success-50 text-success-600">{{ getBannersActivos() }}</span>
+        <span class="text-sm fw-medium text-dark">Inactivos:</span>
+        <span class="badge bg-danger-50 text-danger-600">{{ getBannersInactivos() }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla Moderna usando clases globales -->
+  <div class="modern-data-table">
+    <!-- Header compacto -->
+    <div class="modern-data-table__header" *ngIf="!isLoading && bannersFiltrados.length > 0">
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="table-info">{{ bannersFiltrados.length }} banners encontrados</span>
+        <div class="d-flex align-items-center gap-2">
+          <span style="font-size: var(--font-xs); color: var(--gray-500);">Filas:</span>
+          <select class="page-size-selector" [(ngModel)]="pageSize" (change)="goToPage(1)">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading state -->
+    <div *ngIf="isLoading" class="modern-data-table__loading">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="loading-text">Cargando banners promocionales...</p>
+    </div>
+
+    <!-- Tabla moderna -->
+    <div class="modern-data-table__container" *ngIf="!isLoading">
+      <table class="table table-borderless mb-0">
+        <thead>
+          <tr>
+            <th>IMAGEN</th>
+            <th>BANNER</th>
+            <th class="d-none d-lg-table-cell">PRECIO</th>
+            <th class="d-none d-md-table-cell">CONFIGURACIÓN</th>
+            <th>ESTADO</th>
+            <th class="text-end">ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let banner of getPaginatedBanners(); trackBy: trackByBannerId">
+            <!-- Imagen -->
+            <td>
+              <div class="d-flex align-items-center gap-12">
+                <div class="table-avatar__container">
+                  <div class="banner-image-container">
+                    <img *ngIf="banner.imagen_url"
+                         [src]="banner.imagen_url"
+                         [alt]="banner.titulo"
+                         class="banner-image"
+                         (error)="onImageError($event)">
+                    <i *ngIf="!banner.imagen_url"
+                       class="ph ph-image text-gray-400"></i>
+                  </div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Banner -->
+            <td>
+              <div class="client-info__name">{{ banner.titulo }}</div>
+              <div class="client-info__subtitle" *ngIf="banner.texto_boton">
+                <i class="ph ph-cursor-click me-4"></i>{{ banner.texto_boton }}
+              </div>
+              <div class="banner-link" *ngIf="banner.enlace_url">
+                <i class="ph ph-link me-4"></i>{{ banner.enlace_url | slice:0:25 }}{{ banner.enlace_url.length > 25 ? '...' : '' }}
+              </div>
+            </td>
+
+            <!-- Precio (hidden on tablet) -->
+            <td class="d-none d-lg-table-cell">
+              <div class="text-center">
+                <span class="type-badge type-badge--default" *ngIf="banner.precio">
+                  <i class="ph ph-currency-circle-dollar"></i>
+                  S/ {{ banner.precio | number:'1.2-2' }}
+                </span>
+                <span class="text-gray-400" *ngIf="!banner.precio">Sin precio</span>
+              </div>
+            </td>
+
+            <!-- Configuración (hidden on mobile) -->
+            <td class="d-none d-md-table-cell">
+              <div class="banner-config-info">
+                <div class="config-orden">Orden: #{{ banner.orden }}</div>
+                <div class="config-delay">
+                  <i class="ph ph-timer me-4"></i>{{ banner.animacion_delay }}ms
+                </div>
+              </div>
+            </td>
+
+            <!-- Estado -->
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <span class="status-badge" [ngClass]="banner.activo ? 'status-badge--active' : 'status-badge--inactive'">
+                  {{ banner.activo ? 'Activo' : 'Inactivo' }}
+                </span>
+                <button *ngIf="canEdit"
+                        class="toggle-button"
+                        [ngClass]="banner.activo ? 'toggle-button--active' : ''"
+                        [title]="banner.activo ? 'Desactivar banner' : 'Activar banner'"
+                        (click)="toggleEstado(banner)">
+                  <i class="ph" [class]="banner.activo ? 'ph-eye-slash' : 'ph-eye'"></i>
+                </button>
+              </div>
+            </td>
+
+            <!-- Acciones -->
+            <td class="text-end">
+              <div class="action-buttons">
+                <button class="action-buttons__btn action-buttons__btn--edit"
+                        (click)="editarBanner(banner)"
+                        title="Editar banner"
+                        *ngIf="canEdit">
+                  <i class="ph ph-pencil"></i>
+                </button>
+                <button class="action-buttons__btn action-buttons__btn--delete"
+                        (click)="eliminarBanner(banner.id)"
+                        title="Eliminar banner"
+                        *ngIf="canDelete">
+                  <i class="ph ph-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación moderna -->
+    <div class="modern-data-table__pagination" *ngIf="!isLoading && bannersFiltrados.length > 0 && getTotalPages() > 1">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="pagination-info">
+          Mostrando {{ (currentPage - 1) * pageSize + 1 }} a {{ Math.min(currentPage * pageSize, bannersFiltrados.length) }} de {{ bannersFiltrados.length }} registros
+        </div>
+        <nav>
+          <ul class="pagination-controls">
+            <li [class.disabled]="currentPage === 1">
+              <button (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
+                <i class="ph ph-caret-left"></i>
+              </button>
+            </li>
+            <li *ngFor="let page of getPageNumbers()" [class.active]="page === currentPage">
+              <button (click)="goToPage(page)">{{ page }}</button>
+            </li>
+            <li [class.disabled]="currentPage === getTotalPages()">
+              <button (click)="goToPage(currentPage + 1)" [disabled]="currentPage === getTotalPages()">
+                <i class="ph ph-caret-right"></i>
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Estado vacío -->
+    <div *ngIf="!isLoading && bannersPromocionales.length === 0" class="empty-state">
+      <div class="empty-state__icon">
+        <i class="ph ph-image"></i>
+      </div>
+      <h5 class="empty-state__title">No hay banners promocionales</h5>
+      <p class="empty-state__description">
+        Los banners promocionales aparecerán aquí cuando los crees para tu página principal.
+      </p>
+      <button class="btn btn-primary"
+              *ngIf="canCreateBanner_promocionales"
+              data-bs-toggle="modal"
+              data-bs-target="#modalCrearBannerPromocional">
+        <i class="ph ph-plus me-8"></i>
+        Crear primer banner promocional
+      </button>
+    </div>
+
+    <!-- Sin resultados de búsqueda -->
+    <div *ngIf="!isLoading && bannersPromocionales.length > 0 && bannersFiltrados.length === 0" class="empty-state">
+      <div class="empty-state__icon">
+        <i class="ph ph-magnifying-glass"></i>
+      </div>
+      <h5 class="empty-state__title">No se encontraron resultados</h5>
+      <p class="empty-state__description">
+        Intenta cambiar los filtros para encontrar los banners que buscas.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para crear/editar banner promocional -->
+<app-banner-promocional-modal
+  [banner]="bannerSeleccionado"
+  (bannerGuardado)="onBannerGuardado()"
+  (modalCerrado)="onModalCerrado()">
+</app-banner-promocional-modal>

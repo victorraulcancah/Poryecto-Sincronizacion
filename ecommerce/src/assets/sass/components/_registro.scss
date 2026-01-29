@@ -1,0 +1,262 @@
+/* Estilos generales del formulario */
+.card {
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.card-header {
+  border-bottom: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Separadores de sección */
+.section-divider {
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.section-title {
+  font-weight: 600;
+  color: #495057;
+  margin: 0;
+  margin-top: 23px;
+}
+
+/* Estilos para los inputs */
+.form-control, .form-select {
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 12px;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+.input-group-text {
+  background-color: #f8f9fa;
+  border: 2px solid #e9ecef;
+  border-right: none;
+  color: #6c757d;
+  min-width: 45px;
+  justify-content: center;
+}
+
+.input-group .form-control:first-child,
+.input-group .form-select:first-child {
+  border-left: none;
+}
+
+/* Estados de validación */
+.is-invalid {
+  border-color: #dc3545 !important;
+}
+
+.invalid-feedback {
+  display: block;
+  font-size: 0.875em;
+  margin-top: 0.25rem;
+}
+
+.form-control.is-invalid:focus,
+.form-select.is-invalid:focus {
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15);
+}
+
+/* Estilos para las tarjetas de dirección */
+.address-card {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.address-card .card {
+  border: 2px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.address-card .card:hover {
+  border-color: #0d6efd;
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
+}
+
+.address-card .card-header {
+  background-color: #f8f9fa !important;
+  border-bottom: 1px solid #e9ecef;
+}
+
+/* Botones de acción de direcciones */
+.btn-group .btn {
+  border-radius: 6px;
+  margin-left: 2px;
+}
+
+.btn-outline-success:hover {
+  background-color: #198754;
+  border-color: #198754;
+}
+
+.btn-outline-danger:hover {
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+/* Preview del avatar */
+.avatar-preview {
+  max-width: 120px;
+  max-height: 120px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 3px solid #e9ecef;
+}
+
+/* Checkbox personalizado */
+.form-check-input:checked {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
+
+.form-check-label {
+  cursor: pointer;
+  font-weight: 500;
+}
+
+/* Botones principales */
+.btn-lg {
+  padding: 12px 30px;
+  font-weight: 600;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);
+  border: none;
+  box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(13, 110, 253, 0.4);
+}
+
+.btn-primary:disabled {
+  background: #6c757d;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-outline-secondary {
+  border: 2px solid #6c757d;
+  color: #6c757d;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  transform: translateY(-1px);
+}
+
+/* Texto de ayuda */
+.form-text {
+  font-size: 0.8em;
+  color: #6c757d;
+  margin-top: 0.25rem;
+}
+
+/* Campos requeridos */
+.text-danger {
+  color: #dc3545 !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .card-body {
+    padding: 1rem;
+  }
+  
+  .btn-lg {
+    padding: 10px 20px;
+    font-size: 1rem;
+  }
+  
+  .section-title {
+    font-size: 1.1rem;
+  }
+}
+
+/* Estilos para el debug info */
+pre {
+  font-size: 0.8rem;
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  padding: 10px;
+}
+
+/* Efectos de hover para mejorar UX */
+.form-control:hover:not(:focus):not(.is-invalid),
+.form-select:hover:not(:focus):not(.is-invalid) {
+  border-color: #adb5bd;
+}
+
+/* Estilo para los iconos en los input groups */
+.input-group-text i {
+  width: 16px;
+  text-align: center;
+}
+
+/* Animación sutil para los botones */
+.btn {
+  transition: all 0.2s ease-in-out;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+/* Mejora visual para los selects */
+.form-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e");
+}
+
+/* Espaciado mejorado para las etiquetas */
+.form-label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+/* Estilos para botones de direcciones - con fondo de color */
+.btn-outline-success {
+  color: #ffffff;
+  background-color: #198754;
+  border-color: #198754;
+}
+
+.btn-outline-danger {
+  color: #ffffff;
+  background-color: #dc3545;
+  border-color: #dc3545;
+}

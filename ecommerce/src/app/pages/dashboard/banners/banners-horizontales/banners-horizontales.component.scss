@@ -1,0 +1,33 @@
+.banner-preview-container {
+  .banner-preview {
+    position: relative;
+    background: #f8f9fa;
+
+    img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+  }
+
+  .empty-state {
+    transition: all 0.3s ease;
+
+    &:hover {
+      background-color: #e9ecef;
+    }
+  }
+}
+
+.card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1) !important;
+  }
+}
+
+.btn {
+  transition: all 0.2s ease;
+}

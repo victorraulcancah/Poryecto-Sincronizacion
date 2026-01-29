@@ -1,0 +1,231 @@
+<div class="container-fluid p-0">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-24">
+    <div>
+      <h4 class="text-heading fw-semibold mb-8">Mis Recompensas</h4>
+      <p class="text-gray-500 mb-0">
+        Gestiona tus puntos y recompensas disponibles
+      </p>
+    </div>
+  </div>
+
+  <!-- Loading state -->
+  <div *ngIf="loading" class="card border-0 shadow-sm rounded-12">
+    <div class="card-body p-48 text-center">
+      <div class="spinner-border text-main-600" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="mt-12 text-gray-500 mb-0">Cargando recompensas...</p>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div *ngIf="!loading">
+    <!-- Navigation Tabs -->
+    <div class="card border-0 shadow-sm rounded-12 mb-24">
+      <div class="card-body p-0">
+        <nav class="nav nav-tabs border-0" role="tablist">
+          <button
+            class="nav-link px-24 py-16 border-0 text-heading fw-medium"
+            [class.active]="activeSubTab === 'resumen'"
+            (click)="cambiarSubTab('resumen')"
+            type="button"
+          >
+            <i class="ph ph-chart-pie me-8"></i>
+            Resumen
+          </button>
+          <button
+            class="nav-link px-24 py-16 border-0 text-heading fw-medium"
+            [class.active]="activeSubTab === 'activas'"
+            (click)="cambiarSubTab('activas')"
+            type="button"
+          >
+            <i class="ph ph-gift me-8"></i>
+            Recompensas Activas
+            <span class="badge bg-main-50 text-main-600 ms-8">{{ activas.length }}</span>
+          </button>
+          <button
+            class="nav-link px-24 py-16 border-0 text-heading fw-medium"
+            [class.active]="activeSubTab === 'puntos'"
+            (click)="cambiarSubTab('puntos')"
+            type="button"
+          >
+            <i class="ph ph-coins me-8"></i>
+            Mis Puntos
+          </button>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Tab Content: Resumen -->
+    <div *ngIf="activeSubTab === 'resumen'">
+      <div class="row g-20">
+        <div class="col-md-4">
+          <div class="card border-0 shadow-sm rounded-12 bg-gradient-primary text-white h-100">
+            <div class="card-body p-24">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="flex-grow-1">
+                  <p class="text-white-50 text-sm mb-8 fw-medium">Puntos Totales</p>
+                  <h2 class="mb-0 fw-bold">{{ (puntos?.puntos_actuales?.total) ?? 0 }}</h2>
+                </div>
+                <div class="flex-shrink-0">
+                  <div class="icon-circle">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-0 shadow-sm rounded-12 bg-gradient-success text-white h-100">
+            <div class="card-body p-24">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="flex-grow-1">
+                  <p class="text-white-50 text-sm mb-8 fw-medium">Este Mes</p>
+                  <h2 class="mb-0 fw-bold">{{ (puntos?.puntos_actuales?.este_mes) ?? 0 }}</h2>
+                </div>
+                <div class="flex-shrink-0">
+                  <div class="icon-circle">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-0 shadow-sm rounded-12 bg-gradient-warning text-white h-100">
+            <div class="card-body p-24">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="flex-grow-1">
+                  <p class="text-white-50 text-sm mb-8 fw-medium">Recompensas</p>
+                  <h2 class="mb-0 fw-bold">{{ activas.length }}</h2>
+                </div>
+                <div class="flex-shrink-0">
+                  <div class="icon-circle">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m-3.75 0h7.5m-7.5 0v-1.5a1.5 1.5 0 011.5-1.5h3a1.5 1.5 0 011.5 1.5v1.5m-7.5 0h7.5" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Content: Activas -->
+    <div *ngIf="activeSubTab === 'activas'">
+      <div class="card border-0 shadow-sm rounded-12">
+        <div class="card-header bg-white border-0 p-24">
+          <h5 class="mb-0 text-heading fw-semibold">
+            <i class="ph ph-gift me-8 text-main-600"></i>
+            Recompensas Disponibles
+          </h5>
+        </div>
+
+        <div class="card-body p-0" *ngIf="activas.length > 0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-24 py-16 text-heading fw-semibold border-0">Recompensa</th>
+                  <th class="px-24 py-16 text-heading fw-semibold border-0">Tipo</th>
+                  <th class="px-24 py-16 text-heading fw-semibold border-0">Vigencia</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let r of activas" class="border-bottom border-gray-100">
+                  <td class="px-24 py-16">
+                    <div>
+                      <strong class="text-heading d-block">{{ r.nombre }}</strong>
+                      <small class="text-gray-500">{{ r.descripcion }}</small>
+                    </div>
+                  </td>
+                  <td class="px-24 py-16">
+                    <span class="badge bg-main-50 text-main-600 px-12 py-6 rounded-pill fw-medium">
+                      {{ r.tipo_nombre || r.tipo }}
+                    </span>
+                  </td>
+                  <td class="px-24 py-16">
+                    <span class="text-sm text-heading">{{ r?.fecha_inicio | date:'dd/MM/yyyy' }} - {{ r?.fecha_fin | date:'dd/MM/yyyy' }}</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card-body p-48 text-center" *ngIf="activas.length === 0">
+          <i class="ph ph-gift text-64 text-gray-300 mb-16"></i>
+          <h5 class="text-heading fw-semibold mb-8">No hay recompensas activas</h5>
+          <p class="text-gray-500 mb-0">Actualmente no tienes recompensas disponibles.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Content: Mis Puntos -->
+    <div *ngIf="activeSubTab === 'puntos'">
+      <div class="row g-20 mb-20">
+        <div class="col-md-6">
+          <div class="card border-0 shadow-sm rounded-12 h-100">
+            <div class="card-body p-20">
+              <div class="d-flex align-items-center">
+                <div class="flex-center w-48 h-48 bg-main-50 rounded-8 me-16">
+                  <i class="ph ph-coins text-xl text-main-600"></i>
+                </div>
+                <div>
+                  <p class="text-gray-500 text-sm mb-4">Puntos Disponibles</p>
+                  <h3 class="text-heading fw-bold mb-0">{{ (puntos?.puntos_actuales?.total) ?? 0 }}</h3>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card border-0 shadow-sm rounded-12 h-100">
+            <div class="card-body p-20">
+              <div class="d-flex align-items-center">
+                <div class="flex-center w-48 h-48 bg-success-50 rounded-8 me-16">
+                  <i class="ph ph-trend-up text-xl text-success-600"></i>
+                </div>
+                <div>
+                  <p class="text-gray-500 text-sm mb-4">Ganados Este Mes</p>
+                  <h3 class="text-heading fw-bold mb-0">{{ (puntos?.puntos_actuales?.este_mes) ?? 0 }}</h3>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm rounded-12">
+        <div class="card-body p-20">
+          <div class="d-flex align-items-start">
+            <div class="flex-shrink-0 me-16">
+              <div class="flex-center w-40 h-40 bg-info-50 rounded-8">
+                <i class="ph ph-lightbulb text-lg text-info-600"></i>
+              </div>
+            </div>
+            <div class="flex-grow-1">
+              <h6 class="text-heading fw-semibold mb-8">¿Cómo ganar más puntos?</h6>
+              <ul class="mb-0 ps-16">
+                <li class="text-sm text-gray-600 mb-6">Realiza compras en nuestra tienda</li>
+                <li class="text-sm text-gray-600 mb-6">Completa tu perfil al 100%</li>
+                <li class="text-sm text-gray-600">Participa en promociones especiales</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+

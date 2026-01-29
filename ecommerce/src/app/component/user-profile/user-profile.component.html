@@ -1,0 +1,144 @@
+<!-- SOLUCIÓN DEFINITIVA: Prevenir renderizado en servidor -->
+<ng-container *ngIf="isBrowser">
+  <div class="user-profile-container">
+
+    <!-- ESTADO 1: CARGANDO -->
+    <ng-container *ngIf="isInitializing">
+      <div class="user-profile position-relative">
+        <div class="flex-align gap-4 item-hover-white">
+          <span class="text-xl text-white d-flex position-relative item-hover__text">
+            <i class="ph ph-user"></i>
+          </span>
+          <span class="text-md text-white item-hover__text d-none d-lg-flex">
+            Cargando...
+          </span>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- ESTADO 2: USUARIO LOGUEADO -->
+    <ng-container *ngIf="!isInitializing && isLoggedIn && user">
+        <div class="user-profile position-relative">
+          <button
+            type="button"
+            class="flex-align gap-4 item-hover-white btn border-0 bg-transparent p-0"
+            (click)="toggleUserDropdown($event)"
+          >
+            <span class="text-xl text-white d-flex position-relative item-hover__text">
+              <i class="ph ph-user"></i>
+            </span>
+            <span class="text-md text-white item-hover__text d-none d-lg-flex">
+              {{ getDisplayName() }}
+            </span>
+            <span class="text-sm d-none d-lg-flex">
+              <i class="ph ph-caret-down"></i>
+            </span>
+          </button>
+
+          <!-- Dropdown para usuario logueado -->
+          <div
+            *ngIf="showUserDropdown"
+            class="user-dropdown position-absolute top-100 end-0 mt-8 bg-white border border-gray-100 rounded-12 shadow-lg py-8 min-w-200 z-99"
+            (click)="$event.stopPropagation()"
+          >
+            <a *ngIf="esCliente; else adminProfile"
+              routerLink="/my-account"
+              class="dropdown-item d-flex align-items-center gap-8 px-16 py-12 text-gray-700 hover-bg-white hover-text-main-600 transition-1"
+              (click)="closeUserDropdown()"
+            >
+              <i class="ph ph-user text-lg"></i>
+              <span>Mi Cuenta</span>
+            </a>
+
+            <ng-template #adminProfile>
+              <a routerLink="/dashboard"
+                class="dropdown-item d-flex align-items-center gap-8 px-16 py-12 text-gray-700 hover-bg-white hover-text-main-600 transition-1"
+                (click)="closeUserDropdown()"
+              >
+                <i class="ph ph-user text-lg"></i>
+                <span>Mi Perfil</span>
+              </a>
+            </ng-template>
+            <a
+              routerLink="/my-account/favoritos"
+              class="dropdown-item d-flex align-items-center gap-8 px-16 py-12 text-gray-700 hover-bg-main-50 hover-text-main-600 transition-1"
+              (click)="closeUserDropdown()"
+            >
+              <i class="ph ph-heart text-lg"></i>
+              <span>Mis Favoritos</span>
+            </a>
+            <a
+              routerLink="/cart"
+              class="dropdown-item d-flex align-items-center gap-8 px-16 py-12 text-gray-700 hover-bg-main-50 hover-text-main-600 transition-1"
+              (click)="closeUserDropdown()"
+            >
+              <i class="ph ph-shopping-cart text-lg"></i>
+              <span>Mi Carrito</span>
+            </a>
+            <hr class="my-8 border-gray-100">
+            <button
+              type="button"
+              class="dropdown-item d-flex align-items-center gap-8 px-16 py-12 text-gray-700 hover-bg-main-50 hover-text-main-600 transition-1 w-100 border-0 bg-transparent text-start"
+              (click)="logout()"
+              [disabled]="isLoggingOut"
+            >
+              <ng-container *ngIf="!isLoggingOut">
+                <i class="ph ph-sign-out text-lg"></i>
+                <span>Cerrar Sesión</span>
+              </ng-container>
+              <ng-container *ngIf="isLoggingOut">
+                <span class="spinner-border spinner-border-sm me-8" role="status" aria-hidden="true"></span>
+                <span>Cerrando sesión...</span>
+              </ng-container>
+            </button>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- ESTADO 3: USUARIO NO LOGUEADO -->
+      <ng-container *ngIf="!isInitializing && !isLoggedIn">
+        <div class="position-relative">
+          <button
+            type="button"
+            class="flex-align gap-4 item-hover-white btn border-0 bg-transparent p-0"
+            (click)="toggleAuthDropdown($event)"
+          >
+            <span class="text-xl text-white d-flex position-relative item-hover__text">
+              <i class="ph ph-user"></i>
+            </span>
+            <span class="text-md text-white item-hover__text d-none d-lg-flex">
+              Iniciar Sesión
+            </span>
+            <span class="text-sm d-none d-lg-flex">
+              <i class="ph ph-caret-down"></i>
+            </span>
+          </button>
+
+          <!-- Dropdown de autenticación -->
+          <div
+            *ngIf="showAuthDropdown"
+            class="auth-dropdown position-absolute top-100 end-0 mt-8 bg-white border border-gray-100 rounded-12 shadow-lg py-8 min-w-200 z-99"
+            (click)="$event.stopPropagation()"
+          >
+            <a
+              routerLink="/account"
+              class="dropdown-item d-flex align-items-center gap-8 px-16 py-12 text-gray-700 hover-bg-main-50 hover-text-main-600 transition-1"
+              (click)="closeAuthDropdown()"
+            >
+              <i class="ph ph-sign-in text-lg"></i>
+              <span>Iniciar Sesión</span>
+            </a>
+            <a
+              routerLink="/register"
+              class="dropdown-item d-flex align-items-center gap-8 px-16 py-12 text-gray-700 hover-bg-main-50 hover-text-main-600 transition-1"
+              (click)="closeAuthDropdown()"
+            >
+              <i class="ph ph-user-plus text-lg"></i>
+              <span>Registrarse</span>
+            </a>
+          </div>
+        </div>
+      </ng-container>
+
+  </div>
+</ng-container>

@@ -1,0 +1,89 @@
+/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&family=Marcellus&display=swap');
+
+// Estos CSS ya están cargados en angular.json desde node_modules, no es necesario importarlos aquí
+// @import 'assets/css/bootstrap.min.css'; // Ya en angular.json
+// @import 'assets/css/aos.css'; // Ya en angular.json
+// @import 'assets/css/animate.css'; // Ya en angular.json
+
+// Estos sí se importan porque no están duplicados
+@import 'assets/css/slick.css';
+@import 'assets/css/select2.min.css';
+@import 'assets/css/jquery-ui.css';
+@import 'assets/sass/shared/common-components';
+@import 'assets/sass/main.scss';
+@import 'assets/css/main.css';
+
+// Estilos globales de recompensas (movidos desde componentes para evitar límite de líneas)
+@import 'assets/sass/components/recompensas';
+@import 'assets/sass/components/recompensas-popups';
+
+// Estilos para Guías de Remisión Electrónica
+@import 'assets/sass/components/guias-remision';
+
+
+// Sobrescribir botón primary de Bootstrap para usar color principal
+.btn-primary {
+  background-color: var(--main-600) !important;
+  border-color: var(--main-600) !important;
+
+  &:hover {
+    background-color: var(--main-700) !important;
+    border-color: var(--main-700) !important;
+  }
+
+  &:focus,
+  &:active {
+    background-color: var(--main-700) !important;
+    border-color: var(--main-700) !important;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+  }
+
+  &:disabled {
+    background-color: var(--main-600) !important;
+    border-color: var(--main-600) !important;
+    opacity: 0.65;
+  }
+}
+
+// Checkboxes con color principal
+input[type="checkbox"] {
+  accent-color: var(--main-600);
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+.form-check-input {
+  &:checked {
+    background-color: var(--main-600) !important;
+    border-color: var(--main-600) !important;
+  }
+
+  &:focus {
+    border-color: var(--main-600) !important;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+  }
+}
+
+// Fix para tablas con texto blanco
+.table {
+  color: #212529 !important;
+
+  td,
+  th {
+    color: #212529 !important;
+  }
+
+  td strong {
+    color: #000 !important;
+  }
+
+  td small,
+  .text-muted {
+    color: #6c757d !important;
+  }
+}

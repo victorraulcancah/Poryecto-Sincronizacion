@@ -1,0 +1,51 @@
+.banner-oferta-card {
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  background: white;
+
+  &:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    transform: translateY(-4px);
+  }
+}
+
+.banner-oferta-image {
+  height: 550px; // Aumentado para imágenes verticales (proporción 1734x2862)
+  background-size: contain; // Contain para mostrar imagen completa sin cortar
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #ffffff; // Fondo blanco para que no se note tanto
+  position: relative;
+}
+
+.banner-badges {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.banner-oferta-body {
+  padding: 20px;
+}
+
+.banner-productos {
+  button {
+    transition: all 0.2s ease;
+  }
+}
+
+.banner-actions {
+  .btn {
+    transition: all 0.2s ease;
+
+    &:hover {
+      transform: scale(1.05);
+    }
+  }
+}

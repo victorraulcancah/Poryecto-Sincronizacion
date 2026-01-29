@@ -1,0 +1,252 @@
+<div class="container-fluid">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-24">
+    <div>
+      <div class="d-flex align-items-center gap-12 mb-8">
+        <button routerLink="/dashboard/banners"
+                class="btn btn-sm bg-neutral-40 text-neutral-600 hover-bg-neutral-100 px-12 py-6 d-flex align-items-center justify-content-center"
+                style="min-width: 36px; min-height: 36px;">
+          <i class="ph ph-arrow-left"></i>
+        </button>
+        <h4 class="text-heading fw-semibold mb-0">Banners Horizontales y Sidebar</h4>
+      </div>
+      <p class="text-gray-500 mb-0">Gestiona los banners horizontales (index) y sidebar (shop)</p>
+    </div>
+  </div>
+
+  <!-- Info Banner -->
+  <div class="alert alert-info d-flex align-items-start gap-12 mb-24">
+    <i class="ph ph-info text-2xl"></i>
+    <div>
+      <h6 class="fw-semibold mb-8">¿Cómo funcionan los banners horizontales?</h6>
+      <ul class="mb-0 ps-20">
+        <li>Solo puede haber <strong>1 banner por posición</strong></li>
+        <li>Los banners se muestran en <strong>ancho completo</strong> del contenedor</li>
+        <li>Altura recomendada: <strong>200px</strong></li>
+        <li>Si no hay banner configurado, <strong>no se muestra nada</strong> en esa posición</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Loading state -->
+  <div *ngIf="isLoading" class="text-center py-60">
+    <div class="spinner-border text-main-600" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="text-gray-500 mt-12 mb-0">Cargando banners horizontales...</p>
+  </div>
+
+  <!-- Grid de banners horizontales -->
+  <div *ngIf="!isLoading" class="row g-24">
+    <div class="col-12" *ngFor="let posicion of posiciones; let i = index">
+      <div class="card border-0 shadow-sm rounded-16 overflow-hidden">
+        <div class="card-body p-24">
+          <!-- Header de la card -->
+          <div class="d-flex align-items-start justify-content-between mb-20">
+            <div class="d-flex align-items-center gap-12">
+              <div class="flex-shrink-0">
+                <div class="w-48 h-48 rounded-12 bg-main-50 d-flex align-items-center justify-content-center">
+                  <i [class]="'ph ' + posicion.icono + ' text-main-600 text-2xl'"></i>
+                </div>
+              </div>
+              <div>
+                <h5 class="fw-semibold mb-4">{{ posicion.titulo }}</h5>
+                <p class="text-gray-500 text-sm mb-0">{{ posicion.descripcion }}</p>
+              </div>
+            </div>
+
+            <!-- Badge de estado -->
+            <span *ngIf="posicion.banner"
+                  class="badge px-12 py-6 rounded-pill"
+                  [class.bg-success]="posicion.banner.activo"
+                  [class.bg-danger]="!posicion.banner.activo">
+              {{ posicion.banner.activo ? 'Activo' : 'Inactivo' }}
+            </span>
+          </div>
+
+          <!-- Preview o Empty State -->
+          <div class="banner-preview-container">
+            <!-- Con banner -->
+            <div *ngIf="posicion.banner" class="position-relative">
+              <div class="banner-preview rounded-12 overflow-hidden mb-16"
+                   style="max-height: 200px;">
+                <img [src]="posicion.banner.imagen_url"
+                     [alt]="posicion.banner.titulo"
+                     class="w-100"
+                     style="object-fit: cover; object-position: center;">
+              </div>
+
+              <!-- Info del banner -->
+              <div class="d-flex align-items-center gap-12 mb-16">
+                <i class="ph ph-link text-gray-400"></i>
+                <a [href]="posicion.banner.enlace_url"
+                   target="_blank"
+                   class="text-sm text-gray-600 text-decoration-none hover-text-main-600">
+                  {{ posicion.banner.enlace_url }}
+                  <i class="ph ph-arrow-square-out ms-4 text-xs"></i>
+                </a>
+              </div>
+
+              <!-- Botones de acción -->
+              <div class="d-flex gap-8">
+                <button *ngIf="canEdit$"
+                        class="btn btn-outline-main-600 flex-fill"
+                        (click)="cambiarBanner(posicion)">
+                  <i class="ph ph-image me-8"></i>
+                  Cambiar Banner
+                </button>
+
+                <button *ngIf="canEdit$"
+                        class="btn"
+                        [class.btn-outline-warning]="posicion.banner.activo"
+                        [class.btn-outline-success]="!posicion.banner.activo"
+                        (click)="toggleEstado(posicion)">
+                  <i class="ph" [class.ph-eye-slash]="posicion.banner.activo" [class.ph-eye]="!posicion.banner.activo"></i>
+                </button>
+
+                <button *ngIf="canDelete$"
+                        class="btn btn-outline-danger"
+                        (click)="eliminarBanner(posicion)">
+                  <i class="ph ph-trash"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Sin banner -->
+            <div *ngIf="!posicion.banner"
+                 class="empty-state text-center py-48 bg-gray-50 rounded-12">
+              <div class="mb-16">
+                <i class="ph ph-image text-gray-300" style="font-size: 4rem;"></i>
+              </div>
+              <h6 class="text-gray-600 fw-semibold mb-8">Sin banner configurado</h6>
+              <p class="text-gray-500 text-sm mb-20">
+                Esta posición está vacía. No se mostrará nada en el sitio público.
+              </p>
+              <button *ngIf="canCreate$"
+                      class="btn btn-main"
+                      (click)="cambiarBanner(posicion)">
+                <i class="ph ph-plus me-8"></i>
+                Agregar Banner
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info adicional -->
+  <div *ngIf="!isLoading" class="alert alert-light border mt-24">
+    <div class="d-flex align-items-start gap-12">
+      <i class="ph ph-lightbulb text-warning text-2xl"></i>
+      <div>
+        <h6 class="fw-semibold mb-8">Recomendaciones de diseño</h6>
+        <ul class="mb-0 ps-20 text-sm">
+          <li>Usa imágenes de <strong>1920x200px</strong> para mejor calidad</li>
+          <li>Asegúrate de que el texto sea legible en la imagen</li>
+          <li>Los banners deben tener relación con las secciones donde aparecen</li>
+          <li>Evita usar más de 3 colores principales en cada banner</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ SECCIÓN BANNER SIDEBAR SHOP (VERTICAL) -->
+  <div class="row mt-24">
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm rounded-16 overflow-hidden">
+        <div class="card-body p-24">
+          <!-- Header -->
+          <div class="d-flex align-items-start justify-content-between mb-20">
+            <div class="d-flex align-items-center gap-12">
+              <div class="flex-shrink-0">
+                <div class="w-48 h-48 rounded-12 bg-info-50 d-flex align-items-center justify-content-center">
+                  <i class="ph ph-sidebar text-info-600 text-2xl"></i>
+                </div>
+              </div>
+              <div>
+                <h5 class="fw-semibold mb-4">Banner Sidebar Shop (Vertical)</h5>
+                <p class="text-gray-500 text-sm mb-0">Se muestra en el lateral derecho de la página Shop</p>
+                <p class="text-gray-500 text-xs mt-2 mb-0"><strong>Tamaño recomendado:</strong> 402 x 524px</p>
+              </div>
+            </div>
+
+            <!-- Badge de estado -->
+            <span *ngIf="bannerSidebarShop"
+                  class="badge px-12 py-6 rounded-pill"
+                  [class.bg-success]="bannerSidebarShop.activo"
+                  [class.bg-danger]="!bannerSidebarShop.activo">
+              {{ bannerSidebarShop.activo ? 'Activo' : 'Inactivo' }}
+            </span>
+          </div>
+
+          <!-- Preview o Empty State -->
+          <div class="banner-preview-container">
+            <!-- Con banner -->
+            <div *ngIf="bannerSidebarShop" class="position-relative">
+              <div class="banner-preview rounded-12 overflow-hidden mb-16 d-flex align-items-center justify-content-center"
+                   style="min-height: 400px; max-height: 524px; background-color: #f8f9fa;">
+                <img [src]="bannerSidebarShop.imagen_url"
+                     [alt]="bannerSidebarShop.titulo"
+                     style="max-width: 100%; max-height: 524px; object-fit: contain; object-position: center;">
+              </div>
+
+              <!-- Info del banner -->
+              <div class="d-flex align-items-center gap-12 mb-16">
+                <i class="ph ph-link text-gray-400"></i>
+                <a [href]="bannerSidebarShop.enlace_url"
+                   target="_blank"
+                   class="text-sm text-gray-600 text-decoration-none hover-text-main-600">
+                  {{ bannerSidebarShop.enlace_url }}
+                  <i class="ph ph-arrow-square-out ms-4 text-xs"></i>
+                </a>
+              </div>
+
+              <!-- Botones de acción -->
+              <div class="d-flex gap-8">
+                <button *ngIf="canEdit$"
+                        class="btn btn-outline-main-600 flex-fill"
+                        (click)="cambiarBannerSidebar()">
+                  <i class="ph ph-image me-8"></i>
+                  Cambiar Banner
+                </button>
+
+                <button *ngIf="canEdit$"
+                        class="btn"
+                        [class.btn-outline-success]="!bannerSidebarShop.activo"
+                        [class.btn-outline-secondary]="bannerSidebarShop.activo"
+                        [title]="bannerSidebarShop.activo ? 'Desactivar banner (no se mostrará en el sitio)' : 'Activar banner (se mostrará en el sitio)'"
+                        (click)="toggleEstadoSidebar()">
+                  <i [class]="bannerSidebarShop.activo ? 'ph ph-eye-slash' : 'ph ph-eye'"></i>
+                </button>
+
+                <button *ngIf="canDelete$"
+                        class="btn btn-outline-danger"
+                        (click)="eliminarBannerSidebar()">
+                  <i class="ph ph-trash"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Sin banner -->
+            <div *ngIf="!bannerSidebarShop" class="text-center py-60">
+              <div class="mb-20">
+                <i class="ph ph-image text-gray-300" style="font-size: 4rem;"></i>
+              </div>
+              <h6 class="text-gray-600 fw-semibold mb-8">Sin banner configurado</h6>
+              <p class="text-gray-500 text-sm mb-20">
+                El sidebar del shop no mostrará ningún banner.
+              </p>
+              <button *ngIf="canCreate$"
+                      class="btn btn-main"
+                      (click)="cambiarBannerSidebar()">
+                <i class="ph ph-plus me-8"></i>
+                Subir Banner Sidebar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

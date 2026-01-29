@@ -1,0 +1,274 @@
+<div class="dashboard-body">
+  <div class="breadcrumb mb-24">
+    <ul class="flex-align gap-4">
+      <li><a routerLink="/dashboard" class="text-gray-200 fw-normal hover-text-main-600">Inicio</a></li>
+      <li><span class="text-gray-500 fw-normal">/</span></li>
+      <li><span class="text-main-600 fw-normal">Pasos de Envío</span></li>
+    </ul>
+  </div>
+
+  <!-- Header -->
+  <div class="card mb-24">
+    <div class="card-body p-24">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+        <div class="flex-grow-1">
+          <h5 class="mb-8">Gestión de Pasos de Envío</h5>
+          <p class="text-gray-600 mb-0">Configura los pasos que verán los clientes sobre el proceso de envío</p>
+        </div>
+        <div class="flex-shrink-0">
+          <button 
+            (click)="abrirFormulario()"
+            class="btn btn-main-600 px-24 py-12 rounded-8"
+            type="button"
+            [hidden]="showForm"
+            style="background-color: #487FFF; color: white; border: none;"
+          >
+            <i class="ph ph-plus me-8"></i>
+            Nuevo Paso
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mensajes -->
+  <div *ngIf="successMessage" class="alert alert-success mb-24" role="alert">
+    <i class="ph ph-check-circle me-8"></i>
+    {{ successMessage }}
+  </div>
+
+  <div *ngIf="error && !showForm" class="alert alert-danger mb-24" role="alert">
+    <i class="ph ph-warning-circle me-8"></i>
+    {{ error }}
+  </div>
+
+  <!-- Formulario -->
+  <div *ngIf="showForm" class="card mb-24">
+    <div class="card-body p-24">
+      <div class="flex-between mb-24">
+        <h6>{{ isEditing ? 'Editar Paso' : 'Nuevo Paso' }}</h6>
+        <button (click)="cerrarFormulario()" class="btn btn-outline-gray-300 px-16 py-8 rounded-8">
+          <i class="ph ph-x"></i>
+        </button>
+      </div>
+
+      <div *ngIf="error" class="alert alert-danger mb-24" role="alert">
+        {{ error }}
+      </div>
+
+      <form (ngSubmit)="guardarPaso()">
+        <div class="row g-3">
+          <!-- Orden -->
+          <div class="col-md-3">
+            <label class="form-label">Orden <span class="text-danger">*</span></label>
+            <input 
+              type="number" 
+              class="form-control" 
+              [(ngModel)]="currentPaso.orden"
+              name="orden"
+              min="1"
+              required
+            />
+          </div>
+
+          <!-- Activo -->
+          <div class="col-md-3">
+            <label class="form-label">Estado</label>
+            <div class="form-check form-switch mt-8">
+              <input 
+                class="form-check-input" 
+                type="checkbox" 
+                [(ngModel)]="currentPaso.activo"
+                name="activo"
+                id="activoSwitch"
+              />
+              <label class="form-check-label" for="activoSwitch">
+                {{ currentPaso.activo ? 'Activo' : 'Inactivo' }}
+              </label>
+            </div>
+          </div>
+
+          <!-- Título -->
+          <div class="col-12">
+            <label class="form-label">Título <span class="text-danger">*</span></label>
+            <input 
+              type="text" 
+              class="form-control" 
+              [(ngModel)]="currentPaso.titulo"
+              name="titulo"
+              placeholder="Ej: Realiza tu pedido"
+              required
+            />
+          </div>
+
+          <!-- Descripción -->
+          <div class="col-12">
+            <label class="form-label">Descripción <span class="text-danger">*</span></label>
+            <textarea 
+              class="form-control" 
+              [(ngModel)]="currentPaso.descripcion"
+              name="descripcion"
+              rows="3"
+              placeholder="Describe este paso del proceso de envío"
+              required
+            ></textarea>
+          </div>
+
+          <!-- Imagen -->
+          <div class="col-12">
+            <label class="form-label">Imagen (Opcional)</label>
+            
+            <!-- Preview actual -->
+            <div *ngIf="imagePreview" class="mb-16">
+              <div class="position-relative d-inline-block">
+                <img 
+                  [src]="imagePreview" 
+                  alt="Preview"
+                  class="rounded-8"
+                  style="max-width: 200px; max-height: 200px; object-fit: cover;"
+                />
+                <button 
+                  type="button"
+                  (click)="eliminarImagen()"
+                  class="btn btn-danger btn-sm position-absolute top-0 end-0 m-8"
+                  style="padding: 4px 8px;"
+                >
+                  <i class="ph ph-trash"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Input file -->
+            <input 
+              type="file" 
+              class="form-control" 
+              (change)="onFileSelected($event)"
+              accept="image/*"
+            />
+            <small class="text-gray-500">Formatos: JPG, PNG, GIF, WEBP. Tamaño máximo: 2MB</small>
+          </div>
+
+          <!-- Botones -->
+          <div class="col-12">
+            <div class="flex-align gap-16">
+              <button 
+                type="submit" 
+                class="btn btn-main-600 px-24 py-12 rounded-8"
+                [disabled]="isSaving"
+                style="background-color: #487FFF; color: white; border: none;"
+              >
+                <i class="ph ph-check me-8"></i>
+                {{ isSaving ? 'Guardando...' : 'Guardar' }}
+              </button>
+              <button 
+                type="button"
+                (click)="cerrarFormulario()"
+                class="btn px-24 py-12 rounded-8"
+                [disabled]="isSaving"
+                style="background-color: #6c757d; color: white; border: 1px solid #6c757d;"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Lista de Pasos -->
+  <div class="card">
+    <div class="card-body p-24">
+      <!-- Loading -->
+      <div *ngIf="isLoading" class="text-center py-40">
+        <div class="spinner-border text-main-600" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+      </div>
+
+      <!-- Tabla -->
+      <div *ngIf="!isLoading" class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th class="text-center" style="width: 100px;">Orden</th>
+              <th style="width: 250px;">Título</th>
+              <th>Descripción</th>
+              <th class="text-center" style="width: 120px;">Imagen</th>
+              <th class="text-center" style="width: 120px;">Estado</th>
+              <th class="text-center" style="width: 150px;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let paso of pasos">
+              <td class="text-center align-middle">
+                <span class="badge bg-main-600 text-white fs-6">{{ paso.orden }}</span>
+              </td>
+              <td class="align-middle">
+                <strong class="d-block">{{ paso.titulo }}</strong>
+              </td>
+              <td class="align-middle">
+                <span class="d-block text-truncate" style="max-width: 400px;">
+                  {{ paso.descripcion }}
+                </span>
+              </td>
+              <td class="text-center align-middle">
+                <img 
+                  *ngIf="paso.imagen"
+                  [src]="paso.imagen" 
+                  alt="Imagen"
+                  class="rounded-4"
+                  style="width: 50px; height: 50px; object-fit: cover;"
+                  (error)="onImageError($event)"
+                />
+                <span *ngIf="!paso.imagen" class="text-muted small">Sin imagen</span>
+              </td>
+              <td class="text-center align-middle">
+                <span 
+                  class="badge fs-6"
+                  [class.bg-success]="paso.activo"
+                  [class.bg-danger]="!paso.activo"
+                >
+                  {{ paso.activo ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td class="text-center align-middle">
+                <div class="d-flex justify-content-center gap-2">
+                  <button 
+                    (click)="abrirFormulario(paso)"
+                    class="btn btn-sm"
+                    title="Editar"
+                    style="background-color: #487FFF; color: white; border: 1px solid #487FFF;"
+                  >
+                    <i class="ph ph-pencil-simple"></i>
+                  </button>
+                  <button 
+                    (click)="eliminarPaso(paso)"
+                    class="btn btn-sm"
+                    title="Eliminar"
+                    style="background-color: #dc3545; color: white; border: 1px solid #dc3545;"
+                  >
+                    <i class="ph ph-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Empty state -->
+        <div *ngIf="pasos.length === 0" class="text-center py-40">
+          <i class="ph ph-info text-6xl text-gray-300 mb-16"></i>
+          <p class="text-gray-600">No hay pasos de envío configurados</p>
+          <button 
+            (click)="abrirFormulario()"
+            class="btn btn-main-600 px-24 py-12 rounded-8 mt-16"
+          >
+            <i class="ph ph-plus me-8"></i>
+            Crear Primer Paso
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

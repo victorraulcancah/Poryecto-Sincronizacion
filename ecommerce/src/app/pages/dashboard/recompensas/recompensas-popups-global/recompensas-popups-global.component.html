@@ -1,0 +1,696 @@
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="mb-1">Gestión de Popups</h2>
+    <p class="text-muted mb-0">Administra los popups de todas las recompensas</p>
+  </div>
+  <div class="d-flex gap-2">
+    <button class="btn btn-outline-primary" (click)="router.navigate(['/dashboard/recompensas/popups/todos'])">
+      <i class="fas fa-th-large me-2"></i>
+      Ver Todos los Popups
+    </button>
+    </div>
+  </div>
+
+<!-- Filtros de búsqueda -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title mb-3">Buscar Recompensa</h5>
+    <div class="row">
+        <div class="col-md-4">
+        <div class="form-group">
+          <label for="nombre">Buscar por nombre</label>
+          <input 
+            type="text" 
+            id="nombre"
+            class="form-control" 
+            [(ngModel)]="filtros.nombre"
+            placeholder="Nombre de la recompensa..."
+          >
+        </div>
+        </div>
+        <div class="col-md-3">
+        <div class="form-group">
+          <label for="tipo">Tipo</label>
+          <select id="tipo" class="form-control" [(ngModel)]="filtros.tipo">
+            <option *ngFor="let tipo of tiposRecompensa" [value]="tipo.value">
+              {{ tipo.label }}
+            </option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-3">
+        <div class="form-group">
+          <label for="vigente">Vigente</label>
+          <select id="vigente" class="form-control" [(ngModel)]="filtros.vigente">
+            <option [value]="false">Todas</option>
+            <option [value]="true">Solo Vigentes</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-2">
+        <div class="form-group">
+          <label>&nbsp;</label>
+          <div class="d-flex gap-2">
+            <button 
+              type="button" 
+              class="btn btn-primary btn-sm"
+              (click)="buscar()"
+              [disabled]="loading"
+            >
+              <i class="fas fa-search"></i> Buscar
+            </button>
+            <button 
+              type="button" 
+              class="btn btn-outline-secondary btn-sm"
+              (click)="limpiarFiltros()"
+              [disabled]="loading"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading -->
+<div *ngIf="loading" class="text-center py-5">
+  <div class="spinner-border text-primary" role="status">
+    <span class="sr-only">Cargando...</span>
+  </div>
+  <p class="mt-2">Cargando recompensas...</p>
+</div>
+
+<!-- Error -->
+<div *ngIf="error && !loading" class="alert alert-danger" role="alert">
+  <i class="fas fa-exclamation-triangle"></i> {{ error }}
+</div>
+
+<!-- Sin resultados -->
+<div *ngIf="!loading && !error && recompensas.length === 0" class="text-center py-5">
+  <div class="alert alert-info">
+    <i class="fas fa-info-circle fa-2x mb-3"></i>
+    <h4>No se encontraron recompensas</h4>
+    <p>Intenta con otros filtros o crea una nueva recompensa.</p>
+  </div>
+</div>
+
+<!-- Lista de recompensas -->
+<div *ngIf="!loading && !error && recompensas.length > 0" class="row">
+  <div class="col-lg-4 col-md-6 mb-4" *ngFor="let recompensa of recompensas">
+    <div class="card h-100 recompensa-card">
+      <div class="card-body">
+        <!-- Checkbox -->
+        <div class="form-check position-absolute" style="top: 15px; right: 15px;">
+          <input class="form-check-input" type="checkbox" id="recompensa-{{ recompensa.id }}">
+        </div>
+
+        <!-- Título y estado -->
+        <h5 class="card-title">{{ recompensa.nombre }}</h5>
+        <span class="badge badge-pill" [ngClass]="getEstadoClass(recompensa.estado)">
+          {{ getEstadoLabel(recompensa.estado) }}
+        </span>
+
+        <!-- Tipo de recompensa -->
+        <div class="mt-3">
+          <div class="d-flex align-items-center">
+            <i [class]="getTipoIcon(recompensa.tipo)" [style.color]="getTipoColor(recompensa.tipo)"></i>
+            <span class="ml-2 text-capitalize">{{ getTipoLabel(recompensa.tipo) }}</span>
+          </div>
+          <p class="text-muted small mt-1">{{ recompensa.descripcion }}</p>
+        </div>
+
+        <!-- Fecha -->
+        <div class="mt-3">
+          <small class="text-muted">
+            <i class="fas fa-calendar"></i>
+            {{ recompensa.fecha_inicio | date:'short' }} - {{ recompensa.fecha_fin | date:'short' }}
+          </small>
+        </div>
+
+        <!-- Productos -->
+        <div class="mt-2">
+          <small class="text-muted">
+            <i class="fas fa-tag"></i>
+            {{ recompensa.productos_count }} Productos
+          </small>
+        </div>
+
+        <!-- Vigente -->
+        <div class="mt-2">
+          <small class="text-muted">
+            <i class="fas fa-clock"></i>
+            <span [class]="esVigente(recompensa.fecha_inicio, recompensa.fecha_fin) ? 'text-success' : 'text-danger'">
+              {{ esVigente(recompensa.fecha_inicio, recompensa.fecha_fin) ? 'Sí' : 'No' }} Vigente
+            </span>
+          </small>
+        </div>
+
+        <!-- Estado de popups -->
+        <div class="mt-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="text-muted small">
+              <i class="fas fa-window-restore"></i>
+              {{ recompensa.popups_count }} Popups
+            </span>
+            <span class="badge badge-info">
+              {{ recompensa.popup_status === 'con_popups' ? 'Con popups' : 'Sin popups' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="mt-4 d-flex gap-2">
+          <button 
+            type="button" 
+            class="btn btn-outline-primary btn-sm flex-fill"
+            (click)="verPopups(recompensa)"
+          >
+            <i class="fas fa-eye"></i> Ver Popups
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-primary btn-sm flex-fill"
+            (click)="crearPopup(recompensa)"
+          >
+            <i class="fas fa-plus"></i> Crear Popup
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Paginación -->
+<div *ngIf="!loading && !error && recompensas.length > 0" class="d-flex justify-content-center mt-4">
+  <nav aria-label="Paginación">
+    <ul class="pagination">
+      <li class="page-item" [class.disabled]="currentPage === 1">
+        <a class="page-link" href="#" (click)="cambiarPagina(currentPage - 1); $event.preventDefault()">
+          <i class="fas fa-chevron-left"></i>
+        </a>
+      </li>
+      <li class="page-item" *ngFor="let pagina of paginas" [class.active]="pagina === currentPage">
+        <a class="page-link" href="#" (click)="cambiarPagina(pagina); $event.preventDefault()">
+          {{ pagina }}
+        </a>
+      </li>
+      <li class="page-item" [class.disabled]="currentPage === lastPage">
+        <a class="page-link" href="#" (click)="cambiarPagina(currentPage + 1); $event.preventDefault()">
+          <i class="fas fa-chevron-right"></i>
+        </a>
+      </li>
+    </ul>
+  </nav>
+  </div>
+
+<!-- Modal de Lista de Popups -->
+<div class="modal fade" [class.show]="showPopupsList" [style.display]="showPopupsList ? 'block' : 'none'" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-window-restore"></i>
+          Popups de {{ selectedRecompensa?.nombre }}
+        </h5>
+        <button type="button" class="close" (click)="cerrarListaPopups()">
+          <span>&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- Loading popups -->
+        <div *ngIf="loadingPopups" class="text-center py-3">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Cargando...</span>
+          </div>
+        </div>
+
+        <!-- Lista de popups -->
+        <div *ngIf="!loadingPopups && popupsRecompensa.length > 0">
+          <div class="row">
+            <div class="col-12" *ngFor="let popup of popupsRecompensa">
+              <div class="card mb-4 popup-detail-card">
+        <div class="card-body">
+                  <!-- Título del popup -->
+                  <h5 class="card-title mb-3">{{ popup.titulo }}</h5>
+                <!-- Acciones por popup -->
+                <div class="d-flex gap-2 mb-3">
+                  <button type="button" class="btn btn-sm btn-outline-secondary" (click)="editarPopup(popup)">
+                    <i class="fas fa-edit"></i> Editar
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-danger" (click)="eliminarPopup(popup)">
+                    <i class="fas fa-trash"></i> Eliminar
+                  </button>
+                </div>
+                  
+                  <!-- Imagen del popup -->
+                  <div class="popup-image-container mb-3" *ngIf="popup.imagen_popup || popup.imagen_popup_url">
+                    <img 
+                      [src]="obtenerImagenPopup(popup)" 
+                      [alt]="popup.titulo" 
+                      class="popup-image"
+                      (error)="onImageError($event)"
+                      (load)="onImageLoad($event)"
+                    >
+                    <div class="image-debug" *ngIf="showImageDebug">
+                      <small class="text-muted">
+                        URL: {{ obtenerImagenPopup(popup) }}
+                      </small>
+                    </div>
+                  </div>
+                  
+                  <!-- Descripción -->
+                  <div class="popup-description mb-3" *ngIf="popup.descripcion">
+                    <h6 class="text-muted mb-2">Descripción:</h6>
+                    <p class="card-text">{{ popup.descripcion }}</p>
+                  </div>
+                  
+                  <!-- Detalles del popup -->
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="popup-detail-item mb-2">
+                        <strong>Estado:</strong>
+                        <span class="badge" [class.badge-success]="popup.popup_activo" [class.badge-secondary]="!popup.popup_activo">
+                          {{ popup.popup_activo ? 'Activo' : 'Inactivo' }}
+                        </span>
+                      </div>
+                      
+                      <div class="popup-detail-item mb-2" *ngIf="popup.texto_boton">
+                        <strong>Texto del Botón:</strong>
+                        <span class="text-primary">{{ popup.texto_boton }}</span>
+                      </div>
+                      
+                      <div class="popup-detail-item mb-2" *ngIf="popup.url_destino">
+                        <strong>URL Destino:</strong>
+                        <span class="text-info">{{ popup.url_destino }}</span>
+                      </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                      <div class="popup-detail-item mb-2" *ngIf="popup.auto_cerrar_segundos">
+                        <strong>Auto-cierre:</strong>
+                        <span class="text-warning">{{ popup.auto_cerrar_segundos }} segundos</span>
+                      </div>
+                      
+                      <div class="popup-detail-item mb-2">
+                        <strong>Mostrar botón cerrar:</strong>
+                        <span class="badge" [class.badge-info]="popup.mostrar_cerrar" [class.badge-secondary]="!popup.mostrar_cerrar">
+                          {{ popup.mostrar_cerrar ? 'Sí' : 'No' }}
+            </span>
+          </div>
+
+                      <div class="popup-detail-item mb-2" *ngIf="popup.created_at">
+                        <strong>Creado:</strong>
+                        <span class="text-muted">{{ popup.created_at | date:'short' }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+            </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sin popups -->
+        <div *ngIf="!loadingPopups && popupsRecompensa.length === 0" class="text-center py-4">
+          <i class="fas fa-window-restore fa-3x text-muted mb-3"></i>
+          <h5>No hay popups configurados</h5>
+          <p class="text-muted">Esta recompensa no tiene popups asociados.</p>
+          <button 
+            type="button" 
+            class="btn btn-primary"
+            (click)="crearPopup(selectedRecompensa!)"
+          >
+            <i class="fas fa-plus"></i> Crear Primer Popup
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<!-- Modal de Crear/Editar Popup -->
+<div class="modal fade" [class.show]="showPopupModal" [style.display]="showPopupModal ? 'block' : 'none'" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content product-modal">
+      <div class="modal-header">
+        <h5 class="modal-title">{{ popupModalTitle }}</h5>
+        <button type="button" class="close" (click)="cerrarPopupModal()">
+          <span>&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form class="product-form">
+          <div class="row">
+            <!-- Columna Izquierda - Información Principal -->
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="titulo" class="form-label">
+                  Título del Popup *
+                </label>
+                <input 
+                  type="text" 
+                  id="titulo"
+                  class="form-control" 
+                  [(ngModel)]="popupModalData.titulo"
+                  name="titulo"
+                  placeholder="Ejemplo: ¡Oferta Especial!"
+                  required
+                >
+              </div>
+
+              <div class="form-group">
+                <label for="descripcion" class="form-label">
+                  Descripción
+                </label>
+                <textarea 
+                  id="descripcion"
+                  class="form-control" 
+                  [(ngModel)]="popupModalData.descripcion"
+                  name="descripcion"
+                  rows="3"
+                  placeholder="Descripción del popup..."
+                ></textarea>
+              </div>
+
+              <div class="form-group">
+                <label for="texto_boton" class="form-label">
+                  Texto del Botón
+                </label>
+                <input 
+                  type="text" 
+                  id="texto_boton"
+                  class="form-control" 
+                  [(ngModel)]="popupModalData.texto_boton"
+                  name="texto_boton"
+                  placeholder="Ver más"
+                >
+              </div>
+
+              <div class="form-group">
+                <label for="url_destino" class="form-label">
+                  URL Destino
+                </label>
+                <input 
+                  type="url" 
+                  id="url_destino"
+                  class="form-control" 
+                  [(ngModel)]="popupModalData.url_destino"
+                  name="url_destino"
+                  placeholder="/recompensas/1"
+                >
+              </div>
+
+              <div class="form-group">
+                <label for="auto_cerrar_segundos" class="form-label">
+                  Auto-cierre (segundos)
+                </label>
+                <input 
+                  type="number" 
+                  id="auto_cerrar_segundos"
+                  class="form-control" 
+                  [(ngModel)]="popupModalData.auto_cerrar_segundos"
+                  name="auto_cerrar_segundos"
+                  min="1"
+                  max="300"
+                  placeholder="30"
+                >
+              </div>
+            </div>
+
+            <!-- Columna Central - Configuraciones -->
+            <div class="col-md-3">
+              <div class="form-group">
+                <label for="mostrar_cerrar" class="form-label">
+                  Opciones de Visualización
+                </label>
+                <div class="form-check">
+                  <input 
+                    type="checkbox" 
+                    id="mostrar_cerrar"
+                    class="form-check-input" 
+                    [(ngModel)]="popupModalData.mostrar_cerrar"
+                    name="mostrar_cerrar"
+                  >
+                  <label class="form-check-label" for="mostrar_cerrar">
+                    Mostrar botón cerrar
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <div class="form-check">
+                  <input 
+                    type="checkbox" 
+                    id="popup_activo"
+                    class="form-check-input" 
+                    [(ngModel)]="popupModalData.popup_activo"
+                    name="popup_activo"
+                  >
+                  <label class="form-check-label" for="popup_activo">
+                    <i class="fas fa-star"></i>
+                    Activar popup
+                  </label>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Columna Derecha - Imagen -->
+            <div class="col-md-3">
+              <div class="form-group">
+                <label class="form-label">Imagen del Popup</label>
+                <div class="image-upload-container">
+                  <div class="image-upload-zone" [class.has-image]="popupModalData.imagen_popup">
+                    <div *ngIf="!popupModalData.imagen_popup" class="upload-placeholder">
+                      <i class="fas fa-image fa-3x text-muted mb-3"></i>
+                      <div class="upload-text">Seleccionar imagen</div>
+                      <button type="button" class="btn btn-primary btn-sm mt-2" (click)="triggerFileInput()">
+                        <i class="fas fa-upload"></i> Subir imagen
+                      </button>
+                    </div>
+                    <div *ngIf="popupModalData.imagen_popup" class="image-preview">
+                      <img [src]="obtenerPreviewImagen(popupModalData.imagen_popup)" alt="Preview" class="preview-image">
+                      <button type="button" class="btn btn-sm btn-outline-danger remove-image" (click)="removeImage()">
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </div>
+                    <input 
+                      type="file" 
+                      id="imagen_popup"
+                      class="file-input" 
+                      accept="image/*"
+                      (change)="onFileSelected($event)"
+                    >
+                  </div>
+                  
+                  <div class="upload-info">
+                    <div class="info-text">
+                      <i class="fas fa-info-circle text-info"></i>
+                      Formatos: JPG, PNG, GIF (máx. 2 MB)
+                    </div>
+                    <div class="info-text">
+                      <i class="fas fa-info-circle text-info"></i>
+                      Tamaño recomendado: 400x400px (cuadrado) para una mejor visualización
+                    </div>
+                    <div class="warning-text">
+                      <i class="fas fa-exclamation-triangle text-warning"></i>
+                      Imágenes muy anchas o altas pueden verse deformadas en la tienda
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Configuración Visual Avanzada -->
+          <div class="row mt-4">
+            <div class="col-12">
+              <div class="card bg-light">
+                <div class="card-header">
+                  <h6 class="mb-0">
+                    <i class="fas fa-palette me-2"></i>
+                    Configuración Visual
+                  </h6>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-3">
+                      <div class="form-group">
+                        <label for="size" class="form-label">Tamaño del Popup</label>
+                        <select
+                          id="size"
+                          class="form-control"
+                          [(ngModel)]="$any(popupModalData).size"
+                          name="size"
+                        >
+                          <option value="small">Pequeño (400px)</option>
+                          <option value="medium" selected>Mediano (520px)</option>
+                          <option value="large">Grande (700px)</option>
+                          <option value="fullscreen">Pantalla completa (95%)</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="form-group">
+                        <label for="position" class="form-label">Posición</label>
+                        <select
+                          id="position"
+                          class="form-control"
+                          [(ngModel)]="$any(popupModalData).position"
+                          name="position"
+                        >
+                          <option value="center" selected>Centro</option>
+                          <option value="bottom-right">Abajo derecha (Toast)</option>
+                          <option value="top-center">Arriba centro</option>
+                          <option value="bottom-center">Abajo centro</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="form-group">
+                        <label for="theme" class="form-label">Tema</label>
+                        <select
+                          id="theme"
+                          class="form-control"
+                          [(ngModel)]="$any(popupModalData).theme"
+                          name="theme"
+                        >
+                          <option value="light" selected>Claro</option>
+                          <option value="dark">Oscuro</option>
+                          <option value="gradient">Gradiente</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="form-group">
+                        <label for="animation" class="form-label">Animación</label>
+                        <select
+                          id="animation"
+                          class="form-control"
+                          [(ngModel)]="$any(popupModalData).animation"
+                          name="animation"
+                        >
+                          <option value="fade" selected>Fade (Desvanecer)</option>
+                          <option value="slide">Slide (Deslizar)</option>
+                          <option value="zoom">Zoom (Escalar)</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row mt-3">
+                    <div class="col-md-4">
+                      <div class="form-group">
+                        <label for="aspect_ratio" class="form-label">Proporción de Imagen</label>
+                        <select
+                          id="aspect_ratio"
+                          class="form-control"
+                          [(ngModel)]="$any(popupModalData).imagen_aspect_ratio"
+                          name="imagen_aspect_ratio"
+                        >
+                          <option value="16:9" selected>16:9 (Panorámica)</option>
+                          <option value="4:3">4:3 (Clásica)</option>
+                          <option value="1:1">1:1 (Cuadrada)</option>
+                          <option value="auto">Automática</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="form-group">
+                        <label class="form-label d-block">Opciones Avanzadas</label>
+                        <div class="form-check">
+                          <input
+                            type="checkbox"
+                            id="blur_backdrop"
+                            class="form-check-input"
+                            [(ngModel)]="$any(popupModalData).blur_backdrop"
+                            name="blur_backdrop"
+                          >
+                          <label class="form-check-label" for="blur_backdrop">
+                            Desenfoque de fondo
+                          </label>
+                        </div>
+                        <div class="form-check">
+                          <input
+                            type="checkbox"
+                            id="close_on_backdrop"
+                            class="form-check-input"
+                            [(ngModel)]="$any(popupModalData).close_on_backdrop"
+                            name="close_on_backdrop"
+                          >
+                          <label class="form-check-label" for="close_on_backdrop">
+                            Cerrar al hacer click fuera
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="alert alert-info mb-0">
+                        <small>
+                          <i class="fas fa-info-circle me-1"></i>
+                          <strong>Tip:</strong> Usa el tema "Gradiente" y posición "Centro" para popups promocionales destacados.
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Error del modal -->
+          <div *ngIf="popupModalError" class="alert alert-danger mt-3">
+            <i class="fas fa-exclamation-triangle"></i> {{ popupModalError }}
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button 
+          type="button" 
+          class="btn btn-secondary" 
+          (click)="cerrarPopupModal()"
+          [disabled]="popupModalLoading"
+        >
+          Cancelar
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-success"
+          (click)="guardarPopup()"
+          [disabled]="popupModalLoading || !popupModalData.titulo"
+        >
+          <span *ngIf="popupModalLoading" class="spinner-border spinner-border-sm mr-2"></span>
+          <i *ngIf="!popupModalLoading" class="fas fa-check mr-2"></i>
+          Guardar
+        </button>
+      </div>
+    </div>
+      </div>
+    </div>
+
+<!-- Modal de Éxito -->
+<div *ngIf="showSuccessModal" class="modal fade show d-block" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content success-modal">
+      <div class="modal-header border-0 pb-0">
+        <button type="button" class="btn-close" (click)="cerrarModalExito()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <div class="success-icon mb-3">
+          <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+        </div>
+        <h4 class="modal-title text-success mb-3">¡Éxito!</h4>
+        <p class="text-muted mb-4">{{ successMessage }}</p>
+        <button type="button" class="btn btn-success btn-lg px-4" (click)="cerrarModalExito()">
+          <i class="fas fa-check me-2"></i>
+          Entendido
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Overlay para modales -->
+<div *ngIf="showPopupsList || showPopupModal || showSuccessModal" class="modal-backdrop fade show"></div>

@@ -1,0 +1,247 @@
+// Estilos para el sistema de tracking de pasos
+
+/* ===== TRACKING DE PASOS ===== */
+.steps-tracker {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  
+  .steps-line {
+    height: 2px;
+    left: 5%;
+    right: 5%;
+  }
+  
+  .steps-line-active {
+    height: 2px;
+    left: 5%;
+    transition: width 0.5s ease-in-out;
+  }
+  
+  .step-item {
+    min-width: 120px;
+    
+    &.completed .step-circle {
+      animation: checkmark 0.3s ease-in-out;
+    }
+    
+    &.active .step-circle {
+      animation: pulse 1.5s infinite;
+      box-shadow: 0 0 0 4px rgba(var(--bs-main-rgb), 0.2);
+    }
+    
+    &.disabled .step-circle {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+    
+    .step-circle {
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+      
+      &:hover:not(.disabled) {
+        transform: scale(1.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      }
+    }
+    
+    .step-title {
+      transition: color 0.3s ease;
+    }
+    
+    &.completed .step-title {
+      color: var(--bs-main-600);
+    }
+    
+    &.active .step-title {
+      color: var(--bs-main-600);
+      font-weight: 600;
+    }
+    
+    &.disabled .step-title {
+      color: var(--bs-gray-400);
+    }
+  }
+}
+
+/* ===== ANIMACIONES ===== */
+@keyframes checkmark {
+  0% {
+    transform: scale(0.8);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(var(--bs-main-rgb), 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(var(--bs-main-rgb), 0.1);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--bs-main-rgb), 0);
+  }
+}
+
+/* ===== BARRA DE PROGRESO ===== */
+.progress-container {
+  position: relative;
+  overflow: hidden;
+  
+  .progress-bar {
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+.progress-mini {
+  position: relative;
+  overflow: hidden;
+  
+  .progress-bar-mini {
+    transition: width 0.4s ease;
+  }
+}
+
+/* ===== CARDS DE PRODUCTOS MEJORADOS ===== */
+.product-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 320px; // Altura mínima para consistencia
+  
+  &.border-main-600 {
+    box-shadow: 0 4px 16px rgba(var(--bs-main-rgb), 0.15);
+    transform: translateY(-2px);
+  }
+  
+  .custom-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--bs-main-600);
+  }
+
+  // ✅ NUEVO: Imagen del producto con proporciones consistentes
+  .product-card__thumb {
+    position: relative;
+    overflow: hidden;
+    
+    img {
+      transition: transform 0.3s ease;
+    }
+    
+    &:hover img {
+      transform: scale(1.05);
+    }
+  }
+}
+
+/* ===== GRID DE PRODUCTOS RESPONSIVO ===== */
+.row.g-16 {
+  --bs-gutter-x: 1rem;
+  --bs-gutter-y: 1rem;
+  
+  // Asegurar que las cards tengan altura consistente
+  .col-12, .col-sm-6, .col-md-4, .col-lg-6, .col-xl-4 {
+    display: flex;
+    
+    .product-card {
+      width: 100%;
+    }
+  }
+}
+
+/* ===== BOTONES DE NAVEGACIoN ===== */
+.btn[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== ESTADOS RESPONSIVOS ===== */
+@media (max-width: 768px) {
+  .steps-tracker {
+    padding: 16px;
+    
+    .step-item {
+      min-width: 80px;
+      
+      .step-circle {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 12px;
+      }
+      
+      .step-title {
+        font-size: 12px;
+      }
+      
+      .step-subtitle {
+        font-size: 10px;
+      }
+    }
+  }
+  
+  .steps-line,
+  .steps-line-active {
+    height: 1px;
+  }
+}
+
+@media (max-width: 576px) {
+  .steps-tracker {
+    .step-item {
+      min-width: 60px;
+      
+      .step-info {
+        margin-top: 8px;
+      }
+      
+      .step-subtitle {
+        display: none;
+      }
+    }
+  }
+}
+
+/* ===== ESTADOS DE MENSAJES ===== */
+.bg-main-50 {
+  background-color: rgba(var(--bs-main-rgb), 0.05);
+}
+
+.bg-warning-50 {
+  background-color: rgba(var(--bs-warning-rgb), 0.05);
+}
+
+.border-warning-200 {
+  border-color: rgba(var(--bs-warning-rgb), 0.2) !important;
+}
+
+.text-warning-600 {
+  color: rgba(var(--bs-warning-rgb), 0.8);
+}
+
+.text-warning-700 {
+  color: rgba(var(--bs-warning-rgb), 0.9);
+}
+
+/* ===== STICKY SIDEBAR MEJORADO ===== */
+.sticky-top {
+  transition: top 0.3s ease;
+}
+
+/* ===== BADGES Y INDICATORS ===== */
+.badge {
+  font-size: 11px;
+  font-weight: 500;
+  
+  &.bg-main-50 {
+    color: var(--bs-main-600);
+    background-color: rgba(var(--bs-main-rgb), 0.1) !important;
+  }
+  
+  &.bg-danger-50 {
+    color: var(--bs-danger-600);
+    background-color: rgba(var(--bs-danger-rgb), 0.1) !important;
+  }
+}

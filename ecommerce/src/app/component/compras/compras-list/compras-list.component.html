@@ -1,0 +1,219 @@
+<!-- Header -->
+<div class="border border-gray-100 rounded-16 overflow-hidden bg-white">
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <div class="flex-between align-items-center gap-16 flex-wrap">
+      <div>
+        <h4 class="mb-4 text-heading">Listado de Compras</h4>
+        <p class="text-gray-500 mb-0 text-sm">Administra todas las compras del ecommerce</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla Moderna usando clases globales -->
+  <div class="modern-data-table">
+    <!-- Header compacto -->
+    <div class="modern-data-table__header" *ngIf="!loading && comprasFiltradas.length > 0">
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="table-info">{{ comprasFiltradas.length }} compras encontradas</span>
+        <div class="d-flex align-items-center gap-2">
+          <span style="font-size: var(--font-xs); color: var(--gray-500);">Filas:</span>
+          <select class="page-size-selector" [(ngModel)]="pageSize" (change)="goToPage(1)">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading state -->
+    <div *ngIf="loading" class="modern-data-table__loading">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="loading-text">Cargando compras...</p>
+    </div>
+
+    <!-- Tabla moderna -->
+    <div class="modern-data-table__container" *ngIf="!loading">
+      <table class="table table-borderless mb-0">
+        <thead>
+          <tr>
+            <th>CÓDIGO</th>
+            <th>CLIENTE</th>
+            <th class="d-none d-lg-table-cell">FECHA</th>
+            <th class="d-none d-md-table-cell">TOTAL</th>
+            <th>ESTADO</th>
+            <th class="text-end">ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let compra of getPaginatedCompras(); trackBy: trackByCompraId">
+            <!-- Código -->
+            <td>
+              <div class="compra-code">
+                <div class="d-flex align-items-center gap-8">
+                  <i *ngIf="necesitaAtencion(compra)" class="ph ph-bell text-warning" title="Requiere atención"></i>
+                  <span class="client-info__name">{{ compra.codigo_compra }}</span>
+                </div>
+                <div class="client-info__subtitle" *ngIf="compra.codigo_cotizacion">
+                  Cotización: {{ compra.codigo_cotizacion }}
+                </div>
+              </div>
+            </td>
+
+            <!-- Cliente -->
+            <td>
+              <div class="d-flex align-items-center gap-12">
+                <div class="table-avatar__container">
+                  <ng-container *ngIf="getClientePhotoUrl(compra) as photoUrl; else avatarWithInitials">
+                    <img [src]="photoUrl"
+                         [alt]="compra.cliente_nombre"
+                         class="table-avatar__img"
+                         (error)="onImageError($event)">
+                  </ng-container>
+                  <ng-template #avatarWithInitials>
+                    <div class="table-avatar__circle" style="background-color: var(--main-600);">
+                      {{ getInitials(compra.cliente_nombre) }}
+                    </div>
+                  </ng-template>
+                </div>
+                <div>
+                  <div class="client-info__name">{{ compra.cliente_nombre }}</div>
+                  <div class="client-info__subtitle">{{ compra.cliente_email }}</div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Fecha (hidden on tablet) -->
+            <td class="d-none d-lg-table-cell">
+              <div class="fecha-info">
+                <div class="client-info__name">{{ formatearFecha(compra.fecha_compra) }}</div>
+                <div class="client-info__subtitle" *ngIf="compra.fecha_aprobacion">
+                  Aprobada: {{ formatearFecha(compra.fecha_aprobacion) }}
+                </div>
+              </div>
+            </td>
+
+            <!-- Total (hidden on mobile) -->
+            <td class="d-none d-md-table-cell">
+              <div class="text-center">
+                <div class="compra-total">{{ formatearPrecio(compra.total) }}</div>
+                <div class="metodo-pago">{{ compra.metodo_pago || 'Sin especificar' }}</div>
+              </div>
+            </td>
+
+            <!-- Estado -->
+            <td>
+              <div class="d-flex flex-column align-items-center">
+                <span class="status-badge" [ngClass]="getEstadoClass(compra.estado_compra)">
+                  <i [class]="getEstadoIcon(compra.estado_compra)" class="me-4"></i>
+                  {{ getEstadoTextoCorto(compra.estado_compra) }}
+                </span>
+                <div *ngIf="necesitaAtencion(compra)" class="mt-4">
+                  <small class="text-warning d-flex align-items-center">
+                    <i class="ph ph-warning me-4"></i>
+                    Requiere atención
+                  </small>
+                </div>
+              </div>
+            </td>
+
+            <!-- Acciones -->
+            <td class="text-end">
+              <div class="action-buttons">
+                <button class="action-buttons__btn action-buttons__btn--view"
+                        (click)="verDetalle(compra)"
+                        title="Ver detalle">
+                  <i class="ph ph-eye"></i>
+                </button>
+                <button *ngIf="compra.estado_compra?.nombre === 'Pendiente Aprobación'"
+                        class="action-buttons__btn action-buttons__btn--success"
+                        (click)="aprobarCompra(compra)"
+                        title="Aprobar compra">
+                  <i class="ph ph-check"></i>
+                </button>
+                <button *ngIf="compra.estado_compra?.nombre === 'Pendiente Aprobación' || compra.estado_compra?.nombre === 'Aprobada'"
+                        class="action-buttons__btn action-buttons__btn--delete"
+                        (click)="rechazarCompra(compra)"
+                        title="Rechazar compra">
+                  <i class="ph ph-x"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación moderna -->
+    <div class="modern-data-table__pagination" *ngIf="!loading && comprasFiltradas.length > 0 && getTotalPages() > 1">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="pagination-info">
+          Mostrando {{ (currentPage - 1) * pageSize + 1 }} a {{ Math.min(currentPage * pageSize, comprasFiltradas.length) }} de {{ comprasFiltradas.length }} registros
+        </div>
+        <nav>
+          <ul class="pagination-controls">
+            <li [class.disabled]="currentPage === 1">
+              <button (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
+                <i class="ph ph-caret-left"></i>
+              </button>
+            </li>
+            <li *ngFor="let page of getPageNumbers()" [class.active]="page === currentPage">
+              <button (click)="goToPage(page)">{{ page }}</button>
+            </li>
+            <li [class.disabled]="currentPage === getTotalPages()">
+              <button (click)="goToPage(currentPage + 1)" [disabled]="currentPage === getTotalPages()">
+                <i class="ph ph-caret-right"></i>
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Estado vacío -->
+    <div *ngIf="!loading && compras.length === 0" class="empty-state">
+      <div class="empty-state__icon">
+        <i class="ph ph-shopping-cart"></i>
+      </div>
+      <h5 class="empty-state__title">No hay compras registradas</h5>
+      <p class="empty-state__description">
+        Aún no se han realizado compras en el sistema
+      </p>
+    </div>
+
+    <!-- Sin resultados de búsqueda -->
+    <div *ngIf="!loading && compras.length > 0 && comprasFiltradas.length === 0" class="empty-state">
+      <div class="empty-state__icon">
+        <i class="ph ph-magnifying-glass"></i>
+      </div>
+      <h5 class="empty-state__title">No se encontraron resultados</h5>
+      <p class="empty-state__description">
+        Intenta cambiar los filtros para encontrar las compras que buscas.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de detalle (placeholder) -->
+<div class="modal fade" id="modalDetalleCompra" tabindex="-1" *ngIf="compraSeleccionada">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Detalle de Compra</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Código:</strong> {{ compraSeleccionada.codigo_compra }}</p>
+        <p><strong>Cliente:</strong> {{ compraSeleccionada.cliente_nombre }}</p>
+        <p><strong>Total:</strong> {{ formatearPrecio(compraSeleccionada.total) }}</p>
+        <p><strong>Estado:</strong> {{ getEstadoTexto(compraSeleccionada.estado_compra) }}</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>

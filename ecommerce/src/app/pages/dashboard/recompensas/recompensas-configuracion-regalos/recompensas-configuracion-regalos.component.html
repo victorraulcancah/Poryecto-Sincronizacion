@@ -1,0 +1,367 @@
+<div class="recompensas-configuracion-regalos">
+  <div class="row">
+    <!-- Formulario de Configuración -->
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-gift me-2 text-primary"></i>
+            Configuración de Regalos
+          </h5>
+        </div>
+        <div class="card-body">
+          <form [formGroup]="configuracionForm" (ngSubmit)="guardarConfiguracion()">
+            <div class="row g-3">
+              <!-- Configuración General -->
+              <div class="col-md-6">
+                <label class="form-label">Compra Mínima (S/) *</label>
+                <input 
+                  type="number" 
+                  class="form-control" 
+                  formControlName="minimo_compra"
+                  min="0"
+                  step="0.01"
+                >
+                <div class="form-text">Monto mínimo para recibir regalo</div>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label">Límite de Regalos por Cliente *</label>
+                <input 
+                  type="number" 
+                  class="form-control" 
+                  formControlName="limite_regalos_por_cliente"
+                  min="1"
+                >
+                <div class="form-text">Máximo regalos que puede recibir un cliente</div>
+              </div>
+
+              <div class="col-12">
+                <div class="form-check">
+                  <input 
+                    class="form-check-input" 
+                    type="checkbox" 
+                    formControlName="validar_stock"
+                    id="validarStock"
+                  >
+                  <label class="form-check-label" for="validarStock">
+                    Validar stock disponible antes de otorgar regalos
+                  </label>
+                </div>
+              </div>
+
+              <!-- Agregar Nuevo Regalo -->
+              <div class="col-12">
+                <div class="card bg-light">
+                  <div class="card-header">
+                    <h6 class="card-title mb-0">Agregar Nuevo Regalo</h6>
+                  </div>
+                  <div class="card-body">
+                    <form [formGroup]="regaloForm" (ngSubmit)="agregarRegalo()">
+                      <div class="row g-3">
+                        <!-- Búsqueda de Producto -->
+                        <div class="col-md-6">
+                          <label class="form-label">Buscar Producto *</label>
+                          <div class="input-group">
+                            <input 
+                              type="text" 
+                              class="form-control" 
+                              [(ngModel)]="terminoBusqueda"
+                              [ngModelOptions]="{standalone: true}"
+                              placeholder="Nombre del producto..."
+                              (keyup.enter)="buscarProductos()"
+                            >
+                            <button 
+                              type="button" 
+                              class="btn btn-outline-primary"
+                              (click)="buscarProductos()"
+                            >
+                              <i class="fas fa-search"></i>
+                            </button>
+                          </div>
+                        </div>
+
+                        <!-- Selector de Producto -->
+                        <div class="col-md-6">
+                          <label class="form-label">Producto *</label>
+                          <select 
+                            class="form-select" 
+                            formControlName="producto_id"
+                            [disabled]="productosDisponibles.length === 0"
+                          >
+                            <option value="">Seleccionar producto...</option>
+                            <option *ngFor="let producto of productosDisponibles" [value]="producto.id">
+                              {{ producto.nombre }} - S/ {{ producto.precio_venta | number:'1.2-2' }}
+                              (Stock: {{ producto.stock }})
+                            </option>
+                          </select>
+                        </div>
+
+                        <!-- Cantidad -->
+                        <div class="col-md-4">
+                          <label class="form-label">Cantidad *</label>
+                          <input 
+                            type="number" 
+                            class="form-control" 
+                            formControlName="cantidad"
+                            min="1"
+                            [max]="getCantidadMaxima()"
+                          >
+                          <div class="form-text">
+                            Máximo: {{ getCantidadMaxima() }} unidades
+                          </div>
+                        </div>
+
+                        <!-- Compra Mínima Específica -->
+                        <div class="col-md-4">
+                          <label class="form-label">Compra Mínima (S/)</label>
+                          <input 
+                            type="number" 
+                            class="form-control" 
+                            formControlName="minimo_compra"
+                            min="0"
+                            step="0.01"
+                          >
+                        </div>
+
+                        <!-- Botón Agregar -->
+                        <div class="col-md-4">
+                          <label class="form-label">&nbsp;</label>
+                          <button 
+                            type="submit" 
+                            class="btn btn-success w-100"
+                            [disabled]="regaloForm.invalid || getStockDisponible() === 0"
+                          >
+                            <i class="fas fa-plus me-2"></i>
+                            Agregar Regalo
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Lista de Regalos Configurados -->
+              <div class="col-12" *ngIf="regalosConfigurados.length > 0">
+                <div class="card">
+                  <div class="card-header">
+                    <h6 class="card-title mb-0">
+                      Regalos Configurados ({{ getRegalosConfiguradosCount() }})
+                    </h6>
+                  </div>
+                  <div class="card-body">
+                    <div class="table-responsive">
+                      <table class="table table-hover">
+                        <thead>
+                          <tr>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Compra Mínima</th>
+                            <th>Stock</th>
+                            <th>Valor</th>
+                            <th>Acciones</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngFor="let regalo of regalosConfigurados; let i = index">
+                            <td>
+                              <div class="d-flex align-items-center">
+                                <img 
+                                  *ngIf="regalo.producto.imagen_principal" 
+                                  [src]="regalo.producto.imagen_principal" 
+                                  class="me-2" 
+                                  style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;"
+                                >
+                                <div>
+                                  <div class="fw-bold">{{ regalo.producto.nombre }}</div>
+                                  <small class="text-muted">{{ regalo.producto.codigo_producto }}</small>
+                                </div>
+                              </div>
+                            </td>
+                            <td>
+                              <input 
+                                type="number" 
+                                class="form-control form-control-sm" 
+                                [value]="regalo.cantidad"
+                                min="1"
+                                (change)="actualizarRegalo(i, 'cantidad', $any($event.target).value)"
+                                style="width: 80px;"
+                              >
+                            </td>
+                            <td>
+                              <input 
+                                type="number" 
+                                class="form-control form-control-sm" 
+                                [value]="regalo.minimo_compra"
+                                min="0"
+                                step="0.01"
+                                (change)="actualizarRegalo(i, 'minimo_compra', $any($event.target).value)"
+                                style="width: 100px;"
+                              >
+                            </td>
+                            <td>
+                              <span 
+                                class="badge"
+                                [ngClass]="regalo.stock_disponible > 0 ? 'bg-success' : 'bg-danger'"
+                              >
+                                {{ regalo.stock_disponible }}
+                              </span>
+                              <button 
+                                type="button" 
+                                class="btn btn-sm btn-outline-info ms-1"
+                                (click)="verificarDisponibilidad(regalo)"
+                                title="Verificar stock"
+                              >
+                                <i class="fas fa-sync-alt"></i>
+                              </button>
+                            </td>
+                            <td>
+                              <span class="fw-bold text-success">
+                                S/ {{ (regalo.producto.precio_venta * regalo.cantidad) | number:'1.2-2' }}
+                              </span>
+                            </td>
+                            <td>
+                              <button 
+                                type="button" 
+                                class="btn btn-sm btn-outline-danger"
+                                (click)="removerRegalo(i)"
+                                title="Eliminar regalo"
+                              >
+                                <i class="fas fa-trash"></i>
+                              </button>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Botones de Acción -->
+              <div class="col-12">
+                <div class="d-flex gap-2">
+                  <button 
+                    type="submit" 
+                    class="btn btn-primary"
+                    [disabled]="configuracionForm.invalid || loading"
+                  >
+                    <i class="fas fa-save me-2"></i>
+                    <span *ngIf="!loading">Guardar Configuración</span>
+                    <span *ngIf="loading">Guardando...</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estadísticas y Simulador -->
+    <div class="col-lg-4">
+      <!-- Estadísticas -->
+      <div class="card mb-3">
+        <div class="card-header">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-chart-bar me-2 text-success"></i>
+            Estadísticas
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-6">
+              <div class="text-center">
+                <div class="h5 mb-0 text-primary">{{ estadisticas.total_regalos }}</div>
+                <small class="text-muted">Regalos Configurados</small>
+              </div>
+            </div>
+
+            <div class="col-6">
+              <div class="text-center">
+                <div class="h5 mb-0 text-success">S/ {{ getValorTotalRegalos() | number:'1.2-2' }}</div>
+                <small class="text-muted">Valor Total</small>
+              </div>
+            </div>
+
+            <div class="col-6">
+              <div class="text-center">
+                <div class="h5 mb-0 text-info">{{ estadisticas.stock_total_disponible }}</div>
+                <small class="text-muted">Stock Total</small>
+              </div>
+            </div>
+
+            <div class="col-6">
+              <div class="text-center">
+                <div class="h5 mb-0" [ngClass]="estadisticas.productos_sin_stock > 0 ? 'text-danger' : 'text-success'">
+                  {{ estadisticas.productos_sin_stock }}
+                </div>
+                <small class="text-muted">Sin Stock</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Simulador -->
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-calculator me-2 text-warning"></i>
+            Simulador de Regalos
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label">Cantidad de Clientes</label>
+            <input 
+              type="number" 
+              class="form-control" 
+              [(ngModel)]="simulacion.cantidad_clientes"
+              [ngModelOptions]="{standalone: true}"
+              min="1"
+              placeholder="1"
+            >
+          </div>
+
+          <button 
+            type="button" 
+            class="btn btn-warning w-100 mb-3"
+            (click)="simularOtorgamiento()"
+            [disabled]="simulacion.cantidad_clientes <= 0 || simulacion.calculando || regalosConfigurados.length === 0"
+          >
+            <i class="fas fa-calculator me-2"></i>
+            <span *ngIf="!simulacion.calculando">Simular Otorgamiento</span>
+            <span *ngIf="simulacion.calculando">Calculando...</span>
+          </button>
+
+          <!-- Resultados de Simulación -->
+          <div *ngIf="simulacion.regalos_otorgados > 0" class="alert alert-info">
+            <h6 class="alert-heading">
+              <i class="fas fa-gift me-2"></i>
+              Resultado de la Simulación
+            </h6>
+            <hr>
+            <div class="row g-2">
+              <div class="col-6">
+                <small class="text-muted">Regalos Otorgados:</small>
+                <div class="fw-bold">{{ simulacion.regalos_otorgados }}</div>
+              </div>
+              <div class="col-6">
+                <small class="text-muted">Stock Restante:</small>
+                <div class="fw-bold">{{ simulacion.stock_restante }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mensaje de Error -->
+  <div *ngIf="error" class="alert alert-danger mt-3">
+    <i class="fas fa-exclamation-circle me-2"></i>
+    {{ error }}
+  </div>
+</div>

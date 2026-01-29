@@ -1,0 +1,14 @@
+// Estilos para los botones de acción de horarios individuales
+.horario-bloque-container:hover .horario-actions {
+  opacity: 1;
+}
+
+.horario-actions .btn {
+  min-width: auto;
+  height: 20px;
+  line-height: 1;
+  
+  &:hover {
+    transform: scale(1.1);
+  }
+}

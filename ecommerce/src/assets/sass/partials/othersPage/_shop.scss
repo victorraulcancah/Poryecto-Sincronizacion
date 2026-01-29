@@ -1,0 +1,122 @@
+/* ================================ Shop Page css Start =============================== */
+.list-grid-btns {
+    @media (max-width: 479px) {
+        display: none;
+    }
+}
+
+// ✅ ESTILOS ESPECÍFICOS SOLO PARA SHOP PAGE - No afecta otros componentes
+.shop .list-grid-wrapper {
+    display: grid;
+    gap: 16px;
+
+    // Default grid view - SOLO para shop
+    &:not(.list-view) {
+        grid-template-columns: repeat(auto-fit, 280px);
+        justify-content: center;
+        grid-auto-rows: 1fr;
+    }
+
+    // SOLO PARA VISTA GRID en shop
+    &.grid-view .product-card {
+        display: flex;
+        flex-direction: column;
+        width: 280px !important;
+        max-width: 280px !important;
+        min-width: 280px !important;
+        height: 100%;
+    }
+}
+
+// ✅ FALLBACK: Estilos originales para otros componentes (index-two)
+.list-grid-wrapper:not(.shop .list-grid-wrapper) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); // ✅ Comportamiento original
+    gap: 24px; // ✅ Gap original
+}
+
+// ✅ Vista de lista SOLO para shop page
+.shop .list-grid-wrapper.list-view {
+    grid-template-columns: repeat(2, 1fr);
+
+    .product-card {
+        display: flex;
+        align-items: stretch;
+        flex-direction: row;
+
+        &__thumb {
+            width: 120px;
+            height: 120px;
+            flex-shrink: 0;
+            margin-right: 16px;
+            margin-bottom: 0;
+            background: transparent !important;
+
+            img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                object-position: center;
+            }
+        }
+
+        &__content {
+            flex: 1;
+            margin-top: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+    }
+}
+
+// ✅ Responsive SOLO para shop page
+@media (max-width: 992px) {
+    .shop .list-grid-wrapper.list-view {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .shop .list-grid-wrapper.list-view .product-card {
+        flex-direction: column;
+
+        &__thumb {
+            width: 100%;
+            height: 200px;
+            margin-right: 0;
+            margin-bottom: 16px;
+        }
+    }
+}
+
+@media (max-width: 1199px) {
+    .shop-sidebar__box {
+        padding: 16px !important;
+    }
+}
+
+@media (max-width: 991px) {
+    .shop-sidebar {
+        position: fixed;
+        top: 0;
+        height: 100vh;
+        background-color: #fff;
+        z-index: 11;
+        left: 0;
+        border-radius: 0 !important;
+        overflow-y: auto;
+        width: 300px;
+        border-right: 1px solid var(--gray-100);
+        transform: translateX(-100%);
+        transition: .2s linear;
+        &.active {
+            transform: translateX(0);
+        }
+        &__box {
+            border-radius: 0 !important;
+            border: 0 !important;
+        }
+    }
+}
+/* ================================ Shop Page css End =============================== */

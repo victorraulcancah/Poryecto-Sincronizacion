@@ -1,0 +1,34 @@
+    .flash-sales-item {
+      min-height: 220px;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+      &:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        transform: translateY(-4px);
+      }
+    }
+
+    .flash-sales-item__bg {
+      filter: brightness(0.95);
+    }
+
+    .flash-sales-item__content {
+      position: relative;
+      z-index: 2;
+      max-width: 450px;
+    }
+
+    @media (max-width: 768px) {
+      .flash-sales-item {
+        min-height: 180px;
+      }
+
+      .flash-sales-item__content {
+        padding: 1rem !important;
+
+        h6 {
+          font-size: 1.25rem !important;
+        }
+      }
+    }

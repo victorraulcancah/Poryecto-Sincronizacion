@@ -1,0 +1,406 @@
+// src\assets\sass\partials\home\_banner.scss
+/* ============================== Banner Css Start ========================== */
+.banner {
+    margin-top: 0; /* ✅ SIN MARGEN SUPERIOR */
+    margin-bottom: 0; /* ✅ SIN MARGEN INFERIOR */
+    @include sm-screen {
+        margin-bottom: 0;
+    }
+    .slick-slider {
+        position: unset;
+    }
+    .slick-initialized.slick-slider .slick-slide {
+        margin: 0;
+    }
+}
+
+.banner-item {
+    position: relative;
+    padding: 0; /* ✅ SIN PADDING */
+    margin: 0;  /* ✅ SIN MARGIN */
+    width: 100vw; /* ✅ ANCHO COMPLETO DE LA PANTALLA */
+    /* ✅ REMOVIENDO MÁSCARAS Y FONDOS FIJOS */
+    background: transparent;
+
+    /* ✅ ALTURA RESPONSIVE MEJORADA */
+    min-height: 450px;
+
+    // Altura optimizada para diferentes pantallas
+    @include xxl-screen {
+        min-height: 400px;
+    }
+    @include xl-screen {
+        min-height: 350px;
+    }
+    @include lg-screen {
+        min-height: 300px;
+    }
+    @include md-screen {
+        min-height: 280px;
+    }
+    @include sm-screen {
+        min-height: 250px; /* ✅ ALTURA REDUCIDA EN MÓVIL */
+        -webkit-mask-image: none;
+        mask-image: none;
+        overflow: hidden !important; /* ✅ CAMBIO: hidden para evitar overflow */
+    }
+    @include msm-screen {
+        min-height: 200px; /* ✅ ALTURA AÚN MÁS REDUCIDA EN PANTALLAS MUY PEQUEÑAS */
+    }
+    @include xsm-screen {
+        min-height: 180px; /* ✅ ALTURA MÍNIMA PARA MÓVILES PEQUEÑOS */
+    }
+
+    &__content {
+        max-width: 852px;
+        @include xxl-screen {
+            max-width: 750px;
+        }
+    }
+    &__thumb {
+        img {
+            @include msm-screen {
+                max-width: 350px;
+                width: 100%;
+            }
+        }
+    }
+}
+
+.banner-slider__inner {
+    @include msm-screen {
+        flex-wrap: wrap;
+    }
+}
+
+.scroll-down {
+    width: 94px;
+    height: 94px;
+    position: relative;
+    margin-bottom: 24px;
+    z-index: 2;
+    @include xl-screen {
+        width: 74px;
+        height: 74px;
+        margin-bottom: 16px;
+    }
+    @include sm-screen {
+        margin-bottom: -36px;
+    }
+    &::before {
+        position: absolute;
+        content: "";
+        width: 2px;
+        height: 32px;
+        border: 2px dashed hsl(var(--white) / .4);
+        top: 16px;
+        animation: upDown 2s linear infinite;
+        @include xl-screen {
+            top: 8px;
+        }
+    }
+    .icon {
+        animation: upDown 2s linear infinite;
+        font-size: rem(28px);
+        margin-top: 16px;
+    }
+}
+
+@keyframes upDown {
+    0% {
+        transform: translateY(10px);
+    }
+    50% {
+        transform: translateY(0px);
+    }
+    100% {
+        transform: translateY(10px);
+    }
+}
+
+
+
+/* Slider Animation Css Start */
+.animate-left-right {
+    opacity: 0;
+    visibility: hidden;
+    -webkit-transform: translateX(-20px);
+    transform: translateX(-20px);
+    transition: .4s linear;
+}
+
+.slick-current .animate-left-right {
+    opacity: 1;
+    visibility: visible;
+    -webkit-transform: translateX(0);
+    transform: translateX(0);
+}
+
+.animate-scale {
+    opacity: 0;
+    visibility: hidden;
+    -webkit-transform: scale(.9);
+    transform: scale(.9);
+    transition: .4s linear;
+}
+
+.slick-current .animate-scale {
+    opacity: 1;
+    visibility: visible;
+    -webkit-transform: scale(1);
+    transform: scale(1);
+}
+
+.animation-delay {
+    &-08 {
+        transition-delay: 800ms; 
+    }
+    &-1 {
+        transition-delay: 1000ms; 
+    }
+    &-12 {
+        transition-delay: 1200ms; 
+    }
+    &-15 {
+        transition-delay: 1500ms; 
+    }
+}
+/* ✅ OCULTAR BOTONES AUTOMÁTICOS DE SLICK */
+.slick-prev,
+.slick-next {
+    display: none !important;
+}
+
+/* ✅ MOSTRAR SOLO NUESTROS BOTONES PERSONALIZADOS */
+#banner-prev,
+#banner-next {
+    display: flex !important;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    width: 48px;
+    height: 48px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    /* ✅ PC: Centrado perfecto verticalmente */
+    @include lg-screen {
+        top: 50%;
+        transform: translateY(-50%);
+    }
+}
+
+/* ✅ POSICIÓN DEL BOTÓN IZQUIERDO */
+#banner-prev {
+    left: 20px;
+}
+
+/* ✅ POSICIÓN DEL BOTÓN DERECHO */
+#banner-next {
+    right: 20px;
+}
+
+/* ✅ RESPONSIVE PARA MÓVILES - Botones más pequeños */
+@include sm-screen {
+    #banner-prev,
+    #banner-next {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+
+    #banner-prev {
+        left: 10px;
+    }
+    #banner-next {
+        right: 10px;
+    }
+}
+
+/* ✅ MEJORAS ESPECÍFICAS PARA IMÁGENES DEL BANNER EN MÓVIL */
+.banner {
+    .slide {
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+
+            /* ✅ OPTIMIZACIÓN ESPECÍFICA PARA MÓVIL */
+            @include sm-screen {
+                object-fit: cover;
+                object-position: center center;
+                min-height: 250px;
+                max-height: 250px;
+            }
+            @include msm-screen {
+                min-height: 200px;
+                max-height: 200px;
+                object-position: center top; /* ✅ ENFOQUE EN LA PARTE SUPERIOR EN PANTALLAS PEQUEÑAS */
+            }
+            @include xsm-screen {
+                min-height: 180px;
+                max-height: 180px;
+                object-position: center top;
+            }
+        }
+    }
+
+    /* ✅ CONTENEDOR DE SLIDE ESPECÍFICO */
+    .banner-item .w-100 {
+        @include sm-screen {
+            height: 250px !important;
+        }
+        @include msm-screen {
+            height: 200px !important;
+        }
+        @include xsm-screen {
+            height: 180px !important;
+        }
+    }
+
+    /* ✅ CAROUSEL ESPECÍFICO */
+    .carousel {
+        @include sm-screen {
+            height: 250px;
+        }
+        @include msm-screen {
+            height: 200px;
+        }
+        @include xsm-screen {
+            height: 180px;
+        }
+    }
+}
+
+/* ✅ NUEVAS CLASES RESPONSIVAS PARA BANNER */
+.banner-responsive-container {
+    height: 450px; /* Altura por defecto */
+
+    @include xxl-screen {
+        height: 400px;
+    }
+    @include xl-screen {
+        height: 350px;
+    }
+    @include lg-screen {
+        height: 300px;
+    }
+    @include md-screen {
+        height: 280px;
+    }
+    @include sm-screen {
+        height: 250px !important;
+    }
+    @include msm-screen {
+        height: 200px !important;
+    }
+    @include xsm-screen {
+        height: 180px !important;
+    }
+}
+
+.banner-responsive-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+
+    /* ✅ OPTIMIZACIÓN ESPECÍFICA PARA CADA BREAKPOINT */
+    @include xxl-screen {
+        object-position: center center;
+    }
+    @include xl-screen {
+        object-position: center center;
+    }
+    @include lg-screen {
+        object-position: center center;
+    }
+    @include md-screen {
+        object-position: center center;
+    }
+    @include sm-screen {
+        object-position: center center;
+        object-fit: cover; /* ✅ ASEGURAR COVER EN MÓVIL */
+    }
+    @include msm-screen {
+        object-position: center top; /* ✅ ENFOQUE SUPERIOR EN PANTALLAS PEQUEÑAS */
+        object-fit: cover;
+    }
+    @include xsm-screen {
+        object-position: center top;
+        object-fit: cover;
+    }
+}
+
+/* Slider Animation Css End */
+
+/* ✅ ESTILOS PARA LOS DOTS DEL BANNER */
+.banner {
+    .custom-dots {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 100;
+        display: flex !important;
+        justify-content: center;
+        align-items: center;
+        gap: 12px;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+
+        li {
+            margin: 0;
+            padding: 0;
+            width: 16px;
+            height: 16px;
+
+            button {
+                width: 16px;
+                height: 16px;
+                padding: 0;
+                border: 2px solid rgba(255, 255, 255, 0.7);
+                border-radius: 50%;
+              background: rgba(255, 255, 255, 0.5);
+                cursor: pointer;
+                font-size: 0;
+                transition: all 0.3s ease;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+                &:hover {
+                    transform: scale(1.2);
+                    background: var(--main-400);
+                    border-color: var(--main-400);
+                }
+            }
+
+            &.slick-active button {
+                background: var(--main-600);
+                border-color: var(--main-600);
+                transform: scale(1.3);
+                border-width: 3px;
+            }
+        }
+
+        @include sm-screen {
+            bottom: 15px;
+            gap: 10px;
+
+            li {
+                width: 14px;
+                height: 14px;
+
+                button {
+                    width: 14px;
+                    height: 14px;
+                }
+            }
+        }
+    }
+}
+
+/* ============================== Banner Css End ========================== */

@@ -1,0 +1,193 @@
+<!-- src\app\pages\my-account\my-account.component.html -->
+<!-- ========================= Breadcrumb Start =============================== -->
+<app-breadcrumb title="Mi cuenta" subtitle="Perfil"></app-breadcrumb>
+
+<!-- ========================= Breadcrumb End =============================== -->
+
+<!-- Loading State -->
+<div *ngIf="isLoading" class="d-flex justify-content-center align-items-center py-20">
+  <div class="spinner-border text-main-600" role="status">
+    <span class="visually-hidden">Cargando...</span>
+  </div>
+</div>
+
+<!-- ========================= My Account Section Start =============================== -->
+<div *ngIf="!isLoading && currentUser" class="my-account-area py-30">
+  <div class="container container-lg">
+    <div class="row gy-4">
+      <!-- ✅ BARRA LATERAL IZQUIERDA MEJORADA -->
+      <div class="col-lg-3">
+        <!-- ✅ Tarjeta de información del usuario -->
+        <div class="border border-gray-100 hover-border-main-600 rounded-16 overflow-hidden bg-white mb-24 text-center transition-2">
+          <div class="p-32">
+            <!-- Avatar con foto o icono de upload -->
+            <div class="position-relative mx-auto mb-16" style="width: 80px; height: 80px;">
+              <!-- Foto de perfil si existe -->
+              <div *ngIf="getUserPhotoUrl(); else avatarWithInitials"
+                   class="w-80 h-80 rounded-circle overflow-hidden border border-gray-200">
+                <img [src]="getUserPhotoUrl()"
+                     [alt]="getUserName()"
+                     class="w-100 h-100 object-cover"
+                     (error)="onImageError($event)"
+                     loading="lazy">
+              </div>
+
+              <!-- Avatar con iniciales si no hay foto -->
+              <ng-template #avatarWithInitials>
+                <div class="w-80 h-80 bg-main-50 text-main-600 rounded-circle flex-center fw-bold text-xl">
+                  {{ getUserInitials() }}
+                </div>
+              </ng-template>
+
+              <!-- Botón de upload superpuesto -->
+              <button class="position-absolute bottom-0 end-0 w-24 h-24 bg-white border border-gray-200 rounded-circle flex-center shadow-sm hover-bg-main-50 transition-2"
+                      (click)="abrirModalFoto()"
+                      title="Cambiar foto de perfil">
+                <i class="ph ph-camera text-main-600 text-sm"></i>
+              </button>
+            </div>
+            <!-- Nombre dinámico -->
+            <h5 class="mb-8 text-heading">Hola, {{ getUserName() }}</h5>
+            <!-- Email del usuario -->
+            <p class="text-sm text-gray-600 mb-12">{{ getUserEmail() }}</p>
+            <!-- Tipo de usuario dinámico -->
+            <!-- <span class="text-sm px-12 py-4 rounded-pill d-inline-block fw-medium" [ngClass]="getUserTypeClass()">
+              {{ getUserType() }}
+            </span> -->
+            <!-- Calificación (estática por ahora, puedes hacerla dinámica después) -->
+            <!-- <div class="flex-align justify-content-center gap-8 mt-16">
+              <div class="flex-align gap-4">
+                <span class="text-xs fw-medium text-warning-600 d-flex"><i class="ph-fill ph-star"></i></span>
+                <span class="text-xs fw-medium text-warning-600 d-flex"><i class="ph-fill ph-star"></i></span>
+                <span class="text-xs fw-medium text-warning-600 d-flex"><i class="ph-fill ph-star"></i></span>
+                <span class="text-xs fw-medium text-warning-600 d-flex"><i class="ph-fill ph-star"></i></span>
+                <span class="text-xs fw-medium text-warning-600 d-flex"><i class="ph-fill ph-star"></i></span>
+              </div>
+              <span class="text-xs fw-medium text-gray-600">(4.9)</span>
+            </div> -->
+          </div>
+        </div>
+
+        <!-- ✅ Menú de navegación mejorado -->
+        <div class="border border-gray-100 hover-border-main-600 rounded-16 overflow-hidden bg-white transition-2">
+          <div class="p-16 bg-main-50 border-bottom border-gray-100">
+            <h6 class="mb-0 text-main-600 fw-semibold">
+              <i class="ph ph-list me-8"></i>
+              Menú de cuenta
+            </h6>
+          </div>
+
+          <div class="p-0">
+            <a routerLink="/my-account/direcciones"
+               class="d-flex align-items-center justify-content-between p-16 text-decoration-none border-bottom border-gray-100 hover-bg-main-50 transition-2"
+               routerLinkActive="bg-main-50 border-start border-start-4 border-main-600">
+              <div class="flex-align gap-12">
+                <span class="w-32 h-32 bg-gray-100 text-gray-600 rounded-circle flex-center text-sm hover-bg-main-600 hover-text-white transition-2">
+                  <i class="ph-bold ph-map-pin"></i>
+                </span>
+                <span class="text-gray-700 fw-medium hover-text-heading">Direcciones</span>
+              </div>
+              <i class="ph-bold ph-caret-right text-gray-400"></i>
+            </a>
+
+            <a routerLink="/my-account/cotizaciones"
+               class="d-flex align-items-center justify-content-between p-16 text-decoration-none border-bottom border-gray-100 hover-bg-main-50 transition-2"
+               routerLinkActive="bg-main-50 border-start border-start-4 border-main-600">
+              <div class="flex-align gap-12">
+                <span class="w-32 h-32 bg-gray-100 text-gray-600 rounded-circle flex-center text-sm hover-bg-main-600 hover-text-white transition-2">
+                  <i class="ph-bold ph-file-text"></i>
+                </span>
+                <span class="text-gray-700 fw-medium hover-text-heading">Mis Cotizaciones</span>
+              </div>
+              <i class="ph-bold ph-caret-right text-gray-400"></i>
+            </a>
+
+            <a routerLink="/my-account/compras"
+               class="d-flex align-items-center justify-content-between p-16 text-decoration-none border-bottom border-gray-100 hover-bg-main-50 transition-2"
+               routerLinkActive="bg-main-50 border-start border-start-4 border-main-600">
+              <div class="flex-align gap-12">
+                <span class="w-32 h-32 bg-gray-100 text-gray-600 rounded-circle flex-center text-sm hover-bg-main-600 hover-text-white transition-2">
+                  <i class="ph-bold ph-package"></i>
+                </span>
+                <span class="text-gray-700 fw-medium hover-text-heading">Mis Compras</span>
+              </div>
+              <i class="ph-bold ph-caret-right text-gray-400"></i>
+            </a>
+
+            <a routerLink="/my-account/favoritos"
+               class="d-flex align-items-center justify-content-between p-16 text-decoration-none border-bottom border-gray-100 hover-bg-main-50 transition-2"
+               routerLinkActive="bg-main-50 border-start border-start-4 border-main-600">
+              <div class="flex-align gap-12">
+                <span class="w-32 h-32 bg-gray-100 text-gray-600 rounded-circle flex-center text-sm hover-bg-main-600 hover-text-white transition-2">
+                  <i class="ph-bold ph-heart"></i>
+                </span>
+                <span class="text-gray-700 fw-medium hover-text-heading">Mis Favoritos</span>
+              </div>
+              <i class="ph-bold ph-caret-right text-gray-400"></i>
+            </a>
+
+            <a routerLink="/my-account/reclamos"
+               class="d-flex align-items-center justify-content-between p-16 text-decoration-none border-bottom border-gray-100 hover-bg-main-50 transition-2"
+               routerLinkActive="bg-main-50 border-start border-start-4 border-main-600">
+              <div class="flex-align gap-12">
+                <span class="w-32 h-32 bg-gray-100 text-gray-600 rounded-circle flex-center text-sm hover-bg-main-600 hover-text-white transition-2">
+                  <i class="ph-bold ph-user-circle"></i>
+                </span>
+                <span class="text-gray-700 fw-medium hover-text-heading">Reclamos</span>
+              </div>
+              <i class="ph-bold ph-caret-right text-gray-400"></i>
+            </a>
+
+            <a routerLink="/my-account/recompensas"
+               class="d-flex align-items-center justify-content-between p-16 text-decoration-none border-bottom border-gray-100 hover-bg-main-50 transition-2"
+               routerLinkActive="bg-main-50 border-start border-start-4 border-main-600">
+              <div class="flex-align gap-12">
+                <span class="w-32 h-32 bg-gray-100 text-gray-600 rounded-circle flex-center text-sm hover-bg-main-600 hover-text-white transition-2">
+                  <i class="ph-bold ph-gift"></i>
+                </span>
+                <span class="text-gray-700 fw-medium hover-text-heading">Recompensas</span>
+              </div>
+              <i class="ph-bold ph-caret-right text-gray-400"></i>
+            </a>
+
+            <a routerLink="/my-account/cupones"
+               class="d-flex align-items-center justify-content-between p-16 text-decoration-none border-bottom border-gray-100 hover-bg-main-50 transition-2"
+               routerLinkActive="bg-main-50 border-start border-start-4 border-main-600">
+              <div class="flex-align gap-12">
+                <span class="w-32 h-32 bg-gray-100 text-gray-600 rounded-circle flex-center text-sm hover-bg-main-600 hover-text-white transition-2">
+                  <i class="ph-bold ph-ticket"></i>
+                </span>
+                <span class="text-gray-700 fw-medium hover-text-heading">Mis Cupones</span>
+              </div>
+              <i class="ph-bold ph-caret-right text-gray-400"></i>
+            </a>
+
+            <!-- Cerrar sesión con funcionalidad -->
+            <a href="#" (click)="onLogout(); $event.preventDefault()" class="d-flex align-items-center justify-content-between p-16 text-decoration-none hover-bg-danger-50 transition-2">
+              <div class="flex-align gap-12">
+                <span class="w-32 h-32 bg-gray-100 text-gray-600 rounded-circle flex-center text-sm hover-bg-danger-600 hover-text-white transition-2">
+                  <i class="ph-bold ph-sign-out"></i>
+                </span>
+                <span class="text-gray-700 fw-medium hover-text-danger-600">Cerrar sesión</span>
+              </div>
+              <i class="ph-bold ph-caret-right text-gray-400 hover-text-danger-600"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ✅ CONTENIDO PRINCIPAL -->
+      <div class="col-lg-9">
+        <!-- Router outlet para componentes hijos -->
+        <router-outlet></router-outlet>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Foto -->
+<app-modal-foto
+  [isVisible]="showModalFoto"
+  (onClose)="cerrarModalFoto()"
+  (onFotoActualizada)="onFotoActualizada()">
+</app-modal-foto>

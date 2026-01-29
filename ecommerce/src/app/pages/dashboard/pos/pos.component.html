@@ -1,0 +1,871 @@
+<!-- El header del dashboard ya maneja la navegación -->
+
+<!-- ALERTAS -->
+<div *ngIf="error || success" class="pos-alerts">
+  <div class="alert alert-danger" *ngIf="error">
+    <i class="ph ph-warning-circle"></i>
+    <span>{{ error }}</span>
+    <button class="alert-close" (click)="cerrarMensajes()">
+      <i class="ph ph-x"></i>
+    </button>
+  </div>
+  <div class="alert alert-success" *ngIf="success">
+    <i class="ph ph-check-circle"></i>
+    <span>{{ success }}</span>
+    <button class="alert-close" (click)="cerrarMensajes()">
+      <i class="ph ph-x"></i>
+    </button>
+  </div>
+</div>
+
+<!-- CONTENEDOR PRINCIPAL -->
+<div class="pos-container">
+
+  <!-- PANEL PRINCIPAL - BÚSQUEDA Y CARRITO -->
+  <div class="pos-main-panel">
+
+    <!-- BÚSQUEDA RÁPIDA -->
+    <div class="search-section">
+      <!-- Pestañas: Productos y Servicios -->
+      <ul class="nav nav-tabs mb-3" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button 
+            class="nav-link" 
+            [class.active]="pestanaActiva === 'productos'"
+            (click)="cambiarPestana('productos')"
+            type="button">
+            <i class="ph ph-package me-2"></i>
+            Productos
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button 
+            class="nav-link" 
+            [class.active]="pestanaActiva === 'servicios'"
+            (click)="cambiarPestana('servicios')"
+            type="button">
+            <i class="ph ph-briefcase me-2"></i>
+            Servicios
+          </button>
+        </li>
+      </ul>
+
+      <!-- CONTENIDO PESTAÑA PRODUCTOS -->
+      <div *ngIf="pestanaActiva === 'productos'">
+        <div class="search-wrapper">
+          <div class="search-input-container">
+            <i class="ph ph-magnifying-glass search-icon"></i>
+            <input type="text" class="search-input" 
+              placeholder="Buscar producto por código o nombre..."
+              [(ngModel)]="terminoBusqueda" (keyup.enter)="onBuscarProductos()" (input)="filtrarProductos()" autofocus>
+            <button *ngIf="terminoBusqueda" class="btn-clear-search" (click)="onLimpiarBusqueda()">
+              <i class="ph ph-x"></i>
+            </button>
+          </div>
+          <button class="btn-advanced-search" (click)="abrirProductoModal()">
+            <i class="ph ph-funnel"></i>
+            Avanzado
+          </button>
+        </div>
+
+      <!-- RESULTADOS DE BÚSQUEDA RÁPIDA -->
+      <div *ngIf="terminoBusqueda && productosFiltrados.length > 0" class="search-results">
+        <div class="search-results-header">
+          <div class="header-left">
+            <input type="checkbox" class="custom-checkbox" [checked]="todosResultadosSeleccionados"
+              [indeterminate]="algunosResultadosSeleccionados" (change)="toggleTodosResultados($event)"
+              title="Seleccionar todos">
+            <span class="results-count">{{ productosFiltrados.length }} resultados</span>
+            <span *ngIf="totalResultadosSeleccionados > 0" class="badge-selected">
+              <i class="ph ph-check-circle"></i>
+              {{ totalResultadosSeleccionados }} seleccionado(s)
+            </span>
+          </div>
+        </div>
+        <div class="results-list">
+          <div *ngFor="let producto of productosFiltrados.slice(0, 6); trackBy: trackByProductoId" class="result-item"
+            [class.selected]="producto.seleccionado">
+            <div class="result-left">
+              <input type="checkbox" class="custom-checkbox" [(ngModel)]="producto.seleccionado"
+                (change)="onCheckboxResultadoChange(producto)" (click)="$event.stopPropagation()">
+              <div class="result-info">
+                <div class="result-name">
+                  {{ producto.nombre }}
+                  <span class="badge ms-2" 
+                    [class.bg-primary]="producto.tipo_item === 'PRODUCTO'"
+                    [class.bg-info]="producto.tipo_item === 'SERVICIO'">
+                    <i class="ph" [class.ph-package]="producto.tipo_item === 'PRODUCTO'" 
+                       [class.ph-briefcase]="producto.tipo_item === 'SERVICIO'"></i>
+                    {{ producto.tipo_item === 'SERVICIO' ? 'Servicio' : 'Producto' }}
+                  </span>
+                </div>
+                <div class="result-code">
+                  <i class="ph ph-barcode"></i>
+                  {{ producto.codigo_servicio || producto.codigo_producto || producto.codigo || 'N/A' }}
+                </div>
+              </div>
+            </div>
+            <div class="result-right">
+              <div class="result-price-stock">
+                <div class="result-price">S/ {{ (producto.precio_venta || producto.precio || 0) | number:'1.2-2' }}
+                </div>
+                <div class="result-stock" *ngIf="producto.tipo_item === 'PRODUCTO'"
+                  [class.low]="getStockDisponible(producto) < 10 && getStockDisponible(producto) > 0"
+                  [class.out]="getStockDisponible(producto) === 0">
+                  <i class="ph ph-package"></i>
+                  <span>Stock: {{ getStockDisponible(producto) }}</span>
+                </div>
+                <div class="result-stock" *ngIf="producto.tipo_item === 'SERVICIO'">
+                  <i class="ph ph-infinity"></i>
+                  <span>Disponible</span>
+                </div>
+              </div>
+              <div class="quantity-controls" *ngIf="producto.seleccionado">
+                <button type="button" class="btn-quantity btn-minus"
+                  (click)="decrementarResultado(producto); $event.stopPropagation()"
+                  [disabled]="producto.cantidadSeleccionada <= 1">
+                  <i class="ph ph-minus"></i>
+                </button>
+                <input type="number" class="quantity-input" [(ngModel)]="producto.cantidadSeleccionada"
+                  (change)="validarCantidadResultado(producto)" (click)="$event.stopPropagation()" min="1"
+                  [max]="getStockDisponible(producto)">
+                <button type="button" class="btn-quantity btn-plus"
+                  (click)="incrementarResultado(producto); $event.stopPropagation()"
+                  [disabled]="producto.cantidadSeleccionada >= getStockDisponible(producto) || getStockDisponible(producto) === 0">
+                  <i class="ph ph-plus"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button *ngIf="productosFiltrados.length > 6" class="btn-show-all" (click)="abrirProductoModal()">
+          <i class="ph ph-funnel"></i>
+          Ver todos ({{ productosFiltrados.length }})
+        </button>
+      </div>
+
+        <!-- SIN RESULTADOS -->
+        <div *ngIf="terminoBusqueda && productosFiltrados.length === 0" class="no-results">
+          <i class="ph ph-magnifying-glass-minus"></i>
+          <p>No se encontraron productos</p>
+          <button class="btn-link" (click)="abrirProductoModal()">Búsqueda avanzada</button>
+        </div>
+      </div>
+
+      <!-- CONTENIDO PESTAÑA SERVICIOS -->
+      <div *ngIf="pestanaActiva === 'servicios'" class="servicios-form">
+        <div class="card">
+          <div class="card-body">
+            <h6 class="mb-3">
+              <i class="ph ph-briefcase me-2"></i>
+              Agregar Servicio Manual
+            </h6>
+            <form (ngSubmit)="agregarServicioManual()">
+              <!-- Descripción -->
+              <div class="mb-3">
+                <label class="form-label">Descripción del Servicio <span class="text-danger">*</span></label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  [(ngModel)]="servicioManual.descripcion"
+                  name="descripcion"
+                  placeholder="Ej: Consultoría IT, Desarrollo web, Soporte técnico..."
+                  required>
+              </div>
+
+              <!-- Cantidad y Precio -->
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label">Cantidad <span class="text-danger">*</span></label>
+                  <input 
+                    type="number" 
+                    class="form-control" 
+                    [(ngModel)]="servicioManual.cantidad"
+                    name="cantidad"
+                    min="0.01"
+                    step="0.01"
+                    (input)="calcularTotalServicio()"
+                    required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">
+                    Precio Unitario <span class="text-danger">*</span>
+                    <small class="text-muted">(incluye IGV 18%)</small>
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text">S/</span>
+                    <input 
+                      type="number" 
+                      class="form-control" 
+                      [(ngModel)]="servicioManual.precio_unitario"
+                      name="precio"
+                      min="0.01"
+                      step="0.01"
+                      placeholder="0.00"
+                      (input)="calcularTotalServicio()"
+                      required>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Total y Botón -->
+              <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded">
+                <span class="text-muted">Total:</span>
+                <strong class="fs-5">S/ {{ calcularTotalServicio() | number:'1.2-2' }}</strong>
+              </div>
+
+              <button 
+                type="submit" 
+                class="btn btn-primary w-100"
+                [disabled]="!servicioManual.descripcion || !servicioManual.cantidad || !servicioManual.precio_unitario">
+                <i class="ph ph-plus me-2"></i>
+                Agregar al Carrito
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARRITO -->
+    <div class="cart-section">
+      <div class="cart-header">
+        <h5>
+          <i class="ph ph-shopping-cart"></i>
+          Carrito de venta
+        </h5>
+        <button *ngIf="ventaForm.items.length > 0" class="btn-clear-cart" (click)="limpiarVenta()">
+          <i class="ph ph-trash"></i>
+          Limpiar
+        </button>
+      </div>
+
+      <!-- CARRITO VACÍO -->
+      <div *ngIf="ventaForm.items.length === 0" class="cart-empty">
+        <i class="ph ph-shopping-cart-simple"></i>
+        <p>El carrito está vacío</p>
+        <small>Busca y agrega productos para comenzar</small>
+      </div>
+
+      <!-- LISTA DE ITEMS -->
+      <div *ngIf="ventaForm.items.length > 0" class="cart-items">
+        <div *ngFor="let item of ventaForm.items; let i = index" class="cart-item" [@itemAnimation]>
+          <div class="item-header">
+            <div class="item-number">#{{ i + 1 }}</div>
+            <div class="item-info">
+              <div class="item-name">{{ item.descripcion }}</div>
+              <div class="item-code">{{ item.codigo_producto || 'N/A' }}</div>
+            </div>
+            <button class="btn-remove" (click)="eliminarItem(i)">
+              <i class="ph ph-x"></i>
+            </button>
+          </div>
+
+          <div class="item-body">
+            <div class="item-quantity">
+              <button class="qty-btn" (click)="decrementarCantidad(i)" [disabled]="item.cantidad <= 1">
+                <i class="ph ph-minus"></i>
+              </button>
+              <input type="number" class="qty-input" [(ngModel)]="item.cantidad" (change)="calcularItem(item)" min="1">
+              <button class="qty-btn" (click)="incrementarCantidad(i)">
+                <i class="ph ph-plus"></i>
+              </button>
+            </div>
+
+            <div class="item-price">
+              <span class="price-label">P. Unit.</span>
+              <div class="price-value">
+                <span>S/</span>
+                <input type="number" [(ngModel)]="item.precio_unitario" (change)="calcularItem(item)" step="0.01">
+              </div>
+            </div>
+
+            <div class="item-total">
+              <span class="total-label">Total</span>
+              <span class="total-value">S/ {{ (item.cantidad * item.precio_unitario) | number:'1.2-2' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL LATERAL - RESUMEN Y ACCIONES -->
+  <div class="pos-sidebar">
+
+    <!-- INFORMACIÓN BÁSICA -->
+    <div class="sidebar-section">
+      <div class="section-title">Información de venta</div>
+
+      <!-- CLIENTE - EDITABLE -->
+      <button class="info-card" (click)="abrirModalCliente()">
+        <div class="info-card-icon">
+          <i class="ph ph-user"></i>
+        </div>
+        <div class="info-card-content">
+          <div class="info-card-label">Cliente</div>
+          <div class="info-card-value">{{ ventaForm.cliente.nombre || 'Configurar cliente' }}</div>
+          <small *ngIf="ventaForm.cliente.numero_documento">{{ ventaForm.cliente.numero_documento }}</small>
+        </div>
+        <i class="ph ph-pencil-simple info-card-arrow"></i>
+      </button>
+
+      <!-- TIPO DE COMPROBANTE - EDITABLE -->
+      <button class="info-card" (click)="iniciarFlujoVenta()">
+        <div class="info-card-icon">
+          <i class="ph ph-receipt"></i>
+        </div>
+        <div class="info-card-content">
+          <div class="info-card-label">Comprobante</div>
+          <div class="info-card-value">
+            {{ tipoDocumentoSeleccionado === 'NOTA_DE_VENTA' ? 'Nota de Venta' : (tipoDocumentoSeleccionado === '01' ?
+            'Factura' : 'Boleta') }}
+          </div>
+          <small *ngIf="tipoDocumentoSeleccionado !== 'NOTA_DE_VENTA' && serieSeleccionada()">
+            {{ serieSeleccionada()?.serie }} - {{ getNumeroSiguiente() }}
+          </small>
+        </div>
+        <i class="ph ph-pencil-simple info-card-arrow"></i>
+      </button>
+
+      <!-- MÉTODO DE PAGO -->
+      <button class="info-card" (click)="abrirPagoModal()">
+        <div class="info-card-icon">
+          <i class="ph ph-credit-card"></i>
+        </div>
+        <div class="info-card-content">
+          <div class="info-card-label">Método de pago</div>
+          <div class="info-card-value">{{ ventaForm.metodo_pago || 'EFECTIVO' }}</div>
+        </div>
+        <i class="ph ph-caret-right info-card-arrow"></i>
+      </button>
+    </div>
+
+    <!-- RESUMEN -->
+    <div class="sidebar-section">
+      <div class="section-title">Resumen</div>
+
+      <div class="summary-card">
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span>S/ {{ calcularSubtotal() | number:'1.2-2' }}</span>
+        </div>
+        <div class="summary-row">
+          <span>IGV (18%)</span>
+          <span>S/ {{ calcularIGV() | number:'1.2-2' }}</span>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-total">
+          <span>TOTAL</span>
+          <span>S/ {{ calcularTotal() | number:'1.2-2' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCIONES -->
+    <div class="sidebar-section">
+      <div class="section-title">Acciones</div>
+
+      <div class="sidebar-actions">
+        <button class="btn-action btn-primary" (click)="procesarVenta()" [disabled]="!puedeProcesarVenta() || loading">
+          <div class="btn-content">
+            <i class="ph ph-check-circle" *ngIf="!loading"></i>
+            <i class="ph ph-spinner ph-spin" *ngIf="loading"></i>
+            <span>{{ tipoDocumentoSeleccionado === 'NOTA_DE_VENTA' ? 'Guardar Venta' : 'Procesar Venta' }}</span>
+          </div>
+        </button>
+
+        <button *ngIf="tipoDocumentoSeleccionado !== 'NOTA_DE_VENTA' && ventaGuardada" class="btn-action btn-success"
+          (click)="facturarVenta()" [disabled]="!ventaGuardada || facturando()">
+          <div class="btn-content">
+            <i class="ph ph-receipt" *ngIf="!facturando()"></i>
+            <i class="ph ph-spinner ph-spin" *ngIf="facturando()"></i>
+            <span>Emitir Comprobante</span>
+          </div>
+        </button>
+
+        <button class="btn-action btn-secondary" (click)="limpiarVenta()" [disabled]="ventaForm.items.length === 0">
+          <div class="btn-content">
+            <i class="ph ph-broom"></i>
+            <span>Nueva Venta</span>
+          </div>
+        </button>
+      </div>
+
+      <!-- CHECKBOXES DE PROGRESO -->
+      <div class="progress-checkboxes">
+        <div class="checkbox-column">
+          <div class="checkbox-item" [class.checked]="clienteCompletado">
+            <div class="checkbox-box">
+              <i class="ph ph-check" *ngIf="clienteCompletado"></i>
+            </div>
+            <span class="checkbox-label">Cliente</span>
+          </div>
+
+          <div class="checkbox-item" [class.checked]="productosCompletado">
+            <div class="checkbox-box">
+              <i class="ph ph-check" *ngIf="productosCompletado"></i>
+            </div>
+            <span class="checkbox-label">Productos</span>
+          </div>
+        </div>
+
+        <div class="checkbox-column">
+          <div class="checkbox-item" [class.checked]="pagoCompletado">
+            <div class="checkbox-box">
+              <i class="ph ph-check" *ngIf="pagoCompletado"></i>
+            </div>
+            <span class="checkbox-label">Pago</span>
+          </div>
+
+          <div class="checkbox-item" [class.checked]="procesarHabilitado">
+            <div class="checkbox-box">
+              <i class="ph ph-check" *ngIf="procesarHabilitado"></i>
+            </div>
+            <span class="checkbox-label">Procesar</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DE CONFIGURACIÓN DE VENTA -->
+<div *ngIf="mostrarConfiguracionModal" class="modal-overlay" (click)="cerrarConfiguracionModal()" style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; 
+         width: 100vw !important; height: 100vh !important; display: flex !important; align-items: center !important; 
+         justify-content: center !important; background: rgba(0, 0, 0, 0.6) !important; z-index: 99999 !important; 
+         padding: 20px !important; margin: 0 !important;">
+  <div class="modal-container modal-config" (click)="$event.stopPropagation()"
+    style="margin: 0 auto !important; max-width: 650px; width: 100%;">
+    <div class="modal-header">
+      <h5>Configuración de venta</h5>
+      <button class="modal-close" (click)="cerrarConfiguracionModal()">
+        <i class="ph ph-x"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Tipo de Comprobante -->
+      <div class="form-group">
+        <label>Tipo de Comprobante</label>
+        <div class="comprobante-grid">
+          <div class="comprobante-option" [class.active]="tipoDocumentoSeleccionado === 'NOTA_DE_VENTA'"
+            (click)="tipoDocumentoSeleccionado = 'NOTA_DE_VENTA'; onTipoDocumentoChange()">
+            <i class="ph ph-note"></i>
+            <span>Nota de Venta</span>
+          </div>
+          <div class="comprobante-option" [class.active]="tipoDocumentoSeleccionado === '03'"
+            (click)="tipoDocumentoSeleccionado = '03'; onTipoDocumentoChange()">
+            <i class="ph ph-receipt"></i>
+            <span>Boleta</span>
+          </div>
+          <div class="comprobante-option" [class.active]="tipoDocumentoSeleccionado === '01'"
+            (click)="tipoDocumentoSeleccionado = '01'; onTipoDocumentoChange()">
+            <i class="ph ph-file-text"></i>
+            <span>Factura</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Serie (si aplica) -->
+      <div *ngIf="tipoDocumentoSeleccionado !== 'NOTA_DE_VENTA'" class="form-group">
+        <label>Serie y Número</label>
+        <div class="serie-selector" (click)="abrirSerieModal()">
+          <div class="serie-info">
+            <span class="serie-label">Serie</span>
+            <span class="serie-value">{{ serieSeleccionada()?.serie || 'Seleccionar' }}</span>
+          </div>
+          <div class="serie-divider"></div>
+          <div class="serie-info">
+            <span class="serie-label">Número</span>
+            <span class="serie-value">{{ getNumeroSiguiente() }}</span>
+          </div>
+          <i class="ph ph-caret-right"></i>
+        </div>
+      </div>
+
+      <!-- Observaciones -->
+      <div class="form-group">
+        <label>Observaciones (opcional)</label>
+        <textarea class="form-textarea" rows="3" placeholder="Notas adicionales sobre la venta..."
+          [(ngModel)]="ventaForm.observaciones"></textarea>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-modal btn-secondary" (click)="cerrarConfiguracionModal(false)">Cancelar</button>
+      <button class="btn-modal btn-primary" (click)="cerrarConfiguracionModal(true)">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL DE COMPROBANTE GENERADO -->
+<div *ngIf="mostrarPanelComprobante()" class="comprobante-panel">
+  <div class="comprobante-card">
+    <div class="comprobante-header">
+      <div class="comprobante-icon">
+        <i class="ph ph-check-circle"></i>
+      </div>
+      <h5>Comprobante Generado</h5>
+      <button class="btn-close-panel" (click)="cerrarPanelComprobante()">
+        <i class="ph ph-x"></i>
+      </button>
+    </div>
+
+    <div *ngIf="comprobanteGenerado()" class="comprobante-info">
+      <div class="info-row">
+        <span class="info-label">Número</span>
+        <span class="info-value">{{ comprobanteGenerado()?.numero_completo }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Estado</span>
+        <span class="badge badge-success">{{ comprobanteGenerado()?.estado_sunat }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Total</span>
+        <span class="info-value">S/ {{ comprobanteGenerado()?.total | number:'1.2-2' }}</span>
+      </div>
+    </div>
+
+    <div class="comprobante-actions">
+      <button class="btn-comprobante" (click)="descargarPDF()" [disabled]="descargandoPDF()">
+        <i class="ph ph-file-pdf"></i>
+        PDF
+      </button>
+      <button class="btn-comprobante" (click)="descargarXML()" [disabled]="descargandoXML()">
+        <i class="ph ph-file-code"></i>
+        XML
+      </button>
+      <button class="btn-comprobante btn-primary" (click)="abrirModalEnviarComprobante()">
+        <i class="ph ph-paper-plane-tilt"></i>
+        Enviar
+      </button>
+      <button class="btn-comprobante" (click)="consultarEstadoSunat()" [disabled]="consultandoSunat()">
+        <i class="ph ph-magnifying-glass"></i>
+        SUNAT
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODALES EXISTENTES -->
+<app-cliente-edit-modal *ngIf="mostrarClienteModal" [cliente]="clienteParaModal"
+  (clienteActualizado)="onClienteActualizado($event)" (clienteGuardado)="onClienteGuardado($event)"
+  (cerrar)="cerrarClienteModal()"></app-cliente-edit-modal>
+
+<app-pago-rapido-modal *ngIf="mostrarPagoModal" [totalPagar]="calcularTotal()"
+  (pagoProcesado)="onPagoProcesadoEvent($event)" (cerrar)="cerrarPagoModal()"></app-pago-rapido-modal>
+
+<app-confirmacion-sunat-modal *ngIf="mostrarConfirmacionModal" (confirmado)="onConfirmacionSunatEvent($event)"
+  (cerrar)="cerrarConfirmacionSunat()"></app-confirmacion-sunat-modal>
+
+<app-serie-selector-modal *ngIf="mostrarSerieModal" [series]="seriesDisponibles()"
+  (seleccionarSerie)="onSeleccionSerieEvent($event)" (cerrar)="cerrarSerieModal()"></app-serie-selector-modal>
+
+<!-- Modal Enviar Comprobante -->
+<app-enviar-comprobante-modal *ngIf="mostrarEnviarComprobanteModal" [comprobante]="comprobanteGenerado()"
+  [emailDefault]="ventaForm.cliente.email || ''" [telefonoDefault]="ventaForm.cliente.telefono || ''"
+  (enviar)="onEnviarComprobante($event)" (cerrar)="cerrarModalEnviarComprobante()">
+</app-enviar-comprobante-modal>
+
+<!-- Modal de Éxito -->
+<div *ngIf="mostrarModalExito" class="modal-overlay" (click)="cerrarModalExito()">
+  <div class="modal-container modal-success" (click)="$event.stopPropagation()">
+    <div class="success-icon">
+      <i class="ph ph-check-circle"></i>
+    </div>
+    <h4>¡Venta Registrada!</h4>
+    <p>La venta se ha registrado exitosamente</p>
+
+    <div *ngIf="ventaGuardada" class="success-info">
+      <div class="info-item">
+        <span>Código</span>
+        <strong>{{ ventaGuardada.codigo_venta }}</strong>
+      </div>
+      <div class="info-item">
+        <span>Total</span>
+        <strong class="text-success">S/ {{ ventaGuardada.total | number:'1.2-2' }}</strong>
+      </div>
+    </div>
+
+    <div class="success-actions">
+      <button class="btn-modal btn-primary" (click)="cerrarModalExito()"
+        style="width: 100%; padding: 14px; font-size: 16px;">
+        Continuar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL 1: TIPO DE COMPROBANTE (PASO OBLIGATORIO) -->
+<!-- ========================================== -->
+<!-- MODAL 1: TIPO DE COMPROBANTE (PASO OBLIGATORIO) -->
+<!-- ========================================== -->
+<div *ngIf="mostrarModalTipoComprobante" class="modal-overlay modal-obligatorio" style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; 
+         width: 100vw !important; height: 100vh !important; display: flex !important; align-items: center !important; 
+         justify-content: center !important; background: rgba(0, 0, 0, 0.6) !important; z-index: 99999 !important; 
+         padding: 20px !important; margin: 0 !important;">
+  <div class="modal-container modal-config" (click)="$event.stopPropagation()"
+    style="max-width: 650px; width: 100%; position: relative; margin: 0 auto !important;">
+    <div class="modal-header" style="background-color: var(--main-600) !important; color: white; padding: 20px 24px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div
+          style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+          <i class="ph ph-receipt" style="font-size: 24px;"></i>
+        </div>
+        <div style="flex: 1;">
+          <h5 style="margin: 0; font-size: 18px; font-weight: 600;">Paso 1: Tipo de Comprobante</h5>
+          <small style="opacity: 0.95; font-size: 13px;">Seleccione el tipo de documento a emitir</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-body" style="padding: 24px;">
+      <!-- Alerta informativa -->
+      <div
+        style="background: #e7f3ff; border-left: 4px solid #0d6efd; padding: 14px 16px; border-radius: 6px; margin-bottom: 24px;">
+        <div style="display: flex; gap: 12px; align-items: flex-start;">
+          <i class="ph ph-info" style="color: #0d6efd; font-size: 20px; margin-top: 2px;"></i>
+          <div style="flex: 1;">
+            <strong style="color: #0a58ca; display: block; margin-bottom: 4px;">Importante:</strong>
+            <p style="margin: 0; color: #495057; font-size: 13px; line-height: 1.5;">
+              El tipo de comprobante determina qué datos del cliente serán requeridos en el siguiente paso.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tipo de Comprobante -->
+      <div class="form-group">
+        <label style="font-weight: 600; margin-bottom: 16px; display: block; color: #212529; font-size: 14px;">
+          Seleccione el tipo de comprobante *
+        </label>
+        <div class="comprobante-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+          <!-- Nota de Venta -->
+          <div class="comprobante-option" [class.active]="tipoDocumentoSeleccionado === 'NOTA_DE_VENTA'"
+            (click)="tipoDocumentoSeleccionado = 'NOTA_DE_VENTA'; onTipoDocumentoChange()"
+            style="cursor: pointer; padding: 20px 16px; border: 2px solid #dee2e6; border-radius: 10px; text-align: center; transition: all 0.2s ease; background: white;"
+            [style.border-color]="tipoDocumentoSeleccionado === 'NOTA_DE_VENTA' ? '#0d6efd' : '#dee2e6'"
+            [style.background]="tipoDocumentoSeleccionado === 'NOTA_DE_VENTA' ? '#e7f3ff' : 'white'"
+            [style.box-shadow]="tipoDocumentoSeleccionado === 'NOTA_DE_VENTA' ? '0 4px 12px rgba(13, 110, 253, 0.15)' : 'none'">
+            <i class="ph ph-note" style="font-size: 36px; display: block; margin-bottom: 12px;"
+              [style.color]="tipoDocumentoSeleccionado === 'NOTA_DE_VENTA' ? '#0d6efd' : '#6c757d'"></i>
+            <strong style="display: block; margin-bottom: 6px; font-size: 14px; color: #212529;">Nota de Venta</strong>
+            <small style="color: #6c757d; font-size: 12px; line-height: 1.4; display: block;">Sin
+              comprobante<br>electrónico</small>
+          </div>
+
+          <!-- Boleta -->
+          <div class="comprobante-option" [class.active]="tipoDocumentoSeleccionado === '03'"
+            (click)="tipoDocumentoSeleccionado = '03'; onTipoDocumentoChange()"
+            style="cursor: pointer; padding: 20px 16px; border: 2px solid #dee2e6; border-radius: 10px; text-align: center; transition: all 0.2s ease; background: white;"
+            [style.border-color]="tipoDocumentoSeleccionado === '03' ? '#0d6efd' : '#dee2e6'"
+            [style.background]="tipoDocumentoSeleccionado === '03' ? '#e7f3ff' : 'white'"
+            [style.box-shadow]="tipoDocumentoSeleccionado === '03' ? '0 4px 12px rgba(13, 110, 253, 0.15)' : 'none'">
+            <i class="ph ph-receipt" style="font-size: 36px; display: block; margin-bottom: 12px;"
+              [style.color]="tipoDocumentoSeleccionado === '03' ? '#0d6efd' : '#6c757d'"></i>
+            <strong style="display: block; margin-bottom: 6px; font-size: 14px; color: #212529;">Boleta</strong>
+            <small style="color: #6c757d; font-size: 12px; line-height: 1.4; display: block;">Requiere
+              DNI/RUC<br>Obligatorio</small>
+          </div>
+
+          <!-- Factura -->
+          <div class="comprobante-option" [class.active]="tipoDocumentoSeleccionado === '01'"
+            (click)="tipoDocumentoSeleccionado = '01'; onTipoDocumentoChange()"
+            style="cursor: pointer; padding: 20px 16px; border: 2px solid #dee2e6; border-radius: 10px; text-align: center; transition: all 0.2s ease; background: white;"
+            [style.border-color]="tipoDocumentoSeleccionado === '01' ? '#0d6efd' : '#dee2e6'"
+            [style.background]="tipoDocumentoSeleccionado === '01' ? '#e7f3ff' : 'white'"
+            [style.box-shadow]="tipoDocumentoSeleccionado === '01' ? '0 4px 12px rgba(13, 110, 253, 0.15)' : 'none'">
+            <i class="ph ph-file-text" style="font-size: 36px; display: block; margin-bottom: 12px;"
+              [style.color]="tipoDocumentoSeleccionado === '01' ? '#0d6efd' : '#6c757d'"></i>
+            <strong style="display: block; margin-bottom: 6px; font-size: 14px; color: #212529;">Factura</strong>
+            <small style="color: #6c757d; font-size: 12px; line-height: 1.4; display: block;">Requiere
+              RUC<br>Obligatorio</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Serie (si aplica) - SOLO LECTURA, SE SELECCIONA AUTOMÁTICAMENTE -->
+      <div *ngIf="tipoDocumentoSeleccionado !== 'NOTA_DE_VENTA'" class="form-group" style="margin-top: 24px;">
+        <label style="font-weight: 600; margin-bottom: 12px; display: block; color: #212529; font-size: 14px;">
+          Serie y Número (Selección automática)
+        </label>
+        <div class="serie-selector"
+          style="border: 2px solid #dee2e6; border-radius: 8px; padding: 16px; display: flex; align-items: center; gap: 16px; background: #f8f9fa;">
+          <div class="serie-info" style="flex: 1;">
+            <span class="serie-label"
+              style="display: block; font-size: 11px; color: #6c757d; margin-bottom: 4px; text-transform: uppercase; font-weight: 500;">Serie</span>
+            <span class="serie-value" style="font-weight: 600; color: #212529; font-size: 15px;">{{
+              serieSeleccionada()?.serie || 'No disponible' }}</span>
+          </div>
+          <div class="serie-divider" style="width: 1px; height: 36px; background: #dee2e6;"></div>
+          <div class="serie-info" style="flex: 1;">
+            <span class="serie-label"
+              style="display: block; font-size: 11px; color: #6c757d; margin-bottom: 4px; text-transform: uppercase; font-weight: 500;">Número</span>
+            <span class="serie-value" style="font-weight: 600; color: #212529; font-size: 15px;">{{ getNumeroSiguiente()
+              }}</span>
+          </div>
+          <i class="ph ph-check-circle" style="color: #198754; font-size: 20px;"></i>
+        </div>
+        <small style="display: block; margin-top: 8px; color: #6c757d; font-size: 12px;">
+          <i class="ph ph-info"></i> La serie se asigna automáticamente según el tipo de comprobante
+        </small>
+      </div>
+    </div>
+
+    <div class="modal-footer"
+      style="background: #f8f9fa; padding: 16px 24px; display: flex; gap: 12px; justify-content: flex-end; border-top: 1px solid #dee2e6;">
+      <button class="btn-modal btn-secondary" (click)="cancelarConfiguracion()"
+        style="padding: 10px 24px; border-radius: 6px; border: 1px solid #dee2e6; cursor: pointer; background: white; color: #6c757d; font-weight: 500; transition: all 0.2s ease;"
+        onmouseover="this.style.background='#e9ecef';" onmouseout="this.style.background='white';">
+        Cancelar
+      </button>
+      <button class="btn-modal btn-primary" (click)="confirmarTipoComprobante()"
+        [disabled]="!tipoDocumentoSeleccionado || (tipoDocumentoSeleccionado !== 'NOTA_DE_VENTA' && !serieSeleccionada())"
+        style="padding: 10px 24px; border-radius: 6px; border: none; cursor: pointer; background-color: var(--main-600) !important; color: white; font-weight: 500; transition: all 0.2s ease;"
+        [style.opacity]="!tipoDocumentoSeleccionado || (tipoDocumentoSeleccionado !== 'NOTA_DE_VENTA' && !serieSeleccionada()) ? '0.5' : '1'"
+        [style.cursor]="!tipoDocumentoSeleccionado || (tipoDocumentoSeleccionado !== 'NOTA_DE_VENTA' && !serieSeleccionada()) ? 'not-allowed' : 'pointer'"
+        onmouseover="if(!this.disabled) this.style.backgroundColor='var(--main-700)'"
+        onmouseout="if(!this.disabled) this.style.backgroundColor='var(--main-600)'">
+        Continuar →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL 2: DATOS DEL CLIENTE (SEGÚN TIPO DE COMPROBANTE) -->
+<!-- ========================================== -->
+<div *ngIf="mostrarModalDatosCliente" class="modal-overlay modal-obligatorio" style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; 
+         width: 100vw !important; height: 100vh !important; display: flex !important; align-items: center !important; 
+         justify-content: center !important; background: rgba(0, 0, 0, 0.6) !important; z-index: 99999 !important; 
+         padding: 20px !important; margin: 0 !important;">
+  <div class="modal-container modal-config" (click)="$event.stopPropagation()"
+    style="max-width: 650px; width: 100%; margin: 0 auto !important;">
+    <div class="modal-header" style="background-color: var(--main-600) !important; color: white; padding: 20px 24px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="background: rgba(255,255,255,0.2); padding: 8px; border-radius: 8px;">
+          <i class="ph ph-user" style="font-size: 24px;"></i>
+        </div>
+        <div>
+          <h5 style="margin: 0; font-size: 18px;">Paso 2: Datos del Cliente</h5>
+          <small style="opacity: 0.9;">
+            {{ tipoDocumentoSeleccionado === '01' ? 'Factura - RUC obligatorio' : (tipoDocumentoSeleccionado === '03' ?
+            'Boleta - DNI/RUC' : 'Nota de Venta') }}
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-body" style="padding: 24px;">
+      <!-- Alerta según tipo de comprobante -->
+      <div *ngIf="tipoDocumentoSeleccionado === '01'"
+        style="background: #fff3e0; border-left: 4px solid #ff9800; padding: 12px; border-radius: 4px; margin-bottom: 20px;">
+        <div style="display: flex; gap: 12px;">
+          <i class="ph ph-warning" style="color: #ff9800; font-size: 20px;"></i>
+          <div style="flex: 1;">
+            <strong style="color: #f57c00;">Factura Electrónica:</strong>
+            <p style="margin: 4px 0 0; color: #555; font-size: 13px;">
+              Se requiere RUC (11 dígitos), razón social y dirección fiscal completos.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tipo de Documento -->
+      <div class="form-group">
+        <label>Tipo de Documento *</label>
+        <select class="form-control" [(ngModel)]="ventaForm.cliente.tipo_documento"
+          [disabled]="tipoDocumentoSeleccionado === '01'"
+          style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px;">
+          <option *ngIf="tipoDocumentoSeleccionado !== '01'" [value]="TIPOS_DOCUMENTO.SIN_DOC">Sin Documento</option>
+          <option *ngIf="tipoDocumentoSeleccionado !== '01'" [value]="TIPOS_DOCUMENTO.DNI">DNI</option>
+          <option [value]="TIPOS_DOCUMENTO.RUC">RUC</option>
+          <option *ngIf="tipoDocumentoSeleccionado !== '01'" [value]="TIPOS_DOCUMENTO.CE">Carnet de Extranjería</option>
+        </select>
+      </div>
+
+      <!-- Número de Documento -->
+      <div class="form-group">
+        <label>
+          {{ ventaForm.cliente.tipo_documento === TIPOS_DOCUMENTO.RUC ? 'RUC' :
+          ventaForm.cliente.tipo_documento === TIPOS_DOCUMENTO.DNI ? 'DNI' :
+          'Número de Documento' }}
+          {{ tipoDocumentoSeleccionado === '01' || ventaForm.cliente.tipo_documento === TIPOS_DOCUMENTO.RUC ? '*' : ''
+          }}
+        </label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" class="form-control" [(ngModel)]="ventaForm.cliente.numero_documento"
+            [placeholder]="ventaForm.cliente.tipo_documento === TIPOS_DOCUMENTO.RUC ? '20123456789' : '12345678'"
+            [maxlength]="ventaForm.cliente.tipo_documento === TIPOS_DOCUMENTO.RUC ? 11 : 8"
+            (keydown.enter)="$event.preventDefault(); ventaForm.cliente.numero_documento.length >= 8 && !loading ? buscarCliente() : null"
+            style="flex: 1; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px;">
+          <button *ngIf="ventaForm.cliente.numero_documento.length >= 8" class="btn btn-sm btn-primary"
+            (click)="buscarCliente()" [disabled]="loading"
+            style="padding: 10px 16px; border-radius: 6px; border: none; background: var(--main-600); color: white; cursor: pointer; display: flex; align-items: center; gap: 6px; min-width: 100px; justify-content: center;">
+            <i class="ph ph-magnifying-glass" *ngIf="!loading"></i>
+            <i class="ph ph-spinner ph-spin" *ngIf="loading"></i>
+            <span>{{ loading ? 'Buscando...' : 'Buscar' }}</span>
+          </button>
+        </div>
+        <small *ngIf="success" style="color: #198754; display: block; margin-top: 6px; font-size: 13px;">
+          <i class="ph ph-check-circle"></i> {{ success }}
+        </small>
+        <small *ngIf="error && !loading" style="color: #dc3545; display: block; margin-top: 6px; font-size: 13px;">
+          <i class="ph ph-warning-circle"></i> {{ error }}
+        </small>
+        <small *ngIf="!loading && !success && !error && ventaForm.cliente.numero_documento.length >= 8"
+          style="color: #6c757d; display: block; margin-top: 6px; font-size: 12px;">
+          <i class="ph ph-info"></i> Presione "Buscar" para consultar en Sistema → RENIEC/SUNAT
+        </small>
+      </div>
+
+      <!-- Nombre / Razón Social -->
+      <div class="form-group">
+        <label>{{ ventaForm.cliente.tipo_documento === TIPOS_DOCUMENTO.RUC ? 'Razón Social' : 'Nombre Completo' }}
+          *</label>
+        <input type="text" class="form-control" [(ngModel)]="ventaForm.cliente.nombre"
+          placeholder="Ingrese el nombre o razón social"
+          style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px;">
+      </div>
+
+      <!-- Dirección (obligatoria para factura) -->
+      <div class="form-group">
+        <label>Dirección {{ tipoDocumentoSeleccionado === '01' ? '*' : '(opcional)' }}</label>
+        <input type="text" class="form-control" [(ngModel)]="ventaForm.cliente.direccion"
+          placeholder="Av. Principal 123, Lima"
+          style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px;">
+      </div>
+
+      <!-- Email y Teléfono (opcionales) -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div class="form-group">
+          <label>Email (opcional)</label>
+          <input type="email" class="form-control" [(ngModel)]="ventaForm.cliente.email"
+            placeholder="cliente@ejemplo.com"
+            style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px;">
+        </div>
+        <div class="form-group">
+          <label>Teléfono (opcional)</label>
+          <input type="tel" class="form-control" [(ngModel)]="ventaForm.cliente.telefono" placeholder="999 888 777"
+            style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px;">
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer"
+      style="background: #f5f5f5; padding: 16px 24px; display: flex; gap: 12px; justify-content: space-between;">
+      <button class="btn-modal btn-secondary" (click)="mostrarModalDatosCliente = false; iniciarFlujoVenta()"
+        style="padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer;">
+        ← Volver
+      </button>
+      <button class="btn-modal btn-primary" (click)="confirmarDatosCliente()"
+        style="padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; background-color: var(--main-600) !important; color: white; font-weight: 500; transition: all 0.2s ease;"
+        onmouseover="this.style.backgroundColor='var(--main-700)'"
+        onmouseout="this.style.backgroundColor='var(--main-600)'">
+        Confirmar y Continuar →
+      </button>
+    </div>
+  </div>
+</div>

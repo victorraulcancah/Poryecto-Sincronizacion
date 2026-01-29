@@ -1,0 +1,175 @@
+// src/app/pages/ofertas/ofertas.component.scss
+// ✅ ESTILOS UNIFICADOS PARA OFERTAS - Compatible con el SCSS global de shop
+
+// Vista GRID - ✅ ANCHO FIJO UNIFORME para todas las tarjetas
+.list-grid-wrapper.grid-view {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, 280px); // ✅ CLAVE: ANCHO FIJO 280px
+  gap: 16px;
+  justify-content: center; // ✅ Centrar las tarjetas cuando sobra espacio
+  grid-auto-rows: 1fr;
+
+  .product-card {
+    display: flex;
+    flex-direction: column;
+    width: 280px !important; // ✅ FORZAR ancho fijo
+    max-width: 280px !important;
+    min-width: 280px !important;
+    height: 100%;
+  }
+}
+
+// Vista LIST - ✅ 2 productos por fila
+.list-grid-wrapper.list-view {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); // ✅ 2 COLUMNAS por fila
+  gap: 16px;
+
+  .product-card {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    max-width: none !important;
+
+    .product-card__thumb {
+      width: 120px !important;
+      height: 120px !important;
+      flex-shrink: 0 !important;
+      margin-right: 16px !important;
+      margin-bottom: 0 !important;
+    }
+
+    .product-card__content {
+      flex: 1 !important;
+      margin-top: 0 !important;
+      margin-left: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-between !important;
+    }
+  }
+}
+
+// Responsive para list view
+@media (max-width: 992px) {
+  .list-grid-wrapper.list-view {
+    grid-template-columns: 1fr; // ✅ 1 columna en tablets
+
+    .product-card {
+      .product-card__thumb {
+        width: 150px !important;
+        height: 150px !important;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .list-grid-wrapper.list-view {
+    .product-card {
+      flex-direction: column !important;
+
+      .product-card__thumb {
+        width: 100% !important;
+        height: 200px !important;
+        margin-right: 0 !important;
+        margin-bottom: 16px !important;
+      }
+
+      .product-card__content {
+        margin-left: 0 !important;
+      }
+    }
+  }
+}
+
+// ✅ CONTROLAR ALTURAS Y CONTENIDO DE TARJETAS
+.list-grid-wrapper.grid-view .product-card {
+  .product-card__thumb {
+    height: 200px; // ✅ ALTURA FIJA para imagen
+    flex-shrink: 0;
+    overflow: hidden;
+    background: transparent !important;
+
+    .product-image {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      object-position: center;
+      transition: transform 0.3s ease;
+
+      &:hover {
+        transform: scale(1.05);
+      }
+    }
+  }
+
+  .product-card__content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    .title {
+      min-height: 3.2rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .product-card__price {
+      margin-top: auto;
+    }
+  }
+}
+
+// Control específico de imágenes
+.product-card__thumb {
+  background: transparent !important;
+}
+
+// Responsive para GRID VIEW
+@media (max-width: 992px) {
+  .list-grid-wrapper.grid-view {
+    grid-template-columns: repeat(auto-fit, 260px);
+
+    .product-card {
+      width: 260px !important;
+      max-width: 260px !important;
+      min-width: 260px !important;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .list-grid-wrapper.grid-view {
+    grid-template-columns: repeat(auto-fit, 240px);
+
+    .product-card {
+      width: 240px !important;
+      max-width: 240px !important;
+      min-width: 240px !important;
+    }
+
+    .product-card__thumb {
+      height: 160px;
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .list-grid-wrapper.grid-view {
+    grid-template-columns: 1fr;
+
+    .product-card {
+      width: 100% !important;
+      max-width: 320px !important;
+      min-width: 280px !important;
+      margin: 0 auto;
+    }
+  }
+}

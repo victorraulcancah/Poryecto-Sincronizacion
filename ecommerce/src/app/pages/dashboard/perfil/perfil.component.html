@@ -1,0 +1,388 @@
+<!-- Header -->
+<div class="border border-gray-100 rounded-16 overflow-hidden bg-white">
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <div class="flex-between align-items-center gap-16 flex-wrap">
+      <div>
+        <h4 class="mb-4 text-heading">Mi Perfil</h4>
+        <p class="text-gray-500 mb-0 text-sm">
+          Gestiona tu información personal y preferencias
+        </p>
+      </div>
+      <button
+        class="btn bg-main-600"
+        (click)="openPasswordModal()"
+        type="button"
+      >
+        <i class="ph ph-lock me-8"></i>
+        Cambiar Contraseña
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading state -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="text-gray-500 mt-3">Cargando información...</p>
+  </div>
+
+  <!-- Contenido Principal -->
+  <div *ngIf="!isLoading" class="p-24 p-md-32">
+    <div class="row g-4">
+      <!-- Columna Izquierda: Foto de Perfil -->
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body text-center p-24">
+            <!-- Avatar -->
+            <div class="mb-20">
+              <div
+                class="avatar-preview mx-auto"
+                style="
+                  width: 150px;
+                  height: 150px;
+                  border-radius: 50%;
+                  overflow: hidden;
+                  border: 4px solid #f0f0f0;
+                "
+              >
+                <img
+                  *ngIf="imagePreview"
+                  [src]="imagePreview"
+                  alt="Avatar"
+                  style="width: 100%; height: 100%; object-fit: cover"
+                />
+                <div
+                  *ngIf="!imagePreview"
+                  class="d-flex align-items-center justify-content-center h-100 bg-main-50"
+                  style="font-size: 3rem; color: #487bff"
+                >
+                  {{ getInitials() }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Información del Usuario -->
+            <h5 class="mb-8 fw-semibold">{{ currentUser?.name }}</h5>
+            <p class="text-gray-500 mb-12 text-sm">{{ currentUser?.email }}</p>
+            <span class="badge bg-main-50 text-main-600 px-12 py-6">
+              {{ getRoleName() }}
+            </span>
+
+            <!-- Botón para cambiar foto -->
+            <div class="mt-20">
+              <label
+                for="avatarInput"
+                class="btn bg-main-50 text-main-600 w-100"
+              >
+                <i class="ph ph-camera me-8"></i>
+                Cambiar Foto
+              </label>
+              <input
+                type="file"
+                id="avatarInput"
+                class="d-none"
+                accept="image/*"
+                (change)="onFileSelected($event)"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Información Adicional -->
+        <div class="card border-0 shadow-sm mt-16">
+          <div class="card-body p-20">
+            <h6 class="mb-16 fw-semibold">Información de Cuenta</h6>
+            <div class="d-flex flex-column gap-12">
+              <div class="d-flex align-items-center gap-8">
+                <i class="ph ph-calendar text-gray-500"></i>
+                <span class="text-sm text-gray-600"
+                  >Miembro desde:
+                  {{
+                    currentUser?.created_at
+                      | date : "dd/MM/yyyy" : "" : "es-PE"
+                  }}</span
+                >
+              </div>
+              <div class="d-flex align-items-center gap-8">
+                <i class="ph ph-clock text-gray-500"></i>
+                <span class="text-sm text-gray-600"
+                  >Última actualización:
+                  {{
+                    currentUser?.updated_at
+                      | date : "dd/MM/yyyy HH:mm" : "" : "es-PE"
+                  }}</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Columna Derecha: Formulario de Perfil -->
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-24">
+            <h6 class="mb-20 fw-semibold">Información Personal</h6>
+
+            <form [formGroup]="perfilForm" (ngSubmit)="onSubmitPerfil()">
+              <div class="row g-16">
+                <!-- Nombre Completo -->
+                <div class="col-md-6">
+                  <label
+                    class="form-label fw-semibold text-sm text-heading mb-8"
+                  >
+                    Nombre Completo
+                    <span class="text-danger-600">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    class="form-control radius-8 border-gray-200"
+                    formControlName="name"
+                    placeholder="Ingresa tu nombre completo"
+                    [class.is-invalid]="
+                      perfilForm.get('name')?.invalid &&
+                      perfilForm.get('name')?.touched
+                    "
+                  />
+                  <div
+                    *ngIf="
+                      perfilForm.get('name')?.invalid &&
+                      perfilForm.get('name')?.touched
+                    "
+                    class="text-danger-600 text-xs mt-4"
+                  >
+                    El nombre es requerido (mínimo 3 caracteres)
+                  </div>
+                </div>
+
+                <!-- Email -->
+                <div class="col-md-6">
+                  <label
+                    class="form-label fw-semibold text-sm text-heading mb-8"
+                  >
+                    Correo Electrónico
+                    <span class="text-danger-600">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    class="form-control radius-8 border-gray-200"
+                    formControlName="email"
+                    placeholder="correo@ejemplo.com"
+                    [class.is-invalid]="
+                      perfilForm.get('email')?.invalid &&
+                      perfilForm.get('email')?.touched
+                    "
+                  />
+                  <div
+                    *ngIf="
+                      perfilForm.get('email')?.invalid &&
+                      perfilForm.get('email')?.touched
+                    "
+                    class="text-danger-600 text-xs mt-4"
+                  >
+                    Ingresa un correo electrónico válido
+                  </div>
+                </div>
+
+                <!-- Teléfono -->
+                <div class="col-md-6">
+                  <label
+                    class="form-label fw-semibold text-sm text-heading mb-8"
+                  >
+                    Teléfono
+                  </label>
+                  <input
+                    type="text"
+                    class="form-control radius-8 border-gray-200"
+                    formControlName="telefono"
+                    placeholder="999999999"
+                    maxlength="9"
+                    [class.is-invalid]="
+                      perfilForm.get('telefono')?.invalid &&
+                      perfilForm.get('telefono')?.touched
+                    "
+                  />
+                  <div
+                    *ngIf="
+                      perfilForm.get('telefono')?.invalid &&
+                      perfilForm.get('telefono')?.touched
+                    "
+                    class="text-danger-600 text-xs mt-4"
+                  >
+                    Ingresa un número de celular válido (9 dígitos)
+                  </div>
+                </div>
+
+                <!-- Dirección -->
+                <div class="col-12">
+                  <label
+                    class="form-label fw-semibold text-sm text-heading mb-8"
+                  >
+                    Dirección
+                  </label>
+                  <textarea
+                    class="form-control radius-8 border-gray-200"
+                    formControlName="direccion"
+                    rows="3"
+                    placeholder="Ingresa tu dirección completa"
+                  ></textarea>
+                </div>
+              </div>
+
+              <!-- Botones -->
+              <div class="mt-24 d-flex gap-12 justify-content-end">
+                <button
+                  type="button"
+                  class="btn bg-gray-100 hover-bg-gray-200 text-gray-600 px-20 py-10 rounded-8"
+                  (click)="loadUserData()"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  class="btn bg-main-600 hover-bg-main-700 text-white px-20 py-10 rounded-8"
+                  [disabled]="perfilForm.invalid || isLoading"
+                >
+                  <i class="ph ph-check me-8"></i>
+                  Guardar Cambios
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Cambio de Contraseña -->
+<div
+  class="modal fade"
+  [class.show]="showPasswordModal"
+  [style.display]="showPasswordModal ? 'block' : 'none'"
+  tabindex="-1"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-12">
+      <div
+        class="modal-header bg-main-50 border-bottom border-gray-100 px-24 py-16"
+      >
+        <h5 class="modal-title fw-semibold text-heading">
+          <i class="ph ph-lock me-2 text-main-600"></i>
+          Cambiar Contraseña
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="closePasswordModal()"
+        ></button>
+      </div>
+      <form [formGroup]="passwordForm" (ngSubmit)="onSubmitPassword()">
+        <div class="modal-body px-24 py-20">
+          <!-- Contraseña Actual -->
+          <div class="mb-16">
+            <label class="form-label fw-semibold text-sm text-heading mb-8">
+              Contraseña Actual <span class="text-danger-600">*</span>
+            </label>
+            <input
+              type="password"
+              class="form-control radius-8 border-gray-200"
+              formControlName="current_password"
+              placeholder="Ingresa tu contraseña actual"
+              [class.is-invalid]="
+                passwordForm.get('current_password')?.invalid &&
+                passwordForm.get('current_password')?.touched
+              "
+            />
+            <div
+              *ngIf="
+                passwordForm.get('current_password')?.invalid &&
+                passwordForm.get('current_password')?.touched
+              "
+              class="text-danger-600 text-xs mt-4"
+            >
+              La contraseña actual es requerida
+            </div>
+          </div>
+
+          <!-- Nueva Contraseña -->
+          <div class="mb-16">
+            <label class="form-label fw-semibold text-sm text-heading mb-8">
+              Nueva Contraseña <span class="text-danger-600">*</span>
+            </label>
+            <input
+              type="password"
+              class="form-control radius-8 border-gray-200"
+              formControlName="new_password"
+              placeholder="Ingresa tu nueva contraseña"
+              [class.is-invalid]="
+                passwordForm.get('new_password')?.invalid &&
+                passwordForm.get('new_password')?.touched
+              "
+            />
+            <small class="text-gray-500 text-xs"
+              >Mínimo 8 caracteres</small
+            >
+            <div
+              *ngIf="
+                passwordForm.get('new_password')?.invalid &&
+                passwordForm.get('new_password')?.touched
+              "
+              class="text-danger-600 text-xs mt-4"
+            >
+              La contraseña debe tener al menos 8 caracteres
+            </div>
+          </div>
+
+          <!-- Confirmar Nueva Contraseña -->
+          <div class="mb-16">
+            <label class="form-label fw-semibold text-sm text-heading mb-8">
+              Confirmar Nueva Contraseña
+              <span class="text-danger-600">*</span>
+            </label>
+            <input
+              type="password"
+              class="form-control radius-8 border-gray-200"
+              formControlName="new_password_confirmation"
+              placeholder="Confirma tu nueva contraseña"
+              [class.is-invalid]="
+                (passwordForm.get('new_password_confirmation')?.invalid &&
+                  passwordForm.get('new_password_confirmation')?.touched) ||
+                passwordForm.errors?.['passwordMismatch']
+              "
+            />
+            <div
+              *ngIf="passwordForm.errors?.['passwordMismatch']"
+              class="text-danger-600 text-xs mt-4"
+            >
+              Las contraseñas no coinciden
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button
+            type="button"
+            class="btn bg-gray-100 hover-bg-gray-200 text-gray-600 px-16 py-8 rounded-8"
+            (click)="closePasswordModal()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8"
+            [disabled]="passwordForm.invalid"
+          >
+            <i class="ph ph-check me-8"></i>
+            Cambiar Contraseña
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<div
+  class="modal-backdrop fade"
+  [class.show]="showPasswordModal"
+  *ngIf="showPasswordModal"
+></div>

@@ -1,0 +1,308 @@
+<div class="container-fluid">
+
+  <!-- Productos en el banner - Estilo Moderno -->
+  <div class="border border-gray-100 rounded-16 overflow-hidden bg-white">
+    <!-- Header -->
+    <div class="p-24 p-md-32 border-bottom border-gray-100">
+      <div class="flex-between align-items-center gap-16 flex-wrap">
+        <div>
+          <h4 class="mb-4 text-heading">Productos en el Banner</h4>
+          <p class="text-gray-500 mb-0 text-sm">Gestiona los productos y descuentos del banner de ofertas</p>
+        </div>
+        <button
+          class="btn bg-main-600"
+          data-bs-toggle="modal"
+          data-bs-target="#modalAgregarProducto"
+          (click)="abrirModalAgregar()">
+          <i class="ph ph-plus me-8"></i>
+          Agregar Producto
+        </button>
+      </div>
+    </div>
+
+    <!-- Filtros y Estadísticas -->
+    <div class="p-24 p-md-32 border-bottom border-gray-100">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-12">
+        <div class="d-flex align-items-center gap-16">
+          <span class="text-sm text-gray-600">{{ productosEnBanner.length }} productos en el banner</span>
+        </div>
+        <div class="d-flex align-items-center gap-4">
+          <span class="text-sm fw-medium text-dark">Total:</span>
+          <span class="badge bg-main-50 text-main-600">{{ productosEnBanner.length }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla Moderna -->
+    <div class="modern-data-table">
+      <!-- Loading state -->
+      <div *ngIf="isLoadingProductosBanner" class="modern-data-table__loading">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="loading-text">Cargando productos...</p>
+      </div>
+
+      <!-- Tabla -->
+      <div class="modern-data-table__container" *ngIf="!isLoadingProductosBanner">
+        <table class="table table-borderless mb-0">
+          <thead>
+            <tr>
+              <th>IMAGEN</th>
+              <th>PRODUCTO</th>
+              <th>PRECIO ORIGINAL</th>
+              <th>DESCUENTO</th>
+              <th>PRECIO FINAL</th>
+              <th class="text-end">ACCIONES</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let producto of productosEnBanner">
+              <!-- Imagen -->
+              <td>
+                <div class="d-flex align-items-center gap-12">
+                  <div class="table-avatar__container">
+                    <div class="product-image-container">
+                      <img [src]="producto.imagen_principal"
+                           [alt]="producto.nombre"
+                           class="product-image">
+                    </div>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Producto -->
+              <td>
+                <div class="product-info">
+                  <h6 class="product-name">{{ producto.nombre }}</h6>
+                  <span class="product-meta">Stock: {{ producto.stock }} unidades</span>
+                </div>
+              </td>
+
+              <!-- Precio Original -->
+              <td>
+                <span class="price-tag">S/ {{ producto.precio | number:'1.2-2' }}</span>
+              </td>
+
+              <!-- Descuento -->
+              <td>
+                <span class="badge bg-danger-600 text-white">
+                  {{ producto.descuento_porcentaje }}% OFF
+                </span>
+              </td>
+
+              <!-- Precio Final -->
+              <td>
+                <div>
+                  <div class="price-tag price-tag--success">
+                    S/ {{ producto.precio_con_descuento | number:'1.2-2' }}
+                  </div>
+                  <div class="text-sm text-gray-500 mt-4">
+                    Ahorro: S/ {{ (producto.precio - producto.precio_con_descuento) | number:'1.2-2' }}
+                  </div>
+                </div>
+              </td>
+
+              <!-- Acciones -->
+              <td>
+                <div class="action-buttons">
+                  <button class="action-btn action-btn--edit"
+                          title="Editar descuento"
+                          (click)="actualizarDescuento(producto)">
+                    <i class="ph ph-pencil"></i>
+                  </button>
+                  <button class="action-btn action-btn--delete"
+                          title="Quitar producto"
+                          (click)="quitarProducto(producto.id)">
+                    <i class="ph ph-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Empty state -->
+            <tr *ngIf="productosEnBanner.length === 0">
+              <td colspan="6">
+                <div class="empty-state">
+                  <i class="ph ph-package empty-state__icon"></i>
+                  <h6 class="empty-state__title">No hay productos en este banner</h6>
+                  <p class="empty-state__text">Agrega productos para mostrar en el banner de ofertas</p>
+                  <button
+                    class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalAgregarProducto"
+                    (click)="abrirModalAgregar()">
+                    <i class="ph ph-plus me-8"></i>
+                    Agregar Producto
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para agregar producto -->
+<div class="modal fade" id="modalAgregarProducto" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content">
+      <!-- Header -->
+      <div class="modal-header bg-main-600">
+        <h5 class="modal-title text-white">
+          <i class="ph ph-plus-circle me-8"></i>
+          Agregar Producto al Banner
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="cerrarModal()"></button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        <div class="row">
+
+          <!-- Columna izquierda: Lista de productos -->
+          <div class="col-md-7">
+            <div class="mb-16">
+              <label class="form-label fw-semibold">Buscar Producto</label>
+              <input type="text"
+                     class="form-control"
+                     [(ngModel)]="buscarTermino"
+                     placeholder="Buscar por nombre o código...">
+            </div>
+
+            <!-- Loading state -->
+            <div *ngIf="isLoadingDisponibles" class="text-center py-40">
+              <div class="spinner-border text-main-600" role="status">
+                <span class="visually-hidden">Cargando...</span>
+              </div>
+            </div>
+
+            <!-- Lista de productos -->
+            <div *ngIf="!isLoadingDisponibles" class="productos-list" style="max-height: 400px; overflow-y: auto;">
+              <div *ngFor="let producto of productosFiltrados"
+                   class="producto-item p-12 mb-8 rounded-8 cursor-pointer"
+                   [class.selected]="productoSeleccionado?.id === producto.id"
+                   (click)="seleccionarProducto(producto)">
+                <div class="d-flex align-items-center gap-12">
+                  <img [src]="producto.imagen_principal"
+                       [alt]="producto.nombre"
+                       class="rounded-8"
+                       style="width: 60px; height: 60px; object-fit: cover;">
+                  <div class="flex-grow-1">
+                    <h6 class="text-heading fw-semibold mb-4">{{ producto.nombre }}</h6>
+                    <p class="text-sm text-gray-500 mb-4">Código: {{ producto.codigo }}</p>
+                    <div class="d-flex align-items-center gap-12">
+                      <span class="text-success-600 fw-bold">S/ {{ producto.precio | number:'1.2-2' }}</span>
+                      <span class="text-sm text-gray-500">Stock: {{ producto.stock }}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <i class="ph ph-check-circle text-2xl"
+                       [class.text-main-600]="productoSeleccionado?.id === producto.id"
+                       [class.text-gray-300]="productoSeleccionado?.id !== producto.id"></i>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="productosFiltrados.length === 0" class="text-center py-40">
+                <i class="ph ph-magnifying-glass text-gray-300 text-6xl mb-16"></i>
+                <p class="text-gray-500 mb-0">No se encontraron productos</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Columna derecha: Configuración del producto -->
+          <div class="col-md-5">
+            <div class="bg-gray-50 rounded-12 p-20">
+              <h6 class="text-heading fw-semibold mb-16">Configuración</h6>
+
+              <div *ngIf="!productoSeleccionado" class="text-center py-40">
+                <i class="ph ph-hand-pointing text-gray-300 text-6xl mb-16"></i>
+                <p class="text-gray-500 mb-0">Selecciona un producto de la lista</p>
+              </div>
+
+              <div *ngIf="productoSeleccionado">
+                <!-- Producto seleccionado -->
+                <div class="mb-20 p-12 bg-white rounded-8 border border-main-600">
+                  <div class="d-flex align-items-center gap-12 mb-12">
+                    <img [src]="productoSeleccionado.imagen_principal"
+                         [alt]="productoSeleccionado.nombre"
+                         class="rounded-8"
+                         style="width: 50px; height: 50px; object-fit: cover;">
+                    <div>
+                      <h6 class="text-heading fw-semibold mb-4">{{ productoSeleccionado.nombre }}</h6>
+                      <span class="text-sm text-gray-500">{{ productoSeleccionado.codigo }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Descuento -->
+                <div class="mb-16">
+                  <label class="form-label fw-semibold">
+                    Descuento (%) <span class="text-danger">*</span>
+                  </label>
+                  <input type="number"
+                         class="form-control"
+                         [(ngModel)]="descuentoPorcentaje"
+                         min="1"
+                         max="100"
+                         placeholder="Ej: 20">
+                  <small class="text-gray-500">Entre 1% y 100%</small>
+                </div>
+
+                <!-- Precios calculados -->
+                <div class="bg-white rounded-8 p-16 border">
+                  <div class="d-flex justify-content-between mb-8">
+                    <span class="text-gray-600">Precio original:</span>
+                    <span class="fw-semibold">S/ {{ productoSeleccionado.precio | number:'1.2-2' }}</span>
+                  </div>
+                  <div class="d-flex justify-content-between mb-8">
+                    <span class="text-gray-600">Descuento:</span>
+                    <span class="text-danger-600 fw-semibold">{{ descuentoPorcentaje }}%</span>
+                  </div>
+                  <hr class="my-12">
+                  <div class="d-flex justify-content-between">
+                    <span class="text-heading fw-semibold">Precio final:</span>
+                    <span class="text-success-600 fw-bold text-lg">
+                      S/ {{ calcularPrecioConDescuento(productoSeleccionado.precio) | number:'1.2-2' }}
+                    </span>
+                  </div>
+                  <div *ngIf="descuentoPorcentaje > 0" class="mt-8">
+                    <small class="text-success-600">
+                      Ahorro: S/ {{ (productoSeleccionado.precio - calcularPrecioConDescuento(productoSeleccionado.precio)) | number:'1.2-2' }}
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer">
+        <button type="button"
+                class="btn bg-gray-100 hover-bg-gray-200 text-gray-700"
+                (click)="cerrarModal()"
+                [disabled]="isAgregarSubmitting">
+          Cancelar
+        </button>
+        <button type="button"
+                class="btn bg-main-600 hover-bg-main-700 text-white"
+                (click)="agregarProducto()"
+                [disabled]="!productoSeleccionado || !descuentoPorcentaje || isAgregarSubmitting">
+          <span *ngIf="!isAgregarSubmitting">
+            <i class="ph ph-plus me-8"></i>
+            Agregar Producto
+          </span>
+          <span *ngIf="isAgregarSubmitting">
+            <span class="spinner-border spinner-border-sm me-8"></span>
+            Agregando...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

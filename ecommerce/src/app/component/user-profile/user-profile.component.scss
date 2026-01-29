@@ -1,0 +1,47 @@
+  .user-profile-container {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      z-index: 1;
+    }
+
+    .auth-dropdown,
+    .user-dropdown {
+      min-width: 180px;
+      z-index: 1050;
+    }
+
+    .dropdown-item {
+      text-decoration: none;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .dropdown-item:hover {
+      text-decoration: none;
+    }
+
+    .dropdown-item:focus {
+      outline: none;
+      box-shadow: none;
+    }
+
+    /* Alineamiento vertical perfecto */
+    .user-profile {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    /* Asegurar alineamiento correcto con otros elementos del header */
+    .user-profile-container ng-container {
+      display: contents;
+    }
+
+    .user-profile-container > ng-container > div {
+      display: inline-flex;
+      align-items: center;
+    }

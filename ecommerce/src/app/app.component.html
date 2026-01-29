@@ -1,0 +1,17 @@
+<router-outlet></router-outlet>
+
+<!-- Notificación global del carrito -->
+<app-cart-notification
+  [isVisible]="cartNotificationData.isVisible"
+  [productName]="cartNotificationData.productName"
+  [productPrice]="cartNotificationData.productPrice"
+  [productImage]="cartNotificationData.productImage"
+  [quantity]="cartNotificationData.quantity"
+  [suggestedProducts]="cartNotificationData.suggestedProducts || []"
+  (onClose)="onCartNotificationClose()"
+  (onViewCart)="onViewCart()"
+  (onSuggestedProductSelect)="onSuggestedProductSelect($event)">
+</app-cart-notification>
+
+<!-- Banner de Consentimiento de Cookies -->
+<app-cookie-banner></app-cookie-banner>

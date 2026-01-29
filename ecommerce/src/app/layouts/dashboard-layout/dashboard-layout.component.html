@@ -1,0 +1,29 @@
+<!-- src/app/layouts/dashboard-layout/dashboard-layout.component.html -->
+<div class="dashboard-layout">
+  <!-- Mobile Overlay -->
+  <div class="sidebar-overlay d-lg-none" 
+       [class.show]="isSidebarOpen" 
+       (click)="closeSidebar()"></div>
+  
+  <!-- Sidebar -->
+  <app-dashboard-sidebar
+    [class.show]="isSidebarOpen"
+    [isSidebarOpen]="isSidebarOpen"
+    (sidebarToggled)="onSidebarToggle($event)"
+    (sidebarCollapsed)="onSidebarCollapse($event)">
+  </app-dashboard-sidebar>
+  
+  <!-- Main Content -->
+  <div class="main-content" 
+       [class.sidebar-collapsed]="isSidebarCollapsed && isDesktop">
+    <!-- Header -->
+    <app-dashboard-header (toggleSidebar)="toggleSidebar()"></app-dashboard-header>
+    
+    <!-- Content -->
+    <main class="content-area">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>
+
+<app-popup-wrapper></app-popup-wrapper>

@@ -1,0 +1,247 @@
+.checkout {
+  background-color: #f8f9fa;
+  min-height: calc(100vh - 200px);
+}
+
+.checkout-form {
+  .card {
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  
+  .form-control, .form-select {
+    border: 1px solid #e0e6ed;
+    padding: 12px 16px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    
+    &:focus {
+      border-color: var(--main-color, #3B82F6);
+      box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+    }
+    
+    &.is-invalid {
+      border-color: #dc3545;
+      
+      &:focus {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+      }
+    }
+  }
+  
+  .form-label {
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: #374151;
+  }
+  
+  .form-check-input {
+    margin-top: 0.2em;
+    
+    &:checked {
+      background-color: var(--main-color, #3B82F6);
+      border-color: var(--main-color, #3B82F6);
+    }
+  }
+  
+  .invalid-feedback {
+    font-size: 12px;
+    margin-top: 4px;
+  }
+}
+
+.checkout-sidebar {
+  .card {
+    border-radius: 12px;
+    overflow: hidden;
+    
+    .card-header {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+      font-weight: 600;
+    }
+  }
+  
+  .order-products {
+    .product-item {
+      padding: 8px 0;
+      border-bottom: 1px solid #f1f3f4;
+      
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+  }
+  
+  .order-totals {
+    .d-flex {
+      font-size: 14px;
+      
+      &:last-child {
+        font-size: 16px;
+        padding-top: 8px;
+      }
+    }
+  }
+  
+  .shipping-costs {
+    .d-flex {
+      margin-bottom: 8px;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+}
+
+.btn {
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  
+  &.btn-main {
+    background-color: var(--main-color, #3B82F6);
+    border-color: var(--main-color, #3B82F6);
+    
+    &:hover {
+      background-color: var(--main-hover-color, #2563EB);
+      border-color: var(--main-hover-color, #2563EB);
+      transform: translateY(-1px);
+    }
+    
+    &:disabled {
+      background-color: #9CA3AF;
+      border-color: #9CA3AF;
+      transform: none;
+    }
+  }
+  
+  &.btn-outline-main {
+    color: var(--main-color, #3B82F6);
+    border-color: var(--main-color, #3B82F6);
+    
+    &:hover {
+      background-color: var(--main-color, #3B82F6);
+      border-color: var(--main-color, #3B82F6);
+      transform: translateY(-1px);
+    }
+  }
+}
+
+.input-group {
+  .form-control {
+    border-right: none;
+    
+    &:focus {
+      z-index: 3;
+    }
+  }
+  
+  .btn {
+    border-left: none;
+    z-index: 2;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 991.98px) {
+  .checkout-sidebar {
+    position: static !important;
+    margin-top: 2rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .checkout {
+    padding: 40px 0;
+  }
+  
+  .checkout-form {
+    .card-body {
+      padding: 16px;
+    }
+  }
+  
+  .checkout-sidebar {
+    .card-body {
+      padding: 16px;
+    }
+  }
+}
+
+// Loading states
+.ph-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Form validation styles
+.was-validated .form-control:valid,
+.was-validated .form-select:valid {
+  border-color: #198754;
+  
+  &:focus {
+    border-color: #198754;
+    box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+  }
+}
+
+// Custom checkbox styles
+.form-check-input:checked[type=checkbox] {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='white'%3e%3cpath fill-rule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clip-rule='evenodd'/%3e%3c/svg%3e");
+}
+
+// Hover effects
+.card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Estilos para direcciones guardadas
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.hover-bg-main-25:hover {
+  background-color: rgba(37, 99, 235, 0.05);
+}
+
+.bg-main-25 {
+  background-color: rgba(37, 99, 235, 0.05);
+}
+
+.border-main-600 {
+  border-color: #2563eb !important;
+}
+
+.transition-2 {
+  transition: all 0.2s ease;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flex-align {
+  display: flex;
+  align-items: center;
+}
+
+.flex-grow-1 {
+  flex-grow: 1;
+}

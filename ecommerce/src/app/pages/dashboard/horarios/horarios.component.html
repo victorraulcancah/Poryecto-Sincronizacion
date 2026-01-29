@@ -1,0 +1,543 @@
+<div class="usuarios-container">
+  <div class="breadcrumb-with-buttons mb-24 flex-between flex-wrap gap-8">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb mb-24">
+      <ul class="flex-align gap-4">
+        <li><a routerLink="/dashboard" class="text-gray-200 fw-normal text-15 hover-text-main-600">Dashboard</a></li>
+        <li> <span class="text-gray-500 fw-normal d-flex"><i class="ph ph-caret-right"></i></span> </li>
+        <li><span class="text-main-600 fw-normal text-15">Gestión de Horarios</span></li>
+      </ul>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="flex-align gap-8">
+      <button 
+        class="btn btn-outline-main bg-main-100 border-main-200 text-main-600 hover-bg-main-600 hover-text-white"
+        (click)="cambiarVista()"
+      >
+        <i class="ph" [class.ph-calendar]="vistaActual === 'tabla'" [class.ph-table]="vistaActual === 'calendario'"></i>
+        {{ vistaActual === 'tabla' ? 'Vista Calendario' : 'Vista Tabla' }}
+      </button>
+      
+      <button 
+        *ngIf="puedeCrearHorarios"
+        class="btn btn-create"
+        (click)="abrirModalHorario()"
+      >
+        <i class="ph ph-plus me-8"></i>
+        Agregar Horario
+      </button>
+
+       <button 
+        *ngIf="puedeCrearHorarios"
+        class="btn btn-create"
+        (click)="abrirModalGestionMasiva()"
+      >
+        <i class="ph ph-users me-2"></i>
+        Gestión Masiva
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="table-container mb-24">
+    <div class="table-header">
+      <div class="row gy-3">
+        <div class="col-xl-3 col-sm-6">
+          <label class="form-label text-sm fw-semibold text-primary-light mb-8">Filtrar por Usuario</label>
+          <select class="form-select" [(ngModel)]="filtroUsuario" (change)="aplicarFiltros()">
+            <option value="">Todos los usuarios</option>
+            <option *ngFor="let usuario of todosLosUsuarios" [value]="usuario.id">
+              {{ usuario.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="col-xl-3 col-sm-6">
+          <label class="form-label text-sm fw-semibold text-primary-light mb-8">Filtrar por Rol</label>
+          <select class="form-select" [(ngModel)]="filtroRol" (change)="aplicarFiltros()">
+            <option value="">Todos los roles</option>
+            <option value="vendedor">Asesores</option>
+            <option value="admin">Administradores</option>
+            <option value="superadmin">Super Administradores</option>
+          </select>
+        </div>
+
+        <div class="col-xl-3 col-sm-6">
+          <label class="form-label text-sm fw-semibold text-primary-light mb-8">Estado</label>
+          <select class="form-select" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
+            <option value="">Todos</option>
+            <option value="disponible">🟢 Disponibles ahora</option>
+            <option value="no_disponible">🔴 No disponibles</option>
+          </select>
+        </div>
+
+        <div class="col-xl-3 col-sm-6">
+          <label class="form-label text-sm fw-semibold text-primary-light mb-8">Acciones</label>
+          <div class="d-flex gap-8">
+         
+         <!-- Botón Recargar mejorado -->
+        <button 
+            class="btn btn-primary text-white px-5 py-2 d-flex align-items-center gap-2 rounded-3"
+            (click)="cargarHorarios()"
+            [disabled]="isLoading"
+            style="border: none; font-weight: 500; font-size: 14px; transition: all 0.2s ease; box-shadow: 0 2px 8px rgba(13, 110, 253, 0.25); min-height: 38px;"
+            onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(13, 110, 253, 0.3)'"
+            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(13, 110, 253, 0.25)'"
+        >
+            <i class="ph ph-arrow-clockwise" style="font-size: 16px;"></i>
+            Recargar
+        </button>
+
+        <!-- Botón Exportar mejorado -->
+        <button 
+            class="btn btn-success text-white d-flex align-items-center gap-2 px-5 py-2 rounded-3"
+            (click)="exportarHorarios()"
+            style="border: none; font-weight: 500; font-size: 14px; transition: all 0.2s ease; box-shadow: 0 2px 8px rgba(25, 135, 84, 0.25); min-height: 38px;"
+            onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(25, 135, 84, 0.3)'"
+            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(25, 135, 84, 0.25)'"
+        >
+            <i class="ph ph-download" style="font-size: 16px;"></i>
+            Exportar
+        </button>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vista Tabla -->
+  <div *ngIf="vistaActual === 'tabla'" class="table-container">
+    <div class="table-header">
+      <h6 class="table-title">Horarios del Personal</h6>
+    </div>
+    <div class="table-wrapper">
+      <!-- Loading -->
+      <div *ngIf="isLoading" class="loading-overlay">
+        <div class="spinner"></div>
+        <span>Cargando horarios...</span>
+      </div>
+
+      <!-- Tabla de horarios -->
+      <div *ngIf="!isLoading">
+        <table class="usuarios-table" style="writing-mode: initial; text-orientation: initial; table-layout: auto; width: 100%; min-width: 1000px;">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Estado</th>
+              <th style="min-width: 120px; text-align: center;">Lunes</th>
+                <th style="min-width: 120px; text-align: center;">Martes</th>
+                <th style="min-width: 120px; text-align: center;">Miércoles</th>
+                <th style="min-width: 120px; text-align: center;">Jueves</th>
+                <th style="min-width: 120px; text-align: center;">Viernes</th>
+                <th style="min-width: 120px; text-align: center;">Sábado</th>
+                <th style="min-width: 120px; text-align: center;">Domingo</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let usuario of usuariosFiltrados" class="table-row">
+             <td style="writing-mode: initial; text-orientation: initial; vertical-align: middle; min-width: 180px; white-space: nowrap;">
+                 <div class="user-info" style="writing-mode: initial; text-orientation: initial; display: flex; align-items: center; gap: 8px; flex-direction: row;">
+                    <img 
+                        *ngIf="usuario.mostrarImagen !== false"
+                        [src]="obtenerUrlAvatar(usuario)" 
+                        alt="Avatar"
+                        class="user-avatar-img"
+                        (error)="onImageError($event)"
+                        >
+                    <div 
+                        *ngIf="usuario.mostrarImagen === false"
+                        class="user-avatar"
+                        [style.background-color]="generarColorPorNombre(usuario.name)"
+                        style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; color: white; font-weight: 500; font-size: 14px;"
+                    >
+                        {{ usuario.name.charAt(0).toUpperCase() }}
+                    </div>
+                    <div class="user-details" style="writing-mode: initial; text-orientation: initial;">
+                        <div class="user-name" style="writing-mode: initial; text-orientation: initial; font-weight: 500; color: #2c3e50;">{{ usuario.name }}</div>
+                        <div class="user-id" style="writing-mode: initial; text-orientation: initial; font-size: 0.85em; color: #6c757d;">{{ obtenerRolPrincipal(usuario) }}</div>
+                    </div>
+                </div>
+              <td>
+                <span 
+                  class="badge"
+                  [class.badge-activo]="estaDisponible(usuario.id)"
+                  [class.badge-inactivo]="!estaDisponible(usuario.id)"
+                >
+                  {{ estaDisponible(usuario.id) ? '🟢 Disponible' : '🔴 No disponible' }}
+                </span>
+              </td>
+              <td *ngFor="let dia of diasSemana" style="min-width: 120px; padding: 8px; vertical-align: top;">
+                <div class="horarios-dia" style="display: flex; flex-direction: column; gap: 4px;">
+                  <div
+                    *ngFor="let horario of obtenerHorariosDia(usuario, dia.key)"
+                    class="mb-1 horario-bloque-container"
+                    style="margin-bottom: 6px; position: relative; display: flex; align-items: center; gap: 4px;"
+                    (mouseenter)="mostrarAccionesHorario($event)"
+                    (mouseleave)="ocultarAccionesHorario($event)"
+                    >
+                    <small
+                      class="badge"
+                      [class.badge-vendedor]="!horario.es_descanso"
+                      [class.badge-default]="horario.es_descanso"
+                      style="opacity: 1 !important; font-weight: 500 !important; color: #2c3e50 !important; background-color: #e3f2fd !important; border: 1px solid #90caf9 !important; font-size: 0.75rem !important; flex: 1;"
+                      [style.background-color]="horario.es_descanso ? '#fff3e0 !important' : '#e8f5e8 !important'"
+                      [style.border-color]="horario.es_descanso ? '#ffb74d !important' : '#4caf50 !important'"
+                      [style.color]="horario.es_descanso ? '#f57c00 !important' : '#2e7d32 !important'"
+                      >
+                      {{ horario.es_descanso ? 'Descanso' : horario.hora_inicio + ' - ' + horario.hora_fin }}
+                    </small>
+                    
+                    <!-- Botones de acción para cada horario -->
+                    <div class="horario-actions" style="display: flex; gap: 2px; opacity: 0; transition: opacity 0.2s;">
+                      <button
+                        *ngIf="puedeEditarHorarios"
+                        class="btn btn-sm btn-outline-primary"
+                        (click)="editarHorario(horario)"
+                        title="Editar horario"
+                        style="padding: 2px 6px; font-size: 10px; border-radius: 3px; background-color: #007bff; border-color: #007bff; color: white; display: flex; align-items: center; justify-content: center;"
+                      >
+                        <i class="ph ph-pencil-simple" style="font-size: 10px; color: white;"></i>
+                      </button>
+                      <button
+                        *ngIf="puedeEliminarHorarios"
+                        class="btn btn-sm btn-outline-danger"
+                        (click)="eliminarHorario(horario)"
+                        title="Eliminar horario"
+                        style="padding: 2px 6px; font-size: 10px; border-radius: 3px; background-color: #dc3545; border-color: #dc3545; color: white; display: flex; align-items: center; justify-content: center;"
+                      >
+                        <i class="ph ph-trash" style="font-size: 10px; color: white;"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div *ngIf="obtenerHorariosDia(usuario, dia.key).length === 0">
+                    <span class="text-gray-400 text-xs">-</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <button 
+                    *ngIf="puedeEditarHorarios"
+                    class="btn-action btn-edit"
+                    (click)="editarHorarioUsuario(usuario)"
+                    title="Editar horarios"
+                  >
+                    <i class="ph ph-pencil-simple"></i>
+                  </button>
+                  <button 
+                    class="btn-action btn-view"
+                    (click)="verDetalleUsuario(usuario)"
+                    title="Ver detalle"
+                  >
+                    <i class="ph ph-eye"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Estado vacío -->
+      <div *ngIf="!isLoading && usuariosFiltrados.length === 0" class="empty-state">
+        <div class="empty-icon">
+          <i class="ph ph-clock"></i>
+        </div>
+        <h3>No hay horarios disponibles</h3>
+        <p>No se encontraron horarios con los filtros aplicados</p>
+        <button 
+          *ngIf="puedeCrearHorarios"
+          class="btn btn-create"
+          (click)="abrirModalHorario()"
+        >
+          <i class="ph ph-plus me-8"></i>
+          Crear primer horario
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vista Calendario -->
+    <div *ngIf="vistaActual === 'calendario'" class="table-container">
+    <div class="table-header">
+        <h6 class="table-title">Vista Calendario - Horarios Semanales</h6>
+    </div>
+    <div class="table-wrapper">
+        
+        <!-- Selector de usuario para vista calendario -->
+        <div class="mb-4" *ngIf="!isLoading" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <label class="form-label" style="font-weight: 600; color: #495057; margin-bottom: 12px;">Seleccionar usuario para vista detallada:</label>
+            <select class="form-select" [(ngModel)]="usuarioSeleccionadoCalendario" (change)="cambiarUsuarioCalendario()" style="border-color: #ced4da; box-shadow: 0 1px 3px rgba(0,0,0,0.1); font-size: 14px;">
+            <option value="">Seleccionar usuario...</option>
+            <option *ngFor="let usuario of usuariosFiltrados" [value]="usuario.id">
+            {{ usuario.name }} - {{ obtenerRolPrincipal(usuario) }}
+            </option>
+        </select>
+        </div>
+
+        <!-- Calendario semanal -->
+        <div *ngIf="usuarioSeleccionadoCalendario && usuarioCalendarioData" class="calendario-semanal">
+        <div class="calendario-header mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 8px; color: white; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+            <h5 style="margin: 0; font-weight: 600; font-size: 1.25rem;">{{ usuarioCalendarioData.name }}</h5>
+            <span class="badge" 
+                    [class.badge-activo]="estaDisponible(usuarioCalendarioData.id)"
+                    [class.badge-inactivo]="!estaDisponible(usuarioCalendarioData.id)"
+                    style="font-size: 0.9rem; padding: 8px 16px; border-radius: 20px; font-weight: 500;"
+                    [style.background-color]="estaDisponible(usuarioCalendarioData.id) ? '#4caf50' : '#f44336'"
+                    [style.color]="'white'">
+                {{ estaDisponible(usuarioCalendarioData.id) ? '🟢 Disponible ahora' : '🔴 No disponible' }}
+            </span>
+            </div>
+        
+        <div class="calendario-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 16px; margin-top: 20px;">
+        <div *ngFor="let dia of diasSemana" class="dia-calendario" style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); min-height: 200px;">
+            <div class="dia-header" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 12px; text-align: center; border-bottom: 2px solid #dee2e6;">
+            <h6 style="margin: 0; font-weight: 600; color: #495057; font-size: 0.9rem;">{{ dia.label }}</h6>
+            </div>
+            <div class="dia-content" style="padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+            <div *ngFor="let horario of obtenerHorariosDia(usuarioCalendarioData, dia.key)" 
+                class="horario-bloque"
+                [class.horario-trabajo]="!horario.es_descanso"
+                [class.horario-descanso]="horario.es_descanso"
+                style="padding: 8px 12px; border-radius: 6px; border-left: 4px solid; font-size: 0.8rem;"
+                [style.background-color]="horario.es_descanso ? '#fff3e0' : '#e8f5e8'"
+                [style.border-left-color]="horario.es_descanso ? '#ff9800' : '#4caf50'"
+                [style.color]="horario.es_descanso ? '#f57c00' : '#2e7d32'">
+                <div class="horario-tiempo" style="font-weight: 600; margin-bottom: 4px;">
+                    {{ horario.es_descanso ? 'Descanso' : horario.hora_inicio + ' - ' + horario.hora_fin }}
+                </div>
+                <div *ngIf="horario.comentarios" class="horario-comentario">
+                    {{ horario.comentarios }}
+                </div>
+                </div>
+                <div *ngIf="obtenerHorariosDia(usuarioCalendarioData, dia.key).length === 0" 
+                    class="sin-horario" 
+                    style="text-align: center; color: #6c757d; font-style: italic; padding: 20px; font-size: 0.85rem;">
+                Sin horario
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+
+        <!-- Estado inicial -->
+        <div *ngIf="!usuarioSeleccionadoCalendario" class="empty-state">
+        <div class="empty-icon">
+            <i class="ph ph-calendar"></i>
+        </div>
+        <h3>Vista Calendario</h3>
+        <p>Selecciona un usuario para ver sus horarios en formato calendario</p>
+        </div>
+    </div>
+    </div>
+
+</div>
+
+<!-- Modal para gestionar horarios -->
+<div class="modal fade" id="horarioModal" tabindex="-1" [class.show]="mostrarModal" [style.display]="mostrarModal ? 'block' : 'none'">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          {{ horarioEditando ? 'Editar Horario' : 'Agregar Horario' }}
+        </h5>
+        <button type="button" class="btn-close" (click)="cerrarModal()"></button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="horarioForm" (ngSubmit)="guardarHorario()">
+          <div class="row gy-3">
+            <div class="col-md-6">
+              <label class="form-label">Usuario</label>
+              <select class="form-select" formControlName="user_id" [disabled]="!!horarioEditando">
+                <option value="">Seleccionar usuario</option>
+                <option *ngFor="let usuario of todosLosUsuarios" [value]="usuario.id">
+                  {{ usuario.name }}
+                </option>
+              </select>
+            </div>
+            
+            <div class="col-md-6">
+              <label class="form-label">Día de la semana</label>
+              <select class="form-select" formControlName="dia_semana">
+                <option value="">Seleccionar día</option>
+                <option *ngFor="let dia of diasSemana" [value]="dia.key">
+                  {{ dia.label }}
+                </option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Hora inicio</label>
+              <input type="time" class="form-control" formControlName="hora_inicio">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Hora fin</label>
+              <input type="time" class="form-control" formControlName="hora_fin">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Fecha especial (opcional)</label>
+              <input type="date" class="form-control" formControlName="fecha_especial">
+            </div>
+
+            <div class="col-md-6">
+              <div class="form-check form-switch mt-32">
+                <input class="form-check-input" type="checkbox" formControlName="es_descanso">
+                <label class="form-check-label">Es descanso</label>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label">Comentarios (opcional)</label>
+              <textarea class="form-control" formControlName="comentarios" rows="3"></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-gray-200" (click)="cerrarModal()">
+          Cancelar
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-create" 
+          (click)="guardarHorario()"
+          [disabled]="isSubmitting || horarioForm.invalid"
+        >
+          <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
+          {{ horarioEditando ? 'Actualizar' : 'Guardar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal backdrop -->
+<div *ngIf="mostrarModal" class="modal-backdrop fade show" (click)="cerrarModal()"></div>
+<!-- Modal Gestión Masiva -->
+<div class="modal fade" [class.show]="mostrarModalMasivo" [style.display]="mostrarModalMasivo ? 'block' : 'none'">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+        <h5 class="modal-title" style="font-weight: 600;">Gestión Masiva de Horarios</h5>
+        <button type="button" class="btn-close btn-close-white" (click)="cerrarModalMasivo()"></button>
+      </div>
+      <div class="modal-body" style="background-color: #f8f9fa;">
+        <div class="row">
+          <!-- Selección de usuarios -->
+          <div class="col-md-4">
+            <h6 style="color: #495057; font-weight: 600; margin-bottom: 15px;">Seleccionar Usuarios</h6>
+            <div class="border rounded p-3" style="max-height: 300px; overflow-y: auto; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" 
+                       [checked]="todosSeleccionados" 
+                       (change)="toggleTodosUsuarios($event)"
+                       style="transform: scale(1.1);">
+                <label class="form-check-label fw-bold" style="color: #2c3e50;">Seleccionar todos</label>
+              </div>
+              <hr style="margin: 10px 0; border-color: #e9ecef;">
+              <div *ngFor="let usuario of todosLosUsuarios" class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" 
+                       [value]="usuario.id"
+                       [checked]="usuariosSeleccionados.includes(usuario.id)"
+                       (change)="toggleUsuario(usuario.id, $event)"
+                       style="transform: scale(1.1);">
+                <label class="form-check-label" style="color: #495057;">
+                  {{ usuario.name }} <small class="text-muted" style="font-size: 0.85em;">({{ obtenerRolPrincipal(usuario) }})</small>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Configuración de horario -->
+          <div class="col-md-8">
+            <h6 style="color: #495057; font-weight: 600; margin-bottom: 15px;">Configurar Horario</h6>
+            <form [formGroup]="horarioMasivoForm">
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label" style="font-weight: 500; color: #495057;">Plantilla</label>
+                  <select class="form-select" formControlName="plantilla" (change)="aplicarPlantilla($event)" style="border-color: #ced4da; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <option value="personalizado">Personalizado</option>
+                    <option value="full_time">Tiempo Completo (8:00-17:00)</option>
+                    <option value="medio_tiempo">Medio Tiempo (8:00-12:00)</option>
+                    <option value="noche">Turno Noche (18:00-02:00)</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" style="font-weight: 500; color: #495057;">Acción</label>
+                  <select class="form-select" formControlName="accion" style="border-color: #ced4da; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <option value="agregar">Agregar horarios</option>
+                    <option value="reemplazar">Reemplazar horarios existentes</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="table-responsive" style="background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow: hidden;">
+                <table class="table table-sm" style="margin-bottom: 0;">
+                  <thead style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+                    <tr>
+                      <th style="font-weight: 600; color: #495057; padding: 12px; border-bottom: 2px solid #dee2e6;">Día</th>
+                      <th style="font-weight: 600; color: #495057; padding: 12px; border-bottom: 2px solid #dee2e6; text-align: center;">Activo</th>
+                      <th style="font-weight: 600; color: #495057; padding: 12px; border-bottom: 2px solid #dee2e6; text-align: center;">Hora Inicio</th>
+                      <th style="font-weight: 600; color: #495057; padding: 12px; border-bottom: 2px solid #dee2e6; text-align: center;">Hora Fin</th>
+                      <th style="font-weight: 600; color: #495057; padding: 12px; border-bottom: 2px solid #dee2e6; text-align: center;">Descanso</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let dia of diasSemana; let i = index" style="border-bottom: 1px solid #f1f3f4;">
+                      <td class="fw-semibold" style="padding: 12px; color: #2c3e50; vertical-align: middle;">{{ dia.label }}</td>
+                      <td style="text-align: center; padding: 12px; vertical-align: middle;">
+                        <div class="form-check" style="display: flex; justify-content: center; margin: 0;">
+                          <input class="form-check-input" type="checkbox" 
+                                 [formControlName]="dia.key + '_activo'"
+                                 style="transform: scale(1.2); margin: 0;">
+                        </div>
+                      </td>
+                      <td style="text-align: center; padding: 12px; vertical-align: middle;">
+                        <input type="time" class="form-control form-control-sm" 
+                               [formControlName]="dia.key + '_inicio'"
+                               style="border-color: #ced4da; box-shadow: 0 1px 2px rgba(0,0,0,0.05); max-width: 120px; margin: 0 auto;">
+                      </td>
+                      <td style="text-align: center; padding: 12px; vertical-align: middle;">
+                        <input type="time" class="form-control form-control-sm" 
+                               [formControlName]="dia.key + '_fin'"
+                               style="border-color: #ced4da; box-shadow: 0 1px 2px rgba(0,0,0,0.05); max-width: 120px; margin: 0 auto;">
+                      </td>
+                      <td style="text-align: center; padding: 12px; vertical-align: middle;">
+                        <div class="form-check" style="display: flex; justify-content: center; margin: 0;">
+                          <input class="form-check-input" type="checkbox" 
+                                 [formControlName]="dia.key + '_descanso'"
+                                 style="transform: scale(1.2); margin: 0;">
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="background-color: #f8f9fa; border-top: 1px solid #dee2e6;">
+        <button type="button" class="btn btn-secondary" (click)="cerrarModalMasivo()" 
+                style="border-radius: 6px; padding: 8px 20px; font-weight: 500;">
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-primary" 
+                (click)="aplicarHorariosMasivos()"
+                [disabled]="usuariosSeleccionados.length === 0 || isSubmitting"
+                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 6px; padding: 8px 20px; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+          <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
+          Aplicar a {{ usuariosSeleccionados.length }} usuario(s)
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="mostrarModalMasivo" class="modal-backdrop fade show" (click)="cerrarModalMasivo()"></div>

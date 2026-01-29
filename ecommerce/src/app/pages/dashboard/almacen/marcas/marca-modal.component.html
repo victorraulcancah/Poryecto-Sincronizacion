@@ -1,0 +1,226 @@
+  <div class="d-flex justify-content-between align-items-center mb-24">
+      <div>
+        <h5 class="text-heading fw-semibold mb-8">Listado de Marcas</h5>
+        <p class="text-gray-500 mb-0">Administra las marcas de productos</p>
+      </div>
+      <button class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8"
+              *ngIf="permissionsService.canCreateMarcas()"
+              (click)="nuevaMarca()"
+              data-bs-toggle="modal"
+              data-bs-target="#modalCrearMarca">
+        <i class="ph ph-plus me-8"></i>
+        Nueva Marca
+      </button>
+    </div>
+
+    <!-- Tabla con NGX-Datatable -->
+    <div class="card border-0 shadow-sm rounded-12">
+      <!-- Header de información -->
+      <div class="card-header bg-white border-bottom px-24 py-16" *ngIf="!isLoading && marcas.length > 0">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center gap-16">
+            <span class="text-sm text-gray-600">{{ selectionText }}</span>
+            <div class="d-flex align-items-center gap-8" *ngIf="selected.length > 0">
+              <button class="btn btn-sm btn-outline-danger px-12 py-6">
+                <i class="ph ph-trash me-4"></i>
+                Eliminar seleccionadas
+              </button>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-8">
+            <span class="text-sm fw-medium text-dark">Mostrando</span>
+            <select class="form-select form-select-sm border-gray-300" style="width: auto; min-width: 60px; font-size: 0.875rem; padding: 4px 8px;" [(ngModel)]="pageSize">
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="25">25</option>
+              <option [value]="50">50</option>
+            </select>
+            <span class="text-sm fw-medium text-dark">por página</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-body p-0">
+        <!-- Loading state -->
+        <div *ngIf="isLoading" class="text-center py-40">
+          <div class="spinner-border text-main-600" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
+          <p class="text-gray-500 mt-12 mb-0">Cargando marcas...</p>
+        </div>
+
+        <!-- Datatable -->
+        <div class="table-container">
+          <ngx-datatable
+            #table
+            *ngIf="!isLoading"
+            class="bootstrap marcas-table"
+            [columns]="columns"
+            [rows]="marcas"
+            [columnMode]="ColumnMode.flex"
+            [headerHeight]="50"
+            [footerHeight]="60"
+            [rowHeight]="60"
+            [limit]="pageSize"
+            [scrollbarV]="false"
+            [scrollbarH]="false"
+            [loadingIndicator]="isLoading"
+            [trackByProp]="'id'"
+            [sortType]="SortType.single"
+            [selectionType]="SelectionType.checkbox"
+            [selected]="selected"
+            [selectAllRowsOnPage]="false"
+            [displayCheck]="displayCheck"
+            [externalPaging]="false"
+            (select)="onSelect($event)"
+            (page)="onPageChange($event)"
+          >
+          <!-- Columna Imagen -->
+          <ngx-datatable-column
+            name="Imagen"
+            prop="imagen_url"
+            [flexGrow]="0.5"
+            [sortable]="false"
+            [canAutoResize]="false"
+          >
+            <ng-template let-row="row" ngx-datatable-cell-template>
+              <div class="image-container">
+                <img
+                  *ngIf="row.imagen_url"
+                  [src]="row.imagen_url"
+                  [alt]="row.nombre"
+                  class="brand-image"
+                  (error)="onImageError($event)"
+                />
+                <i
+                  *ngIf="!row.imagen_url"
+                  class="ph ph-tag text-gray-400"
+                ></i>
+              </div>
+            </ng-template>
+          </ngx-datatable-column>
+
+          <!-- Columna Nombre -->
+          <ngx-datatable-column name="Nombre" prop="nombre" [flexGrow]="1.5">
+            <ng-template let-row="row" ngx-datatable-cell-template>
+              <div class="brand-info">
+                <h6 class="brand-name" [title]="row.nombre">
+                  {{ row.nombre }}
+                </h6>
+              </div>
+            </ng-template>
+          </ngx-datatable-column>
+
+          <!-- Columna Descripción -->
+          <ngx-datatable-column name="Descripción" prop="descripcion" [flexGrow]="2">
+            <ng-template let-row="row" ngx-datatable-cell-template>
+              <p class="brand-description" [title]="row.descripcion">
+                {{ row.descripcion ? (row.descripcion.length > 50 ? row.descripcion.substring(0, 50) + '...' : row.descripcion) : 'Sin descripción' }}
+              </p>
+            </ng-template>
+          </ngx-datatable-column>
+
+          <!-- Columna Estado -->
+          <ngx-datatable-column
+            name="Estado"
+            prop="activo"
+            [flexGrow]="0.8"
+            [sortable]="false"
+          >
+            <ng-template let-row="row" ngx-datatable-cell-template>
+              <span
+                class="badge status-badge"
+                [class]="row.activo ? 'bg-success-50 text-success-600' : 'bg-danger-50 text-danger-600'"
+              >
+                {{ row.activo ? 'Activa' : 'Inactiva' }}
+              </span>
+            </ng-template>
+          </ngx-datatable-column>
+
+          <!-- Columna Fecha -->
+          <ngx-datatable-column name="Fecha Creación" prop="created_at" [flexGrow]="1">
+            <ng-template let-row="row" ngx-datatable-cell-template>
+              <span class="date-text">
+                {{ row.created_at | date:'dd/MM/yyyy' }}
+              </span>
+            </ng-template>
+          </ngx-datatable-column>
+
+          <!-- Columna Acciones -->
+          <ngx-datatable-column
+            name="Acciones"
+            [flexGrow]="1.2"
+            [sortable]="false"
+            [canAutoResize]="false"
+          >
+            <ng-template let-row="row" ngx-datatable-cell-template>
+              <div class="action-buttons">
+                <!-- Toggle Estado -->
+                <button
+                  class="btn action-btn toggle-btn"
+                  *ngIf="permissionsService.canEditMarcas()"
+                  [class.toggle-active]="row.activo"
+                  [class.toggle-inactive]="!row.activo"
+                  [title]="row.activo ? 'Desactivar' : 'Activar'"
+                  (click)="toggleEstado(row)"
+                >
+                  <i
+                    class="ph"
+                    [class.ph-eye-slash]="row.activo"
+                    [class.ph-eye]="!row.activo"
+                  ></i>
+                </button>
+
+                <!-- Editar -->
+                <button
+                  class="btn action-btn edit-btn"
+                  *ngIf="permissionsService.canEditMarcas()"
+                  title="Editar"
+                  (click)="editarMarca(row)"
+                >
+                  <i class="ph ph-pencil"></i>
+                </button>
+
+                <!-- Eliminar -->
+                <button
+                  class="btn action-btn delete-btn"
+                  *ngIf="permissionsService.canDeleteMarcas()"
+                  title="Eliminar"
+                  (click)="eliminarMarca(row)"
+                >
+                  <i class="ph ph-trash"></i>
+                </button>
+              </div>
+            </ng-template>
+          </ngx-datatable-column>
+          </ngx-datatable>
+        </div>
+
+        <!-- Empty state -->
+        <div
+          *ngIf="!isLoading && marcas.length === 0"
+          class="text-center py-40"
+        >
+          <i class="ph ph-tag text-gray-300 text-6xl mb-16"></i>
+          <h6 class="text-heading fw-semibold mb-8">No hay marcas</h6>
+          <p class="text-gray-500 mb-16">Aún no has creado ninguna marca</p>
+          <button
+            class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8"
+            *ngIf="permissionsService.canCreateMarcas()"
+            (click)="nuevaMarca()"
+            data-bs-toggle="modal"
+            data-bs-target="#modalCrearMarca"
+          >
+            <i class="ph ph-plus me-8"></i>
+            Crear primera marca
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para crear/editar marca -->
+    <app-marca-modal 
+      [marca]="marcaSeleccionada"
+      (marcaGuardada)="onMarcaGuardada()"
+      (modalCerrado)="onModalCerrado()">
+    </app-marca-modal>

@@ -1,0 +1,21 @@
+<div class="blog-sidebar border border-gray-100 rounded-8 p-32 mb-40">
+    <h6 class="text-xl mb-32 pb-32 border-bottom border-gray-100">Recent Posts</h6>
+
+    <div *ngFor="let post of posts; let last = last" [ngClass]="{'mb-0': last, 'mb-16': !last}"
+        class="d-flex align-items-center flex-sm-nowrap flex-wrap gap-24">
+        <a [routerLink]="['/blog-details']" class="w-100 h-100 rounded-4 overflow-hidden w-120 h-120 flex-shrink-0">
+            <img [src]="post.image" alt="" class="cover-img">
+        </a>
+        <div class="flex-grow-1">
+            <h6 class="text-lg">
+                <a [routerLink]="['/blog-details']" class="text-line-3">{{ post.title }}</a>
+            </h6>
+            <div class="flex-align flex-wrap gap-8">
+                <span class="text-lg text-main-600"><i class="ph ph-calendar-dots"></i></span>
+                <span class="text-sm text-gray-500">
+                    <a [routerLink]="['/blog-details']" class="text-gray-500 hover-text-main-600">{{ post.date }}</a>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>

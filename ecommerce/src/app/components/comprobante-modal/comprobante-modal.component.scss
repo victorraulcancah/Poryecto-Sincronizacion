@@ -1,0 +1,65 @@
+.modal {
+  &.show {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+}
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.form-check-input:checked ~ .form-check-label .card {
+  border-color: var(--bs-primary) !important;
+  background-color: rgba(var(--bs-primary-rgb), 0.05);
+}
+
+.w-40 {
+  width: 40px;
+}
+
+.h-40 {
+  height: 40px;
+}
+
+.rounded-16 {
+  border-radius: 16px;
+}
+
+.rounded-12 {
+  border-radius: 12px;
+}
+
+.rounded-top-16 {
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+
+.rounded-bottom-16 {
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+}
+
+.text-white-50 {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.btn {
+  transition: all 0.3s ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.card {
+  transition: all 0.3s ease;
+}
+
+.alert {
+  border-radius: 12px;
+}

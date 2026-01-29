@@ -1,0 +1,425 @@
+<!-- Header -->
+<div class="border border-gray-100 rounded-16 overflow-hidden bg-white">
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <div class="flex-between align-items-center gap-16 flex-wrap">
+      <div>
+        <h4 class="mb-4 text-heading">
+          Gestión de Costos de Envío por Ubicación
+        </h4>
+        <p class="text-gray-500 mb-0 text-sm">
+          Configura los costos de envío según departamento, provincia o distrito
+        </p>
+      </div>
+      <button class="btn bg-main-600" (click)="openModal()">
+        <i class="ph ph-plus me-8"></i>
+        Nuevo Costo de Envío
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros y Estadísticas -->
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <div class="row g-3">
+      <!-- Filtros -->
+      <div class="col-md-8">
+        <div class="d-flex align-items-center gap-12 flex-wrap">
+          <div>
+            <label class="text-sm text-gray-600 mb-1 d-block"
+              >Nivel de cobertura:</label
+            >
+            <select
+              class="form-select form-select-sm"
+              [(ngModel)]="filtroNivel"
+              style="width: auto"
+            >
+              <option value="todos">Todos</option>
+              <option value="departamento">Solo Departamentos</option>
+              <option value="provincia">Solo Provincias</option>
+              <option value="distrito">Solo Distritos</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm text-gray-600 mb-1 d-block"
+              >Departamento:</label
+            >
+            <select
+              class="form-select form-select-sm"
+              [(ngModel)]="filtroDepartamento"
+              style="width: auto"
+            >
+              <option value="">Todos</option>
+              <option
+                *ngFor="let dept of departamentos"
+                [value]="dept.id_ubigeo"
+              >
+                {{ dept.nombre }}
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estadísticas -->
+      <div class="col-md-4">
+        <div
+          class="d-flex align-items-center justify-content-end gap-4 flex-wrap"
+        >
+          <span class="text-sm fw-medium text-dark">Total:</span>
+          <span class="badge bg-main-50 text-main-600">{{
+            formasEnvioFiltradas.length
+          }}</span>
+          <span class="text-sm fw-medium text-dark">Activos:</span>
+          <span class="badge bg-success-50 text-success-600">{{
+            formasEnvioActivas
+          }}</span>
+          <span class="text-sm fw-medium text-dark">Inactivos:</span>
+          <span class="badge bg-danger-50 text-danger-600">{{
+            formasEnvioInactivas
+          }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla Moderna -->
+  <div class="modern-data-table">
+    <!-- Loading state -->
+    <div *ngIf="isLoading" class="modern-data-table__loading">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="loading-text">Cargando costos de envío...</p>
+    </div>
+
+    <!-- Empty state -->
+    <div
+      *ngIf="!isLoading && formasEnvioFiltradas.length === 0"
+      class="text-center py-5"
+    >
+      <i class="ph ph-map-pin text-gray-300" style="font-size: 4rem"></i>
+      <p class="text-gray-500 mt-3">No hay costos de envío configurados</p>
+      <button class="btn bg-main-600 btn-sm mt-2" (click)="openModal()">
+        <i class="ph ph-plus me-2"></i>Configurar Primer Costo
+      </button>
+    </div>
+
+    <!-- Tabla moderna -->
+    <div
+      class="modern-data-table__container"
+      *ngIf="!isLoading && formasEnvioFiltradas.length > 0"
+    >
+      <table class="table table-borderless mb-0">
+        <thead>
+          <tr>
+            <th>UBICACIÓN</th>
+            <th>NIVEL</th>
+            <th>COSTO</th>
+            <th>ESTADO</th>
+            <th class="text-end">ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let forma of formasEnvioPaginadas">
+            <td>
+              <div class="d-flex flex-column">
+                <span class="fw-medium text-dark">{{
+                  forma.ubicacion_completa || forma.departamento_nombre
+                }}</span>
+                <small class="text-gray-500">
+                  <i class="ph ph-map-pin me-1"></i>
+                  Costo: S/ {{ forma.costo | number : "1.2-2" }}
+                </small>
+              </div>
+            </td>
+            <td>
+              <span
+                class="badge"
+                [ngClass]="{
+                  'bg-info-50 text-info-600':
+                    getNivelCobertura(forma) === 'Departamento',
+                  'bg-warning-50 text-warning-600':
+                    getNivelCobertura(forma) === 'Provincia',
+                  'bg-purple-50 text-purple-600':
+                    getNivelCobertura(forma) === 'Distrito'
+                }"
+              >
+                {{ getNivelCobertura(forma) }}
+              </span>
+            </td>
+            <td>
+              <span class="fw-semibold text-success-600"
+                >S/ {{ forma.costo | number : "1.2-2" }}</span
+              >
+            </td>
+            <td>
+              <span
+                class="badge"
+                [ngClass]="
+                  forma.activo
+                    ? 'bg-success-50 text-success-600'
+                    : 'bg-danger-50 text-danger-600'
+                "
+              >
+                {{ forma.activo ? "Activo" : "Inactivo" }}
+              </span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button
+                  class="action-buttons__btn action-buttons__btn--edit"
+                  (click)="openModal(forma)"
+                  title="Editar"
+                >
+                  <i class="ph ph-pencil"></i>
+                </button>
+                <button
+                  class="action-buttons__btn"
+                  [ngClass]="
+                    forma.activo
+                      ? 'action-buttons__btn--warning'
+                      : 'action-buttons__btn--success'
+                  "
+                  (click)="toggleEstado(forma.id!)"
+                  [title]="forma.activo ? 'Desactivar' : 'Activar'"
+                >
+                  <i
+                    class="ph"
+                    [ngClass]="forma.activo ? 'ph-eye-slash' : 'ph-eye'"
+                  ></i>
+                </button>
+                <button
+                  class="action-buttons__btn action-buttons__btn--delete"
+                  (click)="eliminar(forma.id!)"
+                  title="Eliminar"
+                >
+                  <i class="ph ph-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación -->
+    <div
+      class="modern-data-table__pagination"
+      *ngIf="
+        !isLoading && formasEnvioFiltradas.length > 0 && getTotalPages() > 1
+      "
+    >
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="pagination-info">
+          Mostrando {{ (currentPage - 1) * pageSize + 1 }} a
+          {{ Math.min(currentPage * pageSize, formasEnvioFiltradas.length) }} de
+          {{ formasEnvioFiltradas.length }} registros
+        </div>
+        <nav>
+          <ul class="pagination-controls">
+            <li [class.disabled]="currentPage === 1">
+              <button
+                (click)="goToPage(currentPage - 1)"
+                [disabled]="currentPage === 1"
+              >
+                <i class="ph ph-caret-left"></i>
+              </button>
+            </li>
+            <li
+              *ngFor="let page of getPageNumbers()"
+              [class.active]="page === currentPage"
+            >
+              <button (click)="goToPage(page)">{{ page }}</button>
+            </li>
+            <li [class.disabled]="currentPage === getTotalPages()">
+              <button
+                (click)="goToPage(currentPage + 1)"
+                [disabled]="currentPage === getTotalPages()"
+              >
+                <i class="ph ph-caret-right"></i>
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div
+  class="modal fade"
+  [class.show]="showModal"
+  [style.display]="showModal ? 'block' : 'none'"
+  tabindex="-1"
+>
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-lg rounded-12">
+      <div
+        class="modal-header bg-main-50 border-bottom border-gray-100 px-24 py-16"
+      >
+        <h5 class="modal-title fw-semibold text-heading">
+          <i class="ph ph-map-pin me-2 text-main-600"></i>
+          {{ isEditMode ? "Editar" : "Nuevo" }} Costo de Envío
+        </h5>
+        <button type="button" class="btn-close" (click)="closeModal()"></button>
+      </div>
+      <form [formGroup]="formaEnvioForm" (ngSubmit)="onSubmit()">
+        <div class="modal-body px-24 py-20">
+          <!-- Ubicación Geográfica -->
+          <div class="alert alert-info-50 mb-16">
+            <i class="ph ph-info me-2"></i>
+            <strong>Configuración de cobertura:</strong> Selecciona el
+            departamento (obligatorio). Opcionalmente, puedes especificar
+            provincia y/o distrito para costos más específicos.
+          </div>
+
+          <div class="row">
+            <!-- Departamento -->
+            <div class="col-md-4 mb-16">
+              <label class="form-label fw-semibold text-sm text-heading mb-8">
+                Departamento <span class="text-danger-600">*</span>
+              </label>
+              <select
+                class="form-select radius-8 border-gray-200"
+                formControlName="departamento_id"
+                [class.is-invalid]="
+                  formaEnvioForm.get('departamento_id')?.invalid &&
+                  formaEnvioForm.get('departamento_id')?.touched
+                "
+              >
+                <option value="">Seleccionar...</option>
+                <option
+                  *ngFor="let dept of departamentos"
+                  [value]="dept.id"
+                >
+                  {{ dept.nombre }}
+                </option>
+              </select>
+              <div
+                *ngIf="
+                  formaEnvioForm.get('departamento_id')?.invalid &&
+                  formaEnvioForm.get('departamento_id')?.touched
+                "
+                class="text-danger-600 text-xs mt-4"
+              >
+                El departamento es requerido
+              </div>
+            </div>
+
+            <!-- Provincia -->
+            <div class="col-md-4 mb-16">
+              <label class="form-label fw-semibold text-sm text-heading mb-8">
+                Provincia <span class="text-gray-500">(Opcional)</span>
+              </label>
+              <select
+                class="form-select radius-8 border-gray-200"
+                formControlName="provincia_id"
+              >
+                <option value="">Todo el departamento</option>
+                <option
+                  *ngFor="let prov of provincias"
+                  [value]="prov.id"
+                >
+                  {{ prov.nombre }}
+                </option>
+              </select>
+              <small class="text-gray-500 text-xs" *ngIf="loadingProvincias">
+                <i class="ph ph-spinner ph-spin me-1"></i>Cargando...
+              </small>
+            </div>
+
+            <!-- Distrito -->
+            <div class="col-md-4 mb-16">
+              <label class="form-label fw-semibold text-sm text-heading mb-8">
+                Distrito <span class="text-gray-500">(Opcional)</span>
+              </label>
+              <select
+                class="form-select radius-8 border-gray-200"
+                formControlName="distrito_id"
+              >
+                <option value="">Toda la provincia</option>
+                <option *ngFor="let dist of distritos" [value]="dist.id">
+                  {{ dist.nombre }}
+                </option>
+              </select>
+              <small class="text-gray-500 text-xs" *ngIf="loadingDistritos">
+                <i class="ph ph-spinner ph-spin me-1"></i>Cargando...
+              </small>
+            </div>
+          </div>
+
+          <!-- Costo -->
+          <div class="mb-16">
+            <label class="form-label fw-semibold text-sm text-heading mb-8">
+              Costo de Envío (S/) <span class="text-danger-600">*</span>
+            </label>
+            <input
+              type="number"
+              class="form-control radius-8 border-gray-200"
+              formControlName="costo"
+              min="0"
+              step="0.01"
+              placeholder="0.00"
+              [class.is-invalid]="
+                formaEnvioForm.get('costo')?.invalid &&
+                formaEnvioForm.get('costo')?.touched
+              "
+            />
+            <small class="text-gray-500 text-xs"
+              >Ingresa el costo de envío para esta ubicación</small
+            >
+            <div
+              *ngIf="
+                formaEnvioForm.get('costo')?.invalid &&
+                formaEnvioForm.get('costo')?.touched
+              "
+              class="text-danger-600 text-xs mt-4"
+            >
+              El costo debe ser mayor o igual a 0
+            </div>
+          </div>
+
+          <!-- Estado Activo -->
+          <div class="mb-16">
+            <div class="form-check form-switch">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                formControlName="activo"
+                id="activoCheck"
+              />
+              <label
+                class="form-check-label fw-medium text-sm"
+                for="activoCheck"
+              >
+                Activo
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button
+            type="button"
+            class="btn bg-gray-100 hover-bg-gray-200 text-gray-600 px-16 py-8 rounded-8"
+            (click)="closeModal()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8"
+            [disabled]="formaEnvioForm.invalid"
+          >
+            <i class="ph ph-check me-8"></i>
+            {{ isEditMode ? "Actualizar" : "Crear" }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<div
+  class="modal-backdrop fade"
+  [class.show]="showModal"
+  *ngIf="showModal"
+></div>

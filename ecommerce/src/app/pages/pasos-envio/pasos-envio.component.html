@@ -1,0 +1,131 @@
+<!-- Breadcrumb -->
+<div class="breadcrumb py-26 bg-main-50">
+  <div class="container container-lg">
+    <div class="breadcrumb-wrapper flex-between flex-wrap gap-16">
+      <h6 class="mb-0">Pasos de Envío</h6>
+      <ul class="flex-align gap-8 flex-wrap">
+        <li class="text-sm">
+          <a routerLink="/" class="text-gray-900 flex-align gap-8 hover-text-main-600">
+            <i class="ph ph-house"></i>
+            Inicio
+          </a>
+        </li>
+        <li class="flex-align">
+          <i class="ph ph-caret-right"></i>
+        </li>
+        <li class="text-sm text-main-600">Pasos de Envío</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Contenido Principal -->
+<section class="shipping-steps py-80">
+  <div class="container container-lg">
+    <!-- Header -->
+    <div class="section-heading text-center mb-64">
+      <h3 class="mb-16">¿Cómo funciona nuestro envío?</h3>
+      <p class="text-gray-600 text-lg">
+        Conoce el proceso paso a paso de cómo llega tu pedido hasta tu puerta
+      </p>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="text-center py-80">
+      <div class="spinner-border text-main-600" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="text-gray-600 mt-16">Cargando pasos de envío...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !isLoading" class="alert alert-danger text-center" role="alert">
+      <i class="ph ph-warning-circle text-2xl mb-8"></i>
+      <p class="mb-0">{{ error }}</p>
+    </div>
+
+    <!-- Steps Grid -->
+    <div *ngIf="!isLoading && !error && pasos.length > 0" class="row g-4">
+      <div 
+        *ngFor="let paso of pasos; let i = index" 
+        class="col-lg-3 col-md-6"
+        [attr.data-aos]="'fade-up'"
+        [attr.data-aos-delay]="i * 100"
+      >
+        <div class="step-card h-100 p-24 rounded-16 border border-gray-100 hover-border-main-600 transition-2 bg-white">
+          <!-- Step Number -->
+          <div class="step-number w-56 h-56 rounded-circle bg-main-600 text-white flex-center mb-24 mx-auto">
+            <span class="text-2xl fw-bold">{{ paso.orden }}</span>
+          </div>
+
+          <!-- Step Image (if exists) -->
+          <div *ngIf="paso.imagen" class="step-image mb-24 text-center">
+            <img 
+              [src]="paso.imagen" 
+              [alt]="paso.titulo"
+              class="w-100 rounded-12"
+              style="max-height: 180px; object-fit: cover;"
+              (error)="onImageError($event)"
+            />
+          </div>
+
+          <!-- Step Content -->
+          <div class="step-content text-center">
+            <h5 class="mb-16 text-heading">{{ paso.titulo }}</h5>
+            <p class="text-gray-600 text-sm mb-0">{{ paso.descripcion }}</p>
+          </div>
+
+          <!-- Step Icon (decorative) - Solo se muestra si no hay imagen -->
+          <div *ngIf="!paso.imagen" class="step-icon text-center mt-24">
+            <i 
+              class="ph text-4xl text-main-600 opacity-50"
+              [ngClass]="{
+                'ph-shopping-cart': paso.orden === 1,
+                'ph-package': paso.orden === 2,
+                'ph-truck': paso.orden === 3,
+                'ph-check-circle': paso.orden === 4
+              }"
+            ></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && !error && pasos.length === 0" class="text-center py-80">
+      <i class="ph ph-info text-6xl text-gray-300 mb-24"></i>
+      <h5 class="text-gray-600 mb-16">No hay pasos de envío configurados</h5>
+      <p class="text-gray-500">Por favor, contacta con el administrador.</p>
+    </div>
+
+    <!-- Timeline Connector (decorative) -->
+    <div *ngIf="!isLoading && !error && pasos.length > 0" class="timeline-connector mt-64 d-none d-lg-block">
+      <div class="position-relative">
+        <div class="timeline-line bg-main-100" style="height: 4px; width: 100%;"></div>
+        <div class="timeline-dots d-flex justify-content-between position-absolute w-100" style="top: -10px;">
+          <div 
+            *ngFor="let paso of pasos" 
+            class="timeline-dot w-24 h-24 rounded-circle bg-main-600"
+          ></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="cta-section mt-80 text-center">
+      <div class="bg-main-50 rounded-16 p-40">
+        <h4 class="mb-16">¿Listo para hacer tu pedido?</h4>
+        <p class="text-gray-600 mb-32">
+          Explora nuestros productos y disfruta de un envío rápido y seguro
+        </p>
+        <a 
+          routerLink="/shop" 
+          class="btn btn-main-600 rounded-pill py-16 px-40 hover-bg-main-700 transition-2"
+        >
+          <i class="ph ph-shopping-cart me-8"></i>
+          Ir a la tienda
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

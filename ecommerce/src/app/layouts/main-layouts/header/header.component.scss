@@ -1,0 +1,82 @@
+// ============================================
+// SKELETON LOADERS PARA MENÚS
+// ============================================
+
+.menu-skeleton {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 8px 0;
+
+  &__item {
+    height: 20px;
+    background: linear-gradient(
+      90deg,
+      #f0f0f0 25%,
+      #e0e0e0 50%,
+      #f0f0f0 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+
+    &--short {
+      width: 60px;
+    }
+
+    &--medium {
+      width: 90px;
+    }
+
+    &--long {
+      width: 120px;
+    }
+  }
+}
+
+.menu-skeleton-mobile {
+  padding: 12px 0;
+
+  &__item {
+    height: 18px;
+    background: linear-gradient(
+      90deg,
+      #f0f0f0 25%,
+      #e0e0e0 50%,
+      #f0f0f0 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+    margin-bottom: 16px;
+
+    &--1 { width: 80px; }
+    &--2 { width: 120px; animation-delay: 0.1s; }
+    &--3 { width: 100px; animation-delay: 0.2s; }
+    &--4 { width: 90px; animation-delay: 0.3s; }
+    &--5 { width: 110px; animation-delay: 0.4s; }
+    &--6 { width: 95px; animation-delay: 0.5s; }
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+// Responsive
+@media (max-width: 991px) {
+  .menu-skeleton {
+    display: none;
+  }
+}
+
+@media (min-width: 992px) {
+  .menu-skeleton-mobile {
+    display: none;
+  }
+}

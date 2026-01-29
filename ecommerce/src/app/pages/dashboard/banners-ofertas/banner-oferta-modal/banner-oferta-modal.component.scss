@@ -1,0 +1,32 @@
+.image-preview-container {
+  border: 2px dashed #E5E7EB;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #F9FAFB;
+}
+
+.image-preview {
+  width: 100%;
+  height: 400px; // Aumentado para imágenes verticales
+  background-size: contain; // Cambiado a contain para mostrar la imagen completa
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #F9FAFB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &.has-image {
+    background-color: #F3F4F6; // Fondo gris claro cuando hay imagen
+  }
+
+  .placeholder {
+    text-align: center;
+  }
+}
+
+.image-upload-section {
+  .btn {
+    cursor: pointer;
+  }
+}

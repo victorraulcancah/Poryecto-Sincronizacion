@@ -1,0 +1,14 @@
+// src/app/pages/my-account/favoritos/favoritos.component.scss
+.product-card {
+  &__thumb {
+    img {
+      transition: transform 0.3s ease;
+    }
+  }
+
+  &:hover {
+    .product-card__thumb img {
+      transform: scale(1.05);
+    }
+  }
+}
