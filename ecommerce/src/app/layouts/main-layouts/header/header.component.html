@@ -70,7 +70,7 @@
   </button>
   <div class="mobile-menu__inner">
     <a [routerLink]="['/']" class="mobile-menu__logo">
-      <img src="assets/images/logo/logo3.png" alt="Logo" />
+      <img src="assets/images/logo/logo.svg" alt="Logo" />
     </a>
     <div class="mobile-menu__menu">
       <!-- Nav Menu Start -->
@@ -137,13 +137,13 @@
 <!-- ==================== Mobile Menu End Here ==================== -->
 
 <!-- ======================= Inicio del encabezado medio ========================= -->
-<header class="header-middle border-bottom border-gray-100 bg-azul-oscuro">
+<header class="header-middle border-bottom border-gray-100 bg-main-600">
   <div class="container container-lg">
     <nav class="header-inner flex-between gap-8">
       <!-- Logo Start -->
       <div class="logo">
         <a [routerLink]="['']" class="link">
-          <img src="assets/images/logo/logo3.png" alt="Logo" />
+          <img src="assets/images/logo/logo.svg" alt="Logo" />
         </a>
       </div>
       <!-- Logo End  -->
@@ -472,7 +472,7 @@
             *ngIf="isHomePageActive"
             type="button"
             (click)="toggleCategoryDropdown()"
-            class="category-button d-flex align-items-center gap-12 text-white bg-success-600 px-20 py-16 rounded-6 hover-bg-success-700 transition-2"
+            class="category-button d-flex align-items-center gap-12 text-white bg-danger-600 px-16 py-10 rounded-6 hover-bg-danger-700 transition-2"
           >
             <span class="text-xl line-height-1"
               ><i class="ph ph-squares-four"></i
@@ -484,7 +484,7 @@
           </button>
 
           <!-- Enlace "Arma tu PC" (en otras páginas) -->
-          <a
+          <!-- <a
             *ngIf="mostrarBotonArmaTuPC() && !isHomePageActive"
             routerLink="/arma-tu-pc"
             class="text-main-600 hover-text-main-700 text-decoration-none fw-semibold d-flex align-items-center gap-12 px-20 py-16"
@@ -493,7 +493,7 @@
               ><i class="ph ph-desktop"></i
             ></span>
             <span>Arma tu PC</span>
-          </a>
+          </a> -->
 
           <!-- Dropdown -->
           <div

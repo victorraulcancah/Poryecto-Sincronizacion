@@ -1,13 +1,13 @@
 <!-- src\app\layouts\main-layouts\footer\footer.component.html -->
 <!-- ==================== Footer Start Here ==================== -->
-<footer class="footer py-60 bg-azul-oscuro">
+<footer class="footer py-60 bg-main-600">
     <div class="container container-lg">
         <div class="row align-items-start">
             <!-- Logo y información de contacto -->
             <div class="col-lg-3 col-md-6 mb-40" data-aos="fade-up" data-aos-duration="200">
                 <div class="footer-item__logo mb-24">
                     <a [routerLink]="['/']">
-                        <img [src]="empresaInfo.logo_url || '/assets/images/logo/logo3.png'"
+                        <img [src]="empresaInfo.logo_url || '/assets/images/logo/logo.svg'"
                              [alt]="empresaInfo.nombre_empresa"
                              class="img-fluid">
                     </a>
@@ -53,11 +53,11 @@
                          class="col-md-4 mb-32" 
                          [attr.data-aos]="'fade-up'"
                          [attr.data-aos-duration]="(i + 2) * 200">
-                        <h6 class="footer-item__title text-danger-10 fw-semibold mb-20 text-uppercase">{{ section.title }}</h6>
+                        <h6 class="footer-item__title text-gray-900 fw-semibold mb-20 text-uppercase">{{ section.title }}</h6>
                         <ul class="footer-menu list-unstyled">
                             <li *ngFor="let link of section.links" class="mb-8">
                                 <a [routerLink]="link.route" 
-                                   class="text-white hover-text-danger-20 text-sm transition-all text-decoration-none">
+                                   class="text-white hover-text-gray-800 text-sm transition-all text-decoration-none">
                                     {{ link.label }}
                                 </a>
                             </li>

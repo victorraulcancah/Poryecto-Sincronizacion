@@ -9842,8 +9842,8 @@ input:focus-visible {
 }
 
 .wishlist-btn-custom:hover {
-    border-color: #1c799b !important;
-    color: #1c799b !important;
+    border-color: #9B1C1C !important;
+    color: #9B1C1C !important;
 }
 
 /* Cuando está activo (en wishlist) */
@@ -9852,12 +9852,12 @@ input:focus-visible {
     opacity: 1 !important;
     transform: scale(1) !important;
     border: 2px solid #fff !important;
-    background-color: #1c799b !important;
+    background-color: #9B1C1C !important;
     color: #fff !important;
 }
 
 .wishlist-btn-custom.active:hover {
-    background-color: #145a78 !important;
+    background-color: #9B1C1C !important;
     border-color: #fff !important;
 }
 

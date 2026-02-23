@@ -8,7 +8,7 @@ import { environment } from '../../environments/environment';
 })
 export class ProductosPublicosService {
   // Usar el backend de 7power para productos
-  private apiUrl = `${environment.apiUrl7Power}/productos-publicos`;
+  private apiUrl = `${environment.apiUrl}/productos-publicos`;
 
   constructor(private http: HttpClient) {}
 

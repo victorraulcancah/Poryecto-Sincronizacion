@@ -1,12 +1,12 @@
 <!-- src/app/layouts/dashboard-layout/dashboard-sidebar/dashboard-sidebar.component.html -->
-<aside class="dashboard-sidebar bg-azul-oscuro" [class.show]="isSidebarOpen" [class.collapsed]="isCollapsed">
+<aside class="dashboard-sidebar bg-main-600" [class.show]="isSidebarOpen" [class.collapsed]="isCollapsed">
   <!-- Header del sidebar -->
   <div class="sidebar-header p-24 border-bottom border-main-500">
     <div class="d-flex align-items-center" [class.justify-content-between]="!isCollapsed"
       [class.justify-content-center]="isCollapsed">
       <h5 class="text-white mb-0 fw-semibold sidebar-title" [class.fade-out]="isCollapsed"
         [class.fade-in]="!isCollapsed">
-        Magus Tec
+        7 Power
       </h5>
       <button
         class="btn text-white hover-bg-main-500 w-40 h-40 rounded-8 d-flex align-items-center justify-content-center transition-2 d-none d-lg-block p-0"
@@ -55,13 +55,13 @@
             </a>
           </li>
 
-          <li class="mb-4" *ngIf="puedeVerMotorizados">
+          <!-- <li class="mb-4" *ngIf="puedeVerMotorizados">
             <a routerLink="/dashboard/motorizados" routerLinkActive="active"
               class="nav-link flex-align gap-8 px-12 py-8 text-white text-decoration-none rounded-6 transition-2 hover-bg-main-500 text-sm">
               <i class="ph ph-motorcycle text-lg flex-shrink-0"></i>
               <span class="fw-medium">Motorizados</span>
             </a>
-          </li>
+          </li> -->
         </ul>
       </li>
 
@@ -103,7 +103,7 @@
         </ul>
       </li>
       <!-- ✅ NUEVO: Facturación -->
-      <li *ngIf="puedeVerFacturacion" class="mb-8">
+      <!-- <li *ngIf="puedeVerFacturacion" class="mb-8">
         <a (click)="toggleFacturacion()"
           class="nav-link flex-align gap-12 px-16 py-12 text-white text-decoration-none rounded-8 transition-2 hover-bg-main-500 cursor-pointer">
           <i class="ph ph-file-text text-xl flex-shrink-0"></i>
@@ -111,7 +111,6 @@
           <i *ngIf="!isCollapsed" class="ph text-sm ms-auto transition-2" [class.ph-caret-right]="!isFacturacionOpen"
             [class.ph-caret-down]="isFacturacionOpen"></i>
         </a>
-        <!-- Submódulos de Facturación -->
         <ul *ngIf="isFacturacionOpen && !isCollapsed" class="list-style-none p-0 ms-28 mt-8 submenu">
           <li class="mb-4">
             <a routerLink="/dashboard/facturacion" routerLinkActive="active"
@@ -191,7 +190,7 @@
             </a>
           </li>
         </ul>
-      </li>
+      </li> -->
       <!-- ✅ NUEVO: Módulo Almacén -->
       <li class="mb-8">
         <a (click)="toggleAlmacen()"
@@ -247,7 +246,7 @@
       </li>
 
       <!-- ✅ NUEVO: Módulo Contabilidad -->
-      <li *ngIf="puedeVerContabilidad" class="mb-8">
+      <!-- <li *ngIf="puedeVerContabilidad" class="mb-8">
         <a (click)="toggleContabilidad()"
           class="nav-link flex-align gap-12 px-16 py-12 text-white text-decoration-none rounded-8 transition-2 hover-bg-main-500 cursor-pointer">
           <i class="ph ph-calculator text-xl flex-shrink-0"></i>
@@ -256,7 +255,6 @@
             [class.ph-caret-down]="isContabilidadOpen"></i>
         </a>
 
-        <!-- Submódulos -->
         <ul *ngIf="isContabilidadOpen && !isCollapsed" class="list-style-none p-0 ms-28 mt-8 submenu">
           <li class="mb-4">
             <a routerLink="/dashboard/contabilidad/cxc" routerLinkActive="active"
@@ -282,7 +280,7 @@
             </a>
           </li>
         </ul>
-      </li>
+      </li> -->
 
 
 
@@ -350,13 +348,13 @@
       </li>
 
       <!-- ✅ NUEVO: Arma tu PC -->
-      <li *ngIf="puedeConfigure" class="mb-8">
+      <!-- <li *ngIf="puedeConfigure" class="mb-8">
         <a routerLink="/dashboard/arma-pc" routerLinkActive="active"
           class="nav-link flex-align gap-12 px-16 py-12 text-white text-decoration-none rounded-8 transition-2 hover-bg-main-500">
           <i class="ph ph-desktop text-xl flex-shrink-0"></i>
           <span *ngIf="!isCollapsed" class="fw-medium">Arma tu PC</span>
         </a>
-      </li>
+      </li> -->
 
       <!-- ✅ NUEVO: Horarios -->
       <li *ngIf="puedeVerHorarios" class="mb-8">
@@ -419,13 +417,13 @@
             </a>
           </li>
 
-          <li class="mb-4" *ngIf="puedeVerCupones">
+          <!-- <li class="mb-4" *ngIf="puedeVerCupones">
             <a routerLink="/dashboard/cupones" routerLinkActive="active"
               class="nav-link flex-align gap-8 px-12 py-8 text-white text-decoration-none rounded-6 transition-2 hover-bg-main-500 text-sm">
               <i class="ph ph-ticket text-lg flex-shrink-0"></i>
               <span class="fw-medium">Cupones</span>
             </a>
-          </li>
+          </li> -->
         </ul>
       </li>
 
@@ -444,13 +442,13 @@
       </li>
 
       <!-- Compras -->
-      <li *ngIf="puedeVerCompras" class="mb-8">
+      <!-- <li *ngIf="puedeVerCompras" class="mb-8">
         <a routerLink="/dashboard/compras" routerLinkActive="active"
           class="nav-link flex-align gap-12 px-16 py-12 text-white text-decoration-none rounded-8 transition-2 hover-bg-main-500">
           <i class="ph ph-shopping-bag text-xl flex-shrink-0"></i>
           <span *ngIf="!isCollapsed" class="fw-medium">Compras</span>
         </a>
-      </li>
+      </li> -->
 
       <!-- Reclamos -->
       <li *ngIf="puedeVerReclamos" class="mb-8">
@@ -503,13 +501,13 @@
       </li>
 
       <!-- Envío de Correos -->
-      <li *ngIf="puedeVerEmailTemplates" class="mb-8">
+      <!-- <li *ngIf="puedeVerEmailTemplates" class="mb-8">
         <a routerLink="/dashboard/email-templates" routerLinkActive="active"
           class="nav-link flex-align gap-12 px-16 py-12 text-white text-decoration-none rounded-8 transition-2 hover-bg-main-500">
           <i class="ph ph-envelope text-xl flex-shrink-0"></i>
           <span *ngIf="!isCollapsed" class="fw-medium">Envío Correos</span>
         </a>
-      </li>
+      </li> -->
 
 
       <!-- Volver al sitio -->
