@@ -1,5 +1,5 @@
-# robots.txt para MAGUS Ecommerce
-# https://magus-ecommerce.com/robots.txt
+# robots.txt para 7Power Ecommerce
+# https://7power.pe/robots.txt
 
 User-agent: *
 Allow: /
@@ -16,7 +16,7 @@ Allow: /shop/
 Allow: /index
 
 # Sitemap
-Sitemap: https://magus-ecommerce.com/sitemap.xml
+Sitemap: https://7power.pe/sitemap.xml
 
 # Configuración específica para Google
 User-agent: Googlebot
