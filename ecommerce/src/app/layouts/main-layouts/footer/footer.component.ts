@@ -22,7 +22,7 @@ export class FooterComponent implements OnInit {
     celular: '',
     direccion: '',
     horario_atencion: '',
-    logo_url: '/assets/images/logo/logo3.png',
+    logo_url: '/assets/images/logo/logo.svg',
     facebook: null,
     instagram: null,
     twitter: null,

@@ -115,7 +115,7 @@ export class ProductosService {
   private apiUrl = `${environment.apiUrl}`;
   private baseUrl = environment.apiUrl.replace('/api', ''); // http://localhost:8000 en environment 
   // ✅ NUEVO: Usar backend de 7power para productos públicos
-  private apiUrl7Power = `${environment.apiUrl7Power}`;
+  private apiUrl7Power = `${environment.apiUrl}`;
 
   constructor(private http: HttpClient) { }
 

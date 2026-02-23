@@ -37,11 +37,10 @@
   </div>
 
   <!-- Grid de banners horizontales -->
-  <div *ngIf="!isLoading" class="row g-24">
+  <!-- <div *ngIf="!isLoading" class="row g-24">
     <div class="col-12" *ngFor="let posicion of posiciones; let i = index">
       <div class="card border-0 shadow-sm rounded-16 overflow-hidden">
         <div class="card-body p-24">
-          <!-- Header de la card -->
           <div class="d-flex align-items-start justify-content-between mb-20">
             <div class="d-flex align-items-center gap-12">
               <div class="flex-shrink-0">
@@ -55,7 +54,6 @@
               </div>
             </div>
 
-            <!-- Badge de estado -->
             <span *ngIf="posicion.banner"
                   class="badge px-12 py-6 rounded-pill"
                   [class.bg-success]="posicion.banner.activo"
@@ -64,9 +62,7 @@
             </span>
           </div>
 
-          <!-- Preview o Empty State -->
           <div class="banner-preview-container">
-            <!-- Con banner -->
             <div *ngIf="posicion.banner" class="position-relative">
               <div class="banner-preview rounded-12 overflow-hidden mb-16"
                    style="max-height: 200px;">
@@ -76,7 +72,6 @@
                      style="object-fit: cover; object-position: center;">
               </div>
 
-              <!-- Info del banner -->
               <div class="d-flex align-items-center gap-12 mb-16">
                 <i class="ph ph-link text-gray-400"></i>
                 <a [href]="posicion.banner.enlace_url"
@@ -87,7 +82,6 @@
                 </a>
               </div>
 
-              <!-- Botones de acción -->
               <div class="d-flex gap-8">
                 <button *ngIf="canEdit$"
                         class="btn btn-outline-main-600 flex-fill"
@@ -112,7 +106,6 @@
               </div>
             </div>
 
-            <!-- Sin banner -->
             <div *ngIf="!posicion.banner"
                  class="empty-state text-center py-48 bg-gray-50 rounded-12">
               <div class="mb-16">
@@ -133,7 +126,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </div> -->
 
   <!-- Info adicional -->
   <div *ngIf="!isLoading" class="alert alert-light border mt-24">

@@ -24,7 +24,7 @@ import Swal from 'sweetalert2';
       align-items: center;
       gap: 8px;
       padding: 10px 20px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: #C62828;
       color: white;
       border: none;
       border-radius: 8px;
@@ -32,7 +32,6 @@ import Swal from 'sweetalert2';
       font-size: 14px;
       cursor: pointer;
       transition: all 0.3s ease;
-      box-shadow: 0 4px 6px rgba(102, 126, 234, 0.25);
     }
 
     .btn-sync:hover:not(:disabled) {

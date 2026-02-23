@@ -25,8 +25,8 @@ export class AlmacenService {
   private apiUrl = `${environment.apiUrl}`;
   private baseUrl = environment.baseUrl;
   // Backend de 7power solo para productos públicos
-  private apiUrl7Power = `${environment.apiUrl7Power}`;
-  private baseUrl7Power = environment.baseUrl7Power;
+  private apiUrl7Power = `${environment.apiUrl}`;
+  private baseUrl7Power = environment.baseUrl;
 
   constructor(private http: HttpClient) { }
 

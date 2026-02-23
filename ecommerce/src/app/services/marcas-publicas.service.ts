@@ -8,7 +8,7 @@ import { environment } from '../../environments/environment';
 })
 export class MarcasPublicasService {
   // Usar el backend de 7power para marcas
-  private apiUrl = `${environment.apiUrl7Power}/marcas-publicas`;
+  private apiUrl = `${environment.apiUrl}/marcas-publicas`;
 
   constructor(private http: HttpClient) {}
 
