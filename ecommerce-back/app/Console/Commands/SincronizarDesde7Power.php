@@ -82,14 +82,17 @@ class SincronizarDesde7Power extends Command
         $actualizadas = 0;
         $errores = 0;
         
+        // IDs de marcas activas en 7Power
+        $marcas7PowerIds = $marcas7Power->pluck('id')->toArray();
+        
         foreach ($marcas7Power as $marca7Power) {
             try {
-                // Verificar si ya existe el mapeo
-                $mapeoExiste = DB::table('marca_mapeo_7power')
+                // Buscar mapeo existente
+                $mapeo = DB::table('marca_mapeo_7power')
                     ->where('marca_7power', $marca7Power->id)
-                    ->exists();
+                    ->first();
                 
-                if (!$mapeoExiste) {
+                if (!$mapeo) {
                     // Buscar o crear marca en Magus por codigo_externo
                     $marcaMagus = DB::table('marcas_productos')
                         ->where('codigo_externo', $marca7Power->id)
@@ -107,32 +110,48 @@ class SincronizarDesde7Power extends Command
                         ]);
                         
                         $this->line("  Marca creada en Magus: {$marca7Power->name}");
+                        $nuevas++;
                     } else {
                         $marcaMagusId = $marcaMagus->id;
-                    }
-                    
-                    // Verificar que no exista mapeo con este marca_magus_id
-                    $mapeoExistePorMagusId = DB::table('marca_mapeo_7power')
-                        ->where('marca_magus_id', $marcaMagusId)
-                        ->exists();
-                    
-                    if (!$mapeoExistePorMagusId) {
-                        // Crear mapeo
-                        DB::table('marca_mapeo_7power')->insert([
-                            'marca_magus_id' => $marcaMagusId,
-                            'marca_7power' => $marca7Power->id,
-                            'nombre' => $marca7Power->name,
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ]);
                         
-                        $nuevas++;
-                        $this->line("  Mapeo creado: {$marca7Power->name} (7Power: {$marca7Power->id} → Magus: {$marcaMagusId})");
-                    } else {
-                        $this->line("  Mapeo ya existe para Magus ID: {$marcaMagusId} - Saltando {$marca7Power->name}");
+                        // Actualizar datos de la marca existente
+                        DB::table('marcas_productos')
+                            ->where('id', $marcaMagusId)
+                            ->update([
+                                'nombre' => $marca7Power->name,
+                                'activo' => true,
+                                'updated_at' => now(),
+                            ]);
+                        
                         $actualizadas++;
                     }
+                    
+                    // Crear mapeo
+                    DB::table('marca_mapeo_7power')->insert([
+                        'marca_magus_id' => $marcaMagusId,
+                        'marca_7power' => $marca7Power->id,
+                        'nombre' => $marca7Power->name,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
                 } else {
+                    // Actualizar marca existente
+                    DB::table('marcas_productos')
+                        ->where('id', $mapeo->marca_magus_id)
+                        ->update([
+                            'nombre' => $marca7Power->name,
+                            'activo' => true,
+                            'updated_at' => now(),
+                        ]);
+                    
+                    // Actualizar mapeo
+                    DB::table('marca_mapeo_7power')
+                        ->where('id', $mapeo->id)
+                        ->update([
+                            'nombre' => $marca7Power->name,
+                            'updated_at' => now(),
+                        ]);
+                    
                     $actualizadas++;
                 }
             } catch (\Exception $e) {
@@ -141,7 +160,25 @@ class SincronizarDesde7Power extends Command
             }
         }
         
-        $this->info(" Marcas sincronizadas: {$nuevas} nuevas, {$actualizadas} existentes, {$errores} errores");
+        // Desactivar marcas que ya no existen en 7Power
+        $marcasDesactivadas = DB::table('marca_mapeo_7power')
+            ->whereNotIn('marca_7power', $marcas7PowerIds)
+            ->get();
+        
+        foreach ($marcasDesactivadas as $mapeo) {
+            DB::table('marcas_productos')
+                ->where('id', $mapeo->marca_magus_id)
+                ->update([
+                    'activo' => false,
+                    'updated_at' => now(),
+                ]);
+        }
+        
+        if ($marcasDesactivadas->count() > 0) {
+            $this->line("  Marcas desactivadas: {$marcasDesactivadas->count()}");
+        }
+        
+        $this->info(" Marcas sincronizadas: {$nuevas} nuevas, {$actualizadas} actualizadas, {$errores} errores");
     }
     
     /**
@@ -161,14 +198,17 @@ class SincronizarDesde7Power extends Command
         $actualizadas = 0;
         $errores = 0;
         
+        // IDs de categorías activas en 7Power
+        $categorias7PowerIds = $categorias7Power->pluck('id')->toArray();
+        
         foreach ($categorias7Power as $categoria7Power) {
             try {
-                // Verificar si ya existe el mapeo
-                $mapeoExiste = DB::table('categoria_mapeo_7power')
+                // Buscar mapeo existente
+                $mapeo = DB::table('categoria_mapeo_7power')
                     ->where('categoria_7power', $categoria7Power->id)
-                    ->exists();
+                    ->first();
                 
-                if (!$mapeoExiste) {
+                if (!$mapeo) {
                     // Buscar o crear categoría en Magus por codigo_externo
                     $categoriaMagus = DB::table('categorias')
                         ->where('codigo_externo', $categoria7Power->id)
@@ -187,32 +227,48 @@ class SincronizarDesde7Power extends Command
                         ]);
                         
                         $this->line("  Categoría creada en Magus: {$categoria7Power->name}");
+                        $nuevas++;
                     } else {
                         $categoriaMagusId = $categoriaMagus->id;
-                    }
-                    
-                    // Verificar que no exista mapeo con este categoria_magus_id
-                    $mapeoExistePorMagusId = DB::table('categoria_mapeo_7power')
-                        ->where('categoria_magus_id', $categoriaMagusId)
-                        ->exists();
-                    
-                    if (!$mapeoExistePorMagusId) {
-                        // Crear mapeo
-                        DB::table('categoria_mapeo_7power')->insert([
-                            'categoria_magus_id' => $categoriaMagusId,
-                            'categoria_7power' => $categoria7Power->id,
-                            'nombre' => $categoria7Power->name,
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ]);
                         
-                        $nuevas++;
-                        $this->line("  Mapeo creado: {$categoria7Power->name} (7Power: {$categoria7Power->id} → Magus: {$categoriaMagusId})");
-                    } else {
-                        $this->line("  Mapeo ya existe para Magus ID: {$categoriaMagusId} - Saltando {$categoria7Power->name}");
+                        // Actualizar datos de la categoría existente
+                        DB::table('categorias')
+                            ->where('id', $categoriaMagusId)
+                            ->update([
+                                'nombre' => $categoria7Power->name,
+                                'activo' => true,
+                                'updated_at' => now(),
+                            ]);
+                        
                         $actualizadas++;
                     }
+                    
+                    // Crear mapeo
+                    DB::table('categoria_mapeo_7power')->insert([
+                        'categoria_magus_id' => $categoriaMagusId,
+                        'categoria_7power' => $categoria7Power->id,
+                        'nombre' => $categoria7Power->name,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
                 } else {
+                    // Actualizar categoría existente
+                    DB::table('categorias')
+                        ->where('id', $mapeo->categoria_magus_id)
+                        ->update([
+                            'nombre' => $categoria7Power->name,
+                            'activo' => true,
+                            'updated_at' => now(),
+                        ]);
+                    
+                    // Actualizar mapeo
+                    DB::table('categoria_mapeo_7power')
+                        ->where('id', $mapeo->id)
+                        ->update([
+                            'nombre' => $categoria7Power->name,
+                            'updated_at' => now(),
+                        ]);
+                    
                     $actualizadas++;
                 }
             } catch (\Exception $e) {
@@ -221,7 +277,25 @@ class SincronizarDesde7Power extends Command
             }
         }
         
-        $this->info(" Categorías sincronizadas: {$nuevas} nuevas, {$actualizadas} existentes, {$errores} errores");
+        // Desactivar categorías que ya no existen en 7Power
+        $categoriasDesactivadas = DB::table('categoria_mapeo_7power')
+            ->whereNotIn('categoria_7power', $categorias7PowerIds)
+            ->get();
+        
+        foreach ($categoriasDesactivadas as $mapeo) {
+            DB::table('categorias')
+                ->where('id', $mapeo->categoria_magus_id)
+                ->update([
+                    'activo' => false,
+                    'updated_at' => now(),
+                ]);
+        }
+        
+        if ($categoriasDesactivadas->count() > 0) {
+            $this->line("  Categorías desactivadas: {$categoriasDesactivadas->count()}");
+        }
+        
+        $this->info(" Categorías sincronizadas: {$nuevas} nuevas, {$actualizadas} actualizadas, {$errores} errores");
     }
     
     /**
@@ -231,29 +305,27 @@ class SincronizarDesde7Power extends Command
     {
         $this->info(' Sincronizando productos...');
         
-        // Obtener productos de 7Power con sus relaciones y stock
+        // Obtener TODOS los productos de 7Power (activos e inactivos)
         $productos7Power = DB::connection('mysql_7power')
             ->table('products')
             ->where('company_id', 1)
-            ->where('estado', 1) // Solo productos activos
             ->get();
         
         $nuevos = 0;
         $actualizados = 0;
         $errores = 0;
         $saltados = 0;
+        $desactivados = 0;
+        
+        // IDs de productos activos en 7Power
+        $productos7PowerIds = $productos7Power->pluck('id')->toArray();
         
         foreach ($productos7Power as $producto7Power) {
             try {
-                // Verificar si ya existe el mapeo
-                $mapeoExiste = DB::table('producto_mapeo_7power')
+                // Buscar mapeo existente
+                $mapeo = DB::table('producto_mapeo_7power')
                     ->where('producto_7power_id', $producto7Power->id)
-                    ->exists();
-                
-                if ($mapeoExiste) {
-                    $actualizados++;
-                    continue;
-                }
+                    ->first();
                 
                 // Obtener mapeo de marca
                 $marcaMagusId = null;
@@ -281,52 +353,67 @@ class SincronizarDesde7Power extends Command
                 
                 // Si no tiene categoría, saltar
                 if (!$categoriaMagusId) {
-                    $this->line("  Producto sin categoría mapeada: {$producto7Power->name} - Saltando");
+                    $this->line("  Producto sin categoría mapeada: {$producto7Power->name} (Cat ID: {$producto7Power->category_id}) - Saltando");
                     $saltados++;
                     continue;
                 }
                 
-                // ✅ OBTENER STOCK REAL DE 7POWER (suma de todos los almacenes)
+                // Obtener stock real de 7Power
                 $stockTotal = DB::connection('mysql_7power')
                     ->table('product_warehouse')
                     ->where('product_id', $producto7Power->id)
                     ->sum('stock');
                 
-                // Buscar o crear producto en Magus
-                $productoMagus = DB::table('productos')
-                    ->where('codigo_producto', $producto7Power->codigo)
-                    ->first();
+                // Determinar si el producto está activo en 7Power
+                $activoEn7Power = $producto7Power->estado == 1;
                 
-                if (!$productoMagus) {
-                    // Crear producto en Magus con stock real
-                    $productoMagusId = DB::table('productos')->insertGetId([
-                        'nombre' => $producto7Power->name,
-                        'descripcion' => $producto7Power->descripcion ?? 'Producto ' . $producto7Power->name,
-                        'codigo_producto' => $producto7Power->codigo,
-                        'categoria_id' => $categoriaMagusId,
-                        'marca_id' => $marcaMagusId,
-                        'precio_compra' => 0.00, // Se puede actualizar después
-                        'precio_venta' => 0.00,  // Se puede actualizar después
-                        'stock' => $stockTotal ?? 0, // ✅ Stock real de 7Power
-                        'stock_minimo' => 5,
-                        'activo' => true,
-                        'destacado' => false,
-                        'mostrar_igv' => true,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
+                if (!$mapeo) {
+                    // Buscar o crear producto en Magus
+                    $productoMagus = DB::table('productos')
+                        ->where('codigo_producto', $producto7Power->codigo)
+                        ->first();
                     
-                    $this->line("  Producto creado en Magus: {$producto7Power->name} (Stock: {$stockTotal})");
-                } else {
-                    $productoMagusId = $productoMagus->id;
-                }
-                
-                // Verificar que no exista mapeo con este producto_id
-                $mapeoExistePorMagusId = DB::table('producto_mapeo_7power')
-                    ->where('producto_id', $productoMagusId)
-                    ->exists();
-                
-                if (!$mapeoExistePorMagusId) {
+                    if (!$productoMagus) {
+                        // Crear producto en Magus
+                        $productoMagusId = DB::table('productos')->insertGetId([
+                            'nombre' => $producto7Power->name,
+                            'descripcion' => $producto7Power->descripcion ?? 'Producto ' . $producto7Power->name,
+                            'codigo_producto' => $producto7Power->codigo,
+                            'categoria_id' => $categoriaMagusId,
+                            'marca_id' => $marcaMagusId,
+                            'precio_compra' => 0.00,
+                            'precio_venta' => 0.00,
+                            'stock' => $stockTotal ?? 0,
+                            'stock_minimo' => 5,
+                            'activo' => $activoEn7Power,
+                            'destacado' => false,
+                            'mostrar_igv' => true,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                        
+                        $estado = $activoEn7Power ? 'activo' : 'inactivo';
+                        $this->line("  Producto creado en Magus: {$producto7Power->name} (Stock: {$stockTotal}, Estado: {$estado})");
+                        $nuevos++;
+                    } else {
+                        $productoMagusId = $productoMagus->id;
+                        
+                        // Actualizar producto existente
+                        DB::table('productos')
+                            ->where('id', $productoMagusId)
+                            ->update([
+                                'nombre' => $producto7Power->name,
+                                'descripcion' => $producto7Power->descripcion ?? 'Producto ' . $producto7Power->name,
+                                'categoria_id' => $categoriaMagusId,
+                                'marca_id' => $marcaMagusId,
+                                'stock' => $stockTotal ?? 0,
+                                'activo' => $activoEn7Power,
+                                'updated_at' => now(),
+                            ]);
+                        
+                        $actualizados++;
+                    }
+                    
                     // Crear mapeo
                     DB::table('producto_mapeo_7power')->insert([
                         'producto_id' => $productoMagusId,
@@ -334,12 +421,25 @@ class SincronizarDesde7Power extends Command
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);
-                    
-                    $nuevos++;
-                    $this->line("  Mapeo creado: {$producto7Power->name} (7Power: {$producto7Power->id} → Magus: {$productoMagusId})");
                 } else {
-                    $this->line("   Mapeo ya existe para Magus ID: {$productoMagusId} - Saltando {$producto7Power->name}");
+                    // Actualizar producto existente
+                    DB::table('productos')
+                        ->where('id', $mapeo->producto_id)
+                        ->update([
+                            'nombre' => $producto7Power->name,
+                            'descripcion' => $producto7Power->descripcion ?? 'Producto ' . $producto7Power->name,
+                            'categoria_id' => $categoriaMagusId,
+                            'marca_id' => $marcaMagusId,
+                            'stock' => $stockTotal ?? 0,
+                            'activo' => $activoEn7Power,
+                            'updated_at' => now(),
+                        ]);
+                    
                     $actualizados++;
+                    
+                    if (!$activoEn7Power) {
+                        $desactivados++;
+                    }
                 }
             } catch (\Exception $e) {
                 $errores++;
@@ -347,7 +447,22 @@ class SincronizarDesde7Power extends Command
             }
         }
         
-        $this->info(" Productos sincronizados: {$nuevos} nuevos, {$actualizados} existentes, {$saltados} saltados, {$errores} errores");
+        // Desactivar productos que ya no existen en 7Power
+        $productosEliminados = DB::table('producto_mapeo_7power')
+            ->whereNotIn('producto_7power_id', $productos7PowerIds)
+            ->get();
+        
+        foreach ($productosEliminados as $mapeo) {
+            DB::table('productos')
+                ->where('id', $mapeo->producto_id)
+                ->update([
+                    'activo' => false,
+                    'updated_at' => now(),
+                ]);
+            $desactivados++;
+        }
+        
+        $this->info(" Productos sincronizados: {$nuevos} nuevos, {$actualizados} actualizados, {$desactivados} desactivados, {$saltados} saltados, {$errores} errores");
     }
     
     /**

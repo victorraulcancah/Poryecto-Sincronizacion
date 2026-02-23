@@ -14,7 +14,22 @@ class SincronizacionController extends Controller
     public function sincronizarDesde7Power(Request $request)
     {
         try {
-            Log::info('🔄 Sincronización manual iniciada por usuario', [
+            // Validar conexion a base de datos Novik/7Power
+            try {
+                \DB::connection('mysql_7power')->getPdo();
+                Log::info('Conexion a base de datos Novik/7Power exitosa');
+            } catch (\Exception $e) {
+                Log::error('Error de conexion a base de datos Novik/7Power', [
+                    'error' => $e->getMessage()
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error de conexion a base de datos Novik/7Power. Verifica las credenciales DB_7POWER_* en el archivo .env',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+
+            Log::info(' Sincronización manual iniciada por usuario', [
                 'user_id' => $request->user()->id ?? 'guest',
                 'timestamp' => now()
             ]);
@@ -25,27 +40,29 @@ class SincronizacionController extends Controller
             // Obtener la salida del comando
             $output = Artisan::output();
             
-            // ✅ NUEVO: Actualizar stock de productos existentes
-            Log::info('📦 Actualizando stock de productos existentes...');
+            //  NUEVO: Actualizar stock de productos existentes
+            Log::info(' Actualizando stock de productos existentes...');
             Artisan::call('sync:7power', ['--update-stock' => true]);
             $stockOutput = Artisan::output();
             
             // Combinar ambas salidas
             $fullOutput = $output . "\n" . $stockOutput;
             
-            Log::info('✅ Sincronización manual completada', [
-                'output' => $fullOutput
-            ]);
+            // Limpiar caracteres UTF-8 problematicos (emojis)
+            $fullOutput = mb_convert_encoding($fullOutput, 'UTF-8', 'UTF-8');
+            $fullOutput = preg_replace('/[\x00-\x1F\x7F-\x9F]/u', '', $fullOutput);
+            
+            Log::info('Sincronizacion manual completada');
 
             return response()->json([
                 'success' => true,
-                'message' => 'Sincronización completada exitosamente',
+                'message' => 'Sincronizacion completada exitosamente',
                 'output' => $fullOutput,
                 'timestamp' => now()->toISOString()
             ]);
 
         } catch (\Exception $e) {
-            Log::error('❌ Error en sincronización manual', [
+            Log::error(' Error en sincronización manual', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
