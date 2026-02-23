@@ -129,7 +129,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
           this.whatsappEmpresa = response.data.whatsapp || '';
           // Construir URL del logo usando environment
           if (response.data.logo) {
-            const baseUrl = environment.apiUrl.replace('/api', '');
+            const baseUrl = environment.baseUrl;
             this.logoEmpresa = `${baseUrl}/storage/${response.data.logo}`;
           }
         }
@@ -291,7 +291,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
 
   // ✅ NUEVO: Método para configurar SEO completo
   private configurarSEO(): void {
-    const baseUrl = environment.apiUrl.replace('/api', '');
+    const baseUrl = environment.baseUrl;
     const productUrl = `https://magus-ecommerce.com/product/${this.producto.id}/${this.generateSlug(this.producto.nombre)}`;
     const productImage = this.imagenPrincipal || `${baseUrl}/storage/productos/${this.producto.imagen}`;
 
@@ -381,7 +381,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
 
   private configurarImagenes(): void {
     this.imagenesProducto = []
-    const baseUrl = environment.apiUrl.replace("/api", "")
+    const baseUrl = environment.baseUrl
     if (this.producto?.imagen) {
       this.imagenesProducto.push(`${baseUrl}/storage/productos/${this.producto.imagen}`)
     }

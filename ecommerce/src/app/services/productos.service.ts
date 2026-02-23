@@ -113,7 +113,7 @@ export interface ProductoStockCritico {
 })
 export class ProductosService {
   private apiUrl = `${environment.apiUrl}`;
-  private baseUrl = environment.apiUrl.replace('/api', ''); // http://localhost:8000 en environment 
+  private baseUrl = environment.baseUrl;
   // ✅ NUEVO: Usar backend de 7power para productos públicos
   private apiUrl7Power = `${environment.apiUrl}`;
 

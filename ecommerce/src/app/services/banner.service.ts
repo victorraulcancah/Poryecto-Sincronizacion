@@ -81,7 +81,7 @@ interface ApiResponse<T> {
 export class BannersService {
 
   private apiUrl = `${environment.apiUrl}`;
-  private baseUrl = environment.apiUrl.replace('/api', '');
+  private baseUrl = environment.baseUrl;
   private isBrowser: boolean;
 
   constructor(

@@ -267,7 +267,7 @@ export class CartService {
             imagenUrl = producto.imagen_principal;
           } else {
             // Construir URL completa asumiendo que está en storage/productos/
-            imagenUrl = `${environment.apiUrl.replace('/api', '')}/storage/productos/${producto.imagen_principal}`;
+            imagenUrl = `${environment.baseUrl}/storage/productos/${producto.imagen_principal}`;
           }
         }
         
@@ -413,7 +413,7 @@ export class CartService {
         imagenUrl = producto.imagen_principal;
       } else {
         // Construir URL completa asumiendo que está en storage/productos/
-        imagenUrl = `${environment.apiUrl.replace('/api', '')}/storage/productos/${producto.imagen_principal}`;
+        imagenUrl = `${environment.baseUrl}/storage/productos/${producto.imagen_principal}`;
       }
     }
     

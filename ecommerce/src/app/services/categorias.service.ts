@@ -27,7 +27,7 @@ export interface CategoriaCreate {
 })
 export class CategoriasService {
   private apiUrl = `${environment.apiUrl}`;
-  private baseUrl = environment.apiUrl.replace('/api', ''); // http://localhost:8000
+  private baseUrl = environment.baseUrl;
 
   constructor(private http: HttpClient) {}
 

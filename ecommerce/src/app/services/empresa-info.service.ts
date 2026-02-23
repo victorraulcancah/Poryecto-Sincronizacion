@@ -10,7 +10,7 @@ import { EmpresaInfo, EmpresaInfoCreate } from '../types/empresa-info.types';
 })
 export class EmpresaInfoService {
   private apiUrl = `${environment.apiUrl}`;
-  private baseUrl = environment.apiUrl.replace('/api', '');
+  private baseUrl = environment.baseUrl;
 
   constructor(private http: HttpClient) {}
 
