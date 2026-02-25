@@ -392,37 +392,41 @@ export class AlmacenService {
     params = params.set('_t', Date.now().toString());
 
     // ✅ USAR MAGUS para productos públicos
-    return this.http.get<Producto[]>(`${this.apiUrl}/productos-publicos`, { params }).pipe(
-      map(productos => ({
-        productos: productos.map(producto => ({
-          id: producto.id,
-          nombre: producto.nombre,
-          slug: producto.nombre?.toLowerCase().replace(/\s+/g, '-'),
-          descripcion: producto.descripcion || '',
-          codigo_producto: producto.codigo_producto || producto.id?.toString(),
-          precio: producto.precio_venta || 0,
-          precio_oferta: undefined,
-          stock: producto.stock || 0,
-          imagen_principal: producto.imagen_url || 'assets/images/thumbs/product-default.png',
-          categoria: producto.categoria?.nombre || '',
-          categoria_id: producto.categoria_id,
-          marca: producto.marca?.nombre,
-          marca_id: producto.marca_id,
-          rating: 0,
-          total_reviews: '0',
-          reviews_count: 0,
-          sold_count: 0,
-          total_stock: producto.stock || 0,
-          is_on_sale: false,
-          discount_percentage: 0
-        })),
-        pagination: {
+    return this.http.get<any>(`${this.apiUrl}/productos-publicos`, { params }).pipe(
+      map(response => {
+        const productos = Array.isArray(response) ? response : (response.productos || []);
+        const pagination = response.pagination || {
           current_page: 1,
           last_page: 1,
           per_page: 1000,
           total: productos.length
-        }
-      }))
+        };
+        return {
+          productos: productos.map((producto: any) => ({
+            id: producto.id,
+            nombre: producto.nombre,
+            slug: producto.nombre?.toLowerCase().replace(/\s+/g, '-'),
+            descripcion: producto.descripcion || '',
+            codigo_producto: producto.codigo_producto || producto.id?.toString(),
+            precio: producto.precio ?? producto.precio_venta ?? 0,
+            precio_oferta: undefined,
+            stock: producto.stock || 0,
+            imagen_principal: producto.imagen_principal || producto.imagen_url || 'assets/images/thumbs/product-default.png',
+            categoria: producto.categoria?.nombre || producto.categoria || '',
+            categoria_id: producto.categoria_id,
+            marca: producto.marca?.nombre || producto.marca,
+            marca_id: producto.marca_id,
+            rating: producto.rating || 0,
+            total_reviews: producto.total_reviews || '0',
+            reviews_count: producto.reviews_count || 0,
+            sold_count: producto.sold_count || 0,
+            total_stock: producto.total_stock || producto.stock || 0,
+            is_on_sale: producto.is_on_sale || false,
+            discount_percentage: producto.discount_percentage || 0
+          })),
+          pagination
+        };
+      })
     );
   }
 
@@ -552,13 +556,16 @@ export class AlmacenService {
 
   // ✅ NUEVO: Obtener productos destacados desde Magus
   obtenerProductosDestacados(): Observable<Producto[]> {
-    return this.http.get<Producto[]>(`${this.apiUrl}/productos-publicos`, {
+    return this.http.get<any>(`${this.apiUrl}/productos-publicos`, {
       params: { per_page: '10' }
     }).pipe(
-      map(productos => productos.map(producto => ({
-        ...producto,
-        imagen_url: producto.imagen ? `${this.baseUrl}/storage/productos/${producto.imagen}` : undefined
-      })))
+      map(response => {
+        const productos = Array.isArray(response) ? response : (response.productos || []);
+        return productos.map((producto: any) => ({
+          ...producto,
+          imagen_url: producto.imagen_principal || (producto.imagen ? `${this.baseUrl}/storage/productos/${producto.imagen}` : undefined)
+        }));
+      })
     );
   }
 }
