@@ -552,7 +552,7 @@ export class AlmacenService {
 
   // ✅ NUEVO: Obtener productos destacados desde Magus
   obtenerProductosDestacados(): Observable<Producto[]> {
-    return this.http.get<Producto[]>(`${this.apiUrl}/productos`, {
+    return this.http.get<Producto[]>(`${this.apiUrl}/productos-publicos`, {
       params: { per_page: '10' }
     }).pipe(
       map(productos => productos.map(producto => ({
