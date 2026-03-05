@@ -3,6 +3,7 @@ import { Component, Input, Output, EventEmitter, OnInit, OnChanges } from '@angu
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { BannersService, Banner, BannerCreate } from '../../services/banner.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-banner-modal',
@@ -188,11 +189,12 @@ export class BannerModalComponent implements OnInit, OnChanges {
     if (this.banner) {
       // ✅ MODO EDICIÓN - Solo campos esenciales
       this.bannerForm.patchValue({
-        enlace_url: this.banner.enlace_url,
-        orden: this.banner.orden,
-        activo: this.banner.activo
+        enlace_url: this.banner.enlace_url || '/shop',
+        orden: this.banner.orden || 1,
+        activo: this.banner.activo !== undefined ? this.banner.activo : true
       });
       this.imagePreview = this.banner.imagen_url || null;
+      this.selectedImage = null;
     } else {
       // ✅ MODO CREACIÓN - Valores por defecto
       this.bannerForm.reset({
@@ -221,6 +223,18 @@ export class BannerModalComponent implements OnInit, OnChanges {
   onSubmit(): void {
     // ✅ VALIDACIÓN PERSONALIZADA: Imagen requerida
     if (this.bannerForm.valid && (this.selectedImage || this.imagePreview)) {
+      
+      // ✅ Validar tamaño de imagen ANTES de enviar
+      if (this.selectedImage && this.selectedImage.size > 2 * 1024 * 1024) {
+        Swal.fire({
+          title: 'Imagen muy pesada',
+          text: `La imagen pesa ${(this.selectedImage.size / (1024 * 1024)).toFixed(2)}MB. El tamaño máximo permitido es 2MB.`,
+          icon: 'error',
+          confirmButtonText: 'Entendido'
+        });
+        return;
+      }
+      
       this.isLoading = true;
 
       // ✅ DATOS DEL BANNER con campos predeterminados
@@ -233,7 +247,7 @@ export class BannerModalComponent implements OnInit, OnChanges {
         enlace_url: this.bannerForm.value.enlace_url,
         orden: this.bannerForm.value.orden,
         activo: this.bannerForm.value.activo,
-        imagen: this.selectedImage || undefined // ✅ Convierte null a undefined
+        imagen: this.selectedImage || undefined
       };
 
       const request = this.banner
@@ -249,12 +263,35 @@ export class BannerModalComponent implements OnInit, OnChanges {
         error: (error) => {
           console.error('Error al guardar banner:', error);
           this.isLoading = false;
+          
+          // ✅ Mostrar errores de validación del backend con SweetAlert2
+          let errorMessage = 'No se pudo guardar el banner';
+          
+          if (error.error?.errors) {
+            const errors = error.error.errors;
+            const errorMessages = Object.values(errors).flat();
+            errorMessage = errorMessages.join('\n');
+          } else if (error.error?.message) {
+            errorMessage = error.error.message;
+          }
+          
+          Swal.fire({
+            title: 'Error',
+            text: errorMessage,
+            icon: 'error',
+            confirmButtonText: 'Entendido'
+          });
         }
       });
     } else {
-      // ✅ VALIDACIÓN MEJORADA
+      // ✅ VALIDACIÓN MEJORADA con SweetAlert2
       if (!this.selectedImage && !this.imagePreview) {
-        alert('Por favor selecciona una imagen para el banner');
+        Swal.fire({
+          title: 'Imagen requerida',
+          text: 'Por favor selecciona una imagen para el banner',
+          icon: 'warning',
+          confirmButtonText: 'Entendido'
+        });
       }
       this.markFormGroupTouched();
     }

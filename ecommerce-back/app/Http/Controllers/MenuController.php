@@ -42,7 +42,7 @@ class MenuController extends Controller
 
         $menus = $query->orderBy('tipo')->orderBy('orden')->get();
 
-        return response()->json($menus);
+        return response()->json(['menus' => $menus]);
     }
 
     /**
@@ -136,6 +136,29 @@ class MenuController extends Controller
             'message' => 'Estado actualizado correctamente',
             'data' => $menu
         ]);
+    }
+
+    /**
+     * Toggle visibilidad (alias para compatibilidad con frontend)
+     */
+    public function toggleVisibilidad($id)
+    {
+        return $this->toggleVisible($id);
+    }
+
+    /**
+     * Obtener menús para select/dropdown
+     */
+    public function menusParaSelect(Request $request)
+    {
+        $tipo = $request->query('tipo', 'header');
+
+        $menus = Menu::porTipo($tipo)
+            ->principales()
+            ->orderBy('orden')
+            ->get(['id', 'nombre', 'orden']);
+
+        return response()->json(['menus' => $menus]);
     }
 
     /**

@@ -72,6 +72,12 @@ export class BannersHorizontalesComponent implements OnInit {
 
   cargarBannersHorizontales(): void {
     this.isLoading = true;
+    
+    // ✅ LIMPIAR posiciones antes de cargar
+    this.posiciones.forEach(posicion => {
+      posicion.banner = null;
+    });
+    
     this.bannersService.obtenerBanners().subscribe({
       next: (banners) => {
         // Filtrar solo banners horizontales y asignarlos a sus posiciones
@@ -111,9 +117,10 @@ export class BannersHorizontalesComponent implements OnInit {
       // Validar tamaño (máx 2MB)
       if (file.size > 2 * 1024 * 1024) {
         Swal.fire({
-          title: 'Error',
-          text: 'La imagen no debe superar 2MB',
-          icon: 'error'
+          title: 'Imagen muy pesada',
+          text: `La imagen pesa ${(file.size / (1024 * 1024)).toFixed(2)}MB. El tamaño máximo permitido es 2MB.`,
+          icon: 'error',
+          confirmButtonText: 'Entendido'
         });
         return;
       }
@@ -193,10 +200,23 @@ export class BannersHorizontalesComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al crear banner:', error);
+        
+        // Mostrar errores de validación específicos
+        let errorMessage = 'No se pudo crear el banner horizontal';
+        
+        if (error.error?.errors) {
+          const errors = error.error.errors;
+          const errorMessages = Object.values(errors).flat();
+          errorMessage = errorMessages.join('\n');
+        } else if (error.error?.message) {
+          errorMessage = error.error.message;
+        }
+        
         Swal.fire({
           title: 'Error',
-          text: 'No se pudo crear el banner horizontal',
-          icon: 'error'
+          text: errorMessage,
+          icon: 'error',
+          confirmButtonText: 'Entendido'
         });
       }
     });
@@ -224,10 +244,23 @@ export class BannersHorizontalesComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al actualizar banner:', error);
+        
+        // Mostrar errores de validación específicos
+        let errorMessage = 'No se pudo actualizar el banner horizontal';
+        
+        if (error.error?.errors) {
+          const errors = error.error.errors;
+          const errorMessages = Object.values(errors).flat();
+          errorMessage = errorMessages.join('\n');
+        } else if (error.error?.message) {
+          errorMessage = error.error.message;
+        }
+        
         Swal.fire({
           title: 'Error',
-          text: 'No se pudo actualizar el banner horizontal',
-          icon: 'error'
+          text: errorMessage,
+          icon: 'error',
+          confirmButtonText: 'Entendido'
         });
       }
     });
@@ -335,9 +368,10 @@ export class BannersHorizontalesComponent implements OnInit {
 
       if (file.size > 2 * 1024 * 1024) {
         Swal.fire({
-          title: 'Error',
-          text: 'La imagen no debe superar 2MB',
-          icon: 'error'
+          title: 'Imagen muy pesada',
+          text: `La imagen pesa ${(file.size / (1024 * 1024)).toFixed(2)}MB. El tamaño máximo permitido es 2MB.`,
+          icon: 'error',
+          confirmButtonText: 'Entendido'
         });
         return;
       }
@@ -404,10 +438,22 @@ export class BannersHorizontalesComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al crear banner sidebar:', error);
+        
+        let errorMessage = 'No se pudo crear el banner sidebar';
+        
+        if (error.error?.errors) {
+          const errors = error.error.errors;
+          const errorMessages = Object.values(errors).flat();
+          errorMessage = errorMessages.join('\n');
+        } else if (error.error?.message) {
+          errorMessage = error.error.message;
+        }
+        
         Swal.fire({
           title: 'Error',
-          text: 'No se pudo crear el banner sidebar',
-          icon: 'error'
+          text: errorMessage,
+          icon: 'error',
+          confirmButtonText: 'Entendido'
         });
       }
     });
@@ -435,10 +481,22 @@ export class BannersHorizontalesComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al actualizar banner sidebar:', error);
+        
+        let errorMessage = 'No se pudo actualizar el banner sidebar';
+        
+        if (error.error?.errors) {
+          const errors = error.error.errors;
+          const errorMessages = Object.values(errors).flat();
+          errorMessage = errorMessages.join('\n');
+        } else if (error.error?.message) {
+          errorMessage = error.error.message;
+        }
+        
         Swal.fire({
           title: 'Error',
-          text: 'No se pudo actualizar el banner sidebar',
-          icon: 'error'
+          text: errorMessage,
+          icon: 'error',
+          confirmButtonText: 'Entendido'
         });
       }
     });

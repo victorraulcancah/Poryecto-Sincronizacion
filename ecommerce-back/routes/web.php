@@ -13,7 +13,11 @@ use App\Http\Controllers\EmailVerificationController;
 use Illuminate\Support\Facades\Log; 
 
 Route::get('/', function () {
-    return view('welcome');
+    return response()->json([
+        'message' => 'API 7Power - Backend Laravel',
+        'version' => '1.0.0',
+        'status' => 'online'
+    ]);
 });
 
 

@@ -328,10 +328,9 @@ class AdminController extends Controller
                 ]);
             }
 
-            // Crear URL de verificación
+            // Crear URL de verificación (debe apuntar al frontend)
             $frontendUrl = env('FRONTEND_URL', 'http://localhost:4200');
-            $appUrl = env('APP_URL', 'http://localhost:8000');
-            $verificationUrl = rtrim($appUrl, '/')."/api/verify-email-link?token={$verificationToken}&email=".urlencode($cliente->email);
+            $verificationUrl = rtrim($frontendUrl, '/')."/verify-email?token={$verificationToken}&email=".urlencode($cliente->email);
 
             Log::info('AuthController@register - URL de verificación generada', [
                 'frontend_url' => $frontendUrl,

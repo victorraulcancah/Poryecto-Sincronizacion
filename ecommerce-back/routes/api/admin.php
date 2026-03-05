@@ -134,6 +134,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // ============================================
     Route::middleware('permission:configuracion.ver')->group(function () {
         Route::get('/menus', [\App\Http\Controllers\MenuController::class, 'index']);
+        Route::get('/menus/para-select', [\App\Http\Controllers\MenuController::class, 'menusParaSelect']);
         Route::get('/menus/{id}', [\App\Http\Controllers\MenuController::class, 'show']);
     });
 
@@ -143,6 +144,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::middleware('permission:configuracion.edit')->group(function () {
         Route::put('/menus/{id}', [\App\Http\Controllers\MenuController::class, 'update']);
+        Route::post('/menus/{id}/toggle-visibilidad', [\App\Http\Controllers\MenuController::class, 'toggleVisibilidad']);
         Route::patch('/menus/{id}/toggle-visible', [\App\Http\Controllers\MenuController::class, 'toggleVisible']);
         Route::post('/menus/reordenar', [\App\Http\Controllers\MenuController::class, 'reordenar']);
     });
