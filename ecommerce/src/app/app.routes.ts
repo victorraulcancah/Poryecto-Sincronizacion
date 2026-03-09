@@ -1042,8 +1042,17 @@ export const routes: Routes = [
     ]
   },
   {
-    path: '',
-    component: SecondlayoutComponent,
-    children: [],
+    path: '**',
+    component: LayoutComponent,
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./pages/not-found/not-found.component').then(
+            (m) => m.NotFoundComponent
+          ),
+        title: 'Página no encontrada',
+      },
+    ],
   },
 ];

@@ -270,89 +270,130 @@
 
 /* ✅ ESTILOS PARA SCROLL HORIZONTAL DE CATEGORÍAS */
 .recommended {
+  // El section-heading usa flex-between, necesitamos que el nav no desborde
+  .section-heading {
+    flex-wrap: nowrap !important;
+    gap: 20px;
+    overflow: hidden;
+
+    h5 {
+      flex-shrink: 0;
+    }
+  }
+
+  // El ul.nav-pills debe ocupar solo el espacio restante
   .nav-pills {
     position: relative;
     display: flex;
     align-items: center;
     gap: 0;
-    padding: 0 50px; // Espacio para los botones de navegación
-    
+    flex: 1;
+    min-width: 0; // Clave: permite que flex-item se encoja
+    padding: 0 44px; // Espacio para las flechas
+    margin-bottom: 0 !important;
+
     .categories-scroll-container {
       display: flex;
       gap: 8px;
       overflow-x: auto;
+      overflow-y: hidden;
       scroll-behavior: smooth;
-      scrollbar-width: none; // Firefox
-      -ms-overflow-style: none; // IE/Edge
+      scrollbar-width: none;
+      -ms-overflow-style: none;
       padding: 4px 0;
       flex: 1;
-      
+      min-width: 0;
+      mask-image: linear-gradient(
+        to right,
+        black 0%,
+        black 85%,
+        transparent 100%
+      );
+      -webkit-mask-image: linear-gradient(
+        to right,
+        black 0%,
+        black 85%,
+        transparent 100%
+      );
+
       &::-webkit-scrollbar {
-        display: none; // Chrome/Safari
+        display: none;
       }
-      
+
       .nav-item {
         flex-shrink: 0;
       }
     }
-    
+
     .category-nav-btn {
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      width: 40px;
-      height: 40px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
-      border: 1px solid #e0e0e0;
+      border: 1px solid var(--border-color, #e5e7eb);
       background: white;
       color: #666;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: all 0.2s ease;
       z-index: 10;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+      flex-shrink: 0;
+
       &:hover:not(.disabled) {
-        background: var(--main-600, #007bff);
+        background: var(--main-600);
         color: white;
-        border-color: var(--main-600, #007bff);
-        transform: translateY(-50%) scale(1.1);
+        border-color: var(--main-600);
       }
-      
+
       &.disabled {
         opacity: 0.3;
         cursor: not-allowed;
         pointer-events: none;
       }
-      
+
       &.category-nav-prev {
         left: 0;
       }
-      
+
       &.category-nav-next {
         right: 0;
       }
-      
+
       i {
-        font-size: 20px;
+        font-size: 16px;
       }
     }
   }
 }
 
-// Responsive: ocultar botones en móviles
-@media (max-width: 768px) {
+// Responsive: en móvil las categorías van debajo del título
+@media (max-width: 991px) {
+  .recommended {
+    .section-heading {
+      flex-wrap: wrap !important;
+    }
+
+    .nav-pills {
+      width: 100%;
+      padding: 0 40px;
+    }
+  }
+}
+
+@media (max-width: 576px) {
   .recommended .nav-pills {
-    padding: 0 10px;
-    
+    padding: 0;
+
     .category-nav-btn {
       display: none !important;
     }
-    
+
     .categories-scroll-container {
-      overflow-x: auto;
       -webkit-overflow-scrolling: touch;
     }
   }

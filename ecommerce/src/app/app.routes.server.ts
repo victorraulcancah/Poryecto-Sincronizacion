@@ -194,7 +194,9 @@ export const serverRoutes: ServerRoute[] = [
   {
     path: 'my-account/cupones',
     renderMode: RenderMode.Prerender
+  },
+  {
+    path: '**',
+    renderMode: RenderMode.Client
   }
-
-  
 ];

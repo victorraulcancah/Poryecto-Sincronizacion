@@ -1,6 +1,6 @@
 // src\app\app.config.ts
 import { ApplicationConfig, provideZoneChangeDetection, importProvidersFrom } from '@angular/core';
-import { provideRouter, withEnabledBlockingInitialNavigation, withHashLocation, withDebugTracing, withInMemoryScrolling } from '@angular/router';
+import { provideRouter, withInMemoryScrolling, withRouterConfig } from '@angular/router';
 import { routes } from './app.routes';
 import {
   provideClientHydration,
@@ -27,8 +27,11 @@ export const appConfig: ApplicationConfig = {
     provideRouter(
       routes,
       withInMemoryScrolling({
-        scrollPositionRestoration: 'top', // Siempre scroll al inicio
-        anchorScrolling: 'enabled' // Permitir scroll a anclas (#)
+        scrollPositionRestoration: 'top',
+        anchorScrolling: 'enabled'
+      }),
+      withRouterConfig({
+        onSameUrlNavigation: 'reload'
       })
     ),
     provideClientHydration(withEventReplay()),

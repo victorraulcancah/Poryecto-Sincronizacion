@@ -269,14 +269,14 @@
         <!-- Contenedor con scroll horizontal -->
         <div class="categories-scroll-container" #categoriasScrollContainer>
           <li class="nav-item" role="presentation">
-            <button class="nav-link fw-medium text-sm border border-white hover-border-main-600"
+            <button class="nav-link"
               [class.active]="categoriaSeleccionada === null" (click)="filtrarPorCategoria(null)" type="button"
               role="tab">
               Todo
             </button>
           </li>
           <li class="nav-item" role="presentation" *ngFor="let categoria of categoriasParaFiltro; let i = index">
-            <button class="nav-link fw-medium text-sm border border-white hover-border-main-600"
+            <button class="nav-link"
               [class.active]="categoriaSeleccionada === categoria.id" (click)="filtrarPorCategoria(categoria.id)"
               type="button" role="tab">
               {{ categoria.nombre }}

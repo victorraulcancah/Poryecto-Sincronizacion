@@ -13,7 +13,8 @@ import {
 import { SlickCarouselComponent } from 'ngx-slick-carousel';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { SlickCarouselModule } from 'ngx-slick-carousel';
-import { Router, RouterLink } from '@angular/router';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
+import { filter, Subscription } from 'rxjs';
 import {
   CategoriaPublica,
   CategoriasPublicasService,
@@ -117,6 +118,8 @@ export class IndexComponent implements OnInit, OnDestroy, AfterViewInit {
   private isBrowser: boolean;
   private lastUpdateTimes: { [key: string]: number } = {}; // Para throttling
   private cuponesRefreshInterval: any;
+  private routerSub!: Subscription;
+  private isFirstLoad = true;
 
   // ✅ NUEVAS PROPIEDADES PARA EL SISTEMA DE FILTRADO DINÁMICO
   categoriasParaFiltro: CategoriaPublica[] = [];
@@ -358,32 +361,45 @@ export class IndexComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit(): void {
+    this.cargarTodosDatos();
+
+    // ✅ Detectar re-navegación al homepage para recargar datos y sliders
+    if (this.isBrowser) {
+      this.routerSub = this.router.events
+        .pipe(filter((event) => event instanceof NavigationEnd))
+        .subscribe((event) => {
+          const navEnd = event as NavigationEnd;
+          if (navEnd.urlAfterRedirects === '/' && !this.isFirstLoad) {
+            this.cargarTodosDatos();
+            setTimeout(() => this.reinicializarSliders(), 500);
+          }
+          this.isFirstLoad = false;
+        });
+
+      this.cuponesRefreshInterval = setInterval(() => {
+        this.cargarCuponesActivos();
+      }, 5 * 60 * 1000);
+    }
+  }
+
+  /** Carga todos los datos del homepage */
+  private cargarTodosDatos(): void {
     this.cargarCategoriasPublicas();
     this.cargarBannersDinamicos();
     this.cargarBannersPromocionales();
-    this.cargarBannersHorizontales(); // ✅ NUEVO
+    this.cargarBannersHorizontales();
     this.cargarMarcasDinamicas();
     this.cargarOfertasActivas();
     this.cargarFlashSales();
-    this.cargarBannerOfertaActivo(); // ✅ Este ya trae los productos dentro
-    // ❌ ELIMINADO: this.cargarProductosEnOferta() - Ya no se usa, los productos vienen en bannerOfertaActivo
+    this.cargarBannerOfertaActivo();
     this.cargarCuponesActivos();
-    this.cargarOfertaPrincipalDelDia(); // ✅ NUEVA FUNCIÓN
-    this.cargarCategoriasParaFiltro(); // ✅ NUEVA FUNCIÓN
-    this.cargarTodosLosProductos(); // ✅ NUEVA FUNCIÓN
+    this.cargarOfertaPrincipalDelDia();
+    this.cargarCategoriasParaFiltro();
+    this.cargarTodosLosProductos();
     this.cargarProductosDestacados();
-    this.cargarProductosMasVendidos(); // ✅ NUEVA FUNCIÓN
+    this.cargarProductosMasVendidos();
     this.cargarOfertaSemanaActiva();
-
-    // ✅ NUEVA LÍNEA: Inicializar wishlist state
     this.inicializarFavoritosState();
-
-    // NUEVA LÍNEA: Actualizar cupones cada 5 minutos
-    if (this.isBrowser) {
-      this.cuponesRefreshInterval = setInterval(() => {
-        this.cargarCuponesActivos();
-      }, 5 * 60 * 1000); // 5 minutos
-    }
   }
 
   // ✅ MEJORADO: Inicializar countdowns después de que la vista se cargue
@@ -515,10 +531,12 @@ export class IndexComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.isBrowser) {
       this.limpiarTodosLosIntervalos();
 
-      // NUEVAS LÍNEAS: Limpiar interval de cupones
       if (this.cuponesRefreshInterval) {
         clearInterval(this.cuponesRefreshInterval);
       }
+    }
+    if (this.routerSub) {
+      this.routerSub.unsubscribe();
     }
   }
 
