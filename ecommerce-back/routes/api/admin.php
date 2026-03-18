@@ -8,6 +8,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserRegistrationController;
 use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\FormaEnvioController;
+use App\Http\Controllers\ReclamosController;
 use App\Http\Controllers\TipoPagoController;
 use Illuminate\Support\Facades\Route;
 
@@ -184,4 +185,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('permission:configuracion.edit')->group(function () {
         Route::put('/cookies/configuracion', [\App\Http\Controllers\CookieConfiguracionController::class, 'update']);
     });
+
+    // ============================================
+    // RECLAMOS (ADMIN)
+    // ============================================
+    Route::get('/reclamos', [ReclamosController::class, 'index']);
+    Route::get('/reclamos/estadisticas', [ReclamosController::class, 'estadisticas']);
+    Route::get('/reclamos/mis-reclamos', [ReclamosController::class, 'misReclamos']);
+    Route::get('/reclamos/{id}', [ReclamosController::class, 'show']);
+    Route::patch('/reclamos/{id}/respuesta', [ReclamosController::class, 'actualizarRespuesta']);
+    Route::patch('/reclamos/{id}/estado', [ReclamosController::class, 'cambiarEstado']);
+    Route::delete('/reclamos/{id}', [ReclamosController::class, 'destroy']);
 });
