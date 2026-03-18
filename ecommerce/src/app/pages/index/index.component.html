@@ -307,8 +307,8 @@
         <!-- ✅ PRODUCTOS RECOMENDADOS DINÁMICOS -->
         <div class="row g-12">
           <!-- Productos dinámicos -->
-          <div *ngFor="let product of productosFiltrados; let i = index" class="col-xxl-2 col-lg-3 col-sm-4 col-6"
-            data-aos="fade-up" data-aos-duration="200" [hidden]="i >= productosVisibles">
+          <div *ngFor="let product of productosFiltrados | slice:0:productosVisibles; let i = index" class="col-xxl-2 col-lg-3 col-sm-4 col-6"
+            data-aos="fade-up" data-aos-duration="200">
             <div
               class="product-card h-100 p-12 border border-gray-100 hover-border-main-600 rounded-16 position-relative transition-2 group-item">
               <button type="button" class="wishlist-btn-custom" [class.active]="isInWishlist(product.id)"
