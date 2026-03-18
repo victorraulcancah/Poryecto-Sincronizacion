@@ -7,6 +7,7 @@ use App\Http\Controllers\HorariosController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserRegistrationController;
 use App\Http\Controllers\UsuariosController;
+use App\Http\Controllers\FormaEnvioController;
 use App\Http\Controllers\TipoPagoController;
 use Illuminate\Support\Facades\Route;
 
@@ -151,6 +152,26 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::middleware('permission:configuracion.delete')->group(function () {
         Route::delete('/menus/{id}', [\App\Http\Controllers\MenuController::class, 'destroy']);
+    });
+
+    // ============================================
+    // FORMAS DE ENVÍO (ADMIN)
+    // ============================================
+    Route::middleware('permission:configuracion.ver')->group(function () {
+        Route::get('/formas-envio', [FormaEnvioController::class, 'index']);
+    });
+
+    Route::middleware('permission:configuracion.create')->group(function () {
+        Route::post('/formas-envio', [FormaEnvioController::class, 'store']);
+    });
+
+    Route::middleware('permission:configuracion.edit')->group(function () {
+        Route::put('/formas-envio/{id}', [FormaEnvioController::class, 'update']);
+        Route::patch('/formas-envio/{id}/toggle-estado', [FormaEnvioController::class, 'toggleEstado']);
+    });
+
+    Route::middleware('permission:configuracion.delete')->group(function () {
+        Route::delete('/formas-envio/{id}', [FormaEnvioController::class, 'destroy']);
     });
 
     // ============================================
