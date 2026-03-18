@@ -140,11 +140,14 @@ class PasswordResetController extends Controller
             'email' => 'required|email'
         ]);
 
+        \Log::info('verifyResetToken - Email recibido:', ['email' => $request->email, 'token_length' => strlen($request->token)]);
+
         $resetRecord = DB::table('password_reset_tokens')
             ->where('email', $request->email)
             ->first();
 
         if (!$resetRecord) {
+            \Log::info('verifyResetToken - No se encontró registro para email:', ['email' => $request->email]);
             return response()->json([
                 'status' => 'error',
                 'valid' => false,
@@ -152,12 +155,15 @@ class PasswordResetController extends Controller
             ]);
         }
 
+        \Log::info('verifyResetToken - Registro encontrado:', ['db_email' => $resetRecord->email, 'created_at' => $resetRecord->created_at]);
+
         // Verificar si ha expirado
         if (Carbon::parse($resetRecord->created_at)->addHour()->isPast()) {
+            \Log::info('verifyResetToken - Token expirado');
             DB::table('password_reset_tokens')
                 ->where('email', $request->email)
                 ->delete();
-                
+
             return response()->json([
                 'status' => 'error',
                 'valid' => false,
@@ -166,7 +172,10 @@ class PasswordResetController extends Controller
         }
 
         // Verificar token
-        if (!Hash::check($request->token, $resetRecord->token)) {
+        $hashCheck = Hash::check($request->token, $resetRecord->token);
+        \Log::info('verifyResetToken - Hash check:', ['result' => $hashCheck, 'token_sent' => $request->token]);
+
+        if (!$hashCheck) {
             return response()->json([
                 'status' => 'error',
                 'valid' => false,
