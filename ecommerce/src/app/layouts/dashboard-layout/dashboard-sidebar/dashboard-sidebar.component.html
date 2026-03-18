@@ -285,7 +285,7 @@
 
 
       <!-- ✅ Recompensas -->
-      <li *ngIf="puedeVerRecompensas" class="mb-8">
+      <!-- <li *ngIf="puedeVerRecompensas" class="mb-8">
         <a (click)="toggleRecompensas()"
           class="nav-link flex-align gap-12 px-16 py-12 text-white text-decoration-none rounded-8 transition-2 hover-bg-main-500 cursor-pointer">
           <i class="ph ph-gift text-xl flex-shrink-0"></i>
@@ -294,7 +294,6 @@
             [class.ph-caret-down]="isRecompensasOpen"></i>
         </a>
 
-        <!-- Submódulos -->
         <ul *ngIf="isRecompensasOpen && !isCollapsed" class="list-style-none p-0 ms-28 mt-8 submenu">
           <li class="mb-4">
             <a routerLink="/dashboard/recompensas/dashboard" routerLinkActive="active"
@@ -345,7 +344,7 @@
             </a>
           </li>
         </ul>
-      </li>
+      </li> -->
 
       <!-- ✅ NUEVO: Arma tu PC -->
       <!-- <li *ngIf="puedeConfigure" class="mb-8">

@@ -45,7 +45,6 @@ export class FormasEnvioComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadFormasEnvio();
     this.loadDepartamentos();
   }
 
@@ -97,9 +96,11 @@ export class FormasEnvioComponent implements OnInit {
     this.ubigeoService.getDepartamentos().subscribe({
       next: (departamentos) => {
         this.departamentos = departamentos;
+        this.loadFormasEnvio();
       },
       error: (error) => {
         console.error('Error al cargar departamentos:', error);
+        this.loadFormasEnvio();
       }
     });
   }
@@ -143,6 +144,7 @@ export class FormasEnvioComponent implements OnInit {
     this.formaEnvioService.obtenerTodas().subscribe({
       next: (response) => {
         this.formasEnvio = response.formas_envio || [];
+        this.resolverNombresUbicacion();
         this.isLoading = false;
       },
       error: (error) => {
@@ -151,6 +153,39 @@ export class FormasEnvioComponent implements OnInit {
         Swal.fire('Error', 'No se pudieron cargar las formas de envío', 'error');
       }
     });
+  }
+
+  private resolverNombresUbicacion(): void {
+    for (const forma of this.formasEnvio) {
+      // Resolver departamento
+      const dept = this.departamentos.find(d => d.id === forma.departamento_id);
+      forma.departamento_nombre = dept?.nombre || '';
+
+      // Resolver provincia si existe
+      if (forma.provincia_id) {
+        this.ubigeoService.getProvincias(forma.departamento_id).subscribe(provs => {
+          const prov = provs.find(p => p.id === forma.provincia_id);
+          forma.provincia_nombre = prov?.nombre || '';
+          this.buildUbicacionCompleta(forma);
+        });
+      }
+
+      // Resolver distrito si existe
+      if (forma.provincia_id && forma.distrito_id) {
+        this.ubigeoService.getDistritos(forma.departamento_id, forma.provincia_id).subscribe(dists => {
+          const dist = dists.find(d => d.id === forma.distrito_id);
+          forma.distrito_nombre = dist?.nombre || '';
+          this.buildUbicacionCompleta(forma);
+        });
+      }
+
+      this.buildUbicacionCompleta(forma);
+    }
+  }
+
+  private buildUbicacionCompleta(forma: FormaEnvio): void {
+    const partes = [forma.departamento_nombre, forma.provincia_nombre, forma.distrito_nombre].filter(Boolean);
+    forma.ubicacion_completa = partes.join(' > ');
   }
 
   openModal(formaEnvio?: FormaEnvio): void {

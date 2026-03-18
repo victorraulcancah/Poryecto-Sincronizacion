@@ -5,7 +5,7 @@
     padding: clampCal(20, 36);
 }
 .table {
-    color: hsl(var(--white));
+    color: hsl(var(--heading-color));
     margin-block-end: 0;
     min-width: max-content;
     &>:not(caption)>*>* {
@@ -36,7 +36,7 @@
     }
     thead {
         tr {
-            border-bottom: 1px solid hsl(var(--white)/.2);
+            border-bottom: 1px solid hsl(var(--black)/.1);
             th {
                 padding-block-start: 0;
                 font-size: clampCal(16, 20);
@@ -47,7 +47,7 @@
     }
     tbody {
         tr {
-            border-bottom: 1px solid hsl(var(--white)/.2);
+            border-bottom: 1px solid hsl(var(--black)/.1);
             &:last-child {
                 border-bottom: 0;
                 td {
