@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, PLATFORM_ID, Inject } from '@angular/core';
+import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -24,34 +24,42 @@ export class ResetPasswordComponent implements OnInit {
   isValidToken: boolean | null = null;
   resetSuccess: boolean = false;
 
+  private isBrowser: boolean;
+
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
-    private route: ActivatedRoute
-  ) {}
+    private route: ActivatedRoute,
+    @Inject(PLATFORM_ID) platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   ngOnInit(): void {
+    this.initForm();
+
+    if (!this.isBrowser) return;
+
+    // Si ya está logueado, redirigir
+    if (this.authService.isLoggedIn()) {
+      this.router.navigate(['/']);
+      return;
+    }
+
     // Obtener token y email de los parámetros de la URL
     this.route.queryParams.subscribe(params => {
       this.token = params['token'] || '';
       this.email = params['email'] || '';
-      
+
       if (!this.token || !this.email) {
         this.error = 'Enlace de recuperación inválido';
         this.isValidToken = false;
         return;
       }
-      
+
       this.verifyToken();
     });
-
-    this.initForm();
-    
-    // Si ya está logueado, redirigir
-    if (this.authService.isLoggedIn()) {
-      this.router.navigate(['/']);
-    }
   }
 
   initForm(): void {
