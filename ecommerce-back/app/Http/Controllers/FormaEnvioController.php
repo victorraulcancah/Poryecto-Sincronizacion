@@ -34,12 +34,11 @@ class FormaEnvioController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'nombre' => 'required|string|max:255',
-            'codigo' => 'required|string|max:50|unique:forma_envios,codigo',
-            'descripcion' => 'nullable|string',
+            'departamento_id' => 'required|string',
+            'provincia_id' => 'nullable|string',
+            'distrito_id' => 'nullable|string',
             'costo' => 'required|numeric|min:0',
             'activo' => 'boolean',
-            'orden' => 'integer|min:0'
         ]);
 
         if ($validator->fails()) {
@@ -50,7 +49,9 @@ class FormaEnvioController extends Controller
             ], 422);
         }
 
-        $formaEnvio = FormaEnvio::create($request->all());
+        $formaEnvio = FormaEnvio::create($request->only([
+            'departamento_id', 'provincia_id', 'distrito_id', 'costo', 'activo'
+        ]));
 
         return response()->json([
             'status' => 'success',
@@ -72,12 +73,11 @@ class FormaEnvioController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'nombre' => 'required|string|max:255',
-            'codigo' => 'required|string|max:50|unique:forma_envios,codigo,' . $id,
-            'descripcion' => 'nullable|string',
+            'departamento_id' => 'required|string',
+            'provincia_id' => 'nullable|string',
+            'distrito_id' => 'nullable|string',
             'costo' => 'required|numeric|min:0',
             'activo' => 'boolean',
-            'orden' => 'integer|min:0'
         ]);
 
         if ($validator->fails()) {
@@ -88,7 +88,9 @@ class FormaEnvioController extends Controller
             ], 422);
         }
 
-        $formaEnvio->update($request->all());
+        $formaEnvio->update($request->only([
+            'departamento_id', 'provincia_id', 'distrito_id', 'costo', 'activo'
+        ]));
 
         return response()->json([
             'status' => 'success',
