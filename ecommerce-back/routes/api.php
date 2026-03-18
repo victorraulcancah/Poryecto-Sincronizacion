@@ -57,4 +57,5 @@ Route::middleware(['auth:sanctum'])->prefix('user')->group(function () {
 Route::middleware(['auth:sanctum'])->prefix('sincronizacion')->group(function () {
     Route::post('/7power', [\App\Http\Controllers\SincronizacionController::class, 'sincronizarDesde7Power']);
     Route::get('/estado', [\App\Http\Controllers\SincronizacionController::class, 'estadoSincronizacion']);
+    Route::get('/diagnostico-stock', [\App\Http\Controllers\SincronizacionController::class, 'diagnosticoStock']);
 });
