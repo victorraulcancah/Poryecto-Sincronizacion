@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->group(function () {
 
     // ============================================
-    // AUTENTICACIÓN Y SESIÓN
+    // AUTENTICACIÓN Y SESIÓNs
     // ============================================
     Route::get('/user', [AdminController::class, 'user']);
     Route::get('/refresh-permissions', [AdminController::class, 'refreshPermissions']);
