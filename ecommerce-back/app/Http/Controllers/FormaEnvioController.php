@@ -11,7 +11,7 @@ class FormaEnvioController extends Controller
     // Listar todas las formas de envío (admin)
     public function index()
     {
-        $formasEnvio = FormaEnvio::orderBy('orden')->get();
+        $formasEnvio = FormaEnvio::orderBy('id')->get();
 
         return response()->json([
             'status' => 'success',
