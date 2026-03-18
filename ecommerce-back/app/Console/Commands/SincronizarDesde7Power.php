@@ -358,7 +358,7 @@ class SincronizarDesde7Power extends Command
                     continue;
                 }
                 
-                // Obtener stock real de 7Power (solo almacén PRINCIPAL ID=1)
+                // Obtener stock disponible de 7Power (solo almacén PRINCIPAL ID=1)
                 $stockTotal = DB::connection('mysql_7power')
                     ->table('product_warehouse')
                     ->where('product_id', $producto7Power->id)
@@ -482,7 +482,7 @@ class SincronizarDesde7Power extends Command
         
         foreach ($mapeos as $mapeo) {
             try {
-                // Obtener stock real de 7Power (solo almacén PRINCIPAL ID=1)
+                // Obtener stock disponible de 7Power (solo almacén PRINCIPAL ID=1)
                 $stockTotal = DB::connection('mysql_7power')
                     ->table('product_warehouse')
                     ->where('product_id', $mapeo->producto_7power_id)
