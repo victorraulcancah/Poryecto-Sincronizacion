@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 import { FormaEnvioService, FormaEnvio } from '../../../services/forma-envio.service';
 import { UbigeoService, Departamento, Provincia, Distrito } from '../../../services/ubigeo.service';
 import Swal from 'sweetalert2';
@@ -156,30 +157,58 @@ export class FormasEnvioComponent implements OnInit {
   }
 
   private resolverNombresUbicacion(): void {
+    // Resolver departamentos (ya cargados, sin API call)
     for (const forma of this.formasEnvio) {
-      // Resolver departamento
       const dept = this.departamentos.find(d => d.id === forma.departamento_id);
       forma.departamento_nombre = dept?.nombre || '';
-
-      // Resolver provincia si existe
-      if (forma.provincia_id) {
-        this.ubigeoService.getProvincias(forma.departamento_id).subscribe(provs => {
-          const prov = provs.find(p => p.id === forma.provincia_id);
-          forma.provincia_nombre = prov?.nombre || '';
-          this.buildUbicacionCompleta(forma);
-        });
-      }
-
-      // Resolver distrito si existe
-      if (forma.provincia_id && forma.distrito_id) {
-        this.ubigeoService.getDistritos(forma.departamento_id, forma.provincia_id).subscribe(dists => {
-          const dist = dists.find(d => d.id === forma.distrito_id);
-          forma.distrito_nombre = dist?.nombre || '';
-          this.buildUbicacionCompleta(forma);
-        });
-      }
-
       this.buildUbicacionCompleta(forma);
+    }
+
+    // Agrupar por departamento_id para evitar llamadas duplicadas
+    const deptIds = [...new Set(this.formasEnvio.filter(f => f.provincia_id).map(f => f.departamento_id))];
+    const provCalls: Record<string, ReturnType<typeof this.ubigeoService.getProvincias>> = {};
+    for (const deptId of deptIds) {
+      provCalls[deptId] = this.ubigeoService.getProvincias(deptId);
+    }
+
+    if (deptIds.length > 0) {
+      forkJoin(provCalls).subscribe(provResults => {
+        // Asignar nombres de provincia
+        for (const forma of this.formasEnvio) {
+          if (forma.provincia_id && provResults[forma.departamento_id]) {
+            const prov = provResults[forma.departamento_id].find(p => p.id === forma.provincia_id);
+            forma.provincia_nombre = prov?.nombre || '';
+            this.buildUbicacionCompleta(forma);
+          }
+        }
+
+        // Ahora cargar distritos agrupados por dept+prov
+        const distKeys = [...new Set(
+          this.formasEnvio
+            .filter(f => f.provincia_id && f.distrito_id)
+            .map(f => `${f.departamento_id}|${f.provincia_id}`)
+        )];
+        const distCalls: Record<string, ReturnType<typeof this.ubigeoService.getDistritos>> = {};
+        for (const key of distKeys) {
+          const [deptId, provId] = key.split('|');
+          distCalls[key] = this.ubigeoService.getDistritos(deptId, provId);
+        }
+
+        if (distKeys.length > 0) {
+          forkJoin(distCalls).subscribe(distResults => {
+            for (const forma of this.formasEnvio) {
+              if (forma.provincia_id && forma.distrito_id) {
+                const key = `${forma.departamento_id}|${forma.provincia_id}`;
+                if (distResults[key]) {
+                  const dist = distResults[key].find(d => d.id === forma.distrito_id);
+                  forma.distrito_nombre = dist?.nombre || '';
+                  this.buildUbicacionCompleta(forma);
+                }
+              }
+            }
+          });
+        }
+      });
     }
   }
 
