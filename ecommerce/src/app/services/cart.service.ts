@@ -164,11 +164,16 @@ export class CartService {
   // =================================================================
 
   private loadCartFromApi(): Observable<CartItem[]> {
-    // ⚠️ TEMPORAL: El endpoint /cart no existe en 7Power
-    // Retornar array vacío y cargar desde storage como fallback
-    console.warn('⚠️ CartService - El endpoint /cart no está implementado, usando localStorage');
-    this.loadCartFromStorage();
-    return of([]);
+    return this.http.get<CartItem[]>(this.API_URL).pipe(
+      tap((items) => {
+        this.updateCartState(items);
+      }),
+      catchError((error) => {
+        console.error('Error cargando carrito desde API, usando localStorage:', error);
+        this.loadCartFromStorage();
+        return of([]);
+      })
+    );
   }
 
   private addToCartApi(productoId: number, cantidad: number): Observable<any> {
