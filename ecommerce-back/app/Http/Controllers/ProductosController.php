@@ -430,7 +430,8 @@ class ProductosController extends Controller
                     'total_stock' => $producto->stock + rand(10, 30),
                     'is_on_sale' => false,
                     'discount_percentage' => 0,
-                    'mostrar_igv' => $producto->mostrar_igv
+                    'mostrar_igv' => $producto->mostrar_igv,
+                    'codigo_producto' => $producto->codigo_producto
                 ];
             });
 
@@ -470,7 +471,8 @@ class ProductosController extends Controller
                 'total_stock' => $producto->stock + rand(10, 30),
                 'is_on_sale' => false, // Por ahora false, luego puedes implementar ofertas
                 'discount_percentage' => 0,
-                'mostrar_igv' => $producto->mostrar_igv
+                'mostrar_igv' => $producto->mostrar_igv,
+                'codigo_producto' => $producto->codigo_producto
             ];
         });
 

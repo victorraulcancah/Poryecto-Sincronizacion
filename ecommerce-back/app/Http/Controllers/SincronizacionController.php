@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class SincronizacionController extends Controller
@@ -16,7 +17,7 @@ class SincronizacionController extends Controller
         try {
             // Validar conexion a base de datos Novik/7Power
             try {
-                \DB::connection('mysql_7power')->getPdo();
+                DB::connection('mysql_7power')->getPdo();
                 Log::info('Conexion a base de datos Novik/7Power exitosa');
             } catch (\Exception $e) {
                 Log::error('Error de conexion a base de datos Novik/7Power', [
@@ -76,21 +77,86 @@ class SincronizacionController extends Controller
     }
 
     /**
+     * Diagnóstico de stock: compara stock en 7Power vs Magus
+     */
+    public function diagnosticoStock()
+    {
+        try {
+            DB::connection('mysql_7power')->getPdo();
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Sin conexión a 7Power: ' . $e->getMessage()], 500);
+        }
+
+        // Obtener todos los mapeos
+        $mapeos = DB::table('producto_mapeo_7power')->get();
+
+        $resultado = [];
+
+        foreach ($mapeos as $mapeo) {
+            // Stock en 7Power (con filtro de company)
+            $stockPorAlmacen = DB::connection('mysql_7power')
+                ->table('product_warehouse')
+                ->join('warehouses', 'product_warehouse.warehouse_id', '=', 'warehouses.id')
+                ->where('product_warehouse.product_id', $mapeo->producto_7power_id)
+                ->where('warehouses.company_id', 1)
+                ->select('warehouses.id as warehouse_id', 'warehouses.name as almacen', 'product_warehouse.stock')
+                ->get();
+
+            $stockTotal7Power = $stockPorAlmacen->sum('stock');
+
+            // Stock sin filtro (para comparar)
+            $stockSinFiltro = DB::connection('mysql_7power')
+                ->table('product_warehouse')
+                ->where('product_id', $mapeo->producto_7power_id)
+                ->sum('stock');
+
+            // Stock en Magus
+            $productoMagus = DB::table('productos')
+                ->where('id', $mapeo->producto_id)
+                ->select('nombre', 'codigo_producto', 'stock')
+                ->first();
+
+            if (!$productoMagus) continue;
+
+            $diferencia = $stockTotal7Power - $productoMagus->stock;
+
+            $resultado[] = [
+                'codigo'          => $productoMagus->codigo_producto,
+                'nombre'          => $productoMagus->nombre,
+                'stock_magus'     => $productoMagus->stock,
+                'stock_7power'    => $stockTotal7Power,
+                'stock_sin_filtro'=> $stockSinFiltro,
+                'diferencia'      => $diferencia,
+                'almacenes'       => $stockPorAlmacen,
+            ];
+        }
+
+        // Ordenar por mayor diferencia primero
+        usort($resultado, fn($a, $b) => abs($b['diferencia']) <=> abs($a['diferencia']));
+
+        return response()->json([
+            'success' => true,
+            'total_productos' => count($resultado),
+            'productos' => $resultado,
+        ]);
+    }
+
+    /**
      * Obtener estado de la última sincronización
      */
     public function estadoSincronizacion()
     {
         try {
             // Obtener estadísticas de la sincronización
-            $marcasCount = \DB::table('marca_mapeo_7power')->count();
-            $categoriasCount = \DB::table('categoria_mapeo_7power')->count();
+            $marcasCount = DB::table('marca_mapeo_7power')->count();
+            $categoriasCount = DB::table('categoria_mapeo_7power')->count();
             
             // Obtener última actualización
-            $ultimaMarca = \DB::table('marca_mapeo_7power')
+            $ultimaMarca = DB::table('marca_mapeo_7power')
                 ->orderBy('updated_at', 'desc')
                 ->first();
             
-            $ultimaCategoria = \DB::table('categoria_mapeo_7power')
+            $ultimaCategoria = DB::table('categoria_mapeo_7power')
                 ->orderBy('updated_at', 'desc')
                 ->first();
 

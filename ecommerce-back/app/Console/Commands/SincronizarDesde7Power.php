@@ -358,11 +358,12 @@ class SincronizarDesde7Power extends Command
                     continue;
                 }
                 
-                // Obtener stock real de 7Power
+                // Obtener stock disponible de 7Power (solo almacén PRINCIPAL ID=1)
                 $stockTotal = DB::connection('mysql_7power')
                     ->table('product_warehouse')
                     ->where('product_id', $producto7Power->id)
-                    ->sum('stock');
+                    ->where('warehouse_id', 1)
+                    ->value('stock') ?? 0;
                 
                 // Determinar si el producto está activo en 7Power
                 $activoEn7Power = $producto7Power->estado == 1;
@@ -481,11 +482,12 @@ class SincronizarDesde7Power extends Command
         
         foreach ($mapeos as $mapeo) {
             try {
-                // Obtener stock real de 7Power (suma de todos los almacenes)
+                // Obtener stock disponible de 7Power (solo almacén PRINCIPAL ID=1)
                 $stockTotal = DB::connection('mysql_7power')
                     ->table('product_warehouse')
                     ->where('product_id', $mapeo->producto_7power_id)
-                    ->sum('stock');
+                    ->where('warehouse_id', 1)
+                    ->value('stock') ?? 0;
                 
                 if ($stockTotal === null) {
                     $stockTotal = 0;
