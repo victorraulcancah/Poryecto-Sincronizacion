@@ -418,13 +418,22 @@ class SincronizarDesde7Power extends Command
                         $actualizados++;
                     }
                     
-                    // Crear mapeo
-                    DB::table('producto_mapeo_7power')->insert([
-                        'producto_id' => $productoMagusId,
-                        'producto_7power_id' => $producto7Power->id,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
+                    // Crear mapeo solo si ese producto_id aún no tiene uno
+                    $mapeoExistentePorProductoId = DB::table('producto_mapeo_7power')
+                        ->where('producto_id', $productoMagusId)
+                        ->first();
+
+                    if (!$mapeoExistentePorProductoId) {
+                        DB::table('producto_mapeo_7power')->insert([
+                            'producto_id'        => $productoMagusId,
+                            'producto_7power_id' => $producto7Power->id,
+                            'created_at'         => now(),
+                            'updated_at'         => now(),
+                        ]);
+                    } else {
+                        $this->line("  Mapeo ya existe para producto Magus ID {$productoMagusId} ({$producto7Power->name}) - Saltando duplicado");
+                        $saltados++;
+                    }
                 } else {
                     // Actualizar producto existente
                     DB::table('productos')
