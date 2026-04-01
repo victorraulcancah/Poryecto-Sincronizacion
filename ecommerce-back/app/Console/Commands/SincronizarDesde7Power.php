@@ -13,7 +13,7 @@ class SincronizarDesde7Power extends Command
      *
      * @var string
      */
-    protected $signature = 'sync:7power {--force : Forzar sincronización completa} {--update-stock : Actualizar stock de productos existentes}';
+    protected $signature = 'sync:7power {--force : Forzar sincronización completa} {--update-stock : Actualizar stock de productos existentes} {--company=1 : ID de la empresa en 7Power} {--warehouse=1 : ID del almacén en 7Power}';
 
     /**
      * The description of the console command.
@@ -28,31 +28,34 @@ class SincronizarDesde7Power extends Command
     public function handle()
     {
         $this->info(' Iniciando sincronización desde 7Power...');
-        
+
+        $companyId   = (int) $this->option('company');
+        $warehouseId = (int) $this->option('warehouse');
+
         try {
             // Verificar conexión a 7Power
             $this->info(' Verificando conexión a 7Power...');
             DB::connection('mysql_7power')->getPdo();
             $this->info(' Conexión a 7Power exitosa');
-            
+
             // Si se especifica --update-stock, solo actualizar stock
             if ($this->option('update-stock')) {
-                $this->actualizarStockProductos();
+                $this->actualizarStockProductos($companyId, $warehouseId);
                 $this->info(' Actualización de stock completada exitosamente');
                 return 0;
             }
-            
+
             // Sincronizar marcas
-            $this->sincronizarMarcas();
-            
+            $this->sincronizarMarcas($companyId);
+
             // Sincronizar categorías
-            $this->sincronizarCategorias();
-            
+            $this->sincronizarCategorias($companyId);
+
             // Sincronizar productos
-            $this->sincronizarProductos();
-            
+            $this->sincronizarProductos($companyId, $warehouseId);
+
             $this->info(' Sincronización completada exitosamente');
-            
+
         } catch (\Exception $e) {
             $this->error(' Error en la sincronización: ' . $e->getMessage());
             Log::error('Error en sincronización 7Power', [
@@ -68,14 +71,14 @@ class SincronizarDesde7Power extends Command
     /**
      * Sincronizar marcas desde 7Power
      */
-    private function sincronizarMarcas()
+    private function sincronizarMarcas(int $companyId)
     {
         $this->info('  Sincronizando marcas...');
-        
+
         // Obtener marcas de 7Power
         $marcas7Power = DB::connection('mysql_7power')
             ->table('brands')
-            ->where('company_id', 1)
+            ->where('company_id', $companyId)
             ->get();
         
         $nuevas = 0;
@@ -184,14 +187,14 @@ class SincronizarDesde7Power extends Command
     /**
      * Sincronizar categorías desde 7Power
      */
-    private function sincronizarCategorias()
+    private function sincronizarCategorias(int $companyId)
     {
         $this->info(' Sincronizando categorías...');
-        
+
         // Obtener categorías de 7Power
         $categorias7Power = DB::connection('mysql_7power')
             ->table('categories')
-            ->where('company_id', 1)
+            ->where('company_id', $companyId)
             ->get();
         
         $nuevas = 0;
@@ -301,14 +304,14 @@ class SincronizarDesde7Power extends Command
     /**
      * Sincronizar productos desde 7Power
      */
-    private function sincronizarProductos()
+    private function sincronizarProductos(int $companyId, int $warehouseId)
     {
         $this->info(' Sincronizando productos...');
-        
+
         // Obtener TODOS los productos de 7Power (activos e inactivos)
         $productos7Power = DB::connection('mysql_7power')
             ->table('products')
-            ->where('company_id', 1)
+            ->where('company_id', $companyId)
             ->get();
         
         $nuevos = 0;
@@ -358,11 +361,11 @@ class SincronizarDesde7Power extends Command
                     continue;
                 }
                 
-                // Obtener stock disponible de 7Power (solo almacén PRINCIPAL ID=1)
+                // Obtener stock disponible de 7Power del almacén indicado
                 $stockTotal = DB::connection('mysql_7power')
                     ->table('product_warehouse')
                     ->where('product_id', $producto7Power->id)
-                    ->where('warehouse_id', 1)
+                    ->where('warehouse_id', $warehouseId)
                     ->value('stock') ?? 0;
                 
                 // Determinar si el producto está activo en 7Power
@@ -469,24 +472,24 @@ class SincronizarDesde7Power extends Command
     /**
      * Actualizar stock de productos ya sincronizados
      */
-    private function actualizarStockProductos()
+    private function actualizarStockProductos(int $companyId, int $warehouseId)
     {
         $this->info('  Actualizando stock de productos...');
-        
+
         // Obtener todos los mapeos de productos
         $mapeos = DB::table('producto_mapeo_7power')->get();
-        
+
         $actualizados = 0;
         $errores = 0;
         $sinStock = 0;
-        
+
         foreach ($mapeos as $mapeo) {
             try {
-                // Obtener stock disponible de 7Power (solo almacén PRINCIPAL ID=1)
+                // Obtener stock disponible de 7Power del almacén indicado
                 $stockTotal = DB::connection('mysql_7power')
                     ->table('product_warehouse')
                     ->where('product_id', $mapeo->producto_7power_id)
-                    ->where('warehouse_id', 1)
+                    ->where('warehouse_id', $warehouseId)
                     ->value('stock') ?? 0;
                 
                 if ($stockTotal === null) {
