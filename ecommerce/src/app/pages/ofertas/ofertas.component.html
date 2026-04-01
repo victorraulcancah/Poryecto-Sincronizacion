@@ -214,7 +214,7 @@
                                         'text-danger-600': producto.stock === 0
                                       }">
                                     <i class="ph ph-package me-1"></i>
-                                    {{ producto.stock > 0 ? producto.stock + ' en Stock' : 'Sin stock' }}
+                                    {{ producto.stock === 0 ? 'Sin stock' : (producto.stock > 10 ? '+10 unidades' : producto.stock + ' unidades') }}
                                 </span>
                             </div>
 

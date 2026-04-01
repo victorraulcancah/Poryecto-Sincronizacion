@@ -357,9 +357,8 @@
                   <span class="text-xs fw-medium" [class.text-success-600]="product.stock > 10"
                     [class.text-warning-600]="product.stock > 0 && product.stock <= 10"
                     [class.text-danger-600]="product.stock === 0">
-                    Stock: {{ product.stock || 0 }}
-                    <span *ngIf="product.stock > 10">disponibles</span>
-                    <span *ngIf="product.stock > 0 && product.stock <= 10">¡Últimas unidades!</span>
+                    <span *ngIf="product.stock > 10">Stock: +10 unidades</span>
+                    <span *ngIf="product.stock > 0 && product.stock <= 10">Stock: {{ product.stock }} unidades</span>
                     <span *ngIf="product.stock === 0">Agotado</span>
                   </span>
                 </div>
@@ -503,7 +502,7 @@
 
                   <div class="mt-8">
                     <span class="text-gray-900 text-xs fw-medium mt-8">
-                      Stock: {{ producto.stock }} unidades
+                      {{ producto.stock > 10 ? 'Stock: +10 unidades' : 'Stock: ' + producto.stock + ' unidades' }}
                     </span>
                   </div>
 

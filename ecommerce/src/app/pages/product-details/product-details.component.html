@@ -247,7 +247,7 @@
                                     <div class="progress-bar bg-main-two-600 rounded-pill" 
                                          [style.width.%]="(producto.stock / (producto.stock + 50)) * 100"></div>
                                 </div>
-                                <span class="text-sm text-gray-700 mt-8">Disponible: {{ producto.stock }}</span>
+                                <span class="text-sm text-gray-700 mt-8">Disponible: {{ producto.stock > 10 ? '+10 unidades' : producto.stock + ' unidades' }}</span>
                             </div>
 
                             <span class="text-gray-900 d-block mb-8">Cantidad:</span>
@@ -383,7 +383,7 @@
                         <div class="mb-16">
                             <span class="text-gray-900 fw-semibold">Cantidad: </span>
                             <span class="text-gray-900">{{ cantidad }} unidad</span>
-                            <span class="text-gray-500 text-sm"> ({{ producto.stock }} disponibles)</span>
+                            <span class="text-gray-500 text-sm"> ({{ producto.stock > 10 ? '+10 unidades' : producto.stock + ' unidades' }})</span>
                         </div>
                         
                         <!-- Botones de acción -->
@@ -863,7 +863,7 @@
                                         [style.width.%]="(product.stock / (product.stock + 50)) * 100"></div>
                                 </div>
                                 <span class="text-gray-900 text-xs fw-medium mt-8 d-block">
-                                    Stock: {{ product.stock }}
+                                    {{ product.stock > 10 ? 'Stock: +10 unidades' : 'Stock: ' + product.stock + ' unidades' }}
                                 </span>
                             </div>
                         </div>
