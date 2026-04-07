@@ -45,7 +45,7 @@ export class ChatbotComponent implements OnInit, OnDestroy {
   messages: ChatMessage[] = [];
   currentMessage = '';
   isTyping = false;
-  whatsappNumber = '51993321920';
+  whatsappNumber = '51951127833';
   
   // ✅ DATOS DINÁMICOS
   categorias: CategoriaPublica[] = [];
