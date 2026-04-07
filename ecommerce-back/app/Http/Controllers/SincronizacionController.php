@@ -14,6 +14,9 @@ class SincronizacionController extends Controller
      */
     public function sincronizarDesde7Power(Request $request)
     {
+        $companyId   = (int) $request->input('company_id', 1);
+        $warehouseId = (int) $request->input('warehouse_id', 1);
+
         try {
             // Validar conexion a base de datos Novik/7Power
             try {
@@ -31,19 +34,28 @@ class SincronizacionController extends Controller
             }
 
             Log::info(' Sincronización manual iniciada por usuario', [
-                'user_id' => $request->user()->id ?? 'guest',
-                'timestamp' => now()
+                'user_id'      => $request->user()->id ?? 'guest',
+                'company_id'   => $companyId,
+                'warehouse_id' => $warehouseId,
+                'timestamp'    => now()
             ]);
 
             // Ejecutar el comando de sincronización
-            Artisan::call('sync:7power');
-            
+            Artisan::call('sync:7power', [
+                '--company'   => $companyId,
+                '--warehouse' => $warehouseId,
+            ]);
+
             // Obtener la salida del comando
             $output = Artisan::output();
-            
-            //  NUEVO: Actualizar stock de productos existentes
+
+            // Actualizar stock de productos existentes
             Log::info(' Actualizando stock de productos existentes...');
-            Artisan::call('sync:7power', ['--update-stock' => true]);
+            Artisan::call('sync:7power', [
+                '--update-stock' => true,
+                '--company'      => $companyId,
+                '--warehouse'    => $warehouseId,
+            ]);
             $stockOutput = Artisan::output();
             
             // Combinar ambas salidas
@@ -79,8 +91,11 @@ class SincronizacionController extends Controller
     /**
      * Diagnóstico de stock: compara stock en 7Power vs Magus
      */
-    public function diagnosticoStock()
+    public function diagnosticoStock(Request $request)
     {
+        $companyId   = (int) $request->input('company_id', 1);
+        $warehouseId = (int) $request->input('warehouse_id', 1);
+
         try {
             DB::connection('mysql_7power')->getPdo();
         } catch (\Exception $e) {
@@ -93,12 +108,13 @@ class SincronizacionController extends Controller
         $resultado = [];
 
         foreach ($mapeos as $mapeo) {
-            // Stock en 7Power (con filtro de company)
+            // Stock en 7Power del almacén indicado (igual que la vista /stock?action=show)
             $stockPorAlmacen = DB::connection('mysql_7power')
                 ->table('product_warehouse')
                 ->join('warehouses', 'product_warehouse.warehouse_id', '=', 'warehouses.id')
                 ->where('product_warehouse.product_id', $mapeo->producto_7power_id)
-                ->where('warehouses.company_id', 1)
+                ->where('warehouses.company_id', $companyId)
+                ->where('product_warehouse.warehouse_id', $warehouseId)
                 ->select('warehouses.id as warehouse_id', 'warehouses.name as almacen', 'product_warehouse.stock')
                 ->get();
 
