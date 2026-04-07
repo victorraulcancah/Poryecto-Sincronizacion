@@ -39,7 +39,7 @@ return [
 
     'web' => env('EMPRESA_WEB', 'https://magustechnologies.com'),
 
-    'whatsapp' => env('EMPRESA_WHATSAPP', '+51972781904'),
+    'whatsapp' => env('EMPRESA_WHATSAPP', '+51951127833'),
 
     /*
     |--------------------------------------------------------------------------
