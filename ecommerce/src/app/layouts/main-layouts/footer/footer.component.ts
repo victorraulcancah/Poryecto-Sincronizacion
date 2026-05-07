@@ -94,10 +94,6 @@ export class FooterComponent implements OnInit, OnDestroy {
         if (data.youtube) this.socialLinks.push({ icon: 'ph-fill ph-youtube-logo', url: data.youtube });
         if (data.whatsapp) this.socialLinks.push({ icon: 'ph-fill ph-whatsapp-logo', url: `https://wa.me/${data.whatsapp}` });
       });
-
-    this.empresaInfoService.obtenerEmpresaInfoPublica()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({ error: (error) => console.error('Error al cargar datos de la empresa:', error) });
   }
 
   suscribirse(): void {

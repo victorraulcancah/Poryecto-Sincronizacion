@@ -274,19 +274,13 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
     this.empresaInfoService.empresaInfoPublica$
       .pipe(takeUntil(this.destroy$))
       .subscribe((info) => {
-        if (info !== null) {
-          this.empresaInfo = info;
-        }
+        if (info !== null) this.empresaInfo = info;
       });
 
-    this.empresaInfoService.obtenerEmpresaInfoPublica()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        error: (error) => {
-          console.error('Error al cargar información de la empresa:', error);
-          this.empresaInfo = null;
-        }
-      });
+    // Solo dispara el fetch si el servicio aún no tiene datos
+    if (this.empresaInfoService.getPublicInfoValue() === null) {
+      this.empresaInfoService.refreshPublicInfo();
+    }
   }
 
 
