@@ -267,7 +267,6 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
     return (menu.hijos && menu.hijos.length > 0) || false;
   }
 
-  // Agregar este nuevo método
   private cargarInformacionEmpresa(): void {
     if (!this.isBrowser) return;
 
@@ -277,10 +276,7 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
         if (info !== null) this.empresaInfo = info;
       });
 
-    // Solo dispara el fetch si el servicio aún no tiene datos
-    if (this.empresaInfoService.getPublicInfoValue() === null) {
-      this.empresaInfoService.refreshPublicInfo();
-    }
+    this.empresaInfoService.refreshPublicInfo();
   }
 
 
