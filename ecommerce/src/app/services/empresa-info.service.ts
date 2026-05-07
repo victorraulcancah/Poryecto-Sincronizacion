@@ -1,6 +1,6 @@
 // src/services/empresa-info.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, map, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { EmpresaInfo, EmpresaInfoCreate } from '../types/empresa-info.types';
@@ -124,11 +124,7 @@ export class EmpresaInfoService {
   }
 
   obtenerEmpresaInfoPublica(): Observable<any> {
-    const headers = new HttpHeaders({
-      'Cache-Control': 'no-cache, no-store',
-      'Pragma': 'no-cache',
-    });
-    return this.http.get<{ success: boolean; data: any }>(`${this.apiUrl}/empresa-info/publica`, { headers }).pipe(
+    return this.http.get<{ success: boolean; data: any }>(`${this.apiUrl}/empresa-info/publica?_t=${Date.now()}`).pipe(
       map((response) => response.data),
       tap((data) => this.empresaInfoPublicaSubject.next(data))
     );
