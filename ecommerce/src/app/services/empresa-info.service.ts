@@ -1,7 +1,7 @@
 // src/services/empresa-info.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { BehaviorSubject, Observable, map, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { EmpresaInfo, EmpresaInfoCreate } from '../types/empresa-info.types';
 
@@ -11,6 +11,9 @@ import { EmpresaInfo, EmpresaInfoCreate } from '../types/empresa-info.types';
 export class EmpresaInfoService {
   private apiUrl = `${environment.apiUrl}`;
   private baseUrl = environment.baseUrl;
+
+  private empresaInfoPublicaSubject = new BehaviorSubject<any>(null);
+  public empresaInfoPublica$ = this.empresaInfoPublicaSubject.asObservable();
 
   constructor(private http: HttpClient) {}
 
@@ -120,10 +123,14 @@ export class EmpresaInfoService {
     );
   }
 
-  // Método público para obtener información básica de la empresa
-obtenerEmpresaInfoPublica(): Observable<any> {
-  return this.http.get<{ success: boolean; data: any }>(`${this.apiUrl}/empresa-info/publica`).pipe(
-    map((response) => response.data)
-  );
-}
+  obtenerEmpresaInfoPublica(): Observable<any> {
+    return this.http.get<{ success: boolean; data: any }>(`${this.apiUrl}/empresa-info/publica`).pipe(
+      map((response) => response.data),
+      tap((data) => this.empresaInfoPublicaSubject.next(data))
+    );
+  }
+
+  refreshPublicInfo(): void {
+    this.obtenerEmpresaInfoPublica().subscribe();
+  }
 }

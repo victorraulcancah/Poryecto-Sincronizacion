@@ -271,15 +271,19 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
   private cargarInformacionEmpresa(): void {
     if (!this.isBrowser) return;
 
+    this.empresaInfoService.empresaInfoPublica$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((info) => {
+        if (info !== null) {
+          this.empresaInfo = info;
+        }
+      });
+
     this.empresaInfoService.obtenerEmpresaInfoPublica()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (info) => {
-          this.empresaInfo = info;
-        },
         error: (error) => {
           console.error('Error al cargar información de la empresa:', error);
-          // Mantener valores por defecto en caso de error
           this.empresaInfo = null;
         }
       });

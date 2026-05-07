@@ -1,8 +1,9 @@
 // src\app\layouts\main-layouts\footer\footer.component.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subject, takeUntil } from 'rxjs';
 import { EmpresaInfoService } from '../../../services/empresa-info.service';
 
 @Component({
@@ -11,7 +12,8 @@ import { EmpresaInfoService } from '../../../services/empresa-info.service';
   templateUrl: './footer.component.html',
   styleUrl: './footer.component.scss'
 })
-export class FooterComponent implements OnInit {
+export class FooterComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
   emailSuscripcion = '';
 
   // ✅ Datos dinámicos de la empresa (cargados desde la API)
@@ -74,54 +76,28 @@ export class FooterComponent implements OnInit {
     this.cargarDatosEmpresa();
   }
 
-  // ✅ Cargar datos de la empresa desde la API
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   cargarDatosEmpresa(): void {
-    this.empresaInfoService.obtenerEmpresaInfoPublica().subscribe({
-      next: (data) => {
+    this.empresaInfoService.empresaInfoPublica$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((data) => {
+        if (data === null) return;
         this.empresaInfo = data;
-
-        // ✅ Construir enlaces de redes sociales dinámicamente
         this.socialLinks = [];
+        if (data.facebook) this.socialLinks.push({ icon: 'ph-fill ph-facebook-logo', url: data.facebook });
+        if (data.instagram) this.socialLinks.push({ icon: 'ph-fill ph-instagram-logo', url: data.instagram });
+        if (data.twitter) this.socialLinks.push({ icon: 'ph-fill ph-twitter-logo', url: data.twitter });
+        if (data.youtube) this.socialLinks.push({ icon: 'ph-fill ph-youtube-logo', url: data.youtube });
+        if (data.whatsapp) this.socialLinks.push({ icon: 'ph-fill ph-whatsapp-logo', url: `https://wa.me/${data.whatsapp}` });
+      });
 
-        if (data.facebook) {
-          this.socialLinks.push({
-            icon: 'ph-fill ph-facebook-logo',
-            url: data.facebook
-          });
-        }
-
-        if (data.instagram) {
-          this.socialLinks.push({
-            icon: 'ph-fill ph-instagram-logo',
-            url: data.instagram
-          });
-        }
-
-        if (data.twitter) {
-          this.socialLinks.push({
-            icon: 'ph-fill ph-twitter-logo',
-            url: data.twitter
-          });
-        }
-
-        if (data.youtube) {
-          this.socialLinks.push({
-            icon: 'ph-fill ph-youtube-logo',
-            url: data.youtube
-          });
-        }
-
-        if (data.whatsapp) {
-          this.socialLinks.push({
-            icon: 'ph-fill ph-whatsapp-logo',
-            url: `https://wa.me/${data.whatsapp}`
-          });
-        }
-      },
-      error: (error) => {
-        console.error('Error al cargar datos de la empresa:', error);
-      }
-    });
+    this.empresaInfoService.obtenerEmpresaInfoPublica()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({ error: (error) => console.error('Error al cargar datos de la empresa:', error) });
   }
 
   suscribirse(): void {

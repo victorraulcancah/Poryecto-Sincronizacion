@@ -540,7 +540,8 @@ export class EmpresaInfoComponent implements OnInit {
             },
           });
           this.cargarEmpresaInfo();
-          this.isSubmitting = false; // Restablecer el estado del botón
+          this.empresaInfoService.refreshPublicInfo();
+          this.isSubmitting = false;
         },
         error: (error) => {
           console.error('Error al guardar información de empresa:', error);
