@@ -18,6 +18,14 @@ use Illuminate\Support\Facades\Storage;
 
 class CotizacionesController extends Controller
 {
+    private function isAdminUser($user): bool
+    {
+        return $user !== null
+            && !($user instanceof UserCliente)
+            && method_exists($user, 'hasRole')
+            && $user->hasRole('admin');
+    }
+
     /**
      * Obtener todas las cotizaciones (para admin)
      */
@@ -462,7 +470,7 @@ class CotizacionesController extends Controller
 
             // Verificar permisos
             $user = request()->user();
-            if ($cotizacion->user_cliente_id !== $user->id && !$user->hasRole('admin')) {
+            if ($cotizacion->user_cliente_id !== $user->id && !$this->isAdminUser($user)) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'No autorizado'
@@ -549,7 +557,7 @@ class CotizacionesController extends Controller
                 }
             }
             // Para admins: verificar que tienen rol de admin
-            elseif (!$user->hasRole('admin')) {
+            elseif (!$this->isAdminUser($user)) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'No tienes permisos para eliminar cotizaciones'
@@ -692,7 +700,7 @@ class CotizacionesController extends Controller
 
             // Verificar permisos (solo el cliente propietario o admin)
             $user = request()->user();
-            if ($cotizacion->user_cliente_id !== $user->id && !$user->hasRole('admin')) {
+            if ($cotizacion->user_cliente_id !== $user->id && !$this->isAdminUser($user)) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'No autorizado'

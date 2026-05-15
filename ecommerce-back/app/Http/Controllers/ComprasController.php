@@ -9,6 +9,7 @@ use App\Models\EstadoCompra;
 use App\Models\Cotizacion;
 use App\Models\CotizacionTracking;
 use App\Models\Producto;
+use App\Models\UserCliente;
 use App\Services\FacturacionComprasService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +18,14 @@ use Illuminate\Support\Facades\Validator;
 
 class ComprasController extends Controller
 {
+    private function isAdminUser($user): bool
+    {
+        return $user !== null
+            && !($user instanceof UserCliente)
+            && method_exists($user, 'hasRole')
+            && $user->hasRole('admin');
+    }
+
     /**
      * Obtener todas las compras (para admin)
      */
@@ -636,7 +645,7 @@ class ComprasController extends Controller
 
             // Verificar permisos
             $user = request()->user();
-            if ($compra->user_cliente_id !== $user->id && !$user->hasRole('admin')) {
+            if ($compra->user_cliente_id !== $user->id && !$this->isAdminUser($user)) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'No autorizado'

@@ -69,6 +69,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/ecommerce', [CotizacionesController::class, 'crearCotizacionEcommerce']);
         Route::get('/mis-cotizaciones', [CotizacionesController::class, 'misCotizaciones']);
         Route::get('/{id}/pdf', [CotizacionesController::class, 'generarPDF']);
+        Route::get('/{id}/tracking', [CotizacionesController::class, 'getTracking']);
         Route::post('/{id}/convertir-compra', [CotizacionesController::class, 'convertirACompra']);
         Route::post('/{id}/pedir', [CotizacionesController::class, 'pedirCotizacion']);
     });
@@ -78,26 +79,24 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/estadisticas', [CotizacionesController::class, 'estadisticas']);
         Route::get('/estados/lista', [CotizacionesController::class, 'getEstados']);
         Route::get('/{id}', [CotizacionesController::class, 'show'])->middleware('permission:cotizaciones.show');
-        Route::get('/{id}/tracking', [CotizacionesController::class, 'getTracking']);
         Route::delete('/{id}', [CotizacionesController::class, 'destroy']);
-
-        Route::post('/ecommerce', [CotizacionesController::class, 'crearCotizacionEcommerce'])->middleware('permission:cotizaciones.create');
-        Route::post('/{id}/convertir-compra', [CotizacionesController::class, 'convertirACompra'])->middleware('permission:cotizaciones.convertir');
         Route::patch('/{id}/estado', [CotizacionesController::class, 'cambiarEstado'])->middleware('permission:cotizaciones.edit');
     });
 
     // ============================================
     // COMPRAS
     // ============================================
+    Route::prefix('compras')->group(function () {
+        Route::get('/mis-compras', [ComprasController::class, 'misCompras']);
+        Route::get('/{id}/tracking', [ComprasController::class, 'getTracking']);
+        Route::post('/', [ComprasController::class, 'store']);
+    });
+
     Route::prefix('compras')->middleware('permission:compras.ver')->group(function () {
         Route::get('/', [ComprasController::class, 'index']);
         Route::get('/estadisticas', [ComprasController::class, 'estadisticas']);
         Route::get('/estados/lista', [ComprasController::class, 'getEstados']);
         Route::get('/{id}', [ComprasController::class, 'show'])->middleware('permission:compras.show');
-        Route::get('/{id}/tracking', [ComprasController::class, 'getTracking']);
-        Route::get('/mis-compras', [ComprasController::class, 'misCompras']);
-
-        Route::post('/', [ComprasController::class, 'store'])->middleware('permission:compras.create');
         Route::post('/{id}/cancelar', [ComprasController::class, 'cancelar'])->middleware('permission:compras.cancelar');
         Route::post('/{id}/aprobar', [ComprasController::class, 'aprobar'])->middleware('permission:compras.aprobar');
         Route::post('/{id}/rechazar', [ComprasController::class, 'rechazar'])->middleware('permission:compras.aprobar');

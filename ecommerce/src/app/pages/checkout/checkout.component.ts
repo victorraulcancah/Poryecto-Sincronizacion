@@ -60,6 +60,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   mensajeSinEnvio = '';
   tiposPago: TipoPago[] = [];
   costoEnvioCalculado = 0;
+  cartLoaded = false;
 
   cuponAplicado: any = null;
   descuentoCupon = 0;
@@ -85,7 +86,6 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.checkCartItems();
     this.loadCartData();
     this.checkAuthStatus();
     this.loadFormasEnvio();
@@ -151,13 +151,18 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   private loadCartData(): void {
+    this.cartService.cartLoaded$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(loaded => {
+        this.cartLoaded = loaded;
+        this.redirectIfCartIsEmpty();
+      });
+
     this.cartService.cartItems$
       .pipe(takeUntil(this.destroy$))
       .subscribe(items => {
         this.cartItems = items;
-        if (items.length === 0) {
-          this.router.navigate(['/shop']);
-        }
+        this.redirectIfCartIsEmpty();
       });
 
     this.cartService.cartSummary$
@@ -165,6 +170,21 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       .subscribe(summary => {
         this.cartSummary = summary;
       });
+  }
+
+  private redirectIfCartIsEmpty(): void {
+    if (typeof window === 'undefined' || !this.cartLoaded || this.cartItems.length > 0) {
+      return;
+    }
+
+    Swal.fire({
+      title: 'Carrito vacÃ­o',
+      text: 'No tienes productos en tu carrito para procesar la compra',
+      icon: 'warning',
+      confirmButtonColor: '#dc3545'
+    }).then(() => {
+      this.router.navigate(['/shop']);
+    });
   }
 
   private loadFormasEnvio(): void {
