@@ -19,13 +19,20 @@ interface PasoArmaPc {
   productos_count: number;
   imagen_url?: string;
   completado: boolean;
+  accesible: boolean;
   producto_seleccionado?: ProductoPublico;
 }
+
+type ProductoPaso = ProductoPublico & {
+  seleccionado: boolean;
+  precioNumerico: number;
+  precioFinal: number;
+};
 
 interface ProductoSeleccionado {
   categoria_id: number;
   categoria_nombre: string;
-  producto: ProductoPublico;
+  producto: ProductoPaso;
   cantidad: number;
 }
 
@@ -39,10 +46,15 @@ export class ArmaPcPublicoComponent implements OnInit {
   // ✅ NUEVAS PROPIEDADES PARA SISTEMA DE PASOS
   pasos: PasoArmaPc[] = [];
   pasoActual: number = 0;
-  productosDelPasoActual: ProductoPublico[] = [];
+  productosDelPasoActual: ProductoPaso[] = [];
   productosDelPasoLoading = false;
   productosSeleccionados: ProductoSeleccionado[] = [];
   totalCotizacion = 0;
+
+  // Propiedades precalculadas (evitan llamadas a funciones en el template)
+  progresoConfiguracion = { completados: 0, total: 0, porcentaje: 0 };
+  puedeFinalizar = false;
+  pasosRequeridosFaltantes = 0;
 
   constructor(
     private categoriasService: CategoriasPublicasService,
@@ -70,11 +82,12 @@ export class ArmaPcPublicoComponent implements OnInit {
           productos_count: categoria.productos_count || 0,
           imagen_url: categoria.imagen_url,
           completado: false,
+          accesible: false,
           producto_seleccionado: undefined
         })).sort((a, b) => a.orden - b.orden);
-        
-        console.log('Pasos Arma PC cargados:', this.pasos);
-        
+
+        this.actualizarResumen();
+
         // Cargar productos del primer paso
         if (this.pasos.length > 0) {
           this.cargarProductosDelPaso(0);
@@ -111,8 +124,14 @@ export class ArmaPcPublicoComponent implements OnInit {
 
     this.productosService.obtenerProductosPublicos(filtros).subscribe({
       next: (response) => {
-        this.productosDelPasoActual = response.productos;
+        const seleccionadosIds = new Set(this.productosSeleccionados.map(s => s.producto.id));
+        this.productosDelPasoActual = response.productos.map(p => {
+          const precioNumerico = this.getPrecioNumerico(p.precio);
+          const precioFinal = this.getPrecioNumerico(p.precio_oferta || p.precio);
+          return { ...p, seleccionado: seleccionadosIds.has(p.id), precioNumerico, precioFinal };
+        });
         this.productosDelPasoLoading = false;
+        this.actualizarResumen();
         
         console.log(`✅ Productos cargados para "${paso.nombre_paso}":`, {
           totalProductos: this.productosDelPasoActual.length,
@@ -183,48 +202,34 @@ export class ArmaPcPublicoComponent implements OnInit {
   }
 
   // ✅ ACTUALIZADO: Seleccionar producto del paso actual
-  toggleProductoArmado(producto: ProductoPublico, event: any): void {
+  toggleProductoArmado(producto: ProductoPaso, event: any): void {
     const isChecked = event.target.checked;
     const pasoActualObj = this.pasos[this.pasoActual];
 
     if (isChecked) {
-      // Verificar si ya hay un producto de este paso seleccionado
-      const existeEnPaso = this.productosSeleccionados.find(
+      const existeIdx = this.productosSeleccionados.findIndex(
         p => p.categoria_id === pasoActualObj.id
       );
+      const entrada = { categoria_id: pasoActualObj.id, categoria_nombre: pasoActualObj.nombre_paso, producto, cantidad: 1 };
 
-      if (existeEnPaso) {
-        // Reemplazar el producto existente de este paso
-        const index = this.productosSeleccionados.findIndex(
-          p => p.categoria_id === pasoActualObj.id
-        );
-        this.productosSeleccionados[index] = {
-          categoria_id: pasoActualObj.id,
-          categoria_nombre: pasoActualObj.nombre_paso,
-          producto: producto,
-          cantidad: 1
-        };
+      if (existeIdx !== -1) {
+        // Deseleccionar el producto anterior del mismo paso
+        const anteriorId = this.productosSeleccionados[existeIdx].producto.id;
+        const anteriorEnLista = this.productosDelPasoActual.find(p => p.id === anteriorId);
+        if (anteriorEnLista) anteriorEnLista.seleccionado = false;
+        this.productosSeleccionados[existeIdx] = entrada;
       } else {
-        // Agregar nuevo producto
-        this.productosSeleccionados.push({
-          categoria_id: pasoActualObj.id,
-          categoria_nombre: pasoActualObj.nombre_paso,
-          producto: producto,
-          cantidad: 1
-        });
+        this.productosSeleccionados.push(entrada);
       }
 
-      // Marcar paso como completado
+      producto.seleccionado = true;
       pasoActualObj.completado = true;
       pasoActualObj.producto_seleccionado = producto;
-
     } else {
-      // Remover producto
       this.productosSeleccionados = this.productosSeleccionados.filter(
         p => p.producto.id !== producto.id
       );
-
-      // Marcar paso como no completado
+      producto.seleccionado = false;
       pasoActualObj.completado = false;
       pasoActualObj.producto_seleccionado = undefined;
     }
@@ -240,9 +245,24 @@ export class ArmaPcPublicoComponent implements OnInit {
   // Calcular total de cotización
   calcularTotalCotizacion(): void {
     this.totalCotizacion = this.productosSeleccionados.reduce((total, item) => {
-      const precio = this.getPrecioNumerico(item.producto.precio_oferta || item.producto.precio);
-      return total + (precio * item.cantidad);
+      return total + (item.producto.precioFinal * item.cantidad);
     }, 0);
+    this.actualizarResumen();
+  }
+
+  actualizarResumen(): void {
+    const completados = this.pasos.filter(p => p.completado).length;
+    const total = this.pasos.length;
+    this.progresoConfiguracion = {
+      completados,
+      total,
+      porcentaje: total > 0 ? Math.round((completados / total) * 100) : 0
+    };
+    this.pasosRequeridosFaltantes = this.pasos.filter(p => p.es_requerido && !p.completado).length;
+    this.puedeFinalizar = this.pasos.filter(p => p.es_requerido).every(p => p.completado);
+    this.pasos.forEach((paso, i) => {
+      paso.accesible = i === 0 || this.pasos.slice(0, i).every(p => !p.es_requerido || p.completado);
+    });
   }
 
   // Convertir precio a número para mostrar
