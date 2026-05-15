@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PedidosService } from '../../../services/pedidos.service';
 import { ProductosService } from '../../../services/productos.service';
+import { ReniecService } from '../../../services/reniec.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -52,10 +53,13 @@ export class PedidosListComponent implements OnInit {
   subtotalNuevoPedido = 0;
   igvNuevoPedido = 0;
   totalNuevoPedido = 0;
+  buscandoDocumento = false;
+  activeTabCrear: 'cliente' | 'envio' | 'productos' = 'cliente';
 
   constructor(
     private pedidosService: PedidosService,
-    private productosService: ProductosService
+    private productosService: ProductosService,
+    private reniecService: ReniecService
   ) {}
 
   ngOnInit(): void {
@@ -303,8 +307,53 @@ export class PedidosListComponent implements OnInit {
 
   // ── Crear pedido ──────────────────────────────────────────
 
+  consultarDocumento(): void {
+    const doc = this.nuevoPedido.numero_documento.trim();
+    if (doc.length !== 8 && doc.length !== 11) {
+      Swal.fire('Documento inválido', 'Ingresa un DNI (8 dígitos) o RUC (11 dígitos).', 'warning');
+      return;
+    }
+
+    this.buscandoDocumento = true;
+    this.reniecService.buscarPorDni(doc).subscribe({
+      next: (res) => {
+        this.buscandoDocumento = false;
+        if (!res.success) {
+          Swal.fire('No encontrado', res.message || 'No se encontraron datos para ese documento.', 'warning');
+          return;
+        }
+
+        if (doc.length === 8) {
+          // DNI → armar nombre completo
+          const nombre = [res.nombres, res.apellidoPaterno, res.apellidoMaterno]
+            .filter(Boolean).join(' ');
+          this.nuevoPedido.cliente_nombre = nombre;
+        } else {
+          // RUC → razón social + dirección
+          this.nuevoPedido.cliente_nombre = res.razonSocial || res.nombre || '';
+          if (res.direccion) {
+            this.nuevoPedido.direccion_envio = res.direccion;
+          }
+        }
+
+        Swal.fire({
+          icon: 'success',
+          title: '¡Datos encontrados!',
+          text: `Datos de ${this.nuevoPedido.cliente_nombre} cargados.`,
+          timer: 1800,
+          showConfirmButton: false,
+        });
+      },
+      error: () => {
+        this.buscandoDocumento = false;
+        Swal.fire('Error', 'No se pudo conectar con el servicio. Ingresa los datos manualmente.', 'error');
+      }
+    });
+  }
+
   abrirModalCrear(): void {
     this.resetFormCrear();
+    this.activeTabCrear = 'cliente';
     const modal = document.getElementById('crearPedidoModal');
     if (modal) {
       const bootstrapModal = new (window as any).bootstrap.Modal(modal);
@@ -313,6 +362,7 @@ export class PedidosListComponent implements OnInit {
   }
 
   resetFormCrear(): void {
+    this.activeTabCrear = 'cliente';
     this.nuevoPedido = {
       cliente_nombre: '',
       cliente_email: '',

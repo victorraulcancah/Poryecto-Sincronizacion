@@ -98,3 +98,178 @@
 ::ng-deep .modern-data-table .table tbody tr:last-child td {
   padding-bottom: 24px !important;
 }
+
+// ── Modal crear pedido — tabs ─────────────────────────────
+
+.tab-step-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--gray-200);
+  color: var(--gray-600);
+  transition: background 0.2s, color 0.2s;
+
+  &--active {
+    background: var(--main-600);
+    color: #fff;
+  }
+
+  &--done {
+    background: var(--success-500);
+    color: #fff;
+  }
+}
+
+// Cards de forma de envío
+.envio-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 8px;
+  border: 2px solid var(--gray-200);
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.2s, background 0.2s;
+  color: var(--gray-500);
+  min-height: 90px;
+
+  &:hover {
+    border-color: var(--main-400);
+    background: var(--main-50);
+    color: var(--main-600);
+  }
+
+  &--selected {
+    border-color: var(--main-600);
+    background: var(--main-50);
+    color: var(--main-700);
+  }
+}
+
+// ── Carrito de productos (tab 3) ─────────────────────────
+
+.carrito-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--gray-100);
+
+  &:last-child { border-bottom: none; }
+
+  &__info {
+    flex: 1 1 0;
+    min-width: 0; // permite text-truncate
+  }
+
+  &__qty {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  &__price {
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  &__subtotal {
+    flex-shrink: 0;
+    text-align: right;
+    min-width: 72px;
+  }
+
+  &__remove {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border: none;
+    border-radius: 6px;
+    background: var(--danger-50);
+    color: var(--danger-600);
+    cursor: pointer;
+    font-size: 13px;
+    transition: background 0.15s;
+
+    &:hover { background: var(--danger-100); }
+  }
+}
+
+.qty-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--gray-300);
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 11px;
+  color: var(--gray-600);
+  padding: 0;
+
+  &:hover { background: var(--gray-100); }
+}
+
+.qty-input {
+  width: 40px;
+  height: 22px;
+  text-align: center;
+  border: 1px solid var(--gray-300);
+  border-radius: 4px;
+  font-size: 12px;
+  padding: 0 2px;
+
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button { -webkit-appearance: none; }
+}
+
+.price-input {
+  width: 68px;
+  height: 28px;
+  text-align: right;
+  border: 1px solid var(--gray-300);
+  border-radius: 6px;
+  font-size: 12px;
+  padding: 0 6px;
+
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button { -webkit-appearance: none; }
+}
+
+// Resultado de búsqueda de productos
+.producto-card-search {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-bottom: 4px;
+  border: 1px solid transparent;
+
+  &:hover {
+    background: var(--main-50);
+    border-color: var(--main-200);
+  }
+}
+
+// Botón extra-pequeño
+.btn-xs {
+  font-size: 11px;
+  line-height: 1.2;
+  border-radius: 6px;
+}
