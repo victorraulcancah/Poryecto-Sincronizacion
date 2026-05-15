@@ -98,12 +98,17 @@ export class FormasEnvioComponent implements OnInit {
       activo: [true]
     });
 
+    // Variables de control para evitar que los listeners se ejecuten durante inicialización
+    let isInitializing = true;
+
     // Deshabilitar provincia y distrito inicialmente
     this.formaEnvioForm.get('provincia_id')?.disable();
     this.formaEnvioForm.get('distrito_id')?.disable();
 
     // Listener para cargar provincias cuando cambia el departamento
     this.formaEnvioForm.get('departamento_id')?.valueChanges.subscribe(departamentoId => {
+      if (isInitializing) return; // Ignorar durante inicialización
+      
       if (departamentoId) {
         this.formaEnvioForm.get('provincia_id')?.enable();
         this.loadProvincias(departamentoId);
@@ -120,6 +125,8 @@ export class FormasEnvioComponent implements OnInit {
 
     // Listener para cargar distritos cuando cambia la provincia
     this.formaEnvioForm.get('provincia_id')?.valueChanges.subscribe(provinciaId => {
+      if (isInitializing) return; // Ignorar durante inicialización
+      
       const departamentoId = this.formaEnvioForm.get('departamento_id')?.value;
       
       if (departamentoId && provinciaId && provinciaId !== '') {
@@ -131,6 +138,9 @@ export class FormasEnvioComponent implements OnInit {
         this.distritos = [];
       }
     });
+
+    // Permitir que los listeners funcionen después de la inicialización
+    setTimeout(() => { isInitializing = false; }, 100);
   }
 
   loadDepartamentos(): void {
@@ -320,24 +330,43 @@ export class FormasEnvioComponent implements OnInit {
       // Usar el filtro de departamento si está seleccionado, si no dejarlo vacío
       const departamentoInicial = this.filtroDepartamento || '';
       
-      this.formaEnvioForm.patchValue({ 
-        activo: true, 
-        costo: 0,
-        departamento_id: departamentoInicial,
-        provincia_id: '',
-        distrito_id: ''
-      });
-      
-      // Si hay filtro de departamento, pre-seleccionarlo y cargar provincias
-      if (departamentoInicial) {
-        this.formaEnvioForm.get('provincia_id')?.enable();
-        this.loadProvincias(departamentoInicial);
-      }
-      
+      // Limpiar listas primero
       this.provincias = [];
       this.distritos = [];
-      this.formaEnvioForm.get('provincia_id')?.disable();
-      this.formaEnvioForm.get('distrito_id')?.disable();
+      
+      if (departamentoInicial) {
+        // Hay filtro de departamento - pre-seleccionar y cargar provincias
+        // Primero reset y luego patchValue en un nuevo ciclo para asegurar que valueChanges funcione
+        this.formaEnvioForm.get('provincia_id')?.enable();
+        this.loadProvincias(departamentoInicial);
+        
+        // Hacer patchValue después de que Angular procese
+        setTimeout(() => {
+          this.formaEnvioForm.patchValue({ 
+            activo: true, 
+            costo: 0,
+            departamento_id: departamentoInicial,
+            provincia_id: '',
+            distrito_id: ''
+          });
+        });
+        
+        // NO deshabilitar la provincia - mantenerla habilitada
+        this.formaEnvioForm.get('distrito_id')?.disable();
+      } else {
+        // No hay filtro - dejar vacío
+        this.formaEnvioForm.patchValue({ 
+          activo: true, 
+          costo: 0,
+          departamento_id: '',
+          provincia_id: '',
+          distrito_id: ''
+        });
+        
+        // Deshabilitar provincia y distrito cuando no hay departamento
+        this.formaEnvioForm.get('provincia_id')?.disable();
+        this.formaEnvioForm.get('distrito_id')?.disable();
+      }
     }
   }
 

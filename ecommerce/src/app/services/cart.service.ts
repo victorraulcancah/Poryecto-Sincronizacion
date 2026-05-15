@@ -42,9 +42,11 @@ export class CartService {
   private cartSummarySubject = new BehaviorSubject<CartSummary>({
     subtotal: 0, igv: 0, total: 0, cantidad_items: 0
   });
+  private cartLoadedSubject = new BehaviorSubject<boolean>(false);
 
   public cartItems$ = this.cartItemsSubject.asObservable();
   public cartSummary$ = this.cartSummarySubject.asObservable();
+  public cartLoaded$ = this.cartLoadedSubject.asObservable();
 
   constructor(
     private http: HttpClient,
@@ -56,6 +58,7 @@ export class CartService {
 
   private initCart(): void {
     this.authService.currentUser.subscribe(user => {
+      this.cartLoadedSubject.next(false);
       // console.log('CartService - Usuario cambió:', user);
       if (user) {
         // console.log('CartService - Cargando carrito desde API');
@@ -167,6 +170,7 @@ export class CartService {
     return this.http.get<CartItem[]>(this.API_URL).pipe(
       tap((items) => {
         this.updateCartState(items);
+        this.cartLoadedSubject.next(true);
       }),
       catchError((error) => {
         console.error('Error cargando carrito desde API, usando localStorage:', error);
@@ -248,6 +252,7 @@ export class CartService {
       // Si no hay items, actualizar estado vacío
       this.updateCartState(items);
     }
+    this.cartLoadedSubject.next(true);
   }
 
   private addToCartLocal(producto: any, cantidad: number): void {
@@ -464,6 +469,7 @@ export class CartService {
     );
   }
   public forceReloadCart(): void {
+    this.cartLoadedSubject.next(false);
     if (this.authService.isLoggedIn()) {
       this.loadCartFromApi().subscribe({
         next: (items) => {
