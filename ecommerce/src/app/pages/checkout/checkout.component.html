@@ -335,15 +335,26 @@
                     >
                       <option value="">Forma de Envío (*)</option>
                       <option
-                        *ngFor="let forma of formasEnvio"
+                        *ngFor="let forma of formasEnvioFiltradas"
                         [value]="forma.id"
                       >
                         {{
-                          forma.ubicacion_completa || forma.departamento_nombre
+                          forma.ubicacion_completa || forma.departamento_nombre || 'Envío'
                         }}
                         - S/ {{ forma.costo | number : "1.2-2" }}
                       </option>
                     </select>
+
+                    <!-- ✅ Alerta si no hay formas de envío -->
+                    <div
+                      *ngIf="mensajeSinEnvio"
+                      class="alert alert-warning d-flex align-items-center gap-2 py-8 px-12 mt-12"
+                      style="font-size: 0.85rem;"
+                    >
+                      <i class="ph ph-warning-circle"></i>
+                      <span>{{ mensajeSinEnvio }}</span>
+                    </div>
+
                     <div
                       class="invalid-feedback"
                       *ngIf="
@@ -628,7 +639,7 @@
             </div>
           </div>
 
-          <!-- Costo por envío -->
+<!-- Costo por envío -->
           <div class="card border-0 shadow-sm rounded-12">
             <div class="card-header bg-warning-50 py-16">
               <h6 class="mb-0 fw-semibold text-heading">
@@ -638,23 +649,22 @@
             <div class="card-body p-20">
               <div class="shipping-costs">
                 <div
-                  *ngFor="let forma of formasEnvio"
+                  *ngFor="let forma of formasEnvioFiltradas"
                   class="d-flex justify-content-between align-items-center mb-8"
                 >
                   <span class="text-sm text-gray-600"
                     >{{
-                      forma.ubicacion_completa || forma.departamento_nombre
+                      forma.ubicacion_completa || forma.departamento_nombre || 'Envío'
                     }}:</span
                   >
                   <span class="text-sm fw-medium"
-                    >S/ {{ formatPrice(forma.costo) }}</span
-                  >
+                    >S/ {{ formatPrice(forma.costo) }}</span>
                 </div>
                 <div
-                  *ngIf="formasEnvio.length === 0"
+                  *ngIf="formasEnvioFiltradas.length === 0"
                   class="text-center text-muted"
                 >
-                  <small>No hay formas de envío disponibles</small>
+                  <small>{{ mensajeSinEnvio || 'No hay formas de envío disponibles' }}</small>
                 </div>
               </div>
             </div>

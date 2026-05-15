@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 import { BreadcrumbComponent } from '../../component/breadcrumb/breadcrumb.component';
 import { ShippingComponent } from '../../component/shipping/shipping.component';
 import { CartService, CartItem, CartSummary } from '../../services/cart.service';
@@ -42,27 +43,24 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     cantidad_items: 0
   };
 
-  // Ubigeo data
   departamentos: Departamento[] = [];
   provincias: Provincia[] = [];
   distritos: Distrito[] = [];
 
-  // Estados del componente
   buscandoDocumento = false;
   procesandoPedido = false;
   isLoggedIn = false;
 
-  // Direcciones guardadas
   direccionesGuardadas: Direccion[] = [];
   direccionSeleccionada: Direccion | null = null;
   usarDireccionPersonalizada = false;
 
-  // ✅ Formas de envío y tipos de pago dinámicos
   formasEnvio: FormaEnvio[] = [];
+  formasEnvioFiltradas: FormaEnvio[] = [];
+  mensajeSinEnvio = '';
   tiposPago: TipoPago[] = [];
   costoEnvioCalculado = 0;
 
-  // ✅ Cupón aplicado
   cuponAplicado: any = null;
   descuentoCupon = 0;
 
@@ -90,32 +88,27 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     this.checkCartItems();
     this.loadCartData();
     this.checkAuthStatus();
-    this.loadFormasEnvio(); // ✅ Cargar formas de envío
-    this.loadTiposPago(); // ✅ Cargar tipos de pago
-    this.loadCuponAplicado(); // ✅ Cargar cupón aplicado desde el carrito
-    // Cargar ubigeo primero, luego direcciones
+    this.loadFormasEnvio();
+    this.loadTiposPago();
+    this.loadCuponAplicado();
     this.loadUbigeoData().then(() => {
       this.loadDireccionesGuardadas();
     });
   }
 
-  // ✅ Cargar cupón aplicado desde sessionStorage
   private loadCuponAplicado(): void {
     const cuponData = sessionStorage.getItem('cupon_aplicado');
     if (cuponData) {
       try {
         this.cuponAplicado = JSON.parse(cuponData);
         this.descuentoCupon = this.cuponAplicado.descuento_calculado || 0;
-        console.log('Cupón cargado:', this.cuponAplicado);
       } catch (e) {
-        console.error('Error al parsear cupón:', e);
         this.cuponAplicado = null;
         this.descuentoCupon = 0;
       }
     }
   }
 
-  // ✅ Calcular total con descuento
   getTotalConDescuento(): number {
     return (this.cartSummary.total || 0) - this.descuentoCupon + this.costoEnvioCalculado;
   }
@@ -125,7 +118,6 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // Inicializar formulario
   private initializeForm(): void {
     this.checkoutForm = this.fb.group({
       numeroDocumento: [''],
@@ -143,7 +135,6 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Verificar si hay items en el carrito
   private checkCartItems(): void {
     if (typeof window !== 'undefined' && this.cartService.isEmpty()) {
       import('sweetalert2').then(Swal => {
@@ -159,7 +150,6 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Cargar datos del carrito
   private loadCartData(): void {
     this.cartService.cartItems$
       .pipe(takeUntil(this.destroy$))
@@ -177,11 +167,11 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       });
   }
 
-  // ✅ Cargar formas de envío desde el backend
   private loadFormasEnvio(): void {
     this.formaEnvioService.obtenerActivas().subscribe({
       next: (response) => {
-        this.formasEnvio = response.formas_envio || [];
+        // Convertir ubigeos de 6 dígitos a 2 dígitos para que funcione el filtrado
+        this.formasEnvio = (response.formas_envio || []).map(f => this.convertirFormaEnvioParaCheckout(f));
       },
       error: (error) => {
         console.error('Error cargando formas de envío:', error);
@@ -189,7 +179,26 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ✅ Cargar tipos de pago desde el backend
+  /**
+   * Convierte ubigeo de 6 dígitos a 2 dígitos para el checkout
+   * Ejemplo: "010000" -> "01", "150100" -> "15" (provincia solo para filtrado)
+   */
+  private convertirFormaEnvioParaCheckout(forma: FormaEnvio): FormaEnvio {
+    if (!forma.departamento_id) return forma;
+    
+    const depto6 = forma.departamento_id;
+    const depto2 = depto6.substring(0, 2);
+    const prov2 = forma.provincia_id ? depto6.substring(2, 4) : null;
+    const dist2 = forma.distrito_id ? depto6.substring(4, 6) : null;
+    
+    return {
+      ...forma,
+      departamento_id: depto2,
+      provincia_id: prov2 !== '00' ? prov2 : null,
+      distrito_id: dist2 !== '00' ? dist2 : null
+    };
+  }
+
   private loadTiposPago(): void {
     this.tipoPagoService.obtenerActivos().subscribe({
       next: (response) => {
@@ -201,7 +210,6 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Cargar datos de ubigeo
   private loadUbigeoData(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.ubigeoService.getDepartamentos().subscribe({
@@ -217,14 +225,12 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Verificar estado de autenticación
   private checkAuthStatus(): void {
     this.authService.currentUser
       .pipe(takeUntil(this.destroy$))
       .subscribe(user => {
         this.isLoggedIn = !!user;
         if (user) {
-          // Pre-llenar datos del usuario logueado
           this.checkoutForm.patchValue({
             cliente: user.name,
             email: user.email
@@ -233,151 +239,123 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       });
   }
 
-// Buscar datos por documento - Primero en sistema, luego en RENIEC
-buscarDocumento(): void {
-  const numeroDocumento = this.checkoutForm.get('numeroDocumento')?.value;
-  
-  if (!numeroDocumento || numeroDocumento.length < 8) {
-    Swal.fire({
-      title: 'Número inválido',
-      text: 'Ingrese un número de documento válido (DNI: 8 dígitos, RUC: 11 dígitos)',
-      icon: 'warning',
-      confirmButtonColor: '#dc3545'
-    });
-    return;
-  }
+  buscarDocumento(): void {
+    const numeroDocumento = this.checkoutForm.get('numeroDocumento')?.value;
 
-  // Validar longitud según tipo de documento
-  if (numeroDocumento.length !== 8 && numeroDocumento.length !== 11) {
-    Swal.fire({
-      title: 'Número inválido',
-      text: 'Ingrese un DNI de 8 dígitos o un RUC de 11 dígitos',
-      icon: 'warning',
-      confirmButtonColor: '#dc3545'
-    });
-    return;
-  }
-
-  this.buscandoDocumento = true;
-
-  // PASO 1: Buscar primero en el sistema de clientes
-  this.clienteService.buscarPorDocumento(numeroDocumento).subscribe({
-    next: (response) => {
-      console.log('Respuesta del sistema:', response);
-
-      // Si se encontró en el sistema
-      if (response.success && response.data && response.data.length > 0) {
-        this.buscandoDocumento = false;
-        const cliente = response.data[0];
-        const nombreCompleto = `${cliente.nombres} ${cliente.apellidos}`.trim();
-
-        // Autocompletar formulario con datos del sistema
-        this.checkoutForm.patchValue({
-          cliente: nombreCompleto,
-          email: cliente.email || '',
-          celular: cliente.telefono || '',
-          direccion: cliente.direccion || ''
-        });
-
-        Swal.fire({
-          title: 'Cliente encontrado',
-          text: `Se encontró: ${nombreCompleto}`,
-          icon: 'success',
-          timer: 2000,
-          showConfirmButton: false
-        });
-      } else {
-        // PASO 2: Si no se encontró en el sistema, buscar en RENIEC
-        console.log('No encontrado en sistema, buscando en RENIEC...');
-        this.buscarEnReniec(numeroDocumento);
-      }
-    },
-    error: (error) => {
-      console.error('Error buscando en sistema, intentando RENIEC:', error);
-      // Si hay error en el sistema, intentar con RENIEC
-      this.buscarEnReniec(numeroDocumento);
+    if (!numeroDocumento || numeroDocumento.length < 8) {
+      Swal.fire({
+        title: 'Número inválido',
+        text: 'Ingrese un número de documento válido (DNI: 8 dígitos, RUC: 11 dígitos)',
+        icon: 'warning',
+        confirmButtonColor: '#dc3545'
+      });
+      return;
     }
-  });
-}
 
-// Método auxiliar para buscar en RENIEC
-private buscarEnReniec(numeroDocumento: string): void {
-  this.reniecService.buscarPorDni(numeroDocumento).subscribe({
-    next: (response) => {
-      this.buscandoDocumento = false;
-      console.log('Respuesta de RENIEC:', response);
+    if (numeroDocumento.length !== 8 && numeroDocumento.length !== 11) {
+      Swal.fire({
+        title: 'Número inválido',
+        text: 'Ingrese un DNI de 8 dígitos o un RUC de 11 dígitos',
+        icon: 'warning',
+        confirmButtonColor: '#dc3545'
+      });
+      return;
+    }
 
-      if (response.success !== false && (response.nombre || response.nombres || response.razonSocial)) {
-        let nombreCompleto = '';
+    this.buscandoDocumento = true;
 
-        // Para DNI (8 dígitos)
-        if (numeroDocumento.length === 8) {
-          if (response.nombres && response.apellidoPaterno && response.apellidoMaterno) {
-            nombreCompleto = `${response.nombres} ${response.apellidoPaterno} ${response.apellidoMaterno}`;
-          } else if (response.nombre) {
-            nombreCompleto = response.nombre;
-          }
-        } 
-        // Para RUC (11 dígitos)
-        else if (numeroDocumento.length === 11) {
-          nombreCompleto = response.razonSocial || response.nombre || '';
-        }
+    this.clienteService.buscarPorDocumento(numeroDocumento).subscribe({
+      next: (response) => {
+        if (response.success && response.data && response.data.length > 0) {
+          this.buscandoDocumento = false;
+          const cliente = response.data[0];
+          const nombreCompleto = `${cliente.nombres} ${cliente.apellidos}`.trim();
 
-        if (nombreCompleto) {
           this.checkoutForm.patchValue({
-            cliente: nombreCompleto
+            cliente: nombreCompleto,
+            email: cliente.email || '',
+            celular: cliente.telefono || '',
+            direccion: cliente.direccion || ''
           });
 
           Swal.fire({
-            title: 'Datos encontrados en RENIEC',
+            title: 'Cliente encontrado',
             text: `Se encontró: ${nombreCompleto}`,
             icon: 'success',
             timer: 2000,
             showConfirmButton: false
           });
         } else {
-          this.mostrarErrorDocumento();
+          this.buscarEnReniec(numeroDocumento);
         }
-      } else {
-        this.mostrarErrorDocumento();
+      },
+      error: (error) => {
+        this.buscarEnReniec(numeroDocumento);
       }
-    },
-    error: (error) => {
-      this.buscandoDocumento = false;
-      console.error('Error consultando RENIEC:', error);
-      
-      Swal.fire({
-        title: 'Error al consultar',
-        text: 'No se pudo verificar el documento en ninguna fuente. Intente nuevamente.',
-        icon: 'error',
-        confirmButtonColor: '#dc3545'
-      });
-    }
-  });
-}
-
-// Método auxiliar para mostrar error cuando no se encuentran datos
-private mostrarErrorDocumento(): void {
-  Swal.fire({
-    title: 'Documento no encontrado',
-    text: 'No se encontraron datos para este documento. Puede ingresar el nombre manualmente.',
-    icon: 'warning',
-    confirmButtonColor: '#ffc107'
-  });
-}
-
-
-
-  // Cambio en distrito
-  onDistritoChange(): void {
-    // Método vacío - se mantiene por compatibilidad
+    });
   }
 
+  private buscarEnReniec(numeroDocumento: string): void {
+    this.reniecService.buscarPorDni(numeroDocumento).subscribe({
+      next: (response) => {
+        this.buscandoDocumento = false;
 
-  // ✅ Cambio en forma de envío - Ahora dinámico
+        if (response.success !== false && (response.nombre || response.nombres || response.razonSocial)) {
+          let nombreCompleto = '';
+
+          if (numeroDocumento.length === 8) {
+            if (response.nombres && response.apellidoPaterno && response.apellidoMaterno) {
+              nombreCompleto = `${response.nombres} ${response.apellidoPaterno} ${response.apellidoMaterno}`;
+            } else if (response.nombre) {
+              nombreCompleto = response.nombre;
+            }
+          } else if (numeroDocumento.length === 11) {
+            nombreCompleto = response.razonSocial || response.nombre || '';
+          }
+
+          if (nombreCompleto) {
+            this.checkoutForm.patchValue({
+              cliente: nombreCompleto
+            });
+
+            Swal.fire({
+              title: 'Datos encontrados en RENIEC',
+              text: `Se encontró: ${nombreCompleto}`,
+              icon: 'success',
+              timer: 2000,
+              showConfirmButton: false
+            });
+          } else {
+            this.mostrarErrorDocumento();
+          }
+        } else {
+          this.mostrarErrorDocumento();
+        }
+      },
+      error: (error) => {
+        this.buscandoDocumento = false;
+        Swal.fire({
+          title: 'Error al consultar',
+          text: 'No se pudo verificar el documento en ninguna fuente. Intente nuevamente.',
+          icon: 'error',
+          confirmButtonColor: '#dc3545'
+        });
+      }
+    });
+  }
+
+  private mostrarErrorDocumento(): void {
+    Swal.fire({
+      title: 'Documento no encontrado',
+      text: 'No se encontraron datos para este documento. Puede ingresar el nombre manualmente.',
+      icon: 'warning',
+      confirmButtonColor: '#ffc107'
+    });
+  }
+
   onFormaEnvioChange(): void {
     const formaEnvioId = this.checkoutForm.get('formaEnvio')?.value;
-    const formaEnvioSeleccionada = this.formasEnvio.find(f => f.id === Number(formaEnvioId));
+    const formaEnvioSeleccionada = this.formasEnvioFiltradas.find(f => f.id === Number(formaEnvioId));
 
     if (formaEnvioSeleccionada) {
       this.costoEnvioCalculado = formaEnvioSeleccionada.costo;
@@ -386,9 +364,7 @@ private mostrarErrorDocumento(): void {
     }
   }
 
-  // Pedir cotización
   pedirCotizacion(): void {
-    // Verificar si el usuario está autenticado
     if (!this.isLoggedIn) {
       Swal.fire({
         title: 'Inicio de sesión requerido',
@@ -421,7 +397,6 @@ private mostrarErrorDocumento(): void {
     this.procesandoPedido = true;
     const formData = this.checkoutForm.value;
 
-    // Preparar datos para la cotización
     const cotizacionData: CrearCotizacionRequest = {
       productos: this.cartItems.map(item => ({
         producto_id: item.producto_id,
@@ -445,13 +420,11 @@ private mostrarErrorDocumento(): void {
       ubicacion_completa: `${this.distritos.find(d => d.id === formData.distrito)?.nombre || ''}, ${this.provincias.find(p => p.id === formData.provincia)?.nombre || ''}, ${this.departamentos.find(d => d.id === formData.departamento)?.nombre || ''}`
     };
 
-    // Crear cotización en el backend
     this.cotizacionesService.crearCotizacionEcommerce(cotizacionData).subscribe({
       next: (response) => {
         this.procesandoPedido = false;
 
         if (response.status === 'success') {
-          // Limpiar carrito
           this.cartService.clearCart();
 
           Swal.fire({
@@ -479,7 +452,6 @@ private mostrarErrorDocumento(): void {
       },
       error: (error) => {
         this.procesandoPedido = false;
-        console.error('Error creando cotización:', error);
         Swal.fire({
           title: 'Error al crear cotización',
           text: error.error?.message || 'Ocurrió un error al crear tu cotización. Inténtalo de nuevo.',
@@ -490,17 +462,14 @@ private mostrarErrorDocumento(): void {
     });
   }
 
-  // Método para crear compra directa (nuevo método usando ComprasService)
   private crearCompraDirecta(): void {
     this.procesandoPedido = true;
     const formData = this.checkoutForm.value;
 
-    // Obtener nombres de ubigeo
     const departamentoNombre = this.departamentos.find(d => d.id === formData.departamento)?.nombre || '';
     const provinciaNombre = this.provincias.find(p => p.id === formData.provincia)?.nombre || '';
     const distritoNombre = this.distritos.find(d => d.id === formData.distrito)?.nombre || '';
 
-    // Preparar datos para la compra
     const compraData: any = {
       productos: this.cartItems.map(item => ({
         producto_id: item.producto_id,
@@ -518,19 +487,16 @@ private mostrarErrorDocumento(): void {
       observaciones: formData.observaciones || ''
     };
 
-    // ✅ Agregar cupón si está aplicado
     if (this.cuponAplicado) {
       compraData.cupon_id = this.cuponAplicado.id;
       compraData.descuento_cupon = this.descuentoCupon;
     }
 
-    // Crear compra en el backend
     this.comprasService.crearCompra(compraData).subscribe({
       next: (response) => {
         this.procesandoPedido = false;
 
         if (response.status === 'success') {
-          // ✅ Registrar uso del cupón si se aplicó
           if (this.cuponAplicado) {
             this.ofertasService.registrarUsoCupon(
               this.cuponAplicado.id,
@@ -539,18 +505,12 @@ private mostrarErrorDocumento(): void {
               response.compra?.id || undefined
             ).subscribe({
               next: () => {
-                console.log('Uso de cupón registrado exitosamente');
+                sessionStorage.removeItem('cupon_aplicado');
               },
-              error: (error) => {
-                console.error('Error al registrar uso de cupón:', error);
-              }
+              error: () => {}
             });
-
-            // Limpiar cupón del sessionStorage
-            sessionStorage.removeItem('cupon_aplicado');
           }
 
-          // Limpiar carrito
           this.cartService.clearCart();
 
           const totalFinal = this.getTotalConDescuento();
@@ -581,7 +541,6 @@ private mostrarErrorDocumento(): void {
       },
       error: (error) => {
         this.procesandoPedido = false;
-        console.error('Error al crear compra:', error);
         Swal.fire({
           title: 'Error al crear compra',
           text: error.error?.message || 'Ocurrió un error al crear tu compra. Inténtalo de nuevo.',
@@ -592,9 +551,7 @@ private mostrarErrorDocumento(): void {
     });
   }
 
-  // Pagar con tarjeta (crea compra directa)
   pagarConTarjeta(): void {
-    // Verificar si el usuario está autenticado
     if (!this.isLoggedIn) {
       Swal.fire({
         title: 'Inicio de sesión requerido',
@@ -624,16 +581,13 @@ private mostrarErrorDocumento(): void {
       return;
     }
 
-    // Crear compra directa para pago con tarjeta
     this.crearCompraDirecta();
   }
 
-  // Submit del formulario
   onSubmit(): void {
     this.pagarConTarjeta();
   }
 
-  // Marcar formulario como touched
   private markFormGroupTouched(): void {
     Object.keys(this.checkoutForm.controls).forEach(key => {
       const control = this.checkoutForm.get(key);
@@ -641,15 +595,14 @@ private mostrarErrorDocumento(): void {
     });
   }
 
-  // Helpers
   getItemSubtotal(item: CartItem): number {
     const precio = typeof item.precio === 'number' ? item.precio : parseFloat(String(item.precio || 0));
     const cantidad = typeof item.cantidad === 'number' ? item.cantidad : parseInt(String(item.cantidad || 0));
-    
+
     if (isNaN(precio) || isNaN(cantidad)) {
       return 0;
     }
-    
+
     return precio * cantidad;
   }
 
@@ -671,11 +624,6 @@ private mostrarErrorDocumento(): void {
     return numPrice.toFixed(2);
   }
 
-  // ==========================================
-  // MÉTODOS PARA DIRECCIONES GUARDADAS
-  // ==========================================
-
-  // Cargar direcciones guardadas del usuario
   private loadDireccionesGuardadas(): void {
     if (this.isLoggedIn) {
       this.direccionesService.obtenerDirecciones()
@@ -685,69 +633,51 @@ private mostrarErrorDocumento(): void {
             if (response.status === 'success') {
               this.direccionesGuardadas = response.direcciones || [];
 
-              // Seleccionar automáticamente la dirección predeterminada
               const direccionPredeterminada = this.direccionesGuardadas.find(d => d.predeterminada);
               if (direccionPredeterminada && !this.usarDireccionPersonalizada) {
                 this.seleccionarDireccion(direccionPredeterminada);
               }
             }
           },
-          error: (error) => {
-            console.error('Error al cargar direcciones:', error);
-          }
+          error: () => {}
         });
     }
   }
 
-  // Seleccionar una dirección guardada
   seleccionarDireccion(direccion: Direccion): void {
     this.direccionSeleccionada = direccion;
     this.usarDireccionPersonalizada = false;
 
-    // Autocompletar el formulario con los datos de la dirección
     this.checkoutForm.patchValue({
-      nombreCliente: direccion.nombre_destinatario,
+      cliente: direccion.nombre_destinatario,
       direccion: direccion.direccion_completa,
       celular: direccion.telefono || ''
     });
 
-    // Si la dirección tiene ubigeo, autocompletar departamento, provincia, distrito
     if (direccion.ubigeo) {
-      console.log('Seleccionando dirección con ubigeo:', direccion.ubigeo);
-      console.log('Departamentos disponibles:', this.departamentos.length);
-
       const departamento = this.departamentos.find(d => d.nombre === direccion.ubigeo?.departamento_nombre);
       if (departamento) {
-        console.log('Departamento encontrado:', departamento);
         this.checkoutForm.patchValue({ departamento: departamento.id });
         this.onDepartamentoChange().then(() => {
           const provincia = this.provincias.find(p => p.nombre === direccion.ubigeo?.provincia_nombre);
           if (provincia) {
-            console.log('Provincia encontrada:', provincia);
             this.checkoutForm.patchValue({ provincia: provincia.id });
             this.onProvinciaChange().then(() => {
               const distrito = this.distritos.find(d => d.nombre === direccion.ubigeo?.distrito_nombre);
               if (distrito) {
-                console.log('Distrito encontrado:', distrito);
                 this.checkoutForm.patchValue({ distrito: distrito.id });
                 this.onDistritoChange();
               }
             });
-          } else {
-            console.log('Provincia no encontrada:', direccion.ubigeo?.provincia_nombre, 'en', this.provincias);
           }
         });
-      } else {
-        console.log('Departamento no encontrado:', direccion.ubigeo?.departamento_nombre, 'en', this.departamentos);
       }
     }
   }
 
-  // Cambiar tipo de dirección (guardada vs personalizada)
   onCambiarTipoDireccion(): void {
     if (this.usarDireccionPersonalizada) {
       this.direccionSeleccionada = null;
-      // Limpiar campos relacionados con dirección
       this.checkoutForm.patchValue({
         direccion: '',
         departamento: '',
@@ -757,7 +687,6 @@ private mostrarErrorDocumento(): void {
       this.provincias = [];
       this.distritos = [];
     } else {
-      // Si hay una dirección predeterminada, seleccionarla
       const direccionPredeterminada = this.direccionesGuardadas.find(d => d.predeterminada);
       if (direccionPredeterminada) {
         this.seleccionarDireccion(direccionPredeterminada);
@@ -765,13 +694,12 @@ private mostrarErrorDocumento(): void {
     }
   }
 
-  // Modificar métodos de ubicación para que retornen Promise
   async onDepartamentoChange(): Promise<void> {
     const departamentoId = this.checkoutForm.get('departamento')?.value;
 
     if (departamentoId) {
       try {
-        const provincias = await this.ubigeoService.getProvincias(departamentoId).toPromise();
+        const provincias = await firstValueFrom(this.ubigeoService.getProvincias(departamentoId));
         this.provincias = provincias || [];
         this.checkoutForm.patchValue({
           provincia: '',
@@ -779,16 +707,19 @@ private mostrarErrorDocumento(): void {
         });
         this.distritos = [];
 
-        // Habilitar provincia
         this.checkoutForm.get('provincia')?.enable();
+
+        this.filtrarFormasEnvio(departamentoId, null, null);
+
       } catch (error) {
         console.error('Error cargando provincias:', error);
       }
     } else {
       this.provincias = [];
       this.distritos = [];
+      this.formasEnvioFiltradas = [];
+      this.mensajeSinEnvio = '';
 
-      // Deshabilitar provincia y distrito
       this.checkoutForm.get('provincia')?.disable();
       this.checkoutForm.get('distrito')?.disable();
     }
@@ -800,22 +731,72 @@ private mostrarErrorDocumento(): void {
 
     if (departamentoId && provinciaId) {
       try {
-        const distritos = await this.ubigeoService.getDistritos(departamentoId, provinciaId).toPromise();
+        const distritos = await firstValueFrom(this.ubigeoService.getDistritos(departamentoId, provinciaId));
         this.distritos = distritos || [];
         this.checkoutForm.patchValue({
           distrito: ''
         });
 
-        // Habilitar distrito
         this.checkoutForm.get('distrito')?.enable();
+
+        this.filtrarFormasEnvio(departamentoId, provinciaId, null);
+
       } catch (error) {
         console.error('Error cargando distritos:', error);
       }
     } else {
       this.distritos = [];
 
-      // Deshabilitar distrito
       this.checkoutForm.get('distrito')?.disable();
+
+      if (departamentoId) {
+        this.filtrarFormasEnvio(departamentoId, null, null);
+      }
+    }
+  }
+
+  private filtrarFormasEnvio(departamentoId: string, provinciaId: string | null, distritoId: string | null): void {
+    const formasDelDepartamento = this.formasEnvio.filter(f => f.departamento_id === departamentoId);
+
+    let formasFiltradas = formasDelDepartamento.filter(f =>
+      f.distrito_id && distritoId && f.distrito_id === distritoId
+    );
+
+    if (formasFiltradas.length === 0 && provinciaId) {
+      formasFiltradas = formasDelDepartamento.filter(f =>
+        f.provincia_id && f.provincia_id === provinciaId && !f.distrito_id
+      );
+    }
+
+    if (formasFiltradas.length === 0) {
+      formasFiltradas = formasDelDepartamento.filter(f => !f.provincia_id);
+    }
+
+    this.formasEnvioFiltradas = formasFiltradas;
+
+    if (this.formasEnvioFiltradas.length === 0) {
+      const deptoNombre = this.departamentos.find(d => d.id === departamentoId)?.nombre || 'este departamento';
+      this.mensajeSinEnvio = `No hay formas de envío configuradas para ${deptoNombre}`;
+      this.costoEnvioCalculado = 0;
+    } else {
+      this.mensajeSinEnvio = '';
+      if (this.formasEnvioFiltradas.length === 1) {
+        this.checkoutForm.patchValue({ formaEnvio: this.formasEnvioFiltradas[0].id });
+        this.costoEnvioCalculado = this.formasEnvioFiltradas[0].costo;
+      } else {
+        this.checkoutForm.patchValue({ formaEnvio: '' });
+        this.costoEnvioCalculado = 0;
+      }
+    }
+  }
+
+  onDistritoChange(): void {
+    const departamentoId = this.checkoutForm.get('departamento')?.value;
+    const provinciaId = this.checkoutForm.get('provincia')?.value;
+    const distritoId = this.checkoutForm.get('distrito')?.value;
+
+    if (departamentoId) {
+      this.filtrarFormasEnvio(departamentoId, provinciaId || null, distritoId || null);
     }
   }
 }

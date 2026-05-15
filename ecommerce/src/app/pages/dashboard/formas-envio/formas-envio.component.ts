@@ -15,6 +15,7 @@ import Swal from 'sweetalert2';
 })
 export class FormasEnvioComponent implements OnInit {
   formasEnvio: FormaEnvio[] = [];
+  formasEnvioOriginal: FormaEnvio[] = []; // Para mantener datos originales
   formaEnvioForm!: FormGroup;
   isEditMode = false;
   selectedId: number | null = null;
@@ -48,6 +49,45 @@ export class FormasEnvioComponent implements OnInit {
   ngOnInit(): void {
     this.loadDepartamentos();
   }
+
+  // =====================================================
+  // HELPERS: Conversión de formato Ubigeo
+  // =====================================================
+
+  /**
+   * Convierte ID de 2 dígitos a ubigeo de 6 dígitos
+   * Ejemplo: "01" -> "010000", "15" -> "150000"
+   */
+  private toUbigeo6Digits(departamentoId: string, provinciaId: string | null = null, distritoId: string | null = null): { departamento: string, provincia: string | null, distrito: string | null } {
+    const depto = departamentoId.padStart(2, '0') + '0000';
+    const prov = provinciaId ? (departamentoId.padStart(2, '0') + provinciaId.padStart(2, '0') + '00') : null;
+    const dist = distritoId ? (departamentoId.padStart(2, '0') + provinciaId!.padStart(2, '0') + distritoId.padStart(2, '0')) : null;
+    
+    return { departamento: depto, provincia: prov, distrito: dist };
+  }
+
+  /**
+   * Convierte ubigeo de 6 dígitos a IDs de 2 dígitos
+   * Ejemplo: "010000" -> { depto: "01", prov: null, dist: null }
+   *          "150100" -> { depto: "15", prov: "01", dist: null }
+   */
+  private fromUbigeo6Digits(ubigeo6: string): { depto: string, prov: string | null, dist: string | null } {
+    if (!ubigeo6) return { depto: '', prov: null, dist: null };
+    
+    const depto = ubigeo6.substring(0, 2);
+    const prov = ubigeo6.substring(2, 4);
+    const dist = ubigeo6.substring(4, 6);
+    
+    return {
+      depto: depto,
+      prov: prov !== '00' ? prov : null,
+      dist: dist !== '00' ? dist : null
+    };
+  }
+
+  // =====================================================
+  // FORMULARIO
+  // =====================================================
 
   initForm(): void {
     this.formaEnvioForm = this.fb.group({
@@ -144,7 +184,9 @@ export class FormasEnvioComponent implements OnInit {
     this.isLoading = true;
     this.formaEnvioService.obtenerTodas().subscribe({
       next: (response) => {
-        this.formasEnvio = response.formas_envio || [];
+        this.formasEnvioOriginal = response.formas_envio || [];
+        // Convertir ubigeos de 6 dígitos a 2 dígitos para display
+        this.formasEnvio = this.formasEnvioOriginal.map(f => this.convertirFormaParaDisplay(f));
         this.resolverNombresUbicacion();
         this.isLoading = false;
       },
@@ -154,6 +196,36 @@ export class FormasEnvioComponent implements OnInit {
         Swal.fire('Error', 'No se pudieron cargar las formas de envío', 'error');
       }
     });
+  }
+
+  /**
+   * Convierte una FormaEnvio de 6 dígitos a 2 dígitos para display en la tabla
+   */
+  private convertirFormaParaDisplay(forma: FormaEnvio): FormaEnvio {
+    const conversion = this.fromUbigeo6Digits(forma.departamento_id);
+    return {
+      ...forma,
+      departamento_id: conversion.depto,
+      provincia_id: conversion.prov,
+      distrito_id: conversion.dist
+    };
+  }
+
+  /**
+   * Convierte una FormaEnvio de 2 dígitos a 6 dígitos para guardar
+   */
+  private convertirFormaParaBackend(forma: FormaEnvio): any {
+    const depto6 = forma.departamento_id.padStart(2, '0') + '0000';
+    const prov6 = forma.provincia_id ? forma.departamento_id.padStart(2, '0') + forma.provincia_id.padStart(2, '0') + '00' : null;
+    const dist6 = forma.distrito_id && forma.provincia_id ? forma.departamento_id.padStart(2, '0') + forma.provincia_id.padStart(2, '0') + forma.distrito_id.padStart(2, '0') : null;
+    
+    return {
+      departamento_id: depto6,
+      provincia_id: prov6,
+      distrito_id: dist6,
+      costo: forma.costo,
+      activo: forma.activo
+    };
   }
 
   private resolverNombresUbicacion(): void {
@@ -223,14 +295,15 @@ export class FormasEnvioComponent implements OnInit {
       this.isEditMode = true;
       this.selectedId = formaEnvio.id!;
       
-      // Habilitar y cargar provincias y distritos si existen
-      if (formaEnvio.departamento_id) {
-        this.formaEnvioForm.get('provincia_id')?.enable();
-        this.loadProvincias(formaEnvio.departamento_id);
-      }
-      if (formaEnvio.departamento_id && formaEnvio.provincia_id) {
-        this.formaEnvioForm.get('distrito_id')?.enable();
+      // Cargar las provincias y distritos para poder mostrar el formulario
+      this.loadProvincias(formaEnvio.departamento_id);
+      if (formaEnvio.provincia_id) {
         this.loadDistritos(formaEnvio.departamento_id, formaEnvio.provincia_id);
+        this.formaEnvioForm.get('provincia_id')?.enable();
+        this.formaEnvioForm.get('distrito_id')?.enable();
+      } else {
+        this.formaEnvioForm.get('provincia_id')?.enable();
+        this.formaEnvioForm.get('distrito_id')?.disable();
       }
       
       this.formaEnvioForm.patchValue({
@@ -243,12 +316,28 @@ export class FormasEnvioComponent implements OnInit {
     } else {
       this.isEditMode = false;
       this.selectedId = null;
-      this.formaEnvioForm.reset({ 
+      
+      // Usar el filtro de departamento si está seleccionado, si no dejarlo vacío
+      const departamentoInicial = this.filtroDepartamento || '';
+      
+      this.formaEnvioForm.patchValue({ 
         activo: true, 
-        costo: 0
+        costo: 0,
+        departamento_id: departamentoInicial,
+        provincia_id: '',
+        distrito_id: ''
       });
+      
+      // Si hay filtro de departamento, pre-seleccionarlo y cargar provincias
+      if (departamentoInicial) {
+        this.formaEnvioForm.get('provincia_id')?.enable();
+        this.loadProvincias(departamentoInicial);
+      }
+      
       this.provincias = [];
       this.distritos = [];
+      this.formaEnvioForm.get('provincia_id')?.disable();
+      this.formaEnvioForm.get('distrito_id')?.disable();
     }
   }
 
@@ -267,15 +356,23 @@ export class FormasEnvioComponent implements OnInit {
       return;
     }
 
-    // Obtener valores incluyendo los controles deshabilitados
-    const formData = this.formaEnvioForm.getRawValue();
+    // Obtener valores del formulario
+    const formValue = this.formaEnvioForm.value;
     
-    // Convertir strings vacíos a null
-    if (!formData.provincia_id) formData.provincia_id = null;
-    if (!formData.distrito_id) formData.distrito_id = null;
+    // Construir el objeto con provincia/distrito como null si están vacíos
+    const formaEnvioData: FormaEnvio = {
+      departamento_id: formValue.departamento_id,
+      provincia_id: formValue.provincia_id || null,
+      distrito_id: formValue.distrito_id || null,
+      costo: formValue.costo,
+      activo: formValue.activo
+    };
+
+    // Convertir a formato de 6 dígitos para el backend
+    const dataParaBackend = this.convertirFormaParaBackend(formaEnvioData);
 
     if (this.isEditMode && this.selectedId) {
-      this.formaEnvioService.actualizar(this.selectedId, formData).subscribe({
+      this.formaEnvioService.actualizar(this.selectedId, dataParaBackend).subscribe({
         next: (response) => {
           Swal.fire('¡Éxito!', response.message, 'success');
           this.closeModal();
@@ -286,7 +383,7 @@ export class FormasEnvioComponent implements OnInit {
         }
       });
     } else {
-      this.formaEnvioService.crear(formData).subscribe({
+      this.formaEnvioService.crear(dataParaBackend).subscribe({
         next: (response) => {
           Swal.fire('¡Éxito!', response.message, 'success');
           this.closeModal();
