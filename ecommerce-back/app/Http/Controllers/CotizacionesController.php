@@ -9,6 +9,8 @@ use App\Models\EstadoCotizacion;
 use App\Models\UserCliente;
 use App\Models\Producto;
 use App\Models\Compra;
+use App\Models\Pedido;
+use App\Models\PedidoDetalle;
 use App\Models\EmpresaInfo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -655,20 +657,64 @@ class CotizacionesController extends Controller
                 'estado_cotizacion_id' => 2 // En Revisión
             ]);
 
-            // Crear registro de tracking indicando que el cliente solicitó el procesamiento
+            // Crear registro de tracking
             CotizacionTracking::crearRegistro(
                 $cotizacion->id,
-                2, // En Revisión
+                2,
                 'Cliente solicitó el procesamiento de la cotización',
-                null // null porque el usuario es un cliente, no un admin de la tabla users
+                null
             );
+
+            // Crear pedido automáticamente a partir de la cotización
+            $cotizacion->load('detalles.producto');
+
+            $pedido = Pedido::create([
+                'codigo_pedido'    => 'PED-' . date('Ymd') . '-' . str_pad(Pedido::count() + 1, 4, '0', STR_PAD_LEFT),
+                'user_cliente_id'  => $cotizacion->user_cliente_id,
+                'cliente_id'       => $cotizacion->cliente_id,
+                'fecha_pedido'     => now(),
+                'subtotal'         => $cotizacion->subtotal,
+                'igv'              => $cotizacion->igv,
+                'descuento_total'  => $cotizacion->descuento_total ?? 0,
+                'total'            => $cotizacion->total,
+                'estado_pedido_id' => 1, // Pendiente
+                'metodo_pago'      => $cotizacion->metodo_pago_preferido ?? 'Por confirmar',
+                'forma_envio'      => $cotizacion->forma_envio,
+                'costo_envio'      => $cotizacion->costo_envio ?? 0,
+                'direccion_envio'  => $cotizacion->direccion_envio,
+                'telefono_contacto' => $cotizacion->telefono_contacto,
+                'cliente_nombre'   => $cotizacion->cliente_nombre,
+                'cliente_email'    => $cotizacion->cliente_email,
+                'numero_documento' => $cotizacion->numero_documento,
+                'departamento_id'  => $cotizacion->departamento_id,
+                'provincia_id'     => $cotizacion->provincia_id,
+                'distrito_id'      => $cotizacion->distrito_id,
+                'departamento_nombre' => $cotizacion->departamento_nombre,
+                'provincia_nombre' => $cotizacion->provincia_nombre,
+                'distrito_nombre'  => $cotizacion->distrito_nombre,
+                'ubicacion_completa' => $cotizacion->ubicacion_completa,
+                'observaciones'    => trim(($cotizacion->observaciones ? $cotizacion->observaciones . ' | ' : '') . 'Generado desde cotización ' . $cotizacion->codigo_cotizacion),
+            ]);
+
+            foreach ($cotizacion->detalles as $detalle) {
+                PedidoDetalle::create([
+                    'pedido_id'       => $pedido->id,
+                    'producto_id'     => $detalle->producto_id,
+                    'codigo_producto' => $detalle->producto->codigo_producto ?? '',
+                    'nombre_producto' => $detalle->nombre_producto,
+                    'cantidad'        => $detalle->cantidad,
+                    'precio_unitario' => $detalle->precio_unitario,
+                    'subtotal_linea'  => $detalle->subtotal_linea,
+                ]);
+            }
 
             DB::commit();
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Cotización enviada para revisión exitosamente. Nos contactaremos contigo pronto.',
-                'cotizacion' => $cotizacion->load(['estadoCotizacion'])
+                'cotizacion' => $cotizacion->load(['estadoCotizacion']),
+                'pedido_codigo' => $pedido->codigo_pedido,
             ]);
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
