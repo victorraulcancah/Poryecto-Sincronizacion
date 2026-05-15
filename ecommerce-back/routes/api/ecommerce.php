@@ -54,6 +54,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}/tracking', [PedidosController::class, 'getTrackingPedido']);
         Route::get('/usuario/{userId}', [PedidosController::class, 'pedidosPorUsuario']);
 
+        Route::post('/', [PedidosController::class, 'store'])->middleware('permission:pedidos.create');
         Route::post('/ecommerce', [PedidosController::class, 'crearPedidoEcommerce'])->middleware('permission:pedidos.create');
         Route::put('/{id}/estado', [PedidosController::class, 'updateEstado'])->middleware('permission:pedidos.edit');
         Route::patch('/{id}/estado', [PedidosController::class, 'actualizarEstado'])->middleware('permission:pedidos.edit');

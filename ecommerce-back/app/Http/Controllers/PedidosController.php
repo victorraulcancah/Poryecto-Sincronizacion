@@ -146,6 +146,116 @@ class PedidosController extends Controller
         }
     }
 
+    /**
+     * Crear pedido manualmente desde el panel admin
+     */
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'cliente_nombre'    => 'required|string|max:255',
+            'cliente_email'     => 'nullable|email|max:255',
+            'telefono_contacto' => 'required|string|max:20',
+            'numero_documento'  => 'nullable|string|max:20',
+            'metodo_pago'       => 'required|string|max:50',
+            'forma_envio'       => 'required|string|max:50',
+            'direccion_envio'   => 'required|string',
+            'observaciones'     => 'nullable|string',
+            'costo_envio'       => 'nullable|numeric|min:0',
+            'productos'         => 'required|array|min:1',
+            'productos.*.producto_id'   => 'required|exists:productos,id',
+            'productos.*.cantidad'      => 'required|integer|min:1',
+            'productos.*.precio_unitario' => 'nullable|numeric|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Datos inválidos',
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $subtotal = 0;
+            $productosValidados = [];
+
+            foreach ($request->productos as $prod) {
+                $producto = Producto::findOrFail($prod['producto_id']);
+
+                if ($producto->stock < $prod['cantidad']) {
+                    throw new \Exception("Stock insuficiente para: {$producto->nombre}");
+                }
+
+                $precioUnitario = $prod['precio_unitario'] ?? $producto->precio_venta;
+                $subtotalLinea  = $prod['cantidad'] * $precioUnitario;
+                $subtotal      += $subtotalLinea;
+
+                $productosValidados[] = [
+                    'producto'       => $producto,
+                    'cantidad'       => $prod['cantidad'],
+                    'precio_unitario' => $precioUnitario,
+                    'subtotal_linea' => $subtotalLinea,
+                ];
+            }
+
+            $costoEnvio = $request->costo_envio ?? 0;
+            $igv        = $subtotal * 0.18;
+            $total      = $subtotal + $igv + $costoEnvio;
+
+            $pedido = Pedido::create([
+                'codigo_pedido'    => 'PED-' . date('Ymd') . '-' . str_pad(Pedido::count() + 1, 4, '0', STR_PAD_LEFT),
+                'cliente_id'       => null,
+                'user_cliente_id'  => null,
+                'fecha_pedido'     => now(),
+                'subtotal'         => $subtotal,
+                'igv'              => $igv,
+                'descuento_total'  => 0,
+                'total'            => $total,
+                'estado_pedido_id' => 1,
+                'metodo_pago'      => $request->metodo_pago,
+                'forma_envio'      => $request->forma_envio,
+                'costo_envio'      => $costoEnvio,
+                'direccion_envio'  => $request->direccion_envio,
+                'telefono_contacto' => $request->telefono_contacto,
+                'observaciones'    => $request->observaciones,
+                'cliente_nombre'   => $request->cliente_nombre,
+                'cliente_email'    => $request->cliente_email,
+                'numero_documento' => $request->numero_documento,
+                'user_id'          => auth()->id(),
+            ]);
+
+            foreach ($productosValidados as $prod) {
+                PedidoDetalle::create([
+                    'pedido_id'       => $pedido->id,
+                    'producto_id'     => $prod['producto']->id,
+                    'codigo_producto' => $prod['producto']->codigo_producto,
+                    'nombre_producto' => $prod['producto']->nombre,
+                    'cantidad'        => $prod['cantidad'],
+                    'precio_unitario' => $prod['precio_unitario'],
+                    'subtotal_linea'  => $prod['subtotal_linea'],
+                ]);
+
+                $prod['producto']->decrement('stock', $prod['cantidad']);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status'        => 'success',
+                'message'       => 'Pedido creado exitosamente',
+                'pedido'        => $pedido->load(['detalles', 'estadoPedido']),
+                'codigo_pedido' => $pedido->codigo_pedido,
+            ], 201);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'message' => 'Error al crear pedido: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function crearPedidoEcommerce(Request $request)
     {
         $validator = Validator::make($request->all(), [

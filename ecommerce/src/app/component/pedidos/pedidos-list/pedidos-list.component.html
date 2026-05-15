@@ -8,6 +8,10 @@
           Administra todos los pedidos del sistema
         </p>
       </div>
+      <button class="btn btn-primary d-flex align-items-center gap-8" (click)="abrirModalCrear()">
+        <i class="ph ph-plus"></i>
+        Nuevo Pedido
+      </button>
     </div>
   </div>
 
@@ -198,6 +202,186 @@
       <div class="empty-state__icon"><i class="ph ph-magnifying-glass"></i></div>
       <h5 class="empty-state__title">No se encontraron resultados</h5>
       <p class="empty-state__description">Intenta cambiar los filtros para encontrar los pedidos que buscas.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Crear Pedido -->
+<div class="modal fade" id="crearPedidoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="ph ph-plus me-2"></i>Nuevo Pedido</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-24">
+
+          <!-- Columna izquierda: cliente + envío -->
+          <div class="col-md-6">
+            <h6 class="fw-semibold mb-12">Datos del Cliente</h6>
+            <div class="mb-12">
+              <label class="form-label">Nombre completo *</label>
+              <input type="text" class="form-control" [(ngModel)]="nuevoPedido.cliente_nombre"
+                     placeholder="Ej: Juan Pérez" />
+            </div>
+            <div class="row g-12 mb-12">
+              <div class="col-6">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" [(ngModel)]="nuevoPedido.cliente_email"
+                       placeholder="correo@ejemplo.com" />
+              </div>
+              <div class="col-6">
+                <label class="form-label">Teléfono *</label>
+                <input type="text" class="form-control" [(ngModel)]="nuevoPedido.telefono_contacto"
+                       placeholder="987654321" />
+              </div>
+            </div>
+            <div class="mb-12">
+              <label class="form-label">N° Documento</label>
+              <input type="text" class="form-control" [(ngModel)]="nuevoPedido.numero_documento"
+                     placeholder="DNI / RUC" />
+            </div>
+
+            <h6 class="fw-semibold mb-12 mt-20">Envío y Pago</h6>
+            <div class="row g-12 mb-12">
+              <div class="col-6">
+                <label class="form-label">Forma de envío *</label>
+                <select class="form-select" [(ngModel)]="nuevoPedido.forma_envio">
+                  <option value="delivery">Delivery</option>
+                  <option value="recojo_tienda">Recojo en tienda</option>
+                  <option value="envio_provincia">Envío a provincia</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label class="form-label">Método de pago *</label>
+                <select class="form-select" [(ngModel)]="nuevoPedido.metodo_pago">
+                  <option value="efectivo">Efectivo</option>
+                  <option value="yape">Yape</option>
+                  <option value="plin">Plin</option>
+                  <option value="transferencia">Transferencia</option>
+                  <option value="tarjeta">Tarjeta</option>
+                </select>
+              </div>
+            </div>
+            <div class="mb-12">
+              <label class="form-label">Dirección de envío *</label>
+              <input type="text" class="form-control" [(ngModel)]="nuevoPedido.direccion_envio"
+                     placeholder="Av. Ejemplo 123, Lima" />
+            </div>
+            <div class="mb-12">
+              <label class="form-label">Costo de envío (S/)</label>
+              <input type="number" class="form-control" [(ngModel)]="nuevoPedido.costo_envio"
+                     min="0" step="0.50" (ngModelChange)="recalcularTotales()" />
+            </div>
+            <div class="mb-12">
+              <label class="form-label">Observaciones</label>
+              <textarea class="form-control" rows="2" [(ngModel)]="nuevoPedido.observaciones"
+                        placeholder="Indicaciones adicionales..."></textarea>
+            </div>
+          </div>
+
+          <!-- Columna derecha: productos -->
+          <div class="col-md-6">
+            <h6 class="fw-semibold mb-12">Productos</h6>
+
+            <!-- Buscador de productos -->
+            <div class="position-relative mb-16">
+              <i class="ph ph-magnifying-glass position-absolute start-0 top-50 translate-middle-y ms-12 text-gray-400"></i>
+              <input type="text" class="form-control ps-40"
+                     placeholder="Buscar producto por nombre o código..."
+                     [(ngModel)]="terminoBusquedaProducto"
+                     (ngModelChange)="buscarProducto()" />
+
+              <!-- Sugerencias -->
+              <div *ngIf="productosSugeridos.length > 0"
+                   class="position-absolute w-100 bg-white border rounded shadow-sm"
+                   style="z-index:1050; top:100%; max-height:200px; overflow-y:auto;">
+                <button *ngFor="let p of productosSugeridos"
+                        type="button"
+                        class="d-flex align-items-center gap-12 w-100 px-12 py-8 border-0 bg-transparent text-start"
+                        style="cursor:pointer;"
+                        (mousedown)="agregarProducto(p)">
+                  <img [src]="p.imagen_url || 'assets/images/no-image.png'" width="36" height="36"
+                       style="object-fit:cover; border-radius:6px;" />
+                  <div>
+                    <div class="fw-medium text-sm">{{ p.nombre }}</div>
+                    <div class="text-xs text-gray-400">{{ p.codigo_producto }} · S/ {{ p.precio_venta | number:'1.2-2' }} · Stock: {{ p.stock }}</div>
+                  </div>
+                </button>
+              </div>
+
+              <div *ngIf="buscandoProducto" class="position-absolute end-0 top-50 translate-middle-y me-12">
+                <div class="spinner-border spinner-border-sm text-primary"></div>
+              </div>
+            </div>
+
+            <!-- Lista de productos agregados -->
+            <div *ngIf="productosDelNuevoPedido.length === 0" class="text-center text-gray-400 py-24">
+              <i class="ph ph-package" style="font-size:2rem;"></i>
+              <p class="text-sm mt-8">Busca y agrega productos</p>
+            </div>
+
+            <div *ngFor="let item of productosDelNuevoPedido; let i = index"
+                 class="d-flex align-items-center gap-12 mb-12 p-12 border rounded">
+              <div class="flex-grow-1">
+                <div class="fw-medium text-sm">{{ item.producto.nombre }}</div>
+                <div class="text-xs text-gray-400">{{ item.producto.codigo_producto }}</div>
+              </div>
+              <div style="width:70px;">
+                <input type="number" class="form-control form-control-sm text-center"
+                       [(ngModel)]="item.cantidad" min="1"
+                       (ngModelChange)="recalcularTotales()" />
+              </div>
+              <div style="width:80px;">
+                <input type="number" class="form-control form-control-sm text-end"
+                       [(ngModel)]="item.precio_unitario" min="0" step="0.01"
+                       (ngModelChange)="recalcularTotales()" />
+              </div>
+              <div class="text-sm fw-semibold text-success-600" style="width:70px; text-align:right;">
+                S/ {{ (item.cantidad * item.precio_unitario) | number:'1.2-2' }}
+              </div>
+              <button type="button" class="btn btn-sm btn-danger" (click)="quitarProducto(i)">
+                <i class="ph ph-trash"></i>
+              </button>
+            </div>
+
+            <!-- Totales -->
+            <div *ngIf="productosDelNuevoPedido.length > 0"
+                 class="border-top pt-12 mt-8">
+              <div class="d-flex justify-content-between text-sm mb-4">
+                <span class="text-gray-500">Subtotal</span>
+                <span>S/ {{ subtotalNuevoPedido | number:'1.2-2' }}</span>
+              </div>
+              <div class="d-flex justify-content-between text-sm mb-4">
+                <span class="text-gray-500">IGV (18%)</span>
+                <span>S/ {{ igvNuevoPedido | number:'1.2-2' }}</span>
+              </div>
+              <div class="d-flex justify-content-between text-sm mb-4">
+                <span class="text-gray-500">Costo envío</span>
+                <span>S/ {{ nuevoPedido.costo_envio | number:'1.2-2' }}</span>
+              </div>
+              <div class="d-flex justify-content-between fw-bold">
+                <span>Total</span>
+                <span class="text-success-600">S/ {{ totalNuevoPedido | number:'1.2-2' }}</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" (click)="resetFormCrear()">
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-primary"
+                [disabled]="creandoPedido"
+                (click)="confirmarCrearPedido()">
+          <span *ngIf="creandoPedido" class="spinner-border spinner-border-sm me-2"></span>
+          <i *ngIf="!creandoPedido" class="ph ph-check me-2"></i>
+          {{ creandoPedido ? 'Guardando...' : 'Crear Pedido' }}
+        </button>
+      </div>
     </div>
   </div>
 </div>

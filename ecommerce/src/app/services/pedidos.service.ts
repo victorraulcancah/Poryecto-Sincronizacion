@@ -141,7 +141,7 @@ export class PedidosService {
   }
 
   /**
-   * Crear nuevo pedido
+   * Crear pedido manual desde admin
    */
   crearPedido(pedidoData: any): Observable<any> {
     return this.http.post(`${environment.apiUrl}/pedidos`, pedidoData);

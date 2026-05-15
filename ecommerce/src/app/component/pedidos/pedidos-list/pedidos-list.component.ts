@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PedidosService } from '../../../services/pedidos.service';
+import { ProductosService } from '../../../services/productos.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -31,7 +32,31 @@ export class PedidosListComponent implements OnInit {
 
   Math = Math;
 
-  constructor(private pedidosService: PedidosService) {}
+  // ── Crear pedido ──────────────────────────────────────────
+  creandoPedido = false;
+  nuevoPedido = {
+    cliente_nombre: '',
+    cliente_email: '',
+    telefono_contacto: '',
+    numero_documento: '',
+    metodo_pago: 'efectivo',
+    forma_envio: 'delivery',
+    direccion_envio: '',
+    costo_envio: 0,
+    observaciones: '',
+  };
+  productosDelNuevoPedido: { producto: any; cantidad: number; precio_unitario: number }[] = [];
+  terminoBusquedaProducto: string = '';
+  productosSugeridos: any[] = [];
+  buscandoProducto = false;
+  subtotalNuevoPedido = 0;
+  igvNuevoPedido = 0;
+  totalNuevoPedido = 0;
+
+  constructor(
+    private pedidosService: PedidosService,
+    private productosService: ProductosService
+  ) {}
 
   ngOnInit(): void {
     this.cargarPedidos();
@@ -274,5 +299,123 @@ export class PedidosListComponent implements OnInit {
 
   onPageSizeChange(): void {
     this.currentPage = 1;
+  }
+
+  // ── Crear pedido ──────────────────────────────────────────
+
+  abrirModalCrear(): void {
+    this.resetFormCrear();
+    const modal = document.getElementById('crearPedidoModal');
+    if (modal) {
+      const bootstrapModal = new (window as any).bootstrap.Modal(modal);
+      bootstrapModal.show();
+    }
+  }
+
+  resetFormCrear(): void {
+    this.nuevoPedido = {
+      cliente_nombre: '',
+      cliente_email: '',
+      telefono_contacto: '',
+      numero_documento: '',
+      metodo_pago: 'efectivo',
+      forma_envio: 'delivery',
+      direccion_envio: '',
+      costo_envio: 0,
+      observaciones: '',
+    };
+    this.productosDelNuevoPedido = [];
+    this.terminoBusquedaProducto = '';
+    this.productosSugeridos = [];
+    this.recalcularTotales();
+  }
+
+  buscarProducto(): void {
+    const termino = this.terminoBusquedaProducto.trim();
+    if (termino.length < 2) {
+      this.productosSugeridos = [];
+      return;
+    }
+    this.buscandoProducto = true;
+    this.productosService.buscarProductos(termino).subscribe({
+      next: (productos) => {
+        this.productosSugeridos = productos;
+        this.buscandoProducto = false;
+      },
+      error: () => {
+        this.buscandoProducto = false;
+      }
+    });
+  }
+
+  agregarProducto(producto: any): void {
+    const existe = this.productosDelNuevoPedido.find(p => p.producto.id === producto.id);
+    if (existe) {
+      existe.cantidad++;
+    } else {
+      this.productosDelNuevoPedido.push({
+        producto,
+        cantidad: 1,
+        precio_unitario: producto.precio_venta ?? 0,
+      });
+    }
+    this.terminoBusquedaProducto = '';
+    this.productosSugeridos = [];
+    this.recalcularTotales();
+  }
+
+  quitarProducto(index: number): void {
+    this.productosDelNuevoPedido.splice(index, 1);
+    this.recalcularTotales();
+  }
+
+  recalcularTotales(): void {
+    const subtotal = this.productosDelNuevoPedido.reduce(
+      (acc, p) => acc + p.cantidad * p.precio_unitario, 0
+    );
+    const costo = Number(this.nuevoPedido.costo_envio) || 0;
+    this.subtotalNuevoPedido = subtotal;
+    this.igvNuevoPedido = subtotal * 0.18;
+    this.totalNuevoPedido = subtotal + this.igvNuevoPedido + costo;
+  }
+
+  confirmarCrearPedido(): void {
+    if (!this.nuevoPedido.cliente_nombre || !this.nuevoPedido.telefono_contacto ||
+        !this.nuevoPedido.direccion_envio || this.productosDelNuevoPedido.length === 0) {
+      Swal.fire('Datos incompletos', 'Completa los campos obligatorios y agrega al menos un producto.', 'warning');
+      return;
+    }
+
+    this.creandoPedido = true;
+
+    const payload = {
+      ...this.nuevoPedido,
+      productos: this.productosDelNuevoPedido.map(p => ({
+        producto_id: p.producto.id,
+        cantidad: p.cantidad,
+        precio_unitario: p.precio_unitario,
+      })),
+    };
+
+    this.pedidosService.crearPedido(payload).subscribe({
+      next: (response) => {
+        const modal = document.getElementById('crearPedidoModal');
+        if (modal) {
+          (window as any).bootstrap.Modal.getInstance(modal)?.hide();
+        }
+        this.creandoPedido = false;
+        Swal.fire({
+          title: '¡Pedido creado!',
+          text: `Código: ${response.codigo_pedido}`,
+          icon: 'success',
+          confirmButtonColor: '#3085d6',
+        }).then(() => this.cargarPedidos());
+      },
+      error: (err) => {
+        this.creandoPedido = false;
+        const msg = err.error?.message || 'Error al crear el pedido';
+        Swal.fire('Error', msg, 'error');
+      }
+    });
   }
 }
