@@ -496,6 +496,20 @@ class PedidosController extends Controller
         }
     }
 
+    public function getMetodosPago()
+    {
+        return response()->json([
+            'status' => 'success',
+            'metodos_pago' => [
+                ['value' => 'efectivo',      'label' => 'Efectivo'],
+                ['value' => 'tarjeta',       'label' => 'Tarjeta de crédito/débito'],
+                ['value' => 'transferencia', 'label' => 'Transferencia bancaria'],
+                ['value' => 'yape',          'label' => 'Yape'],
+                ['value' => 'plin',          'label' => 'Plin'],
+            ]
+        ]);
+    }
+
     public function estadisticas(Request $request)
     {
         try {
