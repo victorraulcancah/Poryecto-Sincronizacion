@@ -634,11 +634,13 @@ class CotizacionesController extends Controller
                 ], 403);
             }
 
-            // Verificar que la cotización está en estado pendiente
-            if ($cotizacion->estado_cotizacion_id !== 1) { // 1 = Pendiente
+            // Permitir estados: Pendiente (1) o En Revisión (2) — en revisión puede pasar
+            // si el cliente presionó "pedir" pero el pedido no se creó por un error previo
+            $estadosPermitidos = [1, 2]; // 1 = Pendiente, 2 = En Revisión
+            if (!in_array($cotizacion->estado_cotizacion_id, $estadosPermitidos)) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Solo se pueden solicitar cotizaciones en estado pendiente'
+                    'message' => 'Esta cotización ya fue procesada o no puede ser solicitada nuevamente'
                 ], 422);
             }
 
@@ -650,50 +652,62 @@ class CotizacionesController extends Controller
                 ], 422);
             }
 
+            // Evitar crear pedido duplicado si ya existe uno para esta cotización
+            $referencia = 'Generado desde cotización ' . $cotizacion->codigo_cotizacion;
+            $pedidoExistente = Pedido::where('observaciones', 'like', '%' . $cotizacion->codigo_cotizacion . '%')->first();
+
+            if ($pedidoExistente) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Tu solicitud ya fue registrada. El administrador se contactará contigo pronto.',
+                    'cotizacion' => $cotizacion->load(['estadoCotizacion']),
+                    'pedido_codigo' => $pedidoExistente->codigo_pedido,
+                ]);
+            }
+
             DB::beginTransaction();
 
-            // Cambiar el estado de la cotización a "En Revisión" (ID 2)
-            $cotizacion->update([
-                'estado_cotizacion_id' => 2 // En Revisión
-            ]);
+            // Asegurar que el estado sea "En Revisión"
+            if ($cotizacion->estado_cotizacion_id !== 2) {
+                $cotizacion->update(['estado_cotizacion_id' => 2]);
 
-            // Crear registro de tracking
-            CotizacionTracking::crearRegistro(
-                $cotizacion->id,
-                2,
-                'Cliente solicitó el procesamiento de la cotización',
-                null
-            );
+                CotizacionTracking::crearRegistro(
+                    $cotizacion->id,
+                    2,
+                    'Cliente solicitó el procesamiento de la cotización',
+                    null
+                );
+            }
 
-            // Crear pedido automáticamente a partir de la cotización
+            // Crear pedido a partir de la cotización
             $cotizacion->load('detalles.producto');
 
             $pedido = Pedido::create([
-                'codigo_pedido'    => 'PED-' . date('Ymd') . '-' . str_pad(Pedido::count() + 1, 4, '0', STR_PAD_LEFT),
-                'user_cliente_id'  => $cotizacion->user_cliente_id,
-                'cliente_id'       => $cotizacion->cliente_id,
-                'fecha_pedido'     => now(),
-                'subtotal'         => $cotizacion->subtotal,
-                'igv'              => $cotizacion->igv,
-                'descuento_total'  => $cotizacion->descuento_total ?? 0,
-                'total'            => $cotizacion->total,
-                'estado_pedido_id' => 1, // Pendiente
-                'metodo_pago'      => $cotizacion->metodo_pago_preferido ?? 'Por confirmar',
-                'forma_envio'      => $cotizacion->forma_envio,
-                'costo_envio'      => $cotizacion->costo_envio ?? 0,
-                'direccion_envio'  => $cotizacion->direccion_envio,
-                'telefono_contacto' => $cotizacion->telefono_contacto,
-                'cliente_nombre'   => $cotizacion->cliente_nombre,
-                'cliente_email'    => $cotizacion->cliente_email,
-                'numero_documento' => $cotizacion->numero_documento,
-                'departamento_id'  => $cotizacion->departamento_id,
-                'provincia_id'     => $cotizacion->provincia_id,
-                'distrito_id'      => $cotizacion->distrito_id,
+                'codigo_pedido'      => 'PED-' . date('Ymd') . '-' . str_pad(Pedido::count() + 1, 4, '0', STR_PAD_LEFT),
+                'user_cliente_id'    => $cotizacion->user_cliente_id,
+                'cliente_id'         => $cotizacion->cliente_id,
+                'fecha_pedido'       => now(),
+                'subtotal'           => $cotizacion->subtotal,
+                'igv'                => $cotizacion->igv,
+                'descuento_total'    => $cotizacion->descuento_total ?? 0,
+                'total'              => $cotizacion->total,
+                'estado_pedido_id'   => 1, // Pendiente
+                'metodo_pago'        => $cotizacion->metodo_pago_preferido ?? 'Por confirmar',
+                'forma_envio'        => $cotizacion->forma_envio,
+                'costo_envio'        => $cotizacion->costo_envio ?? 0,
+                'direccion_envio'    => $cotizacion->direccion_envio,
+                'telefono_contacto'  => $cotizacion->telefono_contacto,
+                'cliente_nombre'     => $cotizacion->cliente_nombre,
+                'cliente_email'      => $cotizacion->cliente_email,
+                'numero_documento'   => $cotizacion->numero_documento,
+                'departamento_id'    => $cotizacion->departamento_id,
+                'provincia_id'       => $cotizacion->provincia_id,
+                'distrito_id'        => $cotizacion->distrito_id,
                 'departamento_nombre' => $cotizacion->departamento_nombre,
-                'provincia_nombre' => $cotizacion->provincia_nombre,
-                'distrito_nombre'  => $cotizacion->distrito_nombre,
+                'provincia_nombre'   => $cotizacion->provincia_nombre,
+                'distrito_nombre'    => $cotizacion->distrito_nombre,
                 'ubicacion_completa' => $cotizacion->ubicacion_completa,
-                'observaciones'    => trim(($cotizacion->observaciones ? $cotizacion->observaciones . ' | ' : '') . 'Generado desde cotización ' . $cotizacion->codigo_cotizacion),
+                'observaciones'      => trim(($cotizacion->observaciones ? $cotizacion->observaciones . ' | ' : '') . $referencia),
             ]);
 
             foreach ($cotizacion->detalles as $detalle) {
