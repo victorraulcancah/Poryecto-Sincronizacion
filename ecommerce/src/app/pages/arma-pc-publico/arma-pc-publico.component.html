@@ -29,7 +29,7 @@
               style="z-index: 3;"
               [class.completed]="paso.completado"
               [class.active]="i === pasoActual"
-              [class.disabled]="!puedeAccederAPaso(i)"
+              [class.disabled]="!paso.accesible"
             >
               <!-- Círculo del paso -->
               <div 
@@ -39,9 +39,9 @@
                   'bg-main-600 text-white': paso.completado,
                   'bg-main-600 text-white border-3 border-main-200': i === pasoActual,
                   'bg-gray-200 text-gray-600': !paso.completado && i !== pasoActual,
-                  'hover-bg-main-100': puedeAccederAPaso(i)
+                  'hover-bg-main-100': paso.accesible
                 }"
-                (click)="puedeAccederAPaso(i) ? irAPaso(i) : null"
+                (click)="paso.accesible ? irAPaso(i) : null"
                 [title]="paso.descripcion_paso || paso.nombre_paso"
               >
                 <!-- Ícono de completado -->
@@ -129,8 +129,8 @@
               class="btn px-16 py-8 rounded-6 fw-medium"
               [ngClass]="{
                 'btn-main': pasoActual < pasos.length - 1,
-                'btn-success': pasoActual === pasos.length - 1 && puedeFinalizarConfiguracion(),
-                'btn-outline-main': pasoActual === pasos.length - 1 && !puedeFinalizarConfiguracion()
+                'btn-success': pasoActual === pasos.length - 1 && puedeFinalizar,
+                'btn-outline-main': pasoActual === pasos.length - 1 && !puedeFinalizar
               }"
               (click)="pasoActual < pasos.length - 1 ? siguientePaso() : null"
               [disabled]="pasoActual >= pasos.length - 1"
@@ -141,11 +141,11 @@
                 Siguiente Paso
                 <i class="ph ph-arrow-right text-sm ms-8"></i>
               </span>
-              <span *ngIf="pasoActual === pasos.length - 1 && puedeFinalizarConfiguracion()">
+              <span *ngIf="pasoActual === pasos.length - 1 && puedeFinalizar">
                 <i class="ph ph-check text-sm me-8"></i>
                 Configuración Completa
               </span>
-              <span *ngIf="pasoActual === pasos.length - 1 && !puedeFinalizarConfiguracion()">
+              <span *ngIf="pasoActual === pasos.length - 1 && !puedeFinalizar">
                 <i class="ph ph-info text-sm me-8"></i>
                 Último Paso
               </span>
@@ -181,7 +181,7 @@
                 <div *ngFor="let producto of productosDelPasoActual" 
                      class="col-12 col-sm-6 col-md-4 col-lg-6 col-xl-4">
                   <div class="product-card h-100 p-16 border border-gray-100 hover-border-main-600 rounded-16 position-relative transition-2"
-                       [ngClass]="{ 'border-main-600 bg-main-50': isProductoSeleccionado(producto) }">
+                       [ngClass]="{ 'border-main-600 bg-main-50': producto.seleccionado }">
                   
                   <!-- Checkbox -->
                   <div class="custom-checkbox position-absolute" style="top: 12px; left: 12px; z-index: 2;">
@@ -189,7 +189,7 @@
                       class="form-check-input"
                       type="checkbox"
                       [id]="'producto-' + producto.id"
-                      [checked]="isProductoSeleccionado(producto)"
+                      [checked]="producto.seleccionado"
                       (change)="toggleProductoArmado(producto, $event)"
                     />
                   </div>
@@ -215,12 +215,12 @@
                     <p class="text-gray-500 mb-12 text-sm text-line-2">{{ producto.descripcion }}</p>
                     
                     <div class="product-card__price my-20">
-                      <span *ngIf="producto.precio_oferta" 
+                      <span *ngIf="producto.precio_oferta"
                             class="text-gray-400 text-md fw-semibold text-decoration-line-through d-block">
-                        S/ {{ getPrecioNumerico(producto.precio).toFixed(2) }}
+                        S/ {{ producto.precioNumerico | number:'1.2-2' }}
                       </span>
                       <span class="text-heading text-md fw-semibold">
-                        S/ {{ getPrecioNumerico(producto.precio_oferta || producto.precio).toFixed(2) }}
+                        S/ {{ producto.precioFinal | number:'1.2-2' }}
                       </span>
                     </div>
                     
@@ -278,7 +278,7 @@
                   Mi Configuración
                 </h6>
                 <div class="badge bg-main-50 text-main-600 px-8 py-4 text-xs">
-                  {{ getProgresoConfiguracion().completados }}/{{ getProgresoConfiguracion().total }}
+                  {{ progresoConfiguracion.completados }}/{{ progresoConfiguracion.total }}
                 </div>
               </div>
               
@@ -286,7 +286,7 @@
               <div class="progress-mini bg-gray-100 rounded-pill mb-20" style="height: 6px;">
                 <div 
                   class="progress-bar-mini bg-main-600 rounded-pill h-100 transition-all duration-300"
-                  [style.width.%]="getProgresoConfiguracion().porcentaje"
+                  [style.width.%]="progresoConfiguracion.porcentaje"
                 ></div>
               </div>
 
@@ -320,10 +320,10 @@
                     <!-- Precio -->
                     <div class="d-flex justify-content-between align-items-center mb-12">
                       <span class="text-md fw-semibold text-heading">
-                        S/ {{ (getPrecioNumerico(item.producto.precio_oferta || item.producto.precio) * item.cantidad).toFixed(2) }}
+                        S/ {{ (item.producto.precioFinal * item.cantidad) | number:'1.2-2' }}
                       </span>
                       <small class="text-gray-500">
-                        S/ {{ getPrecioNumerico(item.producto.precio_oferta || item.producto.precio).toFixed(2) }} c/u
+                        S/ {{ item.producto.precioFinal | number:'1.2-2' }} c/u
                       </small>
                     </div>
                     
@@ -387,13 +387,13 @@
                 <button
                   type="button"
                   class="btn text-white fw-semibold py-12 rounded-8"
-                  [ngClass]="puedeFinalizarConfiguracion() ? 'btn-success' : 'btn-main'"
+                  [ngClass]="puedeFinalizar ? 'btn-success' : 'btn-main'"
                   (click)="descargarCotizacion()"
-                  [disabled]="!puedeFinalizarConfiguracion()"
-                  [title]="!puedeFinalizarConfiguracion() ? 'Complete los pasos requeridos para descargar' : 'Descargar cotización completa'"
+                  [disabled]="!puedeFinalizar"
+                  [title]="!puedeFinalizar ? 'Complete los pasos requeridos para descargar' : 'Descargar cotización completa'"
                 >
-                  <i [ngClass]="puedeFinalizarConfiguracion() ? 'ph ph-check' : 'ph ph-download'" class="me-8"></i>
-                  {{ puedeFinalizarConfiguracion() ? 'Descargar cotización completa' : 'Complete la configuración' }}
+                  <i [ngClass]="puedeFinalizar ? 'ph ph-check' : 'ph ph-download'" class="me-8"></i>
+                  {{ puedeFinalizar ? 'Descargar cotización completa' : 'Complete la configuración' }}
                 </button>
                 
                 <!-- Botón secundario -->
@@ -412,10 +412,10 @@
                 </button>
 
                 <!-- Info adicional -->
-                <div class="text-center mt-16" *ngIf="!puedeFinalizarConfiguracion()">
+                <div class="text-center mt-16" *ngIf="!puedeFinalizar">
                   <small class="text-gray-500">
                     <i class="ph ph-info me-4"></i>
-                    Complete {{ getPasosRequeridosFaltantes() }} paso(s) requerido(s) más
+                    Complete {{ pasosRequeridosFaltantes }} paso(s) requerido(s) más
                   </small>
                 </div>
               </div>

@@ -416,6 +416,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
     this.procesandoPedido = true;
     const formData = this.checkoutForm.value;
+    const formaEnvioStr = formData.departamento === '15' ? 'delivery' : 'envio_provincia';
 
     const cotizacionData: CrearCotizacionRequest = {
       productos: this.cartItems.map(item => ({
@@ -426,7 +427,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       cliente_email: formData.email,
       direccion_envio: formData.direccion,
       telefono_contacto: formData.celular,
-      forma_envio: formData.formaEnvio,
+      forma_envio: formaEnvioStr,
       observaciones: formData.observaciones || '',
       metodo_pago_preferido: formData.tipoPago,
       costo_envio: this.costoEnvioCalculado,
@@ -485,6 +486,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   private crearCompraDirecta(): void {
     this.procesandoPedido = true;
     const formData = this.checkoutForm.value;
+    const formaEnvioStr = formData.departamento === '15' ? 'delivery' : 'envio_provincia';
 
     const departamentoNombre = this.departamentos.find(d => d.id === formData.departamento)?.nombre || '';
     const provinciaNombre = this.provincias.find(p => p.id === formData.provincia)?.nombre || '';
@@ -499,7 +501,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       cliente_email: formData.email,
       direccion_envio: formData.direccion,
       telefono_contacto: formData.celular,
-      forma_envio: formData.formaEnvio,
+      forma_envio: formaEnvioStr,
       metodo_pago: formData.tipoPago,
       costo_envio: this.costoEnvioCalculado,
       numero_documento: formData.numeroDocumento,
