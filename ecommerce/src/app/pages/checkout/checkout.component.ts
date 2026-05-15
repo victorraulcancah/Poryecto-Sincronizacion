@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { firstValueFrom } from 'rxjs';
+import { combineLatest, firstValueFrom } from 'rxjs';
 import { BreadcrumbComponent } from '../../component/breadcrumb/breadcrumb.component';
 import { ShippingComponent } from '../../component/shipping/shipping.component';
 import { CartService, CartItem, CartSummary } from '../../services/cart.service';
@@ -135,33 +135,15 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     });
   }
 
-  private checkCartItems(): void {
-    if (typeof window !== 'undefined' && this.cartService.isEmpty()) {
-      import('sweetalert2').then(Swal => {
-        Swal.default.fire({
-          title: 'Carrito vacío',
-          text: 'No tienes productos en tu carrito para procesar la compra',
-          icon: 'warning',
-          confirmButtonColor: '#dc3545'
-        }).then(() => {
-          this.router.navigate(['/shop']);
-        });
-      });
-    }
-  }
-
   private loadCartData(): void {
-    this.cartService.cartLoaded$
+    combineLatest([
+      this.cartService.cartItems$,
+      this.cartService.cartLoaded$
+    ])
       .pipe(takeUntil(this.destroy$))
-      .subscribe(loaded => {
-        this.cartLoaded = loaded;
-        this.redirectIfCartIsEmpty();
-      });
-
-    this.cartService.cartItems$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(items => {
+      .subscribe(([items, loaded]) => {
         this.cartItems = items;
+        this.cartLoaded = loaded;
         this.redirectIfCartIsEmpty();
       });
 
