@@ -136,7 +136,7 @@ class ComprasController extends Controller
             'cliente_email' => 'required|email|max:255',
             'direccion_envio' => 'required|string|max:500',
             'telefono_contacto' => 'required|string|max:20',
-            'forma_envio' => 'required|in:delivery,recojo_tienda,envio_provincia',
+            'forma_envio' => 'required|string|max:50',
             'metodo_pago' => 'required|string|max:50',
             'costo_envio' => 'numeric|min:0',
             'numero_documento' => 'nullable|string|max:11',
