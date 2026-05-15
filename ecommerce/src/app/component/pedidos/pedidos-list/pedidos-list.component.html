@@ -279,13 +279,13 @@
                          placeholder="DNI 8 dígitos  ó  RUC 11 dígitos"
                          maxlength="11"
                          (keyup.enter)="consultarDocumento()" />
-                  <button class="btn btn-primary px-20" type="button"
+                  <button class="btn btn-primary" type="button"
+                          style="width:44px; flex-shrink:0;"
                           (click)="consultarDocumento()"
                           [disabled]="buscandoDocumento"
                           title="Buscar en RENIEC / SUNAT">
-                    <span *ngIf="buscandoDocumento" class="spinner-border spinner-border-sm me-6"></span>
-                    <i *ngIf="!buscandoDocumento" class="ph ph-magnifying-glass me-6"></i>
-                    {{ buscandoDocumento ? 'Buscando...' : 'Buscar' }}
+                    <span *ngIf="buscandoDocumento" class="spinner-border spinner-border-sm"></span>
+                    <i *ngIf="!buscandoDocumento" class="ph ph-magnifying-glass"></i>
                   </button>
                 </div>
                 <div class="form-text">
@@ -552,20 +552,15 @@
                     </div>
 
                     <!-- Precio unitario -->
-                    <div class="carrito-item__price">
-                      <span class="text-xs text-gray-400 d-block">Precio</span>
-                      <input type="number" class="price-input"
-                             [(ngModel)]="item.precio_unitario" min="0" step="0.01"
-                             (ngModelChange)="recalcularTotales()" />
-                    </div>
+                    <input type="number" class="price-input"
+                           [(ngModel)]="item.precio_unitario" min="0" step="0.01"
+                           (ngModelChange)="recalcularTotales()"
+                           title="Precio unitario" />
 
                     <!-- Subtotal línea -->
-                    <div class="carrito-item__subtotal">
-                      <span class="text-xs text-gray-400 d-block">Total</span>
-                      <span class="fw-bold text-success-600">
-                        S/ {{ (item.cantidad * item.precio_unitario) | number:'1.2-2' }}
-                      </span>
-                    </div>
+                    <span class="carrito-item__subtotal fw-bold text-success-600">
+                      S/ {{ (item.cantidad * item.precio_unitario) | number:'1.2-2' }}
+                    </span>
 
                     <!-- Eliminar -->
                     <button class="carrito-item__remove" (click)="quitarProducto(i)" title="Quitar">

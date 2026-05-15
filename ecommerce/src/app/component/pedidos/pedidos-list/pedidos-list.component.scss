@@ -158,7 +158,8 @@
 .carrito-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  flex-wrap: nowrap;  // nunca rompe a segunda línea
+  gap: 6px;
   padding: 8px 4px;
   border-bottom: 1px solid var(--gray-100);
 
@@ -172,19 +173,15 @@
   &__qty {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 3px;
     flex-shrink: 0;
-  }
-
-  &__price {
-    flex-shrink: 0;
-    text-align: right;
   }
 
   &__subtotal {
     flex-shrink: 0;
     text-align: right;
-    min-width: 72px;
+    min-width: 64px;
+    font-size: 12px;
   }
 
   &__remove {
@@ -237,13 +234,14 @@
 }
 
 .price-input {
-  width: 68px;
-  height: 28px;
+  width: 62px;
+  height: 22px;  // misma altura que qty-btn y qty-input
   text-align: right;
   border: 1px solid var(--gray-300);
-  border-radius: 6px;
+  border-radius: 4px;
   font-size: 12px;
-  padding: 0 6px;
+  padding: 0 4px;
+  flex-shrink: 0;
 
   &::-webkit-inner-spin-button,
   &::-webkit-outer-spin-button { -webkit-appearance: none; }

@@ -44,22 +44,22 @@ Route::middleware('auth:sanctum')->group(function () {
     // ============================================
     // PEDIDOS
     // ============================================
-    Route::prefix('pedidos')->middleware('permission:pedidos.ver')->group(function () {
+    Route::prefix('pedidos')->group(function () {
         Route::get('/', [PedidosController::class, 'index']);
         Route::get('/estados', [PedidosController::class, 'getEstados']);
         Route::get('/metodos-pago', [PedidosController::class, 'getMetodosPago']);
         Route::get('/estadisticas', [PedidosController::class, 'estadisticas']);
         Route::get('/mis-pedidos', [PedidosController::class, 'misPedidos']);
-        Route::get('/{id}', [PedidosController::class, 'show'])->middleware('permission:pedidos.show');
+        Route::get('/{id}', [PedidosController::class, 'show']);
         Route::get('/{id}/tracking', [PedidosController::class, 'getTrackingPedido']);
         Route::get('/usuario/{userId}', [PedidosController::class, 'pedidosPorUsuario']);
 
-        Route::post('/', [PedidosController::class, 'store'])->middleware('permission:pedidos.create');
-        Route::post('/ecommerce', [PedidosController::class, 'crearPedidoEcommerce'])->middleware('permission:pedidos.create');
-        Route::put('/{id}/estado', [PedidosController::class, 'updateEstado'])->middleware('permission:pedidos.edit');
-        Route::patch('/{id}/estado', [PedidosController::class, 'actualizarEstado'])->middleware('permission:pedidos.edit');
-        Route::post('/{id}/cambiar-estado', [PedidosController::class, 'cambiarEstado'])->middleware('permission:pedidos.edit');
-        Route::delete('/{id}', [PedidosController::class, 'destroy'])->middleware('permission:pedidos.delete');
+        Route::post('/', [PedidosController::class, 'store']);
+        Route::post('/ecommerce', [PedidosController::class, 'crearPedidoEcommerce']);
+        Route::put('/{id}/estado', [PedidosController::class, 'updateEstado']);
+        Route::patch('/{id}/estado', [PedidosController::class, 'actualizarEstado']);
+        Route::post('/{id}/cambiar-estado', [PedidosController::class, 'cambiarEstado']);
+        Route::delete('/{id}', [PedidosController::class, 'destroy']);
     });
 
     // ============================================
