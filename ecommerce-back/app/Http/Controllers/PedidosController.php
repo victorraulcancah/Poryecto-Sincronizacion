@@ -8,9 +8,12 @@ use App\Models\EstadoPedido;
 use App\Models\PedidoTracking;
 use App\Models\UserCliente;
 use App\Models\Producto;
+use App\Models\EmpresaInfo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PedidosController extends Controller
 {
@@ -725,6 +728,86 @@ class PedidosController extends Controller
                 'status' => 'error',
                 'message' => 'Error al obtener pedidos del usuario',
                 'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Generar PDF de un pedido
+     */
+    public function generarPDF($id)
+    {
+        try {
+            $pedido = Pedido::with([
+                'cliente',
+                'userCliente',
+                'detalles.producto',
+                'estadoPedido'
+            ])->findOrFail($id);
+
+            // Obtener datos de la empresa
+            $empresa = EmpresaInfo::first();
+            if (!$empresa) {
+                $empresa = (object) [
+                    'nombre_empresa' => 'Tu Empresa',
+                    'razon_social' => 'Razón Social',
+                    'ruc' => '12345678901',
+                    'direccion' => 'Dirección de la empresa',
+                    'telefono' => '123-456-789',
+                    'email' => 'contacto@empresa.com'
+                ];
+            }
+
+            // Logo base64
+            $logo_base64 = null;
+            if (isset($empresa->logo) && $empresa->logo && Storage::disk('public')->exists($empresa->logo)) {
+                $logoPath = Storage::disk('public')->path($empresa->logo);
+                if (file_exists($logoPath)) {
+                    $logoData = base64_encode(file_get_contents($logoPath));
+                    $logoType = pathinfo($logoPath, PATHINFO_EXTENSION);
+                    $logo_base64 = 'data:image/' . $logoType . ';base64,' . $logoData;
+                }
+            }
+
+            // Preparar datos para el PDF
+            $datos = [
+                'numero_pedido' => $pedido->codigo_pedido,
+                'fecha' => $pedido->fecha_pedido ? $pedido->fecha_pedido->format('d/m/Y H:i') : now()->format('d/m/Y H:i'),
+                'estado' => $pedido->estadoPedido->nombre ?? 'Pendiente',
+                'cliente' => $pedido->cliente_nombre ?? ($pedido->userCliente ? ($pedido->userCliente->nombres . ' ' . $pedido->userCliente->apellidos) : 'Cliente'),
+                'documento' => $pedido->numero_documento ?? ($pedido->cliente ? $pedido->cliente->numero_documento : 'N/A'),
+                'email' => $pedido->cliente_email ?? ($pedido->userCliente ? $pedido->userCliente->email : 'N/A'),
+                'telefono' => $pedido->telefono_contacto ?? 'N/A',
+                'direccion' => $pedido->direccion_envio ?? 'Recojo en tienda',
+                'ubicacion' => $pedido->ubicacion_completa ?? 'Lima',
+                'forma_envio' => $pedido->forma_envio,
+                'metodo_pago' => $pedido->metodo_pago,
+                'subtotal' => $pedido->subtotal,
+                'igv' => $pedido->igv,
+                'costo_envio' => $pedido->costo_envio ?? 0,
+                'total' => $pedido->total,
+                'observaciones' => $pedido->observaciones,
+                'empresa' => $empresa,
+                'logo_base64' => $logo_base64,
+                'productos' => $pedido->detalles->map(function($detalle) {
+                    return [
+                        'sku' => $detalle->codigo_producto,
+                        'nombre' => $detalle->nombre_producto,
+                        'cantidad' => $detalle->cantidad,
+                        'precio' => $detalle->precio_unitario
+                    ];
+                })
+            ];
+
+            $pdf = Pdf::loadView('pdf.pedido', $datos);
+            $pdf->setPaper('A4', 'portrait');
+
+            return $pdf->download("Pedido_{$pedido->codigo_pedido}.pdf");
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error al generar PDF: ' . $e->getMessage()
             ], 500);
         }
     }

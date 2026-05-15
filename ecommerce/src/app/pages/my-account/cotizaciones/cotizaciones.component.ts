@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
 import { CotizacionesService, Cotizacion } from '../../../services/cotizaciones.service';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -15,11 +16,16 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
   cotizaciones: Cotizacion[] = [];
   isLoadingCotizaciones = false;
   cotizacionSeleccionada: Cotizacion | null = null;
+  
+  // Para la vista previa del PDF
+  pdfPreviewUrl: SafeResourceUrl | null = null;
+  loadingPdf = false;
 
   private destroy$ = new Subject<void>();
 
   constructor(
-    private cotizacionesService: CotizacionesService
+    private cotizacionesService: CotizacionesService,
+    private sanitizer: DomSanitizer
   ) { }
 
   ngOnInit(): void {
@@ -50,11 +56,47 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
   }
 
   verDetallesCotizacion(cotizacion: Cotizacion): void {
-    // Descargar PDF de la cotización
-    this.cotizacionesService.descargarPDF(
-      cotizacion.id,
-      `Cotizacion_${cotizacion.codigo_cotizacion}.pdf`
-    );
+    this.cotizacionSeleccionada = cotizacion;
+    this.loadingPdf = true;
+    this.pdfPreviewUrl = null;
+
+    // Obtener el blob del PDF desde el servicio
+    this.cotizacionesService.generarPDF(cotizacion.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        // Añadir parámetros para el visor (ocultando panel de navegación/miniaturas)
+        this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url + '#toolbar=1&navpanes=0&scrollbar=1&view=FitH&pagemode=none');
+        this.loadingPdf = false;
+        
+        // Abrir el modal programáticamente (usando bootstrap nativo)
+        const modalElement = document.getElementById('previewPdfModalCot');
+        if (modalElement) {
+          const bootstrapModal = new (window as any).bootstrap.Modal(modalElement);
+          bootstrapModal.show();
+        }
+      },
+      error: (error) => {
+        console.error('Error generando vista previa:', error);
+        this.loadingPdf = false;
+        Swal.fire('Error', 'No se pudo generar la vista previa de la cotización', 'error');
+      }
+    });
+  }
+
+  descargarPdfActual(): void {
+    if (this.cotizacionSeleccionada) {
+      this.cotizacionesService.descargarPDF(
+        this.cotizacionSeleccionada.id,
+        `Cotizacion_${this.cotizacionSeleccionada.codigo_cotizacion}.pdf`
+      );
+    }
+  }
+
+  imprimirIframe(): void {
+    const iframe = document.querySelector('#pdfViewerCot') as HTMLIFrameElement;
+    if (iframe && iframe.contentWindow) {
+      iframe.contentWindow.print();
+    }
   }
 
   convertirACompra(cotizacion: Cotizacion): void {
@@ -135,9 +177,13 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
         this.cotizacionesService.pedirCotizacion(cotizacion.id).subscribe({
           next: (response) => {
             if (response.status === 'success') {
+              const codigoPedido = (response as any).pedido_codigo;
               Swal.fire({
                 title: '¡Solicitud enviada!',
-                text: 'Hemos notificado al administrador. Te contactaremos pronto.',
+                html: `
+                  <p>${response.message || 'Hemos notificado al administrador. Te contactaremos pronto.'}</p>
+                  ${codigoPedido ? `<p class="text-sm text-muted mt-2">N° de pedido: <strong>${codigoPedido}</strong></p>` : ''}
+                `,
                 icon: 'success',
                 confirmButtonColor: '#198754'
               });

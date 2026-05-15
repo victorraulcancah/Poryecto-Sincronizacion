@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -33,6 +34,12 @@ export class PedidosListComponent implements OnInit {
 
   Math = Math;
 
+  // ── Notificaciones de pedidos generados desde cotización ──
+  pedidosDesdeCotizacion: any[] = [];
+  notificacionesNoVistas = 0;
+  mostrarNotificaciones = false;
+  private readonly SEEN_KEY = 'pedidos_cotizacion_vistos';
+
   // ── Crear pedido ──────────────────────────────────────────
   creandoPedido = false;
   nuevoPedido = {
@@ -55,11 +62,15 @@ export class PedidosListComponent implements OnInit {
   totalNuevoPedido = 0;
   buscandoDocumento = false;
   activeTabCrear: 'cliente' | 'envio' | 'productos' = 'cliente';
+  activeTabDetalle: 'general' | 'productos' | 'envio' = 'general';
+  pdfPreviewUrl: SafeResourceUrl | null = null;
+  loadingPdf: boolean = false;
 
   constructor(
     private pedidosService: PedidosService,
     private productosService: ProductosService,
-    private reniecService: ReniecService
+    private reniecService: ReniecService,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -73,6 +84,7 @@ export class PedidosListComponent implements OnInit {
         if (response.status === 'success') {
           this.pedidos = response.pedidos || [];
           this.aplicarFiltros();
+          this.calcularNotificaciones();
         } else {
           this.pedidos = [];
           this.pedidosFiltrados = [];
@@ -86,6 +98,48 @@ export class PedidosListComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  // ── Notificaciones ────────────────────────────────────────
+
+  private getVistos(): number[] {
+    try {
+      return JSON.parse(localStorage.getItem(this.SEEN_KEY) || '[]');
+    } catch {
+      return [];
+    }
+  }
+
+  private idsNoVistosSesion = new Set<number>();
+
+  calcularNotificaciones(): void {
+    const vistos = this.getVistos();
+    this.pedidosDesdeCotizacion = this.pedidos
+      .filter(p => p.observaciones?.includes('Generado desde cotización'))
+      .sort((a, b) => new Date(b.fecha_pedido).getTime() - new Date(a.fecha_pedido).getTime());
+
+    this.idsNoVistosSesion = new Set(
+      this.pedidosDesdeCotizacion.filter(p => !vistos.includes(p.id)).map(p => p.id)
+    );
+    this.notificacionesNoVistas = this.idsNoVistosSesion.size;
+  }
+
+  toggleNotificaciones(): void {
+    this.mostrarNotificaciones = !this.mostrarNotificaciones;
+    if (this.mostrarNotificaciones && this.notificacionesNoVistas > 0) {
+      const ids = this.pedidosDesdeCotizacion.map(p => p.id);
+      localStorage.setItem(this.SEEN_KEY, JSON.stringify(ids));
+      this.notificacionesNoVistas = 0;
+    }
+  }
+
+  esNoVisto(pedido: any): boolean {
+    return this.idsNoVistosSesion.has(pedido.id);
+  }
+
+  abrirPedidoDesdeNotificacion(pedido: any): void {
+    this.mostrarNotificaciones = false;
+    this.verDetalle(pedido);
   }
 
   aplicarFiltros(): void {
@@ -102,7 +156,7 @@ export class PedidosListComponent implements OnInit {
 
     if (this.filtroEstado) {
       resultado = resultado.filter(p =>
-        p.estado_pedido?.nombre?.toLowerCase().includes(this.filtroEstado.toLowerCase())
+        p.estado_pedido?.nombre_estado?.toLowerCase().includes(this.filtroEstado.toLowerCase())
       );
     }
 
@@ -112,6 +166,7 @@ export class PedidosListComponent implements OnInit {
 
   verDetalle(pedido: any): void {
     this.pedidoSeleccionado = pedido;
+    this.activeTabDetalle = 'general';
     const modal = document.getElementById('detallePedidoModal');
     if (modal) {
       const bootstrapModal = new (window as any).bootstrap.Modal(modal);
@@ -146,24 +201,92 @@ export class PedidosListComponent implements OnInit {
   }
 
   imprimirPedido(): void {
-    window.print();
+    if (!this.pedidoSeleccionado) return;
+    
+    this.loadingPdf = true;
+    this.pdfPreviewUrl = null;
+
+    this.pedidosService.generarPDF(this.pedidoSeleccionado.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        // Añadir parámetros para el visor (ocultando panel de navegación/miniaturas)
+        this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url + '#toolbar=1&navpanes=0&scrollbar=1&view=FitH&pagemode=none');
+        this.loadingPdf = false;
+        this.loadingPdf = false;
+        
+        // Abrir el modal de vista previa
+        const modal = document.getElementById('previewPdfModal');
+        if (modal) {
+          const bootstrapModal = new (window as any).bootstrap.Modal(modal);
+          bootstrapModal.show();
+        }
+      },
+      error: (error) => {
+        console.error('Error al generar PDF para vista previa:', error);
+        this.loadingPdf = false;
+        Swal.fire('Error', 'No se pudo generar la vista previa del PDF', 'error');
+      }
+    });
+  }
+
+  descargarPdfActual(): void {
+    if (!this.pedidoSeleccionado) return;
+    this.pedidosService.descargarPDF(this.pedidoSeleccionado.id, `Pedido_${this.pedidoSeleccionado.codigo_pedido}.pdf`);
+  }
+
+  imprimirIframe(): void {
+    const iframe = document.querySelector('#previewPdfModal iframe') as HTMLIFrameElement;
+    if (iframe && iframe.contentWindow) {
+      iframe.contentWindow.print();
+    }
   }
 
   getEstadoBadgeClass(estado: string | undefined): string {
     if (!estado) return 'bg-secondary-50 text-secondary-600';
     switch (estado.toLowerCase()) {
+      case 'nuevo':            return 'bg-secondary-50 text-secondary-600';
       case 'pendiente':        return 'bg-warning-50 text-warning-600';
       case 'confirmado':       return 'bg-primary-50 text-primary-600';
+      case 'pagado':           return 'bg-success-50 text-success-600';
       case 'en preparación':
       case 'en preparacion':   return 'bg-info-50 text-info-600';
       case 'en recepción':
       case 'en recepcion':     return 'bg-warning-100 text-warning-700';
+      case 'en camino':
       case 'enviado':          return 'bg-primary-100 text-primary-700';
       case 'enviado a provincia': return 'bg-tertiary-50 text-tertiary-600';
       case 'entregado':        return 'bg-success-50 text-success-600';
+      case 'sin stock':        return 'bg-warning-100 text-warning-700';
       case 'cancelado':        return 'bg-danger-50 text-danger-600';
+      case 'devuelto':         return 'bg-danger-50 text-danger-600';
       default:                 return 'bg-secondary-50 text-secondary-600';
     }
+  }
+
+  getStatusIcon(estado: string | undefined): string {
+    if (!estado) return 'ph ph-question';
+    switch (estado.toLowerCase()) {
+      case 'nuevo':            return 'ph ph-star';
+      case 'pendiente':        return 'ph ph-clock';
+      case 'confirmado':       return 'ph ph-check-circle';
+      case 'pagado':           return 'ph ph-money';
+      case 'en preparación':
+      case 'en preparacion':   return 'ph ph-package';
+      case 'en recepción':
+      case 'en recepcion':     return 'ph ph-tray';
+      case 'en camino':
+      case 'enviado':          return 'ph ph-truck';
+      case 'enviado a provincia': return 'ph ph-airplane';
+      case 'entregado':        return 'ph ph-house';
+      case 'sin stock':        return 'ph ph-warning';
+      case 'cancelado':        return 'ph ph-x-circle';
+      case 'devuelto':         return 'ph ph-arrows-left-right';
+      default:                 return 'ph ph-tag';
+    }
+  }
+
+  seleccionarEstado(id: number): void {
+    this.estadoSeleccionado = id;
   }
 
   formatMetodoPago(metodo: string | null | undefined): string {
@@ -260,7 +383,7 @@ export class PedidosListComponent implements OnInit {
   getEstadisticaEstado(estadoBuscado: string): number {
     if (!this.pedidos || this.pedidos.length === 0) return 0;
     return this.pedidos.filter((p: any) => {
-      const nombre = p.estado_pedido?.nombre?.toLowerCase() || '';
+      const nombre = p.estado_pedido?.nombre_estado?.toLowerCase() || '';
       return nombre.includes(estadoBuscado.toLowerCase());
     }).length;
   }

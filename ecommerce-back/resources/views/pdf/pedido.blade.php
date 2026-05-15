@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cotización - {{ $numero_cotizacion }}</title>
+    <title>Pedido - {{ $numero_pedido }}</title>
     <style>
         /* Red Theme matching the Web App Brand */
         :root {
@@ -213,6 +213,7 @@
         
         .total-row td {
             padding: 12px;
+            border-radius: 0 0 0 0;
         }
         
         .footer {
@@ -247,10 +248,10 @@
         </div>
         <div class="header-right">
             <div class="order-badge">
-                <div class="order-title">Cotización de Venta</div>
-                <div class="order-number">{{ $numero_cotizacion }}</div>
+                <div class="order-title">Comprobante de Pedido</div>
+                <div class="order-number">{{ $numero_pedido }}</div>
                 <div style="font-size: 9.5px; margin-bottom: 10px; color: #4b5563;">{{ $fecha }}</div>
-                <div class="status-pill">VÁLIDA POR 30 DÍAS</div>
+                <div class="status-pill">{{ strtoupper($estado) }}</div>
             </div>
         </div>
     </div>
@@ -261,18 +262,18 @@
                 <div class="card">
                     <div class="card-title">Información del Cliente</div>
                     <div class="info-row"><span class="label">Cliente:</span> {{ $cliente }}</div>
+                    <div class="info-row"><span class="label">Documento:</span> {{ $documento }}</div>
                     <div class="info-row"><span class="label">Email:</span> {{ $email }}</div>
                     <div class="info-row"><span class="label">Teléfono:</span> {{ $telefono }}</div>
-                    <div class="info-row"><span class="label">Ubicación:</span> {{ $departamento }}, {{ $provincia }}, {{ $distrito }}</div>
                 </div>
             </td>
             <td class="details-cell">
                 <div class="card">
-                    <div class="card-title">Condiciones Comerciales</div>
-                    <div class="info-row"><span class="label">Forma Envío:</span> {{ strtoupper($forma_envio) }}</div>
-                    <div class="info-row"><span class="label">Método Pago:</span> {{ strtoupper($tipo_pago) }}</div>
-                    <div class="info-row"><span class="label">Precios:</span> INCLUYE I.G.V. (18%)</div>
-                    <div class="info-row"><span class="label">Garantía:</span> 12 MESES</div>
+                    <div class="card-title">Detalles de Entrega</div>
+                    <div class="info-row"><span class="label">Método Pago:</span> {{ strtoupper($metodo_pago) }}</div>
+                    <div class="info-row"><span class="label">Forma Envío:</span> {{ $forma_envio }}</div>
+                    <div class="info-row"><span class="label">Dirección:</span> {{ $direccion }}</div>
+                    <div class="info-row"><span class="label">Ubicación:</span> {{ $ubicacion }}</div>
                 </div>
             </td>
         </tr>
@@ -282,21 +283,21 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th style="width: 12%">SKU / COD</th>
-                    <th style="width: 48%">DESCRIPCIÓN DEL PRODUCTO</th>
+                    <th style="width: 15%">SKU</th>
+                    <th style="width: 45%">DESCRIPCIÓN DEL PRODUCTO</th>
                     <th style="width: 10%; text-align: center">CANT.</th>
                     <th style="width: 15%; text-align: right">P. UNIT</th>
                     <th style="width: 15%; text-align: right">TOTAL</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($productos as $producto)
+                @foreach($productos as $item)
                     <tr>
-                        <td style="font-weight: bold; color: #111827;">{{ $producto['id'] ?? 'N/A' }}</td>
-                        <td>{{ $producto['nombre'] }}</td>
-                        <td style="text-align: center; font-weight: bold;">{{ $producto['cantidad'] }}</td>
-                        <td style="text-align: right">S/ {{ number_format($producto['precio'], 2) }}</td>
-                        <td style="text-align: right; font-weight: bold; color: #111827;">S/ {{ number_format($producto['precio'] * $producto['cantidad'], 2) }}</td>
+                        <td style="font-weight: bold; color: #111827;">{{ $item['sku'] }}</td>
+                        <td>{{ $item['nombre'] }}</td>
+                        <td style="text-align: center; font-weight: bold;">{{ $item['cantidad'] }}</td>
+                        <td style="text-align: right">S/ {{ number_format($item['precio'], 2) }}</td>
+                        <td style="text-align: right; font-weight: bold; color: #111827;">S/ {{ number_format($item['precio'] * $item['cantidad'], 2) }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -307,14 +308,20 @@
         <table class="totals-table">
             <tr>
                 <td style="color: #6b7280; font-weight: 500;">Subtotal:</td>
-                <td style="text-align: right; font-weight: bold; color: #111827;">S/ {{ number_format($total - ($total * 0.18), 2) }}</td>
+                <td style="text-align: right; font-weight: bold; color: #111827;">S/ {{ number_format($subtotal, 2) }}</td>
             </tr>
             <tr>
                 <td style="color: #6b7280; font-weight: 500;">IGV (18%):</td>
-                <td style="text-align: right; font-weight: bold; color: #111827;">S/ {{ number_format($total * 0.18, 2) }}</td>
+                <td style="text-align: right; font-weight: bold; color: #111827;">S/ {{ number_format($igv, 2) }}</td>
             </tr>
+            @if($costo_envio > 0)
+            <tr>
+                <td style="color: #6b7280; font-weight: 500;">Costo de Envío:</td>
+                <td style="text-align: right; font-weight: bold; color: #111827;">S/ {{ number_format($costo_envio, 2) }}</td>
+            </tr>
+            @endif
             <tr class="total-row">
-                <td style="border-radius: 8px 0 0 8px;">TOTAL COTIZADO:</td>
+                <td style="border-radius: 8px 0 0 8px;">TOTAL A PAGAR:</td>
                 <td style="text-align: right; border-radius: 0 8px 8px 0;">S/ {{ number_format($total, 2) }}</td>
             </tr>
         </table>
@@ -323,7 +330,7 @@
 
     @if($observaciones)
     <div style="margin-top: 25px;">
-        <div style="font-weight: 800; color: #c22026; font-size: 9px; margin-bottom: 6px; text-transform: uppercase;">Observaciones:</div>
+        <div style="font-weight: 800; color: #c22026; font-size: 9px; margin-bottom: 6px; text-transform: uppercase;">Observaciones del Pedido:</div>
         <div style="font-size: 8.5px; color: #4b5563; background: #fff5f5; padding: 15px; border-radius: 12px; border: 1px solid #fee2e2; line-height: 1.6;">
             {{ $observaciones }}
         </div>
@@ -331,9 +338,9 @@
     @endif
 
     <div class="footer">
-        <div style="margin-bottom: 4px;">Gracias por confiar en <strong>{{ $empresa->nombre_empresa }}</strong>.</div>
-        <div>Esta cotización tiene una validez de 30 días calendario.</div>
-        <div style="margin-top: 8px; font-weight: bold; color: #4b5563;">Documento generado el {{ date('d/m/Y H:i:s') }}</div>
+        <div style="margin-bottom: 4px;">Gracias por su compra en <strong>{{ $empresa->nombre_empresa }}</strong>.</div>
+        <div>Este documento es un comprobante de pedido generado por el sistema. No tiene validez SUNAT.</div>
+        <div style="margin-top: 8px; font-weight: bold; color: #4b5563;">Generado el {{ date('d/m/Y H:i:s') }}</div>
     </div>
 </body>
 </html>

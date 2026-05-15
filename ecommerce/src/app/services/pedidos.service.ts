@@ -191,4 +191,34 @@ export class PedidosService {
   getPedidosPorUsuario(userId: number): Observable<PedidosResponse> {
     return this.http.get<PedidosResponse>(`${environment.apiUrl}/pedidos/usuario/${userId}`);
   }
+
+  /**
+   * Generar PDF de un pedido
+   */
+  generarPDF(id: number): Observable<Blob> {
+    return this.http.get(`${environment.apiUrl}/pedidos/${id}/pdf`, {
+      responseType: 'blob'
+    });
+  }
+
+  /**
+   * Descargar PDF de un pedido
+   */
+  descargarPDF(id: number, nombreArchivo?: string): void {
+    this.generarPDF(id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = nombreArchivo || `Pedido_${id}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      },
+      error: (error) => {
+        console.error('Error al descargar PDF:', error);
+      }
+    });
+  }
 }
