@@ -259,6 +259,141 @@ class CotizacionesController extends Controller
     }
 
     /**
+     * Actualizar cotización desde el e-commerce (solo el cliente dueño, solo en estado Pendiente)
+     */
+    public function actualizarCotizacionEcommerce(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'productos' => 'required|array|min:1',
+            'productos.*.producto_id' => 'required|exists:productos,id',
+            'productos.*.cantidad' => 'required|numeric|min:1',
+            'metodo_pago_preferido' => 'nullable|string|max:50',
+            'direccion_envio' => 'required|string',
+            'telefono_contacto' => 'required|string|max:20',
+            'observaciones' => 'nullable|string',
+            'cliente_nombre' => 'required|string|max:255',
+            'cliente_email' => 'required|email|max:255',
+            'numero_documento' => 'nullable|string|max:20',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Datos de validación incorrectos',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $cotizacion = Cotizacion::findOrFail($id);
+            $userCliente = $request->user();
+
+            if (!$userCliente instanceof UserCliente) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Acceso no autorizado'
+                ], 403);
+            }
+
+            if ($cotizacion->user_cliente_id !== $userCliente->id) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No tienes permisos para editar esta cotización'
+                ], 403);
+            }
+
+            // Solo se puede editar en estado Pendiente (1)
+            if ($cotizacion->estado_cotizacion_id !== 1) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Solo se pueden editar cotizaciones en estado Pendiente'
+                ], 422);
+            }
+
+            DB::beginTransaction();
+
+            // Recalcular totales
+            $subtotal = 0;
+            $productosValidados = [];
+
+            foreach ($request->productos as $prod) {
+                $producto = Producto::findOrFail($prod['producto_id']);
+                $cantidad = $prod['cantidad'];
+                $precioUnitario = $producto->precio_oferta ?: $producto->precio_venta;
+                $subtotalLinea = $cantidad * $precioUnitario;
+                $subtotal += $subtotalLinea;
+
+                $productosValidados[] = [
+                    'producto' => $producto,
+                    'cantidad' => $cantidad,
+                    'precio_unitario' => $precioUnitario,
+                    'subtotal_linea' => $subtotalLinea
+                ];
+            }
+
+            $igv = $subtotal * 0.18;
+            $costoEnvio = $cotizacion->costo_envio ?? 0;
+            $total = $subtotal + $igv + $costoEnvio;
+
+            $cotizacion->update([
+                'subtotal' => $subtotal,
+                'igv' => $igv,
+                'total' => $total,
+                'metodo_pago_preferido' => $request->metodo_pago_preferido,
+                'direccion_envio' => $request->direccion_envio,
+                'telefono_contacto' => $request->telefono_contacto,
+                'observaciones' => $request->observaciones,
+                'numero_documento' => $request->numero_documento,
+                'cliente_nombre' => $request->cliente_nombre,
+                'cliente_email' => $request->cliente_email,
+            ]);
+
+            // Reemplazar detalles
+            $cotizacion->detalles()->delete();
+            foreach ($productosValidados as $prod) {
+                CotizacionDetalle::create([
+                    'cotizacion_id' => $cotizacion->id,
+                    'producto_id' => $prod['producto']->id,
+                    'codigo_producto' => $prod['producto']->codigo_producto,
+                    'nombre_producto' => $prod['producto']->nombre,
+                    'cantidad' => $prod['cantidad'],
+                    'precio_unitario' => $prod['precio_unitario'],
+                    'subtotal_linea' => $prod['subtotal_linea']
+                ]);
+            }
+
+            CotizacionTracking::crearRegistro(
+                $cotizacion->id,
+                1,
+                'Cotización editada por el cliente',
+                1
+            );
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Cotización actualizada exitosamente',
+                'cotizacion' => $cotizacion->load(['detalles', 'estadoCotizacion']),
+                'codigo_cotizacion' => $cotizacion->codigo_cotizacion
+            ]);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Cotización no encontrada'
+            ], 404);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error al actualizar cotización',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Obtener cotizaciones del cliente
      */
     public function misCotizaciones(Request $request)
@@ -283,15 +418,24 @@ class CotizacionesController extends Controller
                         'codigo_cotizacion' => $cotizacion->codigo_cotizacion,
                         'fecha_cotizacion' => $cotizacion->fecha_cotizacion,
                         'fecha_vencimiento' => $cotizacion->fecha_vencimiento,
+                        'subtotal' => $cotizacion->subtotal,
+                        'igv' => $cotizacion->igv,
+                        'costo_envio' => $cotizacion->costo_envio,
                         'total' => $cotizacion->total,
                         'estado_actual' => $cotizacion->estadoCotizacion,
                         'forma_envio' => $cotizacion->forma_envio,
                         'direccion_envio' => $cotizacion->direccion_envio,
                         'observaciones' => $cotizacion->observaciones,
+                        'cliente_nombre' => $cotizacion->cliente_nombre,
+                        'cliente_email' => $cotizacion->cliente_email,
+                        'telefono_contacto' => $cotizacion->telefono_contacto,
+                        'numero_documento' => $cotizacion->numero_documento,
+                        'metodo_pago_preferido' => $cotizacion->metodo_pago_preferido,
                         'puede_convertir_compra' => $cotizacion->puedeConvertirseACompra(),
                         'esta_vencida' => $cotizacion->estaVencida(),
                         'productos' => $cotizacion->detalles->map(function($detalle) {
                             return [
+                                'producto_id' => $detalle->producto_id,
                                 'nombre' => $detalle->nombre_producto,
                                 'cantidad' => $detalle->cantidad,
                                 'precio_unitario' => $detalle->precio_unitario,

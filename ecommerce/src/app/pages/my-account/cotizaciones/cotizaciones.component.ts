@@ -1,14 +1,23 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { CotizacionesService, Cotizacion } from '../../../services/cotizaciones.service';
+import { ProductosService, ProductoSugerencia } from '../../../services/productos.service';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import Swal from 'sweetalert2';
+
+interface ItemEdicion {
+  producto_id: number;
+  nombre: string;
+  cantidad: number;
+  precio_unitario: number;
+}
 
 @Component({
   selector: 'app-cotizaciones',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './cotizaciones.component.html',
   styleUrl: './cotizaciones.component.scss'
 })
@@ -16,15 +25,37 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
   cotizaciones: Cotizacion[] = [];
   isLoadingCotizaciones = false;
   cotizacionSeleccionada: Cotizacion | null = null;
-  
+
   // Para la vista previa del PDF
   pdfPreviewUrl: SafeResourceUrl | null = null;
   loadingPdf = false;
+
+  // ── Edición de cotización ─────────────────────────────────
+  guardandoEdicion = false;
+  activeTabEdicion: 'datos' | 'productos' = 'datos';
+  cotizacionEnEdicion: Cotizacion | null = null;
+  formEdicion = {
+    cliente_nombre: '',
+    cliente_email: '',
+    telefono_contacto: '',
+    numero_documento: '',
+    direccion_envio: '',
+    metodo_pago_preferido: '',
+    observaciones: '',
+  };
+  itemsEdicion: ItemEdicion[] = [];
+  terminoBusquedaProducto = '';
+  productosSugeridos: ProductoSugerencia[] = [];
+  buscandoProducto = false;
+  subtotalEdicion = 0;
+  igvEdicion = 0;
+  totalEdicion = 0;
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private cotizacionesService: CotizacionesService,
+    private productosService: ProductosService,
     private sanitizer: DomSanitizer
   ) { }
 
@@ -287,5 +318,143 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
 
   getEstadoClass(estado: any): string {
     return this.cotizacionesService.getEstadoClass(estado);
+  }
+
+  // ── Edición de cotización ─────────────────────────────────
+
+  abrirEdicion(cotizacion: Cotizacion): void {
+    this.cotizacionEnEdicion = cotizacion;
+    this.activeTabEdicion = 'datos';
+    this.formEdicion = {
+      cliente_nombre: cotizacion.cliente_nombre || '',
+      cliente_email: cotizacion.cliente_email || '',
+      telefono_contacto: cotizacion.telefono_contacto || '',
+      numero_documento: cotizacion.numero_documento || '',
+      direccion_envio: cotizacion.direccion_envio || '',
+      metodo_pago_preferido: cotizacion.metodo_pago_preferido || '',
+      observaciones: cotizacion.observaciones || '',
+    };
+    this.itemsEdicion = (cotizacion.productos || [])
+      .filter(p => p.producto_id != null)
+      .map(p => ({
+        producto_id: p.producto_id!,
+        nombre: p.nombre,
+        cantidad: p.cantidad,
+        precio_unitario: p.precio_unitario,
+      }));
+    this.terminoBusquedaProducto = '';
+    this.productosSugeridos = [];
+    this.recalcularEdicion();
+
+    const modal = document.getElementById('editarCotizacionModal');
+    if (modal) {
+      new (window as any).bootstrap.Modal(modal).show();
+    }
+  }
+
+  buscarProductoEdicion(): void {
+    const termino = this.terminoBusquedaProducto.trim();
+    if (termino.length < 2) {
+      this.productosSugeridos = [];
+      return;
+    }
+    this.buscandoProducto = true;
+    this.productosService.buscarProductos(termino).subscribe({
+      next: (productos) => {
+        this.productosSugeridos = productos;
+        this.buscandoProducto = false;
+      },
+      error: () => {
+        this.buscandoProducto = false;
+      }
+    });
+  }
+
+  agregarProductoEdicion(producto: ProductoSugerencia): void {
+    const existe = this.itemsEdicion.find(i => i.producto_id === producto.id);
+    if (existe) {
+      existe.cantidad++;
+    } else {
+      this.itemsEdicion.push({
+        producto_id: producto.id,
+        nombre: producto.nombre,
+        cantidad: 1,
+        precio_unitario: producto.precio ?? 0,
+      });
+    }
+    this.terminoBusquedaProducto = '';
+    this.productosSugeridos = [];
+    this.recalcularEdicion();
+  }
+
+  cambiarCantidadEdicion(item: ItemEdicion, delta: number): void {
+    const nueva = item.cantidad + delta;
+    if (nueva >= 1) {
+      item.cantidad = nueva;
+      this.recalcularEdicion();
+    }
+  }
+
+  quitarProductoEdicion(index: number): void {
+    this.itemsEdicion.splice(index, 1);
+    this.recalcularEdicion();
+  }
+
+  recalcularEdicion(): void {
+    const subtotal = this.itemsEdicion.reduce(
+      (acc, i) => acc + i.cantidad * i.precio_unitario, 0
+    );
+    const costo = Number(this.cotizacionEnEdicion?.costo_envio) || 0;
+    this.subtotalEdicion = subtotal;
+    this.igvEdicion = subtotal * 0.18;
+    this.totalEdicion = subtotal + this.igvEdicion + costo;
+  }
+
+  guardarEdicion(): void {
+    if (!this.cotizacionEnEdicion) return;
+
+    if (!this.formEdicion.cliente_nombre || !this.formEdicion.cliente_email ||
+        !this.formEdicion.telefono_contacto || !this.formEdicion.direccion_envio ||
+        this.itemsEdicion.length === 0) {
+      Swal.fire('Datos incompletos', 'Completa los campos obligatorios y deja al menos un producto.', 'warning');
+      return;
+    }
+
+    this.guardandoEdicion = true;
+    const payload = {
+      ...this.formEdicion,
+      productos: this.itemsEdicion.map(i => ({
+        producto_id: i.producto_id,
+        cantidad: i.cantidad,
+      })),
+    };
+
+    this.cotizacionesService.actualizarCotizacionEcommerce(this.cotizacionEnEdicion.id, payload).subscribe({
+      next: (response) => {
+        this.guardandoEdicion = false;
+        if (response.status === 'success') {
+          const modal = document.getElementById('editarCotizacionModal');
+          if (modal) {
+            (window as any).bootstrap.Modal.getInstance(modal)?.hide();
+          }
+          Swal.fire({
+            title: '¡Actualizada!',
+            text: 'La cotización se actualizó correctamente.',
+            icon: 'success',
+            confirmButtonColor: '#198754'
+          });
+          this.cargarCotizaciones();
+        }
+      },
+      error: (error) => {
+        this.guardandoEdicion = false;
+        Swal.fire({
+          title: 'Error',
+          text: error.error?.message || 'No se pudo actualizar la cotización.',
+          icon: 'error',
+          confirmButtonColor: '#dc3545'
+        });
+      }
+    });
   }
 }

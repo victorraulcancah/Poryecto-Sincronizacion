@@ -69,6 +69,14 @@
                 <span class="text-xs">Comprar</span>
               </button>
 
+              <button *ngIf="cotizacion.estado_actual.id === 1"
+                      (click)="abrirEdicion(cotizacion)"
+                      class="btn btn-outline-main btn-xs rounded-pill px-12 py-6 d-flex align-items-center gap-2 transition-2"
+                      title="Editar datos y productos de la cotización">
+                <i class="ph-bold ph-pencil-simple text-xs"></i>
+                <span class="text-xs">Editar</span>
+              </button>
+
               <button (click)="pedirCotizacion(cotizacion)"
                       class="btn btn-xs rounded-pill px-12 py-6 d-flex align-items-center gap-2 transition-2"
                       [ngClass]="cotizacion.estado_actual.id === 1 ? 'btn-info' : 'btn-secondary opacity-50'"
@@ -140,6 +148,192 @@
       <div class="modal-footer border-top-0 pt-0 px-32 pb-24 justify-content-end">
         <button type="button" class="btn btn-success rounded-8 px-48 py-10 fw-bold text-sm" (click)="imprimirIframe()">
           IMPRIMIR
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Editar Cotización -->
+<div class="modal fade" id="editarCotizacionModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content border-0 shadow-lg rounded-16 overflow-hidden">
+
+      <!-- Header rojo -->
+      <div class="modal-header border-bottom-0 px-32 py-20"
+           style="background: linear-gradient(135deg, #c22026 0%, #a01a1f 100%);">
+        <div class="d-flex align-items-center gap-16">
+          <div class="w-48 h-48 rounded-circle flex-center"
+               style="background: rgba(255,255,255,0.18);">
+            <i class="ph-bold ph-pencil-simple text-white text-xl"></i>
+          </div>
+          <div>
+            <h5 class="modal-title fw-bold mb-0 text-white">Editar Cotización</h5>
+            <small class="text-white" style="opacity:0.75; letter-spacing:0.5px;">
+              {{ cotizacionEnEdicion?.codigo_cotizacion }}
+            </small>
+          </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- Tabs -->
+      <div class="px-32 pt-20 bg-white">
+        <div class="d-flex gap-8 border-bottom border-gray-100">
+          <button class="edit-tab" [class.edit-tab--active]="activeTabEdicion === 'datos'"
+                  (click)="activeTabEdicion = 'datos'">
+            <i class="ph-bold ph-user-circle me-6"></i>Datos del cliente
+          </button>
+          <button class="edit-tab" [class.edit-tab--active]="activeTabEdicion === 'productos'"
+                  (click)="activeTabEdicion = 'productos'">
+            <i class="ph-bold ph-shopping-cart me-6"></i>Productos
+            <span class="edit-tab__badge">{{ itemsEdicion.length }}</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-body px-32 py-24" style="background:#fafafa;">
+
+        <!-- ════════ TAB DATOS ════════ -->
+        <div *ngIf="activeTabEdicion === 'datos'" class="bg-white rounded-12 p-24 border border-gray-100">
+          <div class="row g-20">
+            <div class="col-md-6">
+              <label class="form-label text-sm fw-semibold text-heading mb-6">
+                Nombre / Razón Social <span style="color:#c22026;">*</span>
+              </label>
+              <input type="text" class="form-control rounded-8" [(ngModel)]="formEdicion.cliente_nombre"
+                     placeholder="Nombre completo">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-sm fw-semibold text-heading mb-6">Documento</label>
+              <input type="text" class="form-control rounded-8" [(ngModel)]="formEdicion.numero_documento"
+                     placeholder="DNI / RUC">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-sm fw-semibold text-heading mb-6">
+                Correo electrónico <span style="color:#c22026;">*</span>
+              </label>
+              <input type="email" class="form-control rounded-8" [(ngModel)]="formEdicion.cliente_email"
+                     placeholder="correo@ejemplo.com">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-sm fw-semibold text-heading mb-6">
+                Teléfono <span style="color:#c22026;">*</span>
+              </label>
+              <input type="text" class="form-control rounded-8" [(ngModel)]="formEdicion.telefono_contacto"
+                     placeholder="999 999 999">
+            </div>
+            <div class="col-12">
+              <label class="form-label text-sm fw-semibold text-heading mb-6">
+                Dirección de envío <span style="color:#c22026;">*</span>
+              </label>
+              <input type="text" class="form-control rounded-8" [(ngModel)]="formEdicion.direccion_envio"
+                     placeholder="Calle, número, referencia">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-sm fw-semibold text-heading mb-6">Método de pago preferido</label>
+              <select class="form-select rounded-8" [(ngModel)]="formEdicion.metodo_pago_preferido">
+                <option value="">Sin preferencia</option>
+                <option value="Efectivo">Efectivo</option>
+                <option value="Tarjeta">Tarjeta de crédito/débito</option>
+                <option value="Transferencia">Transferencia bancaria</option>
+                <option value="Yape">Yape</option>
+                <option value="Plin">Plin</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label text-sm fw-semibold text-heading mb-6">Observaciones</label>
+              <textarea class="form-control rounded-8" rows="2" [(ngModel)]="formEdicion.observaciones"
+                        placeholder="Comentarios adicionales..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- ════════ TAB PRODUCTOS ════════ -->
+        <div *ngIf="activeTabEdicion === 'productos'">
+          <!-- Buscador -->
+          <div class="position-relative mb-20">
+            <i class="ph ph-magnifying-glass position-absolute top-50 translate-middle-y ms-16 text-gray-400"></i>
+            <input type="text" class="form-control rounded-8 ps-44 py-12"
+                   placeholder="Buscar producto para agregar..."
+                   [(ngModel)]="terminoBusquedaProducto"
+                   (ngModelChange)="buscarProductoEdicion()">
+            <div *ngIf="productosSugeridos.length > 0"
+                 class="position-absolute w-100 bg-white border border-gray-100 rounded-8 shadow-lg mt-4"
+                 style="z-index: 20; max-height: 240px; overflow-y: auto;">
+              <button *ngFor="let p of productosSugeridos"
+                      type="button"
+                      class="edit-search-item"
+                      (click)="agregarProductoEdicion(p)">
+                <span class="text-sm text-truncate">{{ p.nombre }}</span>
+                <span class="text-xs fw-bold" style="color:#c22026;">S/ {{ p.precio | number:'1.2-2' }}</span>
+              </button>
+            </div>
+            <small *ngIf="buscandoProducto" class="text-gray-500 mt-4 d-block">
+              <span class="spinner-border spinner-border-sm me-1"></span> Buscando...
+            </small>
+          </div>
+
+          <!-- Lista de productos -->
+          <div class="bg-white rounded-12 border border-gray-100 overflow-hidden">
+            <div *ngIf="itemsEdicion.length === 0" class="text-center text-gray-400 py-40">
+              <i class="ph ph-shopping-cart-simple d-block mb-8" style="font-size:40px;"></i>
+              <p class="mb-0 text-sm">No hay productos. Busca y agrega al menos uno.</p>
+            </div>
+
+            <div *ngFor="let item of itemsEdicion; let i = index"
+                 class="edit-prod-row">
+              <div class="flex-grow-1" style="min-width:0;">
+                <div class="text-sm fw-semibold text-heading text-truncate">{{ item.nombre }}</div>
+                <div class="text-xs text-gray-500">S/ {{ item.precio_unitario | number:'1.2-2' }} c/u</div>
+              </div>
+              <div class="edit-qty">
+                <button type="button" class="edit-qty__btn" (click)="cambiarCantidadEdicion(item, -1)">−</button>
+                <span class="edit-qty__val">{{ item.cantidad }}</span>
+                <button type="button" class="edit-qty__btn" (click)="cambiarCantidadEdicion(item, 1)">+</button>
+              </div>
+              <span class="text-sm fw-bold text-end flex-shrink-0" style="min-width:78px; color:#c22026;">
+                S/ {{ (item.cantidad * item.precio_unitario) | number:'1.2-2' }}
+              </span>
+              <button type="button" class="edit-prod-row__del" (click)="quitarProductoEdicion(i)">
+                <i class="ph ph-trash"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Totales -->
+          <div class="bg-white rounded-12 border border-gray-100 p-20 mt-20">
+            <div class="d-flex justify-content-between text-sm mb-8">
+              <span class="text-gray-500">Subtotal</span>
+              <span class="fw-semibold text-heading">S/ {{ subtotalEdicion | number:'1.2-2' }}</span>
+            </div>
+            <div class="d-flex justify-content-between text-sm mb-8">
+              <span class="text-gray-500">IGV (18%)</span>
+              <span class="fw-semibold text-heading">S/ {{ igvEdicion | number:'1.2-2' }}</span>
+            </div>
+            <div class="d-flex justify-content-between text-sm mb-12">
+              <span class="text-gray-500">Costo de envío</span>
+              <span class="fw-semibold text-heading">S/ {{ cotizacionEnEdicion?.costo_envio || 0 | number:'1.2-2' }}</span>
+            </div>
+            <div class="d-flex justify-content-between pt-12 border-top">
+              <span class="fw-bold text-heading">TOTAL</span>
+              <span class="fw-bold fs-5" style="color:#c22026;">S/ {{ totalEdicion | number:'1.2-2' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer border-top-0 px-32 py-20 bg-white">
+        <button type="button" class="btn btn-outline-secondary rounded-8 px-24 py-10" data-bs-dismiss="modal">
+          Cancelar
+        </button>
+        <button type="button" class="btn rounded-8 fw-semibold px-32 py-10 text-white"
+                style="background: linear-gradient(135deg, #c22026 0%, #a01a1f 100%);"
+                [disabled]="guardandoEdicion"
+                (click)="guardarEdicion()">
+          <span *ngIf="guardandoEdicion" class="spinner-border spinner-border-sm me-2"></span>
+          <i *ngIf="!guardandoEdicion" class="ph-bold ph-check-circle me-2"></i>
+          {{ guardandoEdicion ? 'Guardando...' : 'Guardar cambios' }}
         </button>
       </div>
     </div>

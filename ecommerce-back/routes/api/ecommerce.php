@@ -68,6 +68,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // ============================================
     Route::prefix('cotizaciones')->group(function () {
         Route::post('/ecommerce', [CotizacionesController::class, 'crearCotizacionEcommerce']);
+        Route::put('/{id}/ecommerce', [CotizacionesController::class, 'actualizarCotizacionEcommerce']);
         Route::get('/mis-cotizaciones', [CotizacionesController::class, 'misCotizaciones']);
         Route::get('/{id}/pdf', [CotizacionesController::class, 'generarPDF']);
         Route::get('/{id}/tracking', [CotizacionesController::class, 'getTracking']);

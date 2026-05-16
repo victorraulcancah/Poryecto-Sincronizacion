@@ -9,6 +9,9 @@ export interface Cotizacion {
   codigo_cotizacion: string;
   fecha_cotizacion: string;
   fecha_vencimiento?: string;
+  subtotal?: number;
+  igv?: number;
+  costo_envio?: number;
   total: number;
   estado_actual: EstadoCotizacion;
   forma_envio: string;
@@ -21,10 +24,12 @@ export interface Cotizacion {
   cliente_nombre?: string;
   cliente_email?: string;
   telefono_contacto?: string;
+  numero_documento?: string;
   metodo_pago_preferido?: string;
 }
 
 export interface ProductoCotizacion {
+  producto_id?: number;
   nombre: string;
   cantidad: number;
   precio_unitario: number;
@@ -111,6 +116,24 @@ export class CotizacionesService {
         }),
         catchError(error => {
           console.error('❌ Error creando cotización:', error);
+          throw error;
+        })
+      );
+  }
+
+  /**
+   * Actualizar cotización desde el e-commerce (solo cliente dueño, solo Pendiente)
+   */
+  actualizarCotizacionEcommerce(id: number, data: Partial<CrearCotizacionRequest>): Observable<ApiResponse<Cotizacion>> {
+    return this.http.put<ApiResponse<Cotizacion>>(`${this.apiUrl}/cotizaciones/${id}/ecommerce`, data)
+      .pipe(
+        tap(response => {
+          if (response.status === 'success') {
+            console.log('✅ Cotización actualizada:', response.codigo_cotizacion);
+          }
+        }),
+        catchError(error => {
+          console.error('❌ Error actualizando cotización:', error);
           throw error;
         })
       );
