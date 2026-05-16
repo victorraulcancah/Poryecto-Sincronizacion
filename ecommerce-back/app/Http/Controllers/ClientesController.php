@@ -281,17 +281,29 @@ class ClientesController extends Controller
         try {
             $cliente = UserCliente::findOrFail($id);
 
+            // El modal de edición envía un solo campo "nombre" combinado.
+            // Si no vienen nombres/apellidos, los derivamos del "nombre".
+            if (!$request->filled('nombres') && $request->filled('nombre')) {
+                $partes = preg_split('/\s+/', trim($request->input('nombre')), 2);
+                $request->merge([
+                    'nombres'   => $partes[0] ?? $cliente->nombres,
+                    'apellidos' => $partes[1] ?? ($cliente->apellidos ?: $partes[0] ?? ''),
+                ]);
+            }
+
             $request->validate([
-                'nombres' => 'required|string|max:255',
-                'apellidos' => 'required|string|max:255',
-                'email' => 'required|email|max:255|unique:user_clientes,email,' . $id,
+                'nombres' => 'sometimes|required|string|max:255',
+                'apellidos' => 'sometimes|required|string|max:255',
+                'email' => 'sometimes|required|email|max:255|unique:user_clientes,email,' . $id,
                 'telefono' => 'nullable|string|max:20',
                 'fecha_nacimiento' => 'nullable|date',
                 'genero' => 'nullable|in:masculino,femenino,otro',
-                'estado' => 'required|boolean',
+                'estado' => 'sometimes|required|boolean',
                 'tipo_precio_id' => 'nullable|exists:tipos_precio,id',
             ]);
 
+            // Solo se actualizan los campos presentes en la petición;
+            // el resto del cliente se conserva tal cual.
             $cliente->update($request->only([
                 'nombres', 'apellidos', 'email', 'telefono',
                 'fecha_nacimiento', 'genero', 'estado', 'tipo_precio_id'
