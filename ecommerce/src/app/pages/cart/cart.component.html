@@ -23,6 +23,22 @@
 
     <!-- Carrito con productos -->
     <div *ngIf="cartItems.length > 0" class="row gy-4">
+
+      <!-- Aviso invitado: precios solo para clientes -->
+      <div *ngIf="!isLoggedIn" class="col-12">
+        <div class="d-flex align-items-center gap-12 p-16 rounded-12 mb-8"
+             style="background:#fff4f4; border:1px solid #f3c2c4;">
+          <i class="ph-fill ph-lock-key" style="font-size:1.6rem; color:#c22026;"></i>
+          <div class="flex-grow-1">
+            <strong class="d-block text-heading">Inicia sesión para ver precios y finalizar tu compra</strong>
+            <span class="text-sm text-gray-600">Los precios y el total están disponibles solo para clientes registrados.</span>
+          </div>
+          <a routerLink="/account" class="btn btn-main rounded-8 px-20 py-10 flex-shrink-0">
+            Iniciar sesión
+          </a>
+        </div>
+      </div>
+
       <div class="col-xl-8 col-lg-7">
         <div class="cart-table border border-gray-100 rounded-12 p-24">
           
@@ -102,23 +118,28 @@
 
                   <!-- Precio -->
                   <td class="px-12 py-12" style="vertical-align: middle;">
-                    <!-- Si tiene descuento, mostrar precio original tachado y precio con descuento -->
-                    <div *ngIf="item.descuento_porcentaje && item.descuento_porcentaje > 0" class="d-flex flex-column gap-1">
-                      <div class="d-flex align-items-center gap-2">
-                        <span class="text-decoration-line-through text-gray-400" style="font-size: 0.7rem;">
-                          S/ {{ formatPrice(item.precio) }}
-                        </span>
-                        <span class="badge bg-danger-600 text-white px-4 py-1" style="font-size: 0.6rem; line-height: 1;">
-                          -{{ item.descuento_porcentaje }}%
+                    <ng-container *ngIf="isLoggedIn">
+                      <!-- Si tiene descuento, mostrar precio original tachado y precio con descuento -->
+                      <div *ngIf="item.descuento_porcentaje && item.descuento_porcentaje > 0" class="d-flex flex-column gap-1">
+                        <div class="d-flex align-items-center gap-2">
+                          <span class="text-decoration-line-through text-gray-400" style="font-size: 0.7rem;">
+                            S/ {{ formatPrice(item.precio) }}
+                          </span>
+                          <span class="badge bg-danger-600 text-white px-4 py-1" style="font-size: 0.6rem; line-height: 1;">
+                            -{{ item.descuento_porcentaje }}%
+                          </span>
+                        </div>
+                        <span class="fw-semibold text-danger-600" style="font-size: 0.85rem;">
+                          S/ {{ formatPrice(item.precio_con_descuento) }}
                         </span>
                       </div>
-                      <span class="fw-semibold text-danger-600" style="font-size: 0.85rem;">
-                        S/ {{ formatPrice(item.precio_con_descuento) }}
+                      <!-- Si NO tiene descuento, mostrar precio normal -->
+                      <span *ngIf="!item.descuento_porcentaje || item.descuento_porcentaje === 0" class="fw-semibold" style="font-size: 0.9rem;">
+                        S/ {{ formatPrice(item.precio) }}
                       </span>
-                    </div>
-                    <!-- Si NO tiene descuento, mostrar precio normal -->
-                    <span *ngIf="!item.descuento_porcentaje || item.descuento_porcentaje === 0" class="fw-semibold" style="font-size: 0.9rem;">
-                      S/ {{ formatPrice(item.precio) }}
+                    </ng-container>
+                    <span *ngIf="!isLoggedIn" class="text-gray-400" style="font-size: 0.9rem;" title="Inicia sesión para ver el precio">
+                      <i class="ph ph-lock-key"></i> —
                     </span>
                   </td>
 
@@ -154,7 +175,10 @@
 
                   <!-- Subtotal -->
                   <td class="px-12 py-12" style="vertical-align: middle;">
-                    <span class="fw-bold" style="font-size: 0.95rem;">S/ {{ formatPrice(getItemSubtotal(item)) }}</span>
+                    <span *ngIf="isLoggedIn" class="fw-bold" style="font-size: 0.95rem;">S/ {{ formatPrice(getItemSubtotal(item)) }}</span>
+                    <span *ngIf="!isLoggedIn" class="text-gray-400 fw-bold" style="font-size: 0.95rem;">
+                      <i class="ph ph-lock-key"></i> —
+                    </span>
                   </td>
 
                   <!-- Acciones -->
@@ -250,40 +274,54 @@
           <h6 class="text-xl fw-semibold mb-24">Resumen del pedido</h6>
           
           <div class="cart-summary">
-            <!-- Subtotal -->
-            <div class="d-flex justify-content-between align-items-center mb-16">
-              <span class="text-gray-600">Subtotal ({{ cartSummary.cantidad_items }} items):</span>
-              <span class="text-heading fw-medium">S/ {{ formatPrice(cartSummary.subtotal) }}</span>
+
+            <!-- Invitado: sin precios, login requerido -->
+            <div *ngIf="!isLoggedIn" class="text-center py-24 px-12 rounded-12 mb-24"
+                 style="background:#fff4f4; border:1px dashed #f3c2c4;">
+              <i class="ph-fill ph-lock-key d-block mb-8" style="font-size:2rem; color:#c22026;"></i>
+              <p class="fw-semibold text-heading mb-4">Precios solo para clientes</p>
+              <p class="text-sm text-gray-600 mb-16">Inicia sesión para ver el subtotal, IGV y total de tu pedido.</p>
+              <a routerLink="/account" class="btn btn-main w-100 py-14 rounded-8">
+                <i class="ph ph-sign-in me-8"></i>Iniciar sesión
+              </a>
             </div>
 
-            <!-- IGV (solo mostrar si hay exactamente 1 producto Y tiene mostrar_igv = true) -->
-            <div *ngIf="cartItems.length === 1 && cartItems[0].mostrar_igv === true" class="d-flex justify-content-between align-items-center mb-16">
-              <span class="text-gray-600">IGV (18%):</span>
-              <span class="text-heading fw-medium">S/ {{ formatPrice(cartSummary.igv) }}</span>
-            </div>
+            <ng-container *ngIf="isLoggedIn">
+              <!-- Subtotal -->
+              <div class="d-flex justify-content-between align-items-center mb-16">
+                <span class="text-gray-600">Subtotal ({{ cartSummary.cantidad_items }} items):</span>
+                <span class="text-heading fw-medium">S/ {{ formatPrice(cartSummary.subtotal) }}</span>
+              </div>
 
-            <!-- Descuento por cupón -->
-            <div *ngIf="descuentoCupon > 0" class="d-flex justify-content-between align-items-center mb-16">
-              <span class="text-success-600">Descuento cupón:</span>
-              <span class="text-success-600 fw-medium">-S/ {{ formatPrice(descuentoCupon) }}</span>
-            </div>
+              <!-- IGV (solo mostrar si hay exactamente 1 producto Y tiene mostrar_igv = true) -->
+              <div *ngIf="cartItems.length === 1 && cartItems[0].mostrar_igv === true" class="d-flex justify-content-between align-items-center mb-16">
+                <span class="text-gray-600">IGV (18%):</span>
+                <span class="text-heading fw-medium">S/ {{ formatPrice(cartSummary.igv) }}</span>
+              </div>
 
-            <!-- Envío -->
-            <div class="d-flex justify-content-between align-items-center mb-24">
-              <span class="text-gray-600">Envío:</span>
-              <span class="text-success-600 fw-medium">Gratis</span>
-            </div>
+              <!-- Descuento por cupón -->
+              <div *ngIf="descuentoCupon > 0" class="d-flex justify-content-between align-items-center mb-16">
+                <span class="text-success-600">Descuento cupón:</span>
+                <span class="text-success-600 fw-medium">-S/ {{ formatPrice(descuentoCupon) }}</span>
+              </div>
 
-            <hr class="border-gray-200 my-16">
+              <!-- Envío -->
+              <div class="d-flex justify-content-between align-items-center mb-24">
+                <span class="text-gray-600">Envío:</span>
+                <span class="text-success-600 fw-medium">Gratis</span>
+              </div>
 
-            <!-- Total -->
-            <div class="d-flex justify-content-between align-items-center mb-32">
-              <span class="text-heading text-xl fw-bold">Total:</span>
-              <span class="text-heading text-xl fw-bold">S/ {{ formatPrice(getTotalFinal()) }}</span>
-            </div>
+              <hr class="border-gray-200 my-16">
 
-            <!-- Botón de checkout -->
-            <button 
+              <!-- Total -->
+              <div class="d-flex justify-content-between align-items-center mb-32">
+                <span class="text-heading text-xl fw-bold">Total:</span>
+                <span class="text-heading text-xl fw-bold">S/ {{ formatPrice(getTotalFinal()) }}</span>
+              </div>
+            </ng-container>
+
+            <!-- Botón de checkout (solo cliente logueado) -->
+            <button *ngIf="isLoggedIn"
               class="btn btn-main w-100 py-16 rounded-8 mb-16"
               (click)="proceedToCheckout()">
               <i class="ph ph-credit-card me-8"></i>

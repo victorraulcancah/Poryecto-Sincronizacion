@@ -368,26 +368,41 @@
                 </div>
 
                 <div class="product-card__content mt-12">
-                  <div class="product-card__price mb-8">
-                    <span class="text-heading text-md fw-semibold">S/ {{ product.precio_oferta || product.precio }}
-                      <span class="text-gray-500 fw-normal">/Qty</span>
-                    </span>
-                    <span *ngIf="product.precio_oferta && product.precio"
-                      class="text-gray-400 text-md fw-semibold text-decoration-line-through">S/ {{ product.precio
-                      }}</span>
-                  </div>
-                  <div class="flex-align gap-6">
-                    <span class="text-xs fw-bold text-gray-600">{{
-                      product.rating || 4.8
-                      }}</span>
-                    <span class="text-15 fw-bold text-warning-600 d-flex"><i class="ph-fill ph-star"></i></span>
-                    <span class="text-xs fw-bold text-gray-600">({{ product.reviews_count || "17" }}k)</span>
-                  </div>
-                  <!-- ✅ BOTÓN MEJORADO PARA AGREGAR AL CARRITO -->
-                  <button (click)="addToCart(product)"
-                    class="product-card__cart btn bg-main-50 text-main-600 hover-bg-main-600 hover-text-white py-11 px-24 rounded-pill flex-align gap-8 mt-24 w-100 justify-content-center">
-                    Agregar al carrito <i class="ph ph-shopping-cart"></i>
-                  </button>
+                  <!-- Precio visible (cliente logueado) -->
+                  <ng-container *ngIf="product.precio_visible !== false">
+                    <div class="product-card__price mb-8">
+                      <span class="text-heading text-md fw-semibold">S/ {{ product.precio_oferta || product.precio }}
+                        <span class="text-gray-500 fw-normal">/Qty</span>
+                      </span>
+                      <span *ngIf="product.precio_oferta && product.precio"
+                        class="text-gray-400 text-md fw-semibold text-decoration-line-through">S/ {{ product.precio
+                        }}</span>
+                    </div>
+                    <div class="flex-align gap-6">
+                      <span class="text-xs fw-bold text-gray-600">{{
+                        product.rating || 4.8
+                        }}</span>
+                      <span class="text-15 fw-bold text-warning-600 d-flex"><i class="ph-fill ph-star"></i></span>
+                      <span class="text-xs fw-bold text-gray-600">({{ product.reviews_count || "17" }}k)</span>
+                    </div>
+                    <button (click)="addToCart(product)"
+                      class="product-card__cart btn bg-main-50 text-main-600 hover-bg-main-600 hover-text-white py-11 px-24 rounded-pill flex-align gap-8 mt-24 w-100 justify-content-center">
+                      Agregar al carrito <i class="ph ph-shopping-cart"></i>
+                    </button>
+                  </ng-container>
+
+                  <!-- Invitado: precio oculto, login requerido -->
+                  <ng-container *ngIf="product.precio_visible === false">
+                    <div class="product-card__price mb-8">
+                      <span class="text-gray-500 fw-medium text-sm">
+                        <i class="ph ph-lock-key me-4"></i>Precio solo para clientes
+                      </span>
+                    </div>
+                    <a routerLink="/account"
+                      class="product-card__cart btn bg-main-600 text-white hover-bg-main-700 py-11 px-24 rounded-pill flex-align gap-8 mt-24 w-100 justify-content-center">
+                      Inicia sesión para ver el precio <i class="ph ph-sign-in"></i>
+                    </a>
+                  </ng-container>
                 </div>
               </div>
             </div>
@@ -946,15 +961,21 @@
                         product.nombre }}</a>
                     </h6>
                     <div class="product-card__price flex-align gap-8">
-                      <span class="text-heading text-md fw-semibold d-block">
-                        S/ {{ product.precio | number : "1.2-2" }}
-                      </span>
-                      <span *ngIf="
-                          product.precio_oferta &&
-                          product.precio_oferta < product.precio
-                        " class="text-gray-400 text-sm fw-normal text-decoration-line-through">
-                        S/ {{ product.precio_oferta | number : "1.2-2" }}
-                      </span>
+                      <ng-container *ngIf="product.precio_visible !== false">
+                        <span class="text-heading text-md fw-semibold d-block">
+                          S/ {{ product.precio | number : "1.2-2" }}
+                        </span>
+                        <span *ngIf="
+                            product.precio_oferta &&
+                            product.precio_oferta < product.precio
+                          " class="text-gray-400 text-sm fw-normal text-decoration-line-through">
+                          S/ {{ product.precio_oferta | number : "1.2-2" }}
+                        </span>
+                      </ng-container>
+                      <a *ngIf="product.precio_visible === false" routerLink="/account"
+                        class="text-main-600 text-sm fw-semibold">
+                        <i class="ph ph-lock-key me-4"></i>Inicia sesión para ver precio
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -995,15 +1016,21 @@
                         product.nombre }}</a>
                     </h6>
                     <div class="product-card__price flex-align gap-8">
-                      <span class="text-heading text-md fw-semibold d-block">
-                        S/ {{ product.precio | number : "1.2-2" }}
-                      </span>
-                      <span *ngIf="
-                          product.precio_oferta &&
-                          product.precio_oferta < product.precio
-                        " class="text-gray-400 text-sm fw-normal text-decoration-line-through">
-                        S/ {{ product.precio_oferta | number : "1.2-2" }}
-                      </span>
+                      <ng-container *ngIf="product.precio_visible !== false">
+                        <span class="text-heading text-md fw-semibold d-block">
+                          S/ {{ product.precio | number : "1.2-2" }}
+                        </span>
+                        <span *ngIf="
+                            product.precio_oferta &&
+                            product.precio_oferta < product.precio
+                          " class="text-gray-400 text-sm fw-normal text-decoration-line-through">
+                          S/ {{ product.precio_oferta | number : "1.2-2" }}
+                        </span>
+                      </ng-container>
+                      <a *ngIf="product.precio_visible === false" routerLink="/account"
+                        class="text-main-600 text-sm fw-semibold">
+                        <i class="ph ph-lock-key me-4"></i>Inicia sesión para ver precio
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -1090,15 +1117,21 @@
                         product.nombre }}</a>
                     </h6>
                     <div class="product-card__price flex-align gap-8">
-                      <span class="text-heading text-md fw-semibold d-block">
-                        S/ {{ product.precio | number : "1.2-2" }}
-                      </span>
-                      <span *ngIf="
-                          product.precio_oferta &&
-                          product.precio_oferta < product.precio
-                        " class="text-gray-400 text-sm fw-normal text-decoration-line-through">
-                        S/ {{ product.precio_oferta | number : "1.2-2" }}
-                      </span>
+                      <ng-container *ngIf="product.precio_visible !== false">
+                        <span class="text-heading text-md fw-semibold d-block">
+                          S/ {{ product.precio | number : "1.2-2" }}
+                        </span>
+                        <span *ngIf="
+                            product.precio_oferta &&
+                            product.precio_oferta < product.precio
+                          " class="text-gray-400 text-sm fw-normal text-decoration-line-through">
+                          S/ {{ product.precio_oferta | number : "1.2-2" }}
+                        </span>
+                      </ng-container>
+                      <a *ngIf="product.precio_visible === false" routerLink="/account"
+                        class="text-main-600 text-sm fw-semibold">
+                        <i class="ph ph-lock-key me-4"></i>Inicia sesión para ver precio
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -1139,15 +1172,21 @@
                         product.nombre }}</a>
                     </h6>
                     <div class="product-card__price flex-align gap-8">
-                      <span class="text-heading text-md fw-semibold d-block">
-                        S/ {{ product.precio | number : "1.2-2" }}
-                      </span>
-                      <span *ngIf="
-                          product.precio_oferta &&
-                          product.precio_oferta < product.precio
-                        " class="text-gray-400 text-sm fw-normal text-decoration-line-through">
-                        S/ {{ product.precio_oferta | number : "1.2-2" }}
-                      </span>
+                      <ng-container *ngIf="product.precio_visible !== false">
+                        <span class="text-heading text-md fw-semibold d-block">
+                          S/ {{ product.precio | number : "1.2-2" }}
+                        </span>
+                        <span *ngIf="
+                            product.precio_oferta &&
+                            product.precio_oferta < product.precio
+                          " class="text-gray-400 text-sm fw-normal text-decoration-line-through">
+                          S/ {{ product.precio_oferta | number : "1.2-2" }}
+                        </span>
+                      </ng-container>
+                      <a *ngIf="product.precio_visible === false" routerLink="/account"
+                        class="text-main-600 text-sm fw-semibold">
+                        <i class="ph ph-lock-key me-4"></i>Inicia sesión para ver precio
+                      </a>
                     </div>
                   </div>
                 </div>

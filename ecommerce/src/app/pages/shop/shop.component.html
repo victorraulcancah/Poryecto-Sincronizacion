@@ -200,33 +200,48 @@
                     </span>
                 </div>
 
-                <div class="product-card__price my-20">
-                    <span *ngIf="producto.precio_oferta" 
-                          class="text-gray-400 text-md fw-semibold text-decoration-line-through">
-                        S/ {{ producto.precio }}
-                    </span>
-                    <span class="text-heading text-md fw-semibold">
-                        S/ {{ producto.precio_oferta || producto.precio }} 
-                        <span class="text-gray-500 fw-normal">/Qty</span>
-                    </span>
-                </div>
+                <!-- Cliente logueado: precio + carrito -->
+                <ng-container *ngIf="producto.precio_visible !== false">
+                  <div class="product-card__price my-20">
+                      <span *ngIf="producto.precio_oferta"
+                            class="text-gray-400 text-md fw-semibold text-decoration-line-through">
+                          S/ {{ producto.precio }}
+                      </span>
+                      <span class="text-heading text-md fw-semibold">
+                          S/ {{ producto.precio_oferta || producto.precio }}
+                          <span class="text-gray-500 fw-normal">/Qty</span>
+                      </span>
+                  </div>
 
-                <!-- ✅ BOTÓN IGUAL QUE INDEX - CENTRADO -->
-                <button
-                   (click)="addToCart(producto)"
-                   [disabled]="producto.stock <= 0"
-                   class="product-card__cart btn bg-main-50 text-main-600 hover-bg-main-600 hover-text-white py-11 px-24 rounded-pill flex-align gap-8 mt-24 w-100 justify-content-center"
-                   [ngClass]="{
-                     'bg-main-50 text-main-600 hover-bg-main-600 hover-text-white': producto.stock > 0,
-                     'bg-gray-200 text-gray-500': producto.stock <= 0
-                   }">
-                    <span *ngIf="producto.stock > 0">
-                        Agregar al carrito <i class="ph ph-shopping-cart"></i>
-                    </span>
-                    <span *ngIf="producto.stock <= 0">
-                        Sin stock <i class="ph ph-x-circle"></i>
-                    </span>
-                </button>
+                  <button
+                     (click)="addToCart(producto)"
+                     [disabled]="producto.stock <= 0"
+                     class="product-card__cart btn bg-main-50 text-main-600 hover-bg-main-600 hover-text-white py-11 px-24 rounded-pill flex-align gap-8 mt-24 w-100 justify-content-center"
+                     [ngClass]="{
+                       'bg-main-50 text-main-600 hover-bg-main-600 hover-text-white': producto.stock > 0,
+                       'bg-gray-200 text-gray-500': producto.stock <= 0
+                     }">
+                      <span *ngIf="producto.stock > 0">
+                          Agregar al carrito <i class="ph ph-shopping-cart"></i>
+                      </span>
+                      <span *ngIf="producto.stock <= 0">
+                          Sin stock <i class="ph ph-x-circle"></i>
+                      </span>
+                  </button>
+                </ng-container>
+
+                <!-- Invitado: precio oculto, login requerido -->
+                <ng-container *ngIf="producto.precio_visible === false">
+                  <div class="product-card__price my-20">
+                      <span class="text-gray-500 fw-medium text-sm">
+                          <i class="ph ph-lock-key me-4"></i>Precio solo para clientes
+                      </span>
+                  </div>
+                  <a routerLink="/account"
+                     class="product-card__cart btn bg-main-600 text-white hover-bg-main-700 py-11 px-24 rounded-pill flex-align gap-8 mt-24 w-100 justify-content-center">
+                      Inicia sesión para ver el precio <i class="ph ph-sign-in"></i>
+                  </a>
+                </ng-container>
             </div>
         </div>
     </div>

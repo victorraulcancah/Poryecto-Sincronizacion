@@ -220,6 +220,14 @@ export class TiposPrecioModalComponent implements OnInit {
 
   constructor(private service: TiposPrecioService) {}
 
+  // Swal por encima del modal (el modal usa z-index 99999)
+  private swal = Swal.mixin({
+    didOpen: () => {
+      const c = document.querySelector('.swal2-container') as HTMLElement | null;
+      if (c) { c.style.zIndex = '100050'; }
+    },
+  });
+
   ngOnInit(): void {
     this.cargar();
   }
@@ -228,37 +236,37 @@ export class TiposPrecioModalComponent implements OnInit {
     this.loading = true;
     this.service.listar().subscribe({
       next: (res) => { this.tipos = res.tipos_precio || []; this.loading = false; },
-      error: () => { this.loading = false; Swal.fire('Error', 'No se pudieron cargar los tipos de precio', 'error'); },
+      error: () => { this.loading = false; this.swal.fire('Error', 'No se pudieron cargar los tipos de precio', 'error'); },
     });
   }
 
   toggleActivo(t: TipoPrecio): void {
     this.service.toggleActivo(t.id).subscribe({
       next: () => this.cargar(),
-      error: () => Swal.fire('Error', 'No se pudo cambiar el estado', 'error'),
+      error: () => this.swal.fire('Error', 'No se pudo cambiar el estado', 'error'),
     });
   }
 
   marcarPredeterminado(t: TipoPrecio): void {
     if (!t.activo) return;
     this.service.marcarPredeterminado(t.id).subscribe({
-      next: () => { this.cargar(); Swal.fire({ icon: 'success', title: 'Predeterminada actualizada', timer: 1400, showConfirmButton: false }); },
-      error: (e) => Swal.fire('Error', e.error?.message || 'No se pudo actualizar', 'error'),
+      next: () => { this.cargar(); this.swal.fire({ icon: 'success', title: 'Predeterminada actualizada', timer: 1400, showConfirmButton: false }); },
+      error: (e) => this.swal.fire('Error', e.error?.message || 'No se pudo actualizar', 'error'),
     });
   }
 
   marcarInvitados(t: TipoPrecio): void {
     if (!t.activo) return;
     this.service.marcarInvitados(t.id).subscribe({
-      next: () => { this.cargar(); Swal.fire({ icon: 'success', title: 'Lista de invitados actualizada', timer: 1400, showConfirmButton: false }); },
-      error: (e) => Swal.fire('Error', e.error?.message || 'No se pudo actualizar', 'error'),
+      next: () => { this.cargar(); this.swal.fire({ icon: 'success', title: 'Lista de invitados actualizada', timer: 1400, showConfirmButton: false }); },
+      error: (e) => this.swal.fire('Error', e.error?.message || 'No se pudo actualizar', 'error'),
     });
   }
 
   quitarInvitados(): void {
     this.service.quitarInvitados().subscribe({
       next: () => this.cargar(),
-      error: () => Swal.fire('Error', 'No se pudo actualizar', 'error'),
+      error: () => this.swal.fire('Error', 'No se pudo actualizar', 'error'),
     });
   }
 }

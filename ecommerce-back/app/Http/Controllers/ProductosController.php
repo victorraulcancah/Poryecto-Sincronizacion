@@ -339,23 +339,28 @@ class ProductosController extends Controller
     }
 
     /**
-     * Resuelve el tipo de precio aplicable a la petición:
-     * - Cliente logueado: su tipo asignado o el predeterminado.
-     * - Invitado: el tipo marcado para invitados.
-     * Devuelve null si no hay ninguno (cae al precio_venta base = 0).
+     * Cliente autenticado (UserCliente) o null si es invitado.
+     */
+    private function clienteAutenticado(): ?\App\Models\UserCliente
+    {
+        $user = auth('sanctum')->user();
+        return $user instanceof \App\Models\UserCliente ? $user : null;
+    }
+
+    /**
+     * Resuelve el tipo de precio del cliente logueado.
+     * Devuelve null si es invitado (los invitados NO ven precio: login requerido).
      */
     private function resolverTipoPrecioId(Request $request): ?int
     {
-        $user = auth('sanctum')->user();
-        if ($user instanceof \App\Models\UserCliente) {
-            return $user->tipoPrecioEfectivoId();
-        }
-        return optional(\App\Models\TipoPrecio::paraInvitados())->id;
+        $cliente = $this->clienteAutenticado();
+        return $cliente ? $cliente->tipoPrecioEfectivoId() : null;
     }
 
     public function productosPublicos(Request $request)
     {
         $tipoPrecioId = $this->resolverTipoPrecioId($request);
+        $precioVisible = $this->clienteAutenticado() !== null;
 
         $query = Producto::with(['categoria.seccion', 'precios'])
             ->where('activo', true)
@@ -429,12 +434,13 @@ class ProductosController extends Controller
             $productos = $query->get();
 
             // Agregar campos calculados para el frontend
-            $productosTransformados = $productos->map(function ($producto) use ($tipoPrecioId) {
+            $productosTransformados = $productos->map(function ($producto) use ($tipoPrecioId, $precioVisible) {
                 return [
                     'id' => $producto->id,
                     'nombre' => $producto->nombre,
                     'descripcion' => $producto->descripcion,
-                    'precio' => $producto->precioPara($tipoPrecioId) ?? $producto->precio_venta,
+                    'precio' => $precioVisible ? ($producto->precioPara($tipoPrecioId) ?? $producto->precio_venta) : null,
+                    'precio_visible' => $precioVisible,
                     'precio_oferta' => null,
                     'stock' => $producto->stock,
                     'imagen_principal' => $producto->imagen ? asset('storage/productos/' . $producto->imagen) : '/placeholder-product.jpg',
@@ -466,12 +472,13 @@ class ProductosController extends Controller
         $productos = $query->paginate(20);
 
         // Agregar campos calculados para el frontend
-        $productos->getCollection()->transform(function ($producto) use ($tipoPrecioId) {
+        $productos->getCollection()->transform(function ($producto) use ($tipoPrecioId, $precioVisible) {
             return [
                 'id' => $producto->id,
                 'nombre' => $producto->nombre,
                 'descripcion' => $producto->descripcion,
-                'precio' => $producto->precioPara($tipoPrecioId) ?? $producto->precio_venta,
+                'precio' => $precioVisible ? ($producto->precioPara($tipoPrecioId) ?? $producto->precio_venta) : null,
+                'precio_visible' => $precioVisible,
                 'precio_oferta' => null, // Por ahora null, luego puedes agregar este campo
                 'stock' => $producto->stock,
                 'imagen_principal' => $producto->imagen ? asset('storage/productos/' . $producto->imagen) : '/placeholder-product.jpg', // ✅ CORREGIR
@@ -618,13 +625,17 @@ class ProductosController extends Controller
 {
     try {
         $tipoPrecioId = $this->resolverTipoPrecioId($request);
+        $precioVisible = $this->clienteAutenticado() !== null;
 
         $producto = Producto::with(['categoria', 'marca', 'precios'])
             ->where('activo', true)
             ->findOrFail($id);
 
-        // Precio resuelto según el tipo de precio del cliente/invitado
-        $producto->precio_venta = $producto->precioPara($tipoPrecioId) ?? $producto->precio_venta;
+        // Invitado: no ve precio (login requerido). Cliente: precio resuelto.
+        $producto->precio_venta = $precioVisible
+            ? ($producto->precioPara($tipoPrecioId) ?? $producto->precio_venta)
+            : 0;
+        $producto->precio_visible = $precioVisible;
 
         $detalles = ProductoDetalle::where('producto_id', $id)->first();
 
@@ -634,15 +645,17 @@ class ProductosController extends Controller
             ->where('activo', true)
             ->limit(6)
             ->get()
-            ->map(function ($p) use ($tipoPrecioId) {
-                $p->precio_venta = $p->precioPara($tipoPrecioId) ?? $p->precio_venta;
+            ->map(function ($p) use ($tipoPrecioId, $precioVisible) {
+                $p->precio_venta = $precioVisible ? ($p->precioPara($tipoPrecioId) ?? $p->precio_venta) : 0;
+                $p->precio_visible = $precioVisible;
                 return $p;
             });
 
         return response()->json([
             'producto' => $producto,
             'detalles' => $detalles,
-            'productos_relacionados' => $productosRelacionados
+            'productos_relacionados' => $productosRelacionados,
+            'precio_visible' => $precioVisible
         ]);
     } catch (\Exception $e) {
         return response()->json(['error' => 'Producto no encontrado'], 404);

@@ -113,25 +113,34 @@ export class SyncButtonComponent {
           const categoriasMatch = output.match(/Categorías sincronizadas: (\d+) nuevas/);
           const productosMatch = output.match(/Productos sincronizados: (\d+) nuevos/);
           const stockMatch = output.match(/Stock actualizado: (\d+) productos/);
+          const tiposPrecioMatch = output.match(/Tipos de precio sincronizados: (\d+) nuevas, (\d+) actualizadas/);
+          const preciosMatch = output.match(/Precios sincronizados: (\d+) nuevos, (\d+) actualizados/);
 
           const marcasNuevas = marcasMatch ? marcasMatch[1] : '0';
           const categoriasNuevas = categoriasMatch ? categoriasMatch[1] : '0';
           const productosNuevos = productosMatch ? productosMatch[1] : '0';
           const stockActualizado = stockMatch ? stockMatch[1] : '0';
+          const tiposPrecioNuevos = tiposPrecioMatch ? tiposPrecioMatch[1] : '0';
+          const tiposPrecioActualizados = tiposPrecioMatch ? tiposPrecioMatch[2] : '0';
+          const preciosNuevos = preciosMatch ? preciosMatch[1] : '0';
+          const preciosActualizados = preciosMatch ? preciosMatch[2] : '0';
 
           Swal.fire({
             title: '¡Sincronización Exitosa!',
             html: `
-              <div style="text-align: left; margin: 20px auto; max-width: 350px;">
+              <div style="text-align: left; margin: 20px auto; max-width: 360px;">
                 <p><strong>📊 Resultados:</strong></p>
                 <ul>
                   <li>🏷️ Marcas nuevas: <strong>${marcasNuevas}</strong></li>
                   <li>📁 Categorías nuevas: <strong>${categoriasNuevas}</strong></li>
                   <li>📦 Productos nuevos: <strong>${productosNuevos}</strong></li>
                   <li>📊 Stock actualizado: <strong>${stockActualizado}</strong> productos</li>
+                  <li>🗂️ Listas de precio: <strong>${tiposPrecioNuevos}</strong> nuevas, <strong>${tiposPrecioActualizados}</strong> actualizadas</li>
+                  <li>💲 Precios: <strong>${preciosNuevos}</strong> nuevos, <strong>${preciosActualizados}</strong> actualizados</li>
                 </ul>
                 <p class="text-muted" style="font-size: 13px; margin-top: 15px;">
-                  💡 Ahora puedes agregar imágenes a las marcas, categorías y productos desde el dashboard.
+                  💡 Configura la lista predeterminada y la de invitados en
+                  <strong>Clientes → Tipos de Precio</strong>.
                 </p>
               </div>
             `,

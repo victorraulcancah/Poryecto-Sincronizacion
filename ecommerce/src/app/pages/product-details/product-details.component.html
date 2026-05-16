@@ -181,23 +181,40 @@
                             <!-- <div [innerHTML]="safeDescripcionDetallada"></div> -->
                             
                             <div class="mt-32 flex-align flex-wrap gap-32">
-                                <div class="d-flex flex-column gap-2">
-                                    <div class="flex-align gap-8">
-                                        <h4 class="mb-0 text-danger-600" [class.text-heading]="!tieneOferta()">
-                                          S/ {{ getPrecioActual() | number:'1.2-2' }}
-                                        </h4>
-                                        <span *ngIf="tieneOferta()" class="badge bg-danger-600 text-white px-8 py-4 text-xs">
-                                          -{{ getPorcentajeDescuento() }}%
-                                        </span>
-                                    </div>
-                                    <span *ngIf="tieneOferta()" class="text-sm text-gray-500 text-decoration-line-through">
-                                      Antes: S/ {{ getPrecioOriginal() | number:'1.2-2' }}
-                                    </span>
+                                <!-- Cliente logueado: precio -->
+                                <ng-container *ngIf="producto.precio_visible !== false">
+                                  <div class="d-flex flex-column gap-2">
+                                      <div class="flex-align gap-8">
+                                          <h4 class="mb-0 text-danger-600" [class.text-heading]="!tieneOferta()">
+                                            S/ {{ getPrecioActual() | number:'1.2-2' }}
+                                          </h4>
+                                          <span *ngIf="tieneOferta()" class="badge bg-danger-600 text-white px-8 py-4 text-xs">
+                                            -{{ getPorcentajeDescuento() }}%
+                                          </span>
+                                      </div>
+                                      <span *ngIf="tieneOferta()" class="text-sm text-gray-500 text-decoration-line-through">
+                                        Antes: S/ {{ getPrecioOriginal() | number:'1.2-2' }}
+                                      </span>
+                                  </div>
+                                  <button (click)="ordenarPorWhatsApp()" class="btn bg-danger-20 hover:bg-danger-10 rounded-pill">
+                                      <i class="ph ph-whatsapp-logo me-2"></i>
+                                      Ordenar por WhatsApp
+                                  </button>
+                                </ng-container>
+
+                                <!-- Invitado: precio oculto -->
+                                <div *ngIf="producto.precio_visible === false"
+                                     class="d-flex align-items-center gap-12 p-16 rounded-12 w-100"
+                                     style="background:#fff4f4; border:1px solid #f3c2c4;">
+                                  <i class="ph-fill ph-lock-key" style="font-size:1.6rem; color:#c22026;"></i>
+                                  <div class="flex-grow-1">
+                                    <strong class="d-block text-heading">Precio solo para clientes</strong>
+                                    <span class="text-sm text-gray-600">Inicia sesión para ver el precio y comprar.</span>
+                                  </div>
+                                  <a routerLink="/account" class="btn btn-main rounded-8 px-20 py-10 flex-shrink-0">
+                                    Iniciar sesión
+                                  </a>
                                 </div>
-                                <button (click)="ordenarPorWhatsApp()" class="btn bg-danger-20 hover:bg-danger-10 rounded-pill">
-                                    <i class="ph ph-whatsapp-logo me-2"></i>
-                                    Ordenar por WhatsApp
-                                </button>
                             </div>
                             <span class="mt-32 pt-32 text-gray-700 border-top border-gray-100 d-block"></span>
 
@@ -250,9 +267,9 @@
                                 <span class="text-sm text-gray-700 mt-8">Disponible: {{ producto.stock > 10 ? '+10 unidades' : producto.stock + ' unidades' }}</span>
                             </div>
 
-                            <span class="text-gray-900 d-block mb-8">Cantidad:</span>
+                            <span class="text-gray-900 d-block mb-8" *ngIf="producto.precio_visible !== false">Cantidad:</span>
                             <div class="flex-between gap-16 flex-wrap">
-                                <div class="flex-align flex-wrap gap-16">
+                                <div class="flex-align flex-wrap gap-16" *ngIf="producto.precio_visible !== false">
                                     <div class="border border-gray-100 rounded-pill py-9 px-16 flex-align">
                                         <button type="button"
                                             class="quantity__minus p-4 text-gray-700 hover-text-main-600 flex-center"
@@ -267,11 +284,11 @@
                                             <i class="ph ph-plus"></i>
                                         </button>
                                     </div>
-                                    <button 
-                                        (click)="agregarAlCarrito()" 
+                                    <button
+                                        (click)="agregarAlCarrito()"
                                         class="btn bg-danger-20 rounded-pill flex-align d-inline-flex gap-8 px-48"
                                         [disabled]="producto.stock <= 0">
-                                        <i class="ph ph-shopping-cart"></i> 
+                                        <i class="ph ph-shopping-cart"></i>
                                         {{ producto.stock <= 0 ? 'Sin Stock' : 'Agregar al Carrito' }}
                                     </button>
                                 </div>
@@ -388,18 +405,24 @@
                         
                         <!-- Botones de acción -->
                         <div class="d-grid gap-12">
-                            <button 
-                                (click)="comprarAhora()"
-                                class="btn bg-danger-10 rounded-pill py-12 fw-semibold"
-                                [disabled]="producto.stock <= 0">
-                                {{ producto.stock <= 0 ? 'Sin Stock' : 'Comprar ahora' }}
-                            </button>
-                            <button 
-                                (click)="agregarAlCarrito()" 
-                                class="btn bg-danger-30 text-danger-20 rounded-pill py-12 fw-semibold"
-                                [disabled]="producto.stock <= 0">
-                                {{ producto.stock <= 0 ? 'Sin Stock' : 'Agregar al carrito' }}
-                            </button>
+                            <ng-container *ngIf="producto.precio_visible !== false">
+                              <button
+                                  (click)="comprarAhora()"
+                                  class="btn bg-danger-10 rounded-pill py-12 fw-semibold"
+                                  [disabled]="producto.stock <= 0">
+                                  {{ producto.stock <= 0 ? 'Sin Stock' : 'Comprar ahora' }}
+                              </button>
+                              <button
+                                  (click)="agregarAlCarrito()"
+                                  class="btn bg-danger-30 text-danger-20 rounded-pill py-12 fw-semibold"
+                                  [disabled]="producto.stock <= 0">
+                                  {{ producto.stock <= 0 ? 'Sin Stock' : 'Agregar al carrito' }}
+                              </button>
+                            </ng-container>
+                            <a *ngIf="producto.precio_visible === false" routerLink="/account"
+                               class="btn btn-main rounded-pill py-12 fw-semibold flex-align gap-8 justify-content-center">
+                               <i class="ph ph-sign-in"></i> Inicia sesión para comprar
+                            </a>
                         </div>
                     </div>
 
@@ -824,7 +847,7 @@
                     <div
                         class="product-card px-20 py-16 border border-gray-100 hover-border-main-600 rounded-16 position-relative transition-2">
 
-                        <button
+                        <button *ngIf="product.precio_visible !== false"
                             (click)="agregarProductoRelacionado(product)"
                             class="product-card__cart btn bg-main-50 text-main-600 hover-bg-main-600 hover-text-white py-11 px-24 rounded-pill flex-align gap-8 position-absolute inset-block-start-0 inset-inline-end-0 me-16 mt-16">
                             Agregar <i class="ph ph-shopping-cart"></i>
@@ -836,12 +859,18 @@
 
                         <div class="product-card__content mt-12">
                             <div class="product-card__price mb-8 d-flex align-items-center gap-8">
-                                <span class="text-heading text-md fw-semibold">S/ {{ product.precio_venta | number:'1.2-2' }}
-                                  <span class="text-gray-500 fw-normal">/Qty</span>
-                                </span>
-                                <span *ngIf="product.precio_oferta" class="text-gray-400 text-md fw-semibold text-decoration-line-through">
-                                  S/ {{ product.precio_oferta | number:'1.2-2' }}
-                                </span>
+                                <ng-container *ngIf="product.precio_visible !== false">
+                                  <span class="text-heading text-md fw-semibold">S/ {{ product.precio_venta | number:'1.2-2' }}
+                                    <span class="text-gray-500 fw-normal">/Qty</span>
+                                  </span>
+                                  <span *ngIf="product.precio_oferta" class="text-gray-400 text-md fw-semibold text-decoration-line-through">
+                                    S/ {{ product.precio_oferta | number:'1.2-2' }}
+                                  </span>
+                                </ng-container>
+                                <a *ngIf="product.precio_visible === false" routerLink="/account"
+                                   class="text-main-600 text-sm fw-semibold">
+                                  <i class="ph ph-lock-key me-4"></i>Inicia sesión para ver precio
+                                </a>
                             </div>
 
                             <div class="flex-align gap-6">
