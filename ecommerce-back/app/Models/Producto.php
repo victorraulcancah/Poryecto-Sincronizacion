@@ -49,6 +49,32 @@ class Producto extends Model
         return $this->belongsTo(Categoria::class);
     }
 
+    // Precios por tipo de precio (lista)
+    public function precios()
+    {
+        return $this->hasMany(ProductoPrecio::class, 'producto_id');
+    }
+
+    public function tiposPrecio()
+    {
+        return $this->belongsToMany(TipoPrecio::class, 'producto_precios', 'producto_id', 'tipo_precio_id')
+            ->withPivot('precio')
+            ->withTimestamps();
+    }
+
+    /**
+     * Precio del producto para un tipo de precio dado.
+     * Devuelve null si el producto no tiene precio en esa lista.
+     */
+    public function precioPara(?int $tipoPrecioId): ?float
+    {
+        if (!$tipoPrecioId) {
+            return null;
+        }
+        $pp = $this->precios->firstWhere('tipo_precio_id', $tipoPrecioId);
+        return $pp ? (float) $pp->precio : null;
+    }
+
     // Relación con marca
     public function marca()
     {

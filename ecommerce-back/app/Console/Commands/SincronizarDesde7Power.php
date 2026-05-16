@@ -54,6 +54,10 @@ class SincronizarDesde7Power extends Command
             // Sincronizar productos
             $this->sincronizarProductos($companyId, $warehouseId);
 
+            // Sincronizar tipos de precio (listas) y precios por producto
+            $this->sincronizarTiposPrecio($companyId);
+            $this->sincronizarPreciosProductos();
+
             $this->info(' Sincronización completada exitosamente');
 
         } catch (\Exception $e) {
@@ -532,5 +536,119 @@ class SincronizarDesde7Power extends Command
         }
         
         $this->info(" Stock actualizado: {$actualizados} productos, {$sinStock} sin stock en 7Power, {$errores} errores");
+    }
+
+    /**
+     * Sincronizar tipos de precio (list_prices) desde 7Power.
+     * NO pisa los flags configurados por el admin (activo, es_predeterminado, es_para_invitados).
+     */
+    private function sincronizarTiposPrecio(int $companyId)
+    {
+        $this->info(' Sincronizando tipos de precio (listas)...');
+
+        $listas7Power = DB::connection('mysql_7power')
+            ->table('list_prices')
+            ->where('company_id', $companyId)
+            ->get();
+
+        $nuevas = 0;
+        $actualizadas = 0;
+
+        foreach ($listas7Power as $lista) {
+            $existente = DB::table('tipos_precio')
+                ->where('tipo_precio_7power_id', $lista->id)
+                ->first();
+
+            if (!$existente) {
+                DB::table('tipos_precio')->insert([
+                    'nombre'                => $lista->name,
+                    'tipo_moneda'           => $lista->tipo_moneda ?? 's',
+                    'activo'                => (bool) $lista->estado,
+                    'es_predeterminado'     => false,
+                    'es_para_invitados'     => false,
+                    'tipo_precio_7power_id' => $lista->id,
+                    'company_id'            => $lista->company_id,
+                    'created_at'            => now(),
+                    'updated_at'            => now(),
+                ]);
+                $nuevas++;
+            } else {
+                // Solo se actualizan datos descriptivos; los flags de
+                // configuración (activo, es_predeterminado, es_para_invitados)
+                // los controla el admin y no se sobrescriben.
+                DB::table('tipos_precio')
+                    ->where('id', $existente->id)
+                    ->update([
+                        'nombre'      => $lista->name,
+                        'tipo_moneda' => $lista->tipo_moneda ?? 's',
+                        'company_id'  => $lista->company_id,
+                        'updated_at'  => now(),
+                    ]);
+                $actualizadas++;
+            }
+        }
+
+        $this->info(" Tipos de precio sincronizados: {$nuevas} nuevas, {$actualizadas} actualizadas");
+    }
+
+    /**
+     * Sincronizar precios por producto (list_price_product) desde 7Power.
+     */
+    private function sincronizarPreciosProductos()
+    {
+        $this->info(' Sincronizando precios por producto...');
+
+        // Mapeos: producto_7power_id => producto_id (Magus)
+        $mapeoProductos = DB::table('producto_mapeo_7power')
+            ->pluck('producto_id', 'producto_7power_id');
+
+        // Mapeos: tipo_precio_7power_id => tipo_precio_id (Magus)
+        $mapeoTipos = DB::table('tipos_precio')
+            ->whereNotNull('tipo_precio_7power_id')
+            ->pluck('id', 'tipo_precio_7power_id');
+
+        $precios7Power = DB::connection('mysql_7power')
+            ->table('list_price_product')
+            ->get();
+
+        $insertados = 0;
+        $actualizados = 0;
+        $saltados = 0;
+
+        foreach ($precios7Power as $fila) {
+            $productoId   = $mapeoProductos[$fila->product_id] ?? null;
+            $tipoPrecioId = $mapeoTipos[$fila->list_price_id] ?? null;
+
+            if (!$productoId || !$tipoPrecioId) {
+                $saltados++;
+                continue;
+            }
+
+            $existente = DB::table('producto_precios')
+                ->where('producto_id', $productoId)
+                ->where('tipo_precio_id', $tipoPrecioId)
+                ->first();
+
+            if (!$existente) {
+                DB::table('producto_precios')->insert([
+                    'producto_id'    => $productoId,
+                    'tipo_precio_id' => $tipoPrecioId,
+                    'precio'         => $fila->precio ?? 0,
+                    'created_at'     => now(),
+                    'updated_at'     => now(),
+                ]);
+                $insertados++;
+            } else {
+                DB::table('producto_precios')
+                    ->where('id', $existente->id)
+                    ->update([
+                        'precio'     => $fila->precio ?? 0,
+                        'updated_at' => now(),
+                    ]);
+                $actualizados++;
+            }
+        }
+
+        $this->info(" Precios sincronizados: {$insertados} nuevos, {$actualizados} actualizados, {$saltados} saltados (sin mapeo)");
     }
 }

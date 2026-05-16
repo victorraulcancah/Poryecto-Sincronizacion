@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, OnInit, HostListener } from '@a
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ClienteService } from '../../services/cliente.service';
+import { TiposPrecioService, TipoPrecio } from '../../services/tipos-precio.service';
 import { Cliente } from '../../models/cliente.model';
 
 @Component({
@@ -76,6 +77,18 @@ import { Cliente } from '../../models/cliente.model';
                   <label class="form-label">Teléfono</label>
                   <input type="tel" class="form-control" formControlName="telefono" placeholder="987654321">
                 </div>
+
+                <!-- Tipo de precio -->
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Tipo de precio (lista)</label>
+                  <select class="form-select" formControlName="tipo_precio_id">
+                    <option [ngValue]="null">— Usar predeterminada —</option>
+                    <option *ngFor="let tp of tiposPrecio" [ngValue]="tp.id">
+                      {{ tp.nombre }} ({{ tp.tipo_moneda === 'd' ? 'US$' : 'S/' }})
+                    </option>
+                  </select>
+                  <small class="text-muted">Si se deja en predeterminada, usa la lista global configurada.</small>
+                </div>
               </div>
             </div>
             
@@ -104,13 +117,19 @@ export class ClienteEditModalComponent implements OnInit {
 
   formulario!: FormGroup;
   guardando = false;
+  tiposPrecio: TipoPrecio[] = [];
 
   constructor(
     private fb: FormBuilder,
-    private clienteService: ClienteService
+    private clienteService: ClienteService,
+    private tiposPrecioService: TiposPrecioService
   ) {}
     ngOnInit(): void {
       this.inicializarFormulario();
+      this.tiposPrecioService.listar().subscribe({
+        next: (res) => { this.tiposPrecio = (res.tipos_precio || []).filter(t => t.activo); },
+        error: () => {}
+      });
     }
 
     private inicializarFormulario(): void {
@@ -129,7 +148,8 @@ export class ClienteEditModalComponent implements OnInit {
         nombre: [nombreCompleto, Validators.required],
         direccion: [direccion],
         email: [this.cliente?.email || '', [Validators.email]],
-        telefono: [this.cliente?.telefono || '']
+        telefono: [this.cliente?.telefono || ''],
+        tipo_precio_id: [(this.cliente as any)?.tipo_precio_id ?? null]
       });
     }
 

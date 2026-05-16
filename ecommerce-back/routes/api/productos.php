@@ -150,6 +150,17 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // ============================================
+    // TIPOS DE PRECIO (listas sincronizadas de 7Power)
+    // ============================================
+    Route::prefix('tipos-precio')->group(function () {
+        Route::get('/', [\App\Http\Controllers\TiposPrecioController::class, 'index']);
+        Route::patch('/{id}/toggle-activo', [\App\Http\Controllers\TiposPrecioController::class, 'toggleActivo']);
+        Route::patch('/{id}/predeterminado', [\App\Http\Controllers\TiposPrecioController::class, 'marcarPredeterminado']);
+        Route::patch('/{id}/invitados', [\App\Http\Controllers\TiposPrecioController::class, 'marcarInvitados']);
+        Route::patch('/quitar-invitados', [\App\Http\Controllers\TiposPrecioController::class, 'quitarInvitados']);
+    });
+
+    // ============================================
     // PROXY PARA PRODUCTOS DE 7POWER
     // ============================================
     Route::prefix('productos-7power')->group(function () {

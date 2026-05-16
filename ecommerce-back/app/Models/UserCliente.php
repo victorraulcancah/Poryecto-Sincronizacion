@@ -26,11 +26,28 @@ class UserCliente extends Authenticatable
         'foto',
         'estado',
         'cliente_facturacion_id',
+        'tipo_precio_id',
         'email_verified_at',        // NUEVO
         'verification_token',       // NUEVO
-        'verification_code', 
-        'is_first_google_login', 
+        'verification_code',
+        'is_first_google_login',
     ];
+
+    public function tipoPrecio()
+    {
+        return $this->belongsTo(TipoPrecio::class, 'tipo_precio_id');
+    }
+
+    /**
+     * Tipo de precio efectivo del cliente: el asignado o el predeterminado.
+     */
+    public function tipoPrecioEfectivoId(): ?int
+    {
+        if ($this->tipo_precio_id) {
+            return $this->tipo_precio_id;
+        }
+        return optional(TipoPrecio::predeterminado())->id;
+    }
 
     protected $hidden = [
         'password',

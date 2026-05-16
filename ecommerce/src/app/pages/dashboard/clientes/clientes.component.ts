@@ -12,6 +12,7 @@ import {
   EstadisticasGenerales
 } from '../../../models/cliente.model';
 import { ClienteEditModalComponent } from '../../../components/cliente-edit-modal/cliente-edit-modal.component';
+import { TiposPrecioModalComponent } from '../../../components/tipos-precio-modal/tipos-precio-modal.component';
 import { environment } from '../../../../environments/environment';
 import { ToastrService } from 'ngx-toastr';
 import Swal from 'sweetalert2';
@@ -22,12 +23,14 @@ import Swal from 'sweetalert2';
   imports: [
     CommonModule,
     FormsModule,
-    ClienteEditModalComponent
+    ClienteEditModalComponent,
+    TiposPrecioModalComponent
   ],
   templateUrl: './clientes.component.html',
   styleUrl: './clientes.component.scss'
 })
 export class ClientesComponent implements OnInit, OnDestroy {
+  mostrarModalTiposPrecio = false;
   private destroy$ = new Subject<void>();
 
   // Datos

@@ -62,6 +62,7 @@ class ClientesController extends Controller
                         'nombre' => $cliente->tipoDocumento->nombre
                     ] : null,
                     'estado' => $cliente->estado,
+                    'tipo_precio_id' => $cliente->tipo_precio_id,
                     'fecha_registro' => $cliente->created_at->toISOString(),
                     'foto' => $cliente->foto_url,
                     'tipo_login' => 'manual', // Por defecto manual, ajusta según tu lógica
@@ -106,6 +107,7 @@ class ClientesController extends Controller
                     'nombre' => $cliente->tipoDocumento->nombre
                 ] : null,
                 'estado' => $cliente->estado,
+                'tipo_precio_id' => $cliente->tipo_precio_id,
                 'fecha_registro' => $cliente->created_at->toISOString(),
                 'foto' => $cliente->foto_url,
                 'genero' => $cliente->genero,
@@ -286,12 +288,13 @@ class ClientesController extends Controller
                 'telefono' => 'nullable|string|max:20',
                 'fecha_nacimiento' => 'nullable|date',
                 'genero' => 'nullable|in:masculino,femenino,otro',
-                'estado' => 'required|boolean'
+                'estado' => 'required|boolean',
+                'tipo_precio_id' => 'nullable|exists:tipos_precio,id',
             ]);
 
             $cliente->update($request->only([
-                'nombres', 'apellidos', 'email', 'telefono', 
-                'fecha_nacimiento', 'genero', 'estado'
+                'nombres', 'apellidos', 'email', 'telefono',
+                'fecha_nacimiento', 'genero', 'estado', 'tipo_precio_id'
             ]));
 
             // Transformar respuesta
@@ -308,6 +311,7 @@ class ClientesController extends Controller
                     'nombre' => $cliente->tipoDocumento->nombre
                 ] : null,
                 'estado' => $cliente->estado,
+                'tipo_precio_id' => $cliente->tipo_precio_id,
                 'fecha_registro' => $cliente->created_at->toISOString(),
                 'foto' => $cliente->foto_url,
                 'genero' => $cliente->genero,
