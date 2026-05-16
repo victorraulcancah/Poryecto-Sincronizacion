@@ -10,6 +10,7 @@ import Swal from 'sweetalert2';
 interface ItemEdicion {
   producto_id: number;
   nombre: string;
+  imagen?: string;
   cantidad: number;
   precio_unitario: number;
 }
@@ -320,6 +321,10 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
     return this.cotizacionesService.getEstadoClass(estado);
   }
 
+  onImgError(event: any): void {
+    event.target.src = 'assets/images/placeholder.svg';
+  }
+
   // ── Edición de cotización ─────────────────────────────────
 
   abrirEdicion(cotizacion: Cotizacion): void {
@@ -339,6 +344,7 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
       .map(p => ({
         producto_id: p.producto_id!,
         nombre: p.nombre,
+        imagen: p.imagen,
         cantidad: p.cantidad,
         precio_unitario: p.precio_unitario,
       }));
@@ -370,20 +376,41 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
     });
   }
 
+  // Cantidad elegida en el buscador, por producto
+  cantidadBusqueda: { [productoId: number]: number } = {};
+
+  getCantidadBusqueda(id: number): number {
+    return this.cantidadBusqueda[id] ?? 1;
+  }
+
+  cambiarCantidadBusqueda(id: number, delta: number): void {
+    const nueva = this.getCantidadBusqueda(id) + delta;
+    this.cantidadBusqueda[id] = nueva < 1 ? 1 : nueva;
+  }
+
+  setCantidadBusqueda(id: number, valor: any): void {
+    const n = Math.floor(Number(valor));
+    this.cantidadBusqueda[id] = (!n || n < 1) ? 1 : n;
+  }
+
   agregarProductoEdicion(producto: ProductoSugerencia): void {
+    const cantidad = this.getCantidadBusqueda(producto.id);
     const existe = this.itemsEdicion.find(i => i.producto_id === producto.id);
     if (existe) {
-      existe.cantidad++;
+      existe.cantidad += cantidad;
     } else {
       this.itemsEdicion.push({
         producto_id: producto.id,
         nombre: producto.nombre,
-        cantidad: 1,
+        imagen: producto.imagen_url,
+        cantidad: cantidad,
         precio_unitario: producto.precio ?? 0,
       });
     }
-    this.terminoBusquedaProducto = '';
-    this.productosSugeridos = [];
+    // Reinicia la cantidad de ese producto en el buscador a 1.
+    // No se limpia el término ni las sugerencias: así el usuario
+    // puede seguir agregando productos sin reescribir.
+    this.cantidadBusqueda[producto.id] = 1;
     this.recalcularEdicion();
   }
 
@@ -393,6 +420,12 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
       item.cantidad = nueva;
       this.recalcularEdicion();
     }
+  }
+
+  setCantidadEdicion(item: ItemEdicion, valor: any): void {
+    const n = Math.floor(Number(valor));
+    item.cantidad = (!n || n < 1) ? 1 : n;
+    this.recalcularEdicion();
   }
 
   quitarProductoEdicion(index: number): void {

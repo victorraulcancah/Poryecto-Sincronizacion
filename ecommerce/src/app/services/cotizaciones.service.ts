@@ -31,6 +31,7 @@ export interface Cotizacion {
 export interface ProductoCotizacion {
   producto_id?: number;
   nombre: string;
+  imagen?: string;
   cantidad: number;
   precio_unitario: number;
   subtotal: number;

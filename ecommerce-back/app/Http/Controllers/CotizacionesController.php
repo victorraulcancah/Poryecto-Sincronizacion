@@ -437,6 +437,7 @@ class CotizacionesController extends Controller
                             return [
                                 'producto_id' => $detalle->producto_id,
                                 'nombre' => $detalle->nombre_producto,
+                                'imagen' => $detalle->producto->imagen_url ?? null,
                                 'cantidad' => $detalle->cantidad,
                                 'precio_unitario' => $detalle->precio_unitario,
                                 'subtotal' => $detalle->subtotal_linea

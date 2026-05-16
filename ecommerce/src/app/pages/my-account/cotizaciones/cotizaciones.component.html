@@ -258,16 +258,31 @@
                    placeholder="Buscar producto para agregar..."
                    [(ngModel)]="terminoBusquedaProducto"
                    (ngModelChange)="buscarProductoEdicion()">
-            <div *ngIf="productosSugeridos.length > 0"
+            <div *ngIf="productosSugeridos.length > 0 && terminoBusquedaProducto.trim().length >= 2"
                  class="position-absolute w-100 bg-white border border-gray-100 rounded-8 shadow-lg mt-4"
                  style="z-index: 20; max-height: 240px; overflow-y: auto;">
-              <button *ngFor="let p of productosSugeridos"
-                      type="button"
-                      class="edit-search-item"
-                      (click)="agregarProductoEdicion(p)">
-                <span class="text-sm text-truncate">{{ p.nombre }}</span>
-                <span class="text-xs fw-bold" style="color:#c22026;">S/ {{ p.precio | number:'1.2-2' }}</span>
-              </button>
+              <div *ngFor="let p of productosSugeridos" class="edit-search-item">
+                <img [src]="p.imagen_url || 'assets/images/placeholder.svg'"
+                     (error)="onImgError($event)"
+                     class="edit-thumb flex-shrink-0" alt="">
+                <div class="flex-grow-1" style="min-width:0;">
+                  <div class="text-sm text-truncate">{{ p.nombre }}</div>
+                  <div class="text-xs fw-bold" style="color:#c22026;">S/ {{ p.precio | number:'1.2-2' }}</div>
+                </div>
+                <div class="edit-qty flex-shrink-0">
+                  <button type="button" class="edit-qty__btn"
+                          (click)="cambiarCantidadBusqueda(p.id, -1)">−</button>
+                  <input type="number" min="1" class="edit-qty__input"
+                         [ngModel]="getCantidadBusqueda(p.id)"
+                         (ngModelChange)="setCantidadBusqueda(p.id, $event)">
+                  <button type="button" class="edit-qty__btn"
+                          (click)="cambiarCantidadBusqueda(p.id, 1)">+</button>
+                </div>
+                <button type="button" class="edit-search-item__add flex-shrink-0"
+                        (click)="agregarProductoEdicion(p)" title="Agregar">
+                  <i class="ph-bold ph-plus"></i>
+                </button>
+              </div>
             </div>
             <small *ngIf="buscandoProducto" class="text-gray-500 mt-4 d-block">
               <span class="spinner-border spinner-border-sm me-1"></span> Buscando...
@@ -283,13 +298,18 @@
 
             <div *ngFor="let item of itemsEdicion; let i = index"
                  class="edit-prod-row">
+              <img [src]="item.imagen || 'assets/images/placeholder.svg'"
+                   (error)="onImgError($event)"
+                   class="edit-thumb flex-shrink-0" alt="">
               <div class="flex-grow-1" style="min-width:0;">
                 <div class="text-sm fw-semibold text-heading text-truncate">{{ item.nombre }}</div>
                 <div class="text-xs text-gray-500">S/ {{ item.precio_unitario | number:'1.2-2' }} c/u</div>
               </div>
               <div class="edit-qty">
                 <button type="button" class="edit-qty__btn" (click)="cambiarCantidadEdicion(item, -1)">−</button>
-                <span class="edit-qty__val">{{ item.cantidad }}</span>
+                <input type="number" min="1" class="edit-qty__input"
+                       [ngModel]="item.cantidad"
+                       (ngModelChange)="setCantidadEdicion(item, $event)">
                 <button type="button" class="edit-qty__btn" (click)="cambiarCantidadEdicion(item, 1)">+</button>
               </div>
               <span class="text-sm fw-bold text-end flex-shrink-0" style="min-width:78px; color:#c22026;">
