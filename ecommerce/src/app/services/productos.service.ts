@@ -54,6 +54,7 @@ export interface ProductoPublico {
   codigo_producto?: string;
   precio: number;
   precio_oferta?: number;
+  precio_visible?: boolean;
   stock: number;
   imagen_principal: string;
   categoria: string;

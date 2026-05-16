@@ -89,6 +89,7 @@ export interface ProductoPublico {
   codigo_producto?: string // ✅ NUEVO: Código del producto
   precio: string | number
   precio_oferta?: string | number
+  precio_visible?: boolean
   stock: number
   imagen_principal: string
   categoria: string
