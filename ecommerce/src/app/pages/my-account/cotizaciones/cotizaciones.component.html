@@ -69,22 +69,13 @@
                 <span class="text-xs">Comprar</span>
               </button>
 
-              <button *ngIf="cotizacion.estado_actual.id === 1"
-                      (click)="pedirCotizacion(cotizacion)"
-                      class="btn btn-info btn-xs rounded-pill px-12 py-6 d-flex align-items-center gap-2 transition-2"
-                      title="Solicitar que procesen esta cotización">
-                <i class="ph-bold ph-phone text-xs"></i>
-                <span class="text-xs">Pedir</span>
+              <button (click)="pedirCotizacion(cotizacion)"
+                      class="btn btn-xs rounded-pill px-12 py-6 d-flex align-items-center gap-2 transition-2"
+                      [ngClass]="cotizacion.estado_actual.id === 1 ? 'btn-info' : 'btn-secondary opacity-50'"
+                      [title]="cotizacion.estado_actual.id === 1 ? 'Solicitar que procesen esta cotización' : 'Esta solicitud ya fue enviada'">
+                <i class="ph-bold text-xs" [ngClass]="cotizacion.estado_actual.id === 1 ? 'ph-phone' : 'ph-check-circle'"></i>
+                <span class="text-xs">{{ cotizacion.estado_actual.id === 1 ? 'Pedir' : 'Ya solicitado' }}</span>
               </button>
-
-              <span *ngIf="cotizacion.estado_actual.id !== 1"
-                    class="btn btn-xs rounded-pill px-12 py-6 d-flex align-items-center gap-2"
-                    [ngClass]="getEstadoClass(cotizacion.estado_actual)"
-                    style="cursor: default;"
-                    [title]="'Esta cotización ya fue enviada. Estado actual: ' + cotizacion.estado_actual.nombre">
-                <i class="ph-bold ph-check-circle text-xs"></i>
-                <span class="text-xs">Ya enviado · {{ cotizacion.estado_actual.nombre }}</span>
-              </span>
 
               <button (click)="eliminarCotizacion(cotizacion)"
                       class="btn btn-danger btn-xs rounded-pill px-12 py-6 d-flex align-items-center gap-2 transition-2 hover:bg-danger-600"

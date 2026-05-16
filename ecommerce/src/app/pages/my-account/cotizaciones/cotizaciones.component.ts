@@ -140,6 +140,16 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
   }
 
   pedirCotizacion(cotizacion: Cotizacion): void {
+    if (cotizacion.estado_actual.id !== 1) {
+      Swal.fire({
+        title: 'Solicitud ya enviada',
+        text: 'Ya hemos recibido tu solicitud para procesar esta cotización. Un administrador te contactará pronto.',
+        icon: 'info',
+        confirmButtonColor: '#0dcaf0'
+      });
+      return;
+    }
+
     Swal.fire({
       title: '¿Solicitar procesamiento?',
       html: `
