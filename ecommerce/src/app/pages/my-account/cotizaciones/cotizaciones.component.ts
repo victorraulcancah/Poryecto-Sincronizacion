@@ -322,7 +322,10 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
   }
 
   onImgError(event: any): void {
-    event.target.src = 'assets/images/placeholder.svg';
+    const img = event.target as HTMLImageElement;
+    if (img.dataset['fallback']) return; // anti-loop
+    img.dataset['fallback'] = '1';
+    img.src = 'assets/images/placeholder.svg';
   }
 
   // ── Edición de cotización ─────────────────────────────────

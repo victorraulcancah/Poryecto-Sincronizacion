@@ -240,8 +240,10 @@ export class IndexTwoComponent implements OnInit {
 
   // ✅ NUEVO: Método para manejar errores de imagen (copiado de shop.component.ts)
   onImageError(event: any): void {
-    event.target.src =
-      '/placeholder.svg?height=200&width=200&text=Imagen+no+disponible';
+    const img = event.target as HTMLImageElement;
+    if (img.dataset['fallback']) return; // anti-loop
+    img.dataset['fallback'] = '1';
+    img.src = 'assets/images/placeholder.svg';
   }
 
   // ✅ NUEVO: Método para agregar al carrito (copiado de shop.component.ts, requiere CartService)

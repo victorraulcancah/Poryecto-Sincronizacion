@@ -408,8 +408,11 @@ export class ShopComponent implements OnInit {
 
   // ✅ MÉTODO PARA MANEJAR ERRORES DE IMAGEN
   onImageError(event: any): void {
-    event.target.src =
-      '/placeholder.svg?height=200&width=200&text=Imagen+no+disponible';
+    const img = event.target as HTMLImageElement;
+    // Guarda anti-loop: si el placeholder también falla, no vuelve a disparar.
+    if (img.dataset['fallback']) return;
+    img.dataset['fallback'] = '1';
+    img.src = 'assets/images/placeholder.svg';
   }
 
   // Method to generate page numbers based on totalPages

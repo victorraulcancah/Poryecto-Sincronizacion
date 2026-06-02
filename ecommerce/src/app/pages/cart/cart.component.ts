@@ -288,10 +288,11 @@ export class CartComponent implements OnInit, OnDestroy {
     return safePrice.toFixed(2); 
   }
   
-  onImageError(event: any): void { 
-    console.log('Error de imagen:', event.target.src);
-    // Usar la imagen SVG placeholder que creamos
-    event.target.src = 'assets/images/placeholder.svg';
+  onImageError(event: any): void {
+    const img = event.target as HTMLImageElement;
+    if (img.dataset['fallback']) return; // anti-loop
+    img.dataset['fallback'] = '1';
+    img.src = 'assets/images/placeholder.svg';
   }
 
   // Método para debuggear las imágenes

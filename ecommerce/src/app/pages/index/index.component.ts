@@ -1477,7 +1477,9 @@ export class IndexComponent implements OnInit, OnDestroy, AfterViewInit {
 
   onImageError(event: any): void {
     const img = event.target as HTMLImageElement;
-    img.src = 'assets/images/thumbs/feature-img10.png';
+    if (img.dataset['fallback']) return;
+    img.dataset['fallback'] = '1';
+    img.src = 'assets/images/placeholder.svg';
   }
 
   // ✅ MÉTODO PARA HOVER EFFECT EN BANNERS

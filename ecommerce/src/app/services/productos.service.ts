@@ -246,54 +246,24 @@ export class ProductosService {
     minPrice?: number;
     maxPrice?: number;
     sortBy?: string;
+    seccion?: number;
   }): Observable<ProductosPublicosResponse> {
     let params = new HttpParams();
 
     if (filtros) {
-      if (filtros.categoria) params = params.set('categoria_id', filtros.categoria.toString());
-      if (filtros.brand) params = params.set('marca_id', filtros.brand.toString());
+      if (filtros.categoria) params = params.set('categoria', filtros.categoria.toString());
+      if (filtros.brand) params = params.set('brand', filtros.brand.toString());
       if (filtros.search) params = params.set('search', filtros.search);
       if (filtros.page) params = params.set('page', filtros.page.toString());
-      if (filtros.minPrice) params = params.set('min_price', filtros.minPrice.toString());
-      if (filtros.maxPrice) params = params.set('max_price', filtros.maxPrice.toString());
-      if (filtros.sortBy) params = params.set('sort_by', filtros.sortBy);
+      if (filtros.minPrice) params = params.set('minPrice', filtros.minPrice.toString());
+      if (filtros.maxPrice) params = params.set('maxPrice', filtros.maxPrice.toString());
+      if (filtros.sortBy) params = params.set('sortBy', filtros.sortBy);
+      if (filtros.seccion) params = params.set('seccion', filtros.seccion.toString());
     }
 
-    params = params.set('per_page', '1000');
-
-    // ✅ USAR MAGUS para productos públicos
-    return this.http.get<Producto[]>(`${this.apiUrl}/productos`, { params }).pipe(
-      map((productos) => {
-        const productosMapeados = productos.map((producto: any) => ({
-          id: producto.id,
-          nombre: producto.nombre,
-          descripcion: producto.descripcion || '',
-          codigo_producto: producto.codigo_producto || producto.id?.toString(),
-          precio: producto.precio_venta || 0,
-          precio_oferta: undefined,
-          stock: producto.stock || 0,
-          imagen_principal: producto.imagen_url || 'assets/images/thumbs/product-default.png',
-          categoria: producto.categoria?.nombre || 'Sin categoría',
-          categoria_id: producto.categoria_id || 0,
-          rating: 0,
-          total_reviews: '0',
-          reviews_count: 0,
-          sold_count: 0,
-          total_stock: producto.stock || 0,
-          is_on_sale: false,
-          discount_percentage: 0
-        }));
-
-        return {
-          productos: productosMapeados,
-          pagination: {
-            current_page: 1,
-            last_page: 1,
-            per_page: 1000,
-            total: productosMapeados.length
-          }
-        };
-      })
-    );
+    // ✅ Endpoint público: /productos-publicos (sin auth, aplica precio_visible
+    //    y resuelve precio según la lista del cliente o lo oculta para invitados).
+    return this.http
+      .get<ProductosPublicosResponse>(`${this.apiUrl}/productos-publicos`, { params });
   }
 }
