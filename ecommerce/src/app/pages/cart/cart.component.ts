@@ -84,9 +84,10 @@ export class CartComponent implements OnInit, OnDestroy {
     });
   }
 
-  incrementQuantity(item: CartItem): void { 
+  incrementQuantity(item: CartItem): void {
     if (item && item.cantidad !== undefined) {
-      this.updateQuantity(item, item.cantidad + 1); 
+      if ((item.cantidad + 1) > (item.stock_disponible || 0)) return;
+      this.updateQuantity(item, item.cantidad + 1);
     }
   }
   
