@@ -167,7 +167,7 @@
                         class="quantity-btn border-0 bg-gray-50 hover-bg-main-600 hover-text-white d-flex align-items-center justify-content-center transition-2"
                         style="width: 32px; height: 32px; font-size: 0.85rem;"
                         (click)="incrementQuantity(item)"
-                        [disabled]="isUpdating || (item.cantidad || 0) >= (item.stock_disponible || 0)">
+                        [disabled]="isUpdating">
                         <i class="ph ph-plus"></i>
                       </button>
                     </div>

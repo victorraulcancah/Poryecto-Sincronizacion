@@ -86,7 +86,15 @@ export class CartComponent implements OnInit, OnDestroy {
 
   incrementQuantity(item: CartItem): void {
     if (item && item.cantidad !== undefined) {
-      if ((item.cantidad + 1) > (item.stock_disponible || 0)) return;
+      if ((item.cantidad + 1) > (item.stock_disponible || 0)) {
+        Swal.fire({
+          title: 'Stock insuficiente',
+          text: `Solo hay ${item.stock_disponible || 0} unidades disponibles`,
+          icon: 'warning',
+          confirmButtonColor: '#dc3545'
+        });
+        return;
+      }
       this.updateQuantity(item, item.cantidad + 1);
     }
   }
