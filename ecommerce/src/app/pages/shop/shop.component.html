@@ -205,10 +205,10 @@
                   <div class="product-card__price my-20">
                       <span *ngIf="producto.precio_oferta"
                             class="text-gray-400 text-md fw-semibold text-decoration-line-through">
-                          S/ {{ producto.precio }}
+                          {{ producto.moneda | moneda }} {{ producto.precio }}
                       </span>
                       <span class="text-heading text-md fw-semibold">
-                          S/ {{ producto.precio_oferta || producto.precio }}
+                          {{ producto.moneda | moneda }} {{ producto.precio_oferta || producto.precio }}
                           <span class="text-gray-500 fw-normal">/Qty</span>
                       </span>
                   </div>

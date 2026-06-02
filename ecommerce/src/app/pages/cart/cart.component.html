@@ -123,19 +123,19 @@
                       <div *ngIf="item.descuento_porcentaje && item.descuento_porcentaje > 0" class="d-flex flex-column gap-1">
                         <div class="d-flex align-items-center gap-2">
                           <span class="text-decoration-line-through text-gray-400" style="font-size: 0.7rem;">
-                            S/ {{ formatPrice(item.precio) }}
+                            {{ item.moneda | moneda }} {{ formatPrice(item.precio) }}
                           </span>
                           <span class="badge bg-danger-600 text-white px-4 py-1" style="font-size: 0.6rem; line-height: 1;">
                             -{{ item.descuento_porcentaje }}%
                           </span>
                         </div>
                         <span class="fw-semibold text-danger-600" style="font-size: 0.85rem;">
-                          S/ {{ formatPrice(item.precio_con_descuento) }}
+                          {{ item.moneda | moneda }} {{ formatPrice(item.precio_con_descuento) }}
                         </span>
                       </div>
                       <!-- Si NO tiene descuento, mostrar precio normal -->
                       <span *ngIf="!item.descuento_porcentaje || item.descuento_porcentaje === 0" class="fw-semibold" style="font-size: 0.9rem;">
-                        S/ {{ formatPrice(item.precio) }}
+                        {{ item.moneda | moneda }} {{ formatPrice(item.precio) }}
                       </span>
                     </ng-container>
                     <span *ngIf="!isLoggedIn" class="text-gray-400" style="font-size: 0.9rem;" title="Inicia sesión para ver el precio">
@@ -175,7 +175,7 @@
 
                   <!-- Subtotal -->
                   <td class="px-12 py-12" style="vertical-align: middle;">
-                    <span *ngIf="isLoggedIn" class="fw-bold" style="font-size: 0.95rem;">S/ {{ formatPrice(getItemSubtotal(item)) }}</span>
+                    <span *ngIf="isLoggedIn" class="fw-bold" style="font-size: 0.95rem;">{{ item.moneda | moneda }} {{ formatPrice(getItemSubtotal(item)) }}</span>
                     <span *ngIf="!isLoggedIn" class="text-gray-400 fw-bold" style="font-size: 0.95rem;">
                       <i class="ph ph-lock-key"></i> —
                     </span>
@@ -290,19 +290,19 @@
               <!-- Subtotal -->
               <div class="d-flex justify-content-between align-items-center mb-16">
                 <span class="text-gray-600">Subtotal ({{ cartSummary.cantidad_items }} items):</span>
-                <span class="text-heading fw-medium">S/ {{ formatPrice(cartSummary.subtotal) }}</span>
+                <span class="text-heading fw-medium">{{ cartItems[0]?.moneda | moneda }} {{ formatPrice(cartSummary.subtotal) }}</span>
               </div>
 
               <!-- IGV (solo mostrar si hay exactamente 1 producto Y tiene mostrar_igv = true) -->
               <div *ngIf="cartItems.length === 1 && cartItems[0].mostrar_igv === true" class="d-flex justify-content-between align-items-center mb-16">
                 <span class="text-gray-600">IGV (18%):</span>
-                <span class="text-heading fw-medium">S/ {{ formatPrice(cartSummary.igv) }}</span>
+                <span class="text-heading fw-medium">{{ cartItems[0]?.moneda | moneda }} {{ formatPrice(cartSummary.igv) }}</span>
               </div>
 
               <!-- Descuento por cupón -->
               <div *ngIf="descuentoCupon > 0" class="d-flex justify-content-between align-items-center mb-16">
                 <span class="text-success-600">Descuento cupón:</span>
-                <span class="text-success-600 fw-medium">-S/ {{ formatPrice(descuentoCupon) }}</span>
+                <span class="text-success-600 fw-medium">-{{ cartItems[0]?.moneda | moneda }} {{ formatPrice(descuentoCupon) }}</span>
               </div>
 
               <!-- Envío -->
@@ -316,7 +316,7 @@
               <!-- Total -->
               <div class="d-flex justify-content-between align-items-center mb-32">
                 <span class="text-heading text-xl fw-bold">Total:</span>
-                <span class="text-heading text-xl fw-bold">S/ {{ formatPrice(getTotalFinal()) }}</span>
+                <span class="text-heading text-xl fw-bold">{{ cartItems[0]?.moneda | moneda }} {{ formatPrice(getTotalFinal()) }}</span>
               </div>
             </ng-container>
 

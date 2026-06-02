@@ -8,6 +8,7 @@ import { FormsModule } from "@angular/forms"
 import { SlickCarouselModule } from "ngx-slick-carousel"
 import { BreadcrumbComponent } from "../../component/breadcrumb/breadcrumb.component"
 import { ShippingComponent } from "../../component/shipping/shipping.component"
+import { MonedaPipe } from "../../pipes/moneda.pipe"
 import { AlmacenService } from "../../services/almacen.service"
 import { CartService } from "../../services/cart.service"
 import { CartNotificationService } from "../../services/cart-notification.service"
@@ -33,7 +34,7 @@ export class TrustUrlPipe implements PipeTransform {
 @Component({
   selector: "app-product-details",
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, SlickCarouselModule, BreadcrumbComponent, ShippingComponent, TrustUrlPipe],
+  imports: [CommonModule, RouterLink, FormsModule, SlickCarouselModule, BreadcrumbComponent, ShippingComponent, TrustUrlPipe, MonedaPipe],
   templateUrl: "./product-details.component.html",
   styleUrl: "./product-details.component.scss",
 })

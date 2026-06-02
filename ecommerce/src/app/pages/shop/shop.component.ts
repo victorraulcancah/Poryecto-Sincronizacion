@@ -17,6 +17,7 @@ import { AlmacenService } from '../../services/almacen.service'; // ✅ NUEVO
 import { MarcaProducto } from '../../types/almacen.types'; // ✅ NUEVO
 import { SlugHelper } from '../../helpers/slug.helper'; // ✅ NUEVO
 import { BannersService, Banner } from '../../services/banner.service'; // ✅ NUEVO
+import { MonedaPipe } from '../../pipes/moneda.pipe';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -28,6 +29,7 @@ import Swal from 'sweetalert2';
     ShippingComponent,
     FormsModule,
     ProductFilterComponent,
+    MonedaPipe,
   ],
   templateUrl: './shop.component.html',
   styleUrl: './shop.component.scss',

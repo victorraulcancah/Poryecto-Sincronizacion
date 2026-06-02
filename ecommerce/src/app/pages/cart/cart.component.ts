@@ -3,6 +3,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { MonedaPipe } from '../../pipes/moneda.pipe';
 import { BreadcrumbComponent } from '../../component/breadcrumb/breadcrumb.component';
 import { ShippingComponent } from '../../component/shipping/shipping.component';
 import { CartService, CartItem, CartSummary } from '../../services/cart.service';
@@ -14,7 +15,7 @@ import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-cart',
-  imports: [CommonModule, RouterLink, FormsModule, BreadcrumbComponent, ShippingComponent],
+  imports: [CommonModule, RouterLink, FormsModule, BreadcrumbComponent, ShippingComponent, MonedaPipe],
   templateUrl: './cart.component.html',
   styleUrl: './cart.component.scss'
 })

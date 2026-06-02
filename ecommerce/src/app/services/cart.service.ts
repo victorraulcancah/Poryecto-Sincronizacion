@@ -14,6 +14,7 @@ export interface CartItem {
   nombre: string;
   imagen_url: string;
   precio: number;
+  moneda?: string; // 's' = soles, 'd' = dólares (de la lista de precio resuelta)
   descuento_porcentaje?: number | null; // Porcentaje de descuento si aplica
   precio_con_descuento?: number | null; // Precio final con descuento
   cantidad: number;
@@ -288,6 +289,7 @@ export class CartService {
           nombre: producto.nombre || 'Producto',
           imagen_url: imagenUrl,
           precio: Number(producto.precio || 0),
+          moneda: producto.moneda || 's',
           cantidad: Number(cantidad || 1),
           stock_disponible: Number(producto.stock || 100),
           codigo_producto: producto.codigo_producto || `PROD-${producto.id}`,
@@ -432,6 +434,7 @@ export class CartService {
       id: producto.id,
       nombre: producto.nombre || producto.name || 'Producto',
       precio: Number(producto.precio_venta || producto.precio || 0),
+      moneda: producto.moneda || 's',
       stock: Number(producto.stock || producto.stock_disponible || 100),
       codigo_producto: producto.codigo_producto || `PROD-${producto.id}`,
       imagen_url: imagenUrl,

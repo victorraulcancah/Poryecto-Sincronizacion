@@ -186,14 +186,14 @@
                                   <div class="d-flex flex-column gap-2">
                                       <div class="flex-align gap-8">
                                           <h4 class="mb-0 text-danger-600" [class.text-heading]="!tieneOferta()">
-                                            S/ {{ getPrecioActual() | number:'1.2-2' }}
+                                            {{ producto.moneda | moneda }} {{ getPrecioActual() | number:'1.2-2' }}
                                           </h4>
                                           <span *ngIf="tieneOferta()" class="badge bg-danger-600 text-white px-8 py-4 text-xs">
                                             -{{ getPorcentajeDescuento() }}%
                                           </span>
                                       </div>
                                       <span *ngIf="tieneOferta()" class="text-sm text-gray-500 text-decoration-line-through">
-                                        Antes: S/ {{ getPrecioOriginal() | number:'1.2-2' }}
+                                        Antes: {{ producto.moneda | moneda }} {{ getPrecioOriginal() | number:'1.2-2' }}
                                       </span>
                                   </div>
                                   <button (click)="ordenarPorWhatsApp()" class="btn bg-danger-20 hover:bg-danger-10 rounded-pill">
@@ -860,11 +860,11 @@
                         <div class="product-card__content mt-12">
                             <div class="product-card__price mb-8 d-flex align-items-center gap-8">
                                 <ng-container *ngIf="product.precio_visible !== false">
-                                  <span class="text-heading text-md fw-semibold">S/ {{ product.precio_venta | number:'1.2-2' }}
+                                  <span class="text-heading text-md fw-semibold">{{ product.moneda | moneda }} {{ product.precio_venta | number:'1.2-2' }}
                                     <span class="text-gray-500 fw-normal">/Qty</span>
                                   </span>
                                   <span *ngIf="product.precio_oferta" class="text-gray-400 text-md fw-semibold text-decoration-line-through">
-                                    S/ {{ product.precio_oferta | number:'1.2-2' }}
+                                    {{ product.moneda | moneda }} {{ product.precio_oferta | number:'1.2-2' }}
                                   </span>
                                 </ng-container>
                                 <a *ngIf="product.precio_visible === false" routerLink="/account"

@@ -14,6 +14,7 @@ import { SlickCarouselComponent } from 'ngx-slick-carousel';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { SlickCarouselModule } from 'ngx-slick-carousel';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
+import { MonedaPipe } from '../../pipes/moneda.pipe';
 import { filter, Subscription } from 'rxjs';
 import {
   CategoriaPublica,
@@ -86,8 +87,9 @@ interface BrandSlideGroup {
     RouterLink,
     ChatbotComponent,
     WhatsappFloatComponent,
+    MonedaPipe,
   ],
-  templateUrl: './index.component.html',
+  templateUrl: './index.component.html', // moneda dinámica via MonedaPipe
   styleUrl: './index.component.scss',
 })
 export class IndexComponent implements OnInit, OnDestroy, AfterViewInit {

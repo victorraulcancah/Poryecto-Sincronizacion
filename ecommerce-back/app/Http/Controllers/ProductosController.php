@@ -361,6 +361,10 @@ class ProductosController extends Controller
     {
         $tipoPrecioId = $this->resolverTipoPrecioId($request);
         $precioVisible = $this->clienteAutenticado() !== null;
+        // Moneda resuelta del tipo de precio aplicable (s = soles, d = dólares).
+        $moneda = $tipoPrecioId
+            ? optional(\App\Models\TipoPrecio::find($tipoPrecioId))->tipo_moneda
+            : null;
 
         $query = Producto::with(['categoria.seccion', 'precios'])
             ->where('activo', true)
@@ -434,13 +438,14 @@ class ProductosController extends Controller
             $productos = $query->get();
 
             // Agregar campos calculados para el frontend
-            $productosTransformados = $productos->map(function ($producto) use ($tipoPrecioId, $precioVisible) {
+            $productosTransformados = $productos->map(function ($producto) use ($tipoPrecioId, $precioVisible, $moneda) {
                 return [
                     'id' => $producto->id,
                     'nombre' => $producto->nombre,
                     'descripcion' => $producto->descripcion,
                     'precio' => $precioVisible ? ($producto->precioPara($tipoPrecioId) ?? $producto->precio_venta) : null,
                     'precio_visible' => $precioVisible,
+                    'moneda' => $moneda,
                     'precio_oferta' => null,
                     'stock' => $producto->stock,
                     'imagen_principal' => $producto->imagen ? asset('storage/productos/' . $producto->imagen) : '/placeholder-product.jpg',
@@ -472,13 +477,14 @@ class ProductosController extends Controller
         $productos = $query->paginate(20);
 
         // Agregar campos calculados para el frontend
-        $productos->getCollection()->transform(function ($producto) use ($tipoPrecioId, $precioVisible) {
+        $productos->getCollection()->transform(function ($producto) use ($tipoPrecioId, $precioVisible, $moneda) {
             return [
                 'id' => $producto->id,
                 'nombre' => $producto->nombre,
                 'descripcion' => $producto->descripcion,
                 'precio' => $precioVisible ? ($producto->precioPara($tipoPrecioId) ?? $producto->precio_venta) : null,
                 'precio_visible' => $precioVisible,
+                'moneda' => $moneda,
                 'precio_oferta' => null, // Por ahora null, luego puedes agregar este campo
                 'stock' => $producto->stock,
                 'imagen_principal' => $producto->imagen ? asset('storage/productos/' . $producto->imagen) : '/placeholder-product.jpg', // ✅ CORREGIR
@@ -626,6 +632,9 @@ class ProductosController extends Controller
     try {
         $tipoPrecioId = $this->resolverTipoPrecioId($request);
         $precioVisible = $this->clienteAutenticado() !== null;
+        $moneda = $tipoPrecioId
+            ? optional(\App\Models\TipoPrecio::find($tipoPrecioId))->tipo_moneda
+            : null;
 
         $producto = Producto::with(['categoria', 'marca', 'precios'])
             ->where('activo', true)
@@ -636,6 +645,7 @@ class ProductosController extends Controller
             ? ($producto->precioPara($tipoPrecioId) ?? $producto->precio_venta)
             : 0;
         $producto->precio_visible = $precioVisible;
+        $producto->moneda = $moneda;
 
         $detalles = ProductoDetalle::where('producto_id', $id)->first();
 
@@ -645,9 +655,10 @@ class ProductosController extends Controller
             ->where('activo', true)
             ->limit(6)
             ->get()
-            ->map(function ($p) use ($tipoPrecioId, $precioVisible) {
+            ->map(function ($p) use ($tipoPrecioId, $precioVisible, $moneda) {
                 $p->precio_venta = $precioVisible ? ($p->precioPara($tipoPrecioId) ?? $p->precio_venta) : 0;
                 $p->precio_visible = $precioVisible;
+                $p->moneda = $moneda;
                 return $p;
             });
 
@@ -655,7 +666,8 @@ class ProductosController extends Controller
             'producto' => $producto,
             'detalles' => $detalles,
             'productos_relacionados' => $productosRelacionados,
-            'precio_visible' => $precioVisible
+            'precio_visible' => $precioVisible,
+            'moneda' => $moneda
         ]);
     } catch (\Exception $e) {
         return response()->json(['error' => 'Producto no encontrado'], 404);

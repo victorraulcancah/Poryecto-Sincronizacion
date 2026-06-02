@@ -55,6 +55,7 @@ export interface ProductoPublico {
   precio: number;
   precio_oferta?: number;
   precio_visible?: boolean;
+  moneda?: string; // 's' = soles, 'd' = dólares
   stock: number;
   imagen_principal: string;
   categoria: string;

@@ -24,6 +24,7 @@ export interface ProductoBannerOferta {
   stock: number;
   descuento_porcentaje: number;
   precio_con_descuento: number;
+  moneda?: string; // opcional: si no viene, el pipe usa 'S/' por default
   categoria_id?: number;
   categoria_nombre?: string;
   marca_id?: number;

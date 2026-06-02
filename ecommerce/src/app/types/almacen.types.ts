@@ -90,6 +90,7 @@ export interface ProductoPublico {
   precio: string | number
   precio_oferta?: string | number
   precio_visible?: boolean
+  moneda?: string // 's' = soles, 'd' = dólares
   stock: number
   imagen_principal: string
   categoria: string

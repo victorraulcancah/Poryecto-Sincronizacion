@@ -371,11 +371,11 @@
                   <!-- Precio visible (cliente logueado) -->
                   <ng-container *ngIf="product.precio_visible !== false">
                     <div class="product-card__price mb-8">
-                      <span class="text-heading text-md fw-semibold">S/ {{ product.precio_oferta || product.precio }}
+                      <span class="text-heading text-md fw-semibold">{{ product.moneda | moneda }} {{ product.precio_oferta || product.precio }}
                         <span class="text-gray-500 fw-normal">/Qty</span>
                       </span>
                       <span *ngIf="product.precio_oferta && product.precio"
-                        class="text-gray-400 text-md fw-semibold text-decoration-line-through">S/ {{ product.precio
+                        class="text-gray-400 text-md fw-semibold text-decoration-line-through">{{ product.moneda | moneda }} {{ product.precio
                         }}</span>
                     </div>
                     <div class="flex-align gap-6">
@@ -523,10 +523,10 @@
 
                   <div class="product-card__price my-20 d-flex flex-column gap-2">
                     <span class="text-gray-400 text-md fw-semibold text-decoration-line-through">
-                      S/ {{ producto.precio | number : "1.2-2" }}
+                      {{ producto.moneda | moneda }} {{ producto.precio | number : "1.2-2" }}
                     </span>
                     <span class="text-md fw-semibold" style="color: #28a745">
-                      S/ {{ producto.precio_con_descuento | number : "1.2-2" }}
+                      {{ producto.moneda | moneda }} {{ producto.precio_con_descuento | number : "1.2-2" }}
                       <span class="text-gray-500 fw-normal">/Qty</span>
                     </span>
                   </div>
@@ -963,13 +963,13 @@
                     <div class="product-card__price flex-align gap-8">
                       <ng-container *ngIf="product.precio_visible !== false">
                         <span class="text-heading text-md fw-semibold d-block">
-                          S/ {{ product.precio | number : "1.2-2" }}
+                          {{ product.moneda | moneda }} {{ product.precio | number : "1.2-2" }}
                         </span>
                         <span *ngIf="
                             product.precio_oferta &&
                             product.precio_oferta < product.precio
                           " class="text-gray-400 text-sm fw-normal text-decoration-line-through">
-                          S/ {{ product.precio_oferta | number : "1.2-2" }}
+                          {{ product.moneda | moneda }} {{ product.precio_oferta | number : "1.2-2" }}
                         </span>
                       </ng-container>
                       <a *ngIf="product.precio_visible === false" routerLink="/account"
@@ -1018,13 +1018,13 @@
                     <div class="product-card__price flex-align gap-8">
                       <ng-container *ngIf="product.precio_visible !== false">
                         <span class="text-heading text-md fw-semibold d-block">
-                          S/ {{ product.precio | number : "1.2-2" }}
+                          {{ product.moneda | moneda }} {{ product.precio | number : "1.2-2" }}
                         </span>
                         <span *ngIf="
                             product.precio_oferta &&
                             product.precio_oferta < product.precio
                           " class="text-gray-400 text-sm fw-normal text-decoration-line-through">
-                          S/ {{ product.precio_oferta | number : "1.2-2" }}
+                          {{ product.moneda | moneda }} {{ product.precio_oferta | number : "1.2-2" }}
                         </span>
                       </ng-container>
                       <a *ngIf="product.precio_visible === false" routerLink="/account"
@@ -1119,13 +1119,13 @@
                     <div class="product-card__price flex-align gap-8">
                       <ng-container *ngIf="product.precio_visible !== false">
                         <span class="text-heading text-md fw-semibold d-block">
-                          S/ {{ product.precio | number : "1.2-2" }}
+                          {{ product.moneda | moneda }} {{ product.precio | number : "1.2-2" }}
                         </span>
                         <span *ngIf="
                             product.precio_oferta &&
                             product.precio_oferta < product.precio
                           " class="text-gray-400 text-sm fw-normal text-decoration-line-through">
-                          S/ {{ product.precio_oferta | number : "1.2-2" }}
+                          {{ product.moneda | moneda }} {{ product.precio_oferta | number : "1.2-2" }}
                         </span>
                       </ng-container>
                       <a *ngIf="product.precio_visible === false" routerLink="/account"
@@ -1174,13 +1174,13 @@
                     <div class="product-card__price flex-align gap-8">
                       <ng-container *ngIf="product.precio_visible !== false">
                         <span class="text-heading text-md fw-semibold d-block">
-                          S/ {{ product.precio | number : "1.2-2" }}
+                          {{ product.moneda | moneda }} {{ product.precio | number : "1.2-2" }}
                         </span>
                         <span *ngIf="
                             product.precio_oferta &&
                             product.precio_oferta < product.precio
                           " class="text-gray-400 text-sm fw-normal text-decoration-line-through">
-                          S/ {{ product.precio_oferta | number : "1.2-2" }}
+                          {{ product.moneda | moneda }} {{ product.precio_oferta | number : "1.2-2" }}
                         </span>
                       </ng-container>
                       <a *ngIf="product.precio_visible === false" routerLink="/account"
@@ -1254,10 +1254,10 @@
                   </h6>
                   <div class="product-card__price flex-align gap-8">
                     <span class="text-heading text-md fw-semibold d-block">
-                      S/ {{ producto.precio_con_descuento | number : "1.2-2" }}
+                      {{ producto.moneda | moneda }} {{ producto.precio_con_descuento | number : "1.2-2" }}
                     </span>
                     <span class="text-gray-400 text-md fw-semibold d-block text-decoration-line-through">
-                      S/ {{ producto.precio | number : "1.2-2" }}
+                      {{ producto.moneda | moneda }} {{ producto.precio | number : "1.2-2" }}
                     </span>
                   </div>
                 </div>
