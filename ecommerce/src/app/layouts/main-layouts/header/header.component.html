@@ -98,13 +98,20 @@
           [routerLinkActive]="'activePage'"
           (click)="hasSubmenus(menu) ? toggleSubmenu('menu-' + i) : null"
         >
-          <a
-            [href]="menu.url"
-            [routerLink]="menu.url !== 'javascript:void(0)' && !hasSubmenus(menu) ? menu.url : null"
-            [target]="menu.target"
-            class="nav-menu__link"
-            [ngClass]="menu.url === '/arma-tu-pc' ? 'text-main-600' : 'text-gray-700'"
-          >
+          <!-- URL externa o submenu o javascript:void(0): href puro -->
+          <a *ngIf="isExternalUrl(menu.url) || hasSubmenus(menu) || menu.url === 'javascript:void(0)'"
+             [href]="menu.url"
+             [target]="menu.target"
+             class="nav-menu__link"
+             [ngClass]="menu.url === '/arma-tu-pc' ? 'text-main-600' : 'text-gray-700'">
+            {{ menu.nombre }}
+          </a>
+          <!-- URL interna: routerLink (SPA) -->
+          <a *ngIf="!isExternalUrl(menu.url) && !hasSubmenus(menu) && menu.url !== 'javascript:void(0)'"
+             [routerLink]="menu.url"
+             [target]="menu.target"
+             class="nav-menu__link"
+             [ngClass]="menu.url === '/arma-tu-pc' ? 'text-main-600' : 'text-gray-700'">
             {{ menu.nombre }}
           </a>
 
@@ -119,11 +126,16 @@
               class="common-dropdown__item nav-submenu__item"
               [routerLinkActive]="'activePage'"
             >
-              <a
-                [routerLink]="submenu.url"
-                [target]="submenu.target"
-                class="common-dropdown__link nav-submenu__link text-heading-two hover-bg-neutral-100"
-              >
+              <a *ngIf="isExternalUrl(submenu.url)"
+                 [href]="submenu.url"
+                 [target]="submenu.target"
+                 class="common-dropdown__link nav-submenu__link text-heading-two hover-bg-neutral-100">
+                {{ submenu.nombre }}
+              </a>
+              <a *ngIf="!isExternalUrl(submenu.url)"
+                 [routerLink]="submenu.url"
+                 [target]="submenu.target"
+                 class="common-dropdown__link nav-submenu__link text-heading-two hover-bg-neutral-100">
                 {{ submenu.nombre }}
               </a>
             </li>
@@ -579,13 +591,18 @@
               [class.activePage]="isRouteActive(menu.url)"
             >
               <!-- Enlace del menú principal -->
-              <a
-                [href]="menu.url"
-                [routerLink]="menu.url !== 'javascript:void(0)' ? menu.url : null"
-                [target]="menu.target"
-                class="nav-menu__link"
-                [ngClass]="menu.url === '/arma-tu-pc' ? 'text-main-600 fw-semibold' : 'text-gray-700'"
-              >
+              <a *ngIf="isExternalUrl(menu.url) || menu.url === 'javascript:void(0)'"
+                 [href]="menu.url"
+                 [target]="menu.target"
+                 class="nav-menu__link"
+                 [ngClass]="menu.url === '/arma-tu-pc' ? 'text-main-600 fw-semibold' : 'text-gray-700'">
+                {{ menu.nombre }}
+              </a>
+              <a *ngIf="!isExternalUrl(menu.url) && menu.url !== 'javascript:void(0)'"
+                 [routerLink]="menu.url"
+                 [target]="menu.target"
+                 class="nav-menu__link"
+                 [ngClass]="menu.url === '/arma-tu-pc' ? 'text-main-600 fw-semibold' : 'text-gray-700'">
                 {{ menu.nombre }}
               </a>
 
@@ -599,11 +616,16 @@
                   class="common-dropdown__item nav-submenu__item"
                   [class.activePage]="isRouteActive(submenu.url)"
                 >
-                  <a
-                    [routerLink]="submenu.url"
-                    [target]="submenu.target"
-                    class="common-dropdown__link nav-submenu__link text-heading-two hover-bg-neutral-100"
-                  >
+                  <a *ngIf="isExternalUrl(submenu.url)"
+                     [href]="submenu.url"
+                     [target]="submenu.target"
+                     class="common-dropdown__link nav-submenu__link text-heading-two hover-bg-neutral-100">
+                    {{ submenu.nombre }}
+                  </a>
+                  <a *ngIf="!isExternalUrl(submenu.url)"
+                     [routerLink]="submenu.url"
+                     [target]="submenu.target"
+                     class="common-dropdown__link nav-submenu__link text-heading-two hover-bg-neutral-100">
                     {{ submenu.nombre }}
                   </a>
                 </li>
@@ -630,12 +652,16 @@
                   class="common-dropdown__item nav-submenu__item"
                   [class.activePage]="isRouteActive(menu.url)"
                 >
-                  <a
-                    [routerLink]="menu.url !== 'javascript:void(0)' ? menu.url : null"
-                    [href]="menu.url"
-                    [target]="menu.target"
-                    class="common-dropdown__link nav-submenu__link text-heading-two hover-bg-neutral-100"
-                  >
+                  <a *ngIf="isExternalUrl(menu.url) || menu.url === 'javascript:void(0)'"
+                     [href]="menu.url"
+                     [target]="menu.target"
+                     class="common-dropdown__link nav-submenu__link text-heading-two hover-bg-neutral-100">
+                    {{ menu.nombre }}
+                  </a>
+                  <a *ngIf="!isExternalUrl(menu.url) && menu.url !== 'javascript:void(0)'"
+                     [routerLink]="menu.url"
+                     [target]="menu.target"
+                     class="common-dropdown__link nav-submenu__link text-heading-two hover-bg-neutral-100">
                     {{ menu.nombre }}
                   </a>
                 </li>

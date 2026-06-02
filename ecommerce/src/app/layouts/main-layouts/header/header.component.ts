@@ -267,6 +267,15 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
     return (menu.hijos && menu.hijos.length > 0) || false;
   }
 
+  /**
+   * Detecta si la URL es externa/absoluta (http://, https://, mailto:, tel:).
+   * Cuando es externa NO se debe usar [routerLink] (rompe la URL); usar [href].
+   */
+  isExternalUrl(url?: string | null): boolean {
+    if (!url) return false;
+    return /^(https?:|mailto:|tel:|\/\/)/i.test(url);
+  }
+
   private cargarInformacionEmpresa(): void {
     if (!this.isBrowser) return;
 
