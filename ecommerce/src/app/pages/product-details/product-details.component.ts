@@ -625,7 +625,8 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
           Number(this.producto.precio_venta || this.producto.precio || 0),
           productImage,
           this.cantidad,
-          suggestedProducts
+          suggestedProducts,
+          this.producto.moneda
         );
       },
       error: (err) => {
@@ -660,7 +661,8 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
           Number(producto.precio_venta || producto.precio || 0),
           productImage,
           1,
-          suggestedProducts
+          suggestedProducts,
+          producto.moneda
         );
       },
       error: (err) => {

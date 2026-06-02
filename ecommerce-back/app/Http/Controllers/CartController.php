@@ -21,38 +21,52 @@ class CartController extends Controller
             return response()->json([], 200); // Retornar carrito vacío si no está autenticado
         }
         
-        $query = CartItem::with(['producto:id,nombre,precio_venta,stock,codigo_producto,imagen']);
-        
-        // Verificar si es un User (admin) o UserCliente (cliente e-commerce)
+        // Cargar también la relación precios para resolver el precio según la
+        // lista del cliente (mismo principio que ProductosController).
+        $query = CartItem::with([
+            'producto:id,nombre,precio_venta,stock,codigo_producto,imagen,mostrar_igv',
+            'producto.precios',
+        ]);
+
+        // Resolver tipo de precio + moneda según el tipo de usuario.
+        $tipoPrecioId = null;
+        $moneda = null;
+
         if ($authenticatedUser instanceof \App\Models\User) {
-            // Usuario del sistema (admin/vendedor)
+            // Usuario del sistema (admin/vendedor): usa la lista predeterminada global.
             $query->where('user_id', $authenticatedUser->id);
+            $tipoPrecioId = optional(\App\Models\TipoPrecio::predeterminado())->id;
         } elseif ($authenticatedUser instanceof \App\Models\UserCliente) {
-            // Cliente del e-commerce
+            // Cliente del e-commerce: su lista asignada o la predeterminada.
             $query->where('user_cliente_id', $authenticatedUser->id);
+            $tipoPrecioId = $authenticatedUser->tipoPrecioEfectivoId();
         } else {
             return response()->json(['message' => 'Tipo de usuario no válido.'], 401);
         }
-        
-        
-        $cartItems = $query->get();
-        
-        // \Log::info('Items encontrados en el carrito:', [
-        //     'count' => $cartItems->count(),
-        //     'items' => $cartItems->toArray()
-        // ]);
 
-        $formattedItems = $cartItems->map(function ($item) {
+        if ($tipoPrecioId) {
+            $moneda = optional(\App\Models\TipoPrecio::find($tipoPrecioId))->tipo_moneda;
+        }
+
+        $cartItems = $query->get();
+
+        $formattedItems = $cartItems->map(function ($item) use ($tipoPrecioId, $moneda) {
+            // Precio resuelto desde la lista del cliente; si el producto no
+            // tiene precio en esa lista, cae al precio_venta base.
+            $precioResuelto = $item->producto->precioPara($tipoPrecioId)
+                ?? (float) $item->producto->precio_venta;
+
             return [
                 'id' => $item->id, // ID del item del carrito
                 'producto_id' => $item->producto->id,
                 'nombre' => $item->producto->nombre,
                 'imagen_url' => $item->producto->imagen ? asset('storage/productos/' . $item->producto->imagen) : null,
-                'precio' => (float) $item->producto->precio_venta,
+                'precio' => (float) $precioResuelto,
+                'moneda' => $moneda,
                 'cantidad' => (int) $item->cantidad,
                 'stock_disponible' => (int) $item->producto->stock,
                 'codigo_producto' => $item->producto->codigo_producto,
-                'mostrar_igv' => (bool) $item->producto->mostrar_igv,  // <- NUEVA LÍNEA
+                'mostrar_igv' => (bool) $item->producto->mostrar_igv,
             ];
         });
 

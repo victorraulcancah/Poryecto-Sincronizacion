@@ -862,7 +862,8 @@ export class IndexComponent implements OnInit, OnDestroy, AfterViewInit {
           Number(product.precio_venta || product.precio || 0),
           productImage,
           1,
-          suggestedProducts
+          suggestedProducts,
+          product.moneda
         );
       },
       error: (err) => {
@@ -907,7 +908,8 @@ export class IndexComponent implements OnInit, OnDestroy, AfterViewInit {
           Number(producto.precio_con_descuento || producto.precio),
           productImage,
           1,
-          suggestedProducts
+          suggestedProducts,
+          producto.moneda
         );
       },
       error: (err) => {

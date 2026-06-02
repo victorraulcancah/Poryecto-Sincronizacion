@@ -329,7 +329,8 @@ export class OfertasComponent implements OnInit {
           Number(producto.precio_con_descuento || 0),
           productImage,
           1,
-          suggestedProducts as any
+          suggestedProducts as any,
+          producto.moneda
         )
       },
       error: (err) => {

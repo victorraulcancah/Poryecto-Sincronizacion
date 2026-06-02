@@ -6,6 +6,7 @@ export interface CartNotificationData {
   productName: string;
   productPrice: number;
   productImage: string;
+  productMoneda: string;
   quantity: number;
   suggestedProducts: any[];
 }
@@ -19,6 +20,7 @@ export class CartNotificationService {
     productName: '',
     productPrice: 0,
     productImage: '',
+    productMoneda: 's',
     quantity: 1,
     suggestedProducts: []
   });
@@ -49,12 +51,14 @@ export class CartNotificationService {
     productPrice: number,
     productImage: string,
     quantity: number = 1,
-    suggestedProducts: any[] = []
+    suggestedProducts: any[] = [],
+    productMoneda: string = 's'
   ) {
     this.showNotification({
       productName,
       productPrice,
       productImage,
+      productMoneda,
       quantity,
       suggestedProducts
     });

@@ -63,7 +63,7 @@
         <div class="flex-grow-1 d-flex flex-column justify-content-center">
           <h4 class="text-16 fw-semibold text-gray-900 mb-8 line-height-13">{{ productName }}</h4>
           <div class="d-flex flex-column gap-4">
-            <span class="text-18 fw-bold text-main-600">S/ {{ productPrice | number:'1.2-2' }}</span>
+            <span class="text-18 fw-bold text-main-600">{{ productMoneda | moneda }} {{ productPrice | number:'1.2-2' }}</span>
             <span class="text-14 text-gray-600">Cantidad: {{ quantity }}</span>
           </div>
         </div>
@@ -84,7 +84,7 @@
               [style.height]="'50px'"
               [style.object-fit]="'cover'"
               (error)="onImageError($event)">
-            <span class="text-12 fw-semibold text-main-600">S/ {{ product.precio | number:'1.2-2' }}</span>
+            <span class="text-12 fw-semibold text-main-600">{{ product.moneda | moneda }} {{ product.precio | number:'1.2-2' }}</span>
           </div>
         </div>
       </div>

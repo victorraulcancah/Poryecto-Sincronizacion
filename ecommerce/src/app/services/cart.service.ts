@@ -508,7 +508,8 @@ export class CartService {
                 mostrar_igv: Boolean(updatedProduct.producto.mostrar_igv),
                 precio: Number(updatedProduct.producto.precio_venta),
                 stock_disponible: Number(updatedProduct.producto.stock),
-                nombre: updatedProduct.producto.nombre || cartItem.nombre
+                nombre: updatedProduct.producto.nombre || cartItem.nombre,
+                moneda: updatedProduct.producto.moneda || cartItem.moneda
               };
               
               console.log(`Producto ${cartItem.producto_id} - Datos finales:`, newItem);

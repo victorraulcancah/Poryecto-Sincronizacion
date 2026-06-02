@@ -394,7 +394,8 @@ export class ShopComponent implements OnInit {
           Number(producto.precio || 0),
           productImage,
           1,
-          suggestedProducts
+          suggestedProducts,
+          producto.moneda
         );
       },
       error: (err) => {

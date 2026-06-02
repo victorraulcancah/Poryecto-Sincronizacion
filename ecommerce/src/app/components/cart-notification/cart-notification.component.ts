@@ -2,10 +2,12 @@ import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angu
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
+import { MonedaPipe } from '../../pipes/moneda.pipe';
+
 @Component({
   selector: 'app-cart-notification',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, MonedaPipe],
   templateUrl: './cart-notification.component.html',
   styleUrl: './cart-notification.component.scss'
 })
@@ -14,6 +16,7 @@ export class CartNotificationComponent implements OnInit, OnDestroy {
   @Input() productName: string = '';
   @Input() productPrice: number = 0;
   @Input() productImage: string = '';
+  @Input() productMoneda: string = 's';
   @Input() quantity: number = 1;
   @Input() showSuggestions: boolean = true;
   @Input() suggestedProducts: any[] = [];

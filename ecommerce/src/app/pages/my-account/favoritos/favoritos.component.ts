@@ -106,7 +106,8 @@ export class FavoritosComponent implements OnInit {
           Number(producto.precio_venta || producto.precio || 0),
           productImage,
           1,
-          []
+          [],
+          producto.moneda
         );
       },
       error: (err) => {
