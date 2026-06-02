@@ -25,6 +25,7 @@ export class AppComponent implements OnInit {
     productName: '',
     productPrice: 0,
     productImage: '',
+    productMoneda: 's',
     quantity: 1,
     suggestedProducts: []
   };

@@ -25,6 +25,7 @@ interface FavoritoItem {
   nombre: string;
   imagen_url: string;
   precio: number;
+  moneda?: string; // 's' = soles, 'd' = dólares (default 's' en el pipe)
   stock_disponible: number;
   codigo_producto: string;
   categoria?: string;
