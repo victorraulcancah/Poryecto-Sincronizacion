@@ -403,6 +403,7 @@ export class AlmacenService {
         };
         return {
           productos: productos.map((producto: any) => ({
+            ...producto,
             id: producto.id,
             nombre: producto.nombre,
             slug: producto.nombre?.toLowerCase().replace(/\s+/g, '-'),
