@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SlickCarouselModule } from 'ngx-slick-carousel';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
+import { MonedaPipe } from '../../pipes/moneda.pipe';
 import { CategoriasPublicasService } from '../../services/categorias-publicas.service';
 import { MarcaProducto, ProductoPublico } from '../../types/almacen.types';
 import { AlmacenService } from '../../services/almacen.service';
@@ -40,6 +41,7 @@ interface CategoriaTemplate {
     RouterLink,
     ProductFilterComponent,
     BreadcrumbComponent,
+    MonedaPipe,
   ],
   templateUrl: './index-two.component.html',
   styleUrl: './index-two.component.scss',

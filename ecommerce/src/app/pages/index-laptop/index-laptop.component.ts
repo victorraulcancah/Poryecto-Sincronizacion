@@ -9,6 +9,7 @@ import { ProductosService } from '../../services/productos.service';
 import { CartService } from "../../services/cart.service"
 import { CartNotificationService } from '../../services/cart-notification.service';
 import { ProductFilterComponent } from '../../component/product-filter/product-filter.component';
+import { MonedaPipe } from '../../pipes/moneda.pipe';
 import Swal from 'sweetalert2';
 
 interface CategoriaTemplate {
@@ -25,7 +26,7 @@ interface CategoriaTemplate {
 
 @Component({
   selector: 'app-index-laptop',
-  imports: [CommonModule, SlickCarouselModule, RouterLink, ProductFilterComponent],
+  imports: [CommonModule, SlickCarouselModule, RouterLink, ProductFilterComponent, MonedaPipe],
   templateUrl: './index-laptop.component.html',
   styleUrl: './index-laptop.component.scss',
 })

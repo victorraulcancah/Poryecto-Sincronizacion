@@ -12,6 +12,8 @@ import { Pipe, PipeTransform } from '@angular/core';
 })
 export class MonedaPipe implements PipeTransform {
   transform(value?: string | null): string {
-    return value === 'd' ? 'US$' : 'S/';
+    if (!value) return 'S/';
+    const val = value.toLowerCase().trim();
+    return (val === 'd' || val === 'usd') ? 'US$' : 'S/';
   }
 }
