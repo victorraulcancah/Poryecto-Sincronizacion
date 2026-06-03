@@ -564,6 +564,23 @@ class ProductosController extends Controller
                 $query->where('categoria_id', $request->categoria);
             }
 
+            // Orden por relevancia:
+            //   1) nombre que empieza por el término
+            //   2) nombre que contiene el término
+            //   3) código que coincide
+            //   4) descripción que contiene el término
+            //   Empate -> alfabético por nombre.
+            $query->orderByRaw('
+                CASE
+                    WHEN nombre LIKE ? THEN 1
+                    WHEN nombre LIKE ? THEN 2
+                    WHEN codigo_producto LIKE ? THEN 3
+                    WHEN descripcion LIKE ? THEN 4
+                    ELSE 5
+                END
+            ', ["{$termino}%", "%{$termino}%", "%{$termino}%", "%{$termino}%"])
+            ->orderBy('nombre', 'asc');
+
             $productos = $query->limit(10)
                 ->get()
                 ->map(function ($producto) {

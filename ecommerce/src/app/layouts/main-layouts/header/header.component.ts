@@ -16,6 +16,7 @@ import { MenuService, Menu } from '../../../services/menu.service';
 import { AuthService } from '../../../services/auth.service';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged, filter } from 'rxjs';
 import { IndexTwoService } from '../../../services/index-two.service';
+import { MonedaPipe } from '../../../pipes/moneda.pipe';
 import Swal from 'sweetalert2';
 
 // Interfaz para los items del dropdown de favoritos
@@ -42,7 +43,8 @@ interface FavoritoItem {
     ReactiveFormsModule,
     Select2,
     RouterLinkActive,
-    UserProfileComponent
+    UserProfileComponent,
+    MonedaPipe
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
@@ -148,8 +150,10 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
 
   onImageError(event: any): void {
     const img = event.target as HTMLImageElement;
-    // ✅ CORREGIDO: Usar imagen que existe o ocultar
-    img.style.display = 'none';
+    // Anti-loop: si el placeholder también falla, no re-disparar.
+    if (img.dataset['fallback']) return;
+    img.dataset['fallback'] = '1';
+    img.src = 'assets/images/placeholder.svg';
   }
 
   categories: Select2Data = [

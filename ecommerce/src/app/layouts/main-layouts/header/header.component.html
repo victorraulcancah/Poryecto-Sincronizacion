@@ -221,31 +221,30 @@
                 style="cursor: pointer; border-bottom: 1px solid #f1f3f4;"
               >
                 <!-- Imagen del producto -->
-                <div class="suggestion-image me-3 flex-shrink-0">
+                <div class="suggestion-image me-3 flex-shrink-0"
+                     style="width: 48px; height: 48px; overflow: hidden; border-radius: 6px; background: #f8f9fa;">
                   <img
-                    [src]="
-                      producto.imagen_url ||
-                      '/assets/images/placeholder-product.jpg'
-                    "
+                    [src]="producto.imagen_url || 'assets/images/placeholder.svg'"
                     [alt]="producto.nombre"
+                    (error)="onImageError($event)"
                     class="product-image"
-                    style="width: 48px; height: 48px"
+                    style="width: 48px; height: 48px; object-fit: contain; display: block;"
                   />
                 </div>
 
                 <!-- Información del producto -->
-                <div class="suggestion-content product-info flex-grow-1">
-                  <div class="suggestion-title product-name fw-medium">
+                <div class="suggestion-content product-info flex-grow-1 text-truncate" style="min-width: 0;">
+                  <div class="suggestion-title product-name fw-medium text-truncate">
                     {{ producto.nombre }}
                   </div>
-                  <div class="suggestion-category seller small">
+                  <div class="suggestion-category seller small text-truncate">
                     {{ producto.categoria }}
                   </div>
                 </div>
 
                 <!-- Precio -->
-                <div class="suggestion-price price fw-bold me-2">
-                  ${{ producto.precio | number : "1.2-2" }}
+                <div class="suggestion-price price fw-bold me-2 flex-shrink-0">
+                  {{ (producto.moneda || 's') | moneda }} {{ producto.precio | number : "1.2-2" }}
                 </div>
 
                 <!-- Icono -->
