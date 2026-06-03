@@ -5,6 +5,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { CotizacionesService, Cotizacion } from '../../../services/cotizaciones.service';
 import { ProductosService, ProductoSugerencia } from '../../../services/productos.service';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { MonedaPipe } from '../../../pipes/moneda.pipe';
 import Swal from 'sweetalert2';
 
 interface ItemEdicion {
@@ -13,12 +14,13 @@ interface ItemEdicion {
   imagen?: string;
   cantidad: number;
   precio_unitario: number;
+  moneda?: string;
 }
 
 @Component({
   selector: 'app-cotizaciones',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MonedaPipe],
   templateUrl: './cotizaciones.component.html',
   styleUrl: './cotizaciones.component.scss'
 })
@@ -350,6 +352,7 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
         imagen: p.imagen,
         cantidad: p.cantidad,
         precio_unitario: p.precio_unitario,
+        moneda: p.moneda || cotizacion.moneda || 's',
       }));
     this.terminoBusquedaProducto = '';
     this.productosSugeridos = [];
@@ -408,6 +411,7 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
         imagen: producto.imagen_url,
         cantidad: cantidad,
         precio_unitario: producto.precio ?? 0,
+        moneda: producto.moneda ?? this.cotizacionEnEdicion?.moneda ?? 's',
       });
     }
     // Reinicia la cantidad de ese producto en el buscador a 1.

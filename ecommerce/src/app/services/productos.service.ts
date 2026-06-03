@@ -79,6 +79,7 @@ export interface ProductoSugerencia {
   categoria_id: number;
   imagen_url?: string;
   url: string;
+  moneda?: string;
 }
 
 export interface ProductosPublicosResponse {

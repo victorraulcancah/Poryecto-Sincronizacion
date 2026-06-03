@@ -8,6 +8,7 @@ use App\Models\EstadoPedido;
 use App\Models\PedidoTracking;
 use App\Models\UserCliente;
 use App\Models\Producto;
+use App\Models\TipoPrecio;
 use App\Models\EmpresaInfo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -74,6 +75,7 @@ class PedidosController extends Controller
                     'igv' => $pedido->igv,
                     'descuento_total' => $pedido->descuento_total,
                     'total' => $pedido->total,
+                    'moneda' => $pedido->moneda ?? 's',
                     'estado_pedido_id' => $pedido->estado_pedido_id,
                     'metodo_pago' => $pedido->metodo_pago,
                     'observaciones' => $pedido->observaciones,
@@ -100,7 +102,7 @@ class PedidosController extends Controller
                     'cliente' => $pedido->cliente,
                     'user_cliente' => $pedido->userCliente,
                     'estado_pedido' => $pedido->estadoPedido,
-                    'detalles' => $pedido->detalles->map(function ($detalle) {
+                    'detalles' => $pedido->detalles->map(function ($detalle) use ($pedido) {
                         return [
                             'id' => $detalle->id,
                             'pedido_id' => $detalle->pedido_id,
@@ -111,6 +113,7 @@ class PedidosController extends Controller
                             'precio_unitario' => $detalle->precio_unitario,
                             'subtotal_linea' => $detalle->subtotal_linea,
                             'imagen_url' => $detalle->imagen_url,
+                            'moneda' => $detalle->moneda ?? $pedido->moneda ?? 's',
                             'producto' => $detalle->producto
                         ];
                     })
@@ -300,7 +303,8 @@ class PedidosController extends Controller
                 }
 
                 $cantidad = $prod['cantidad'];
-                $precioUnitario = $producto->precio_venta;
+                $tipoPrecioId = optional($userCliente)->tipoPrecioEfectivoId();
+                $precioUnitario = $producto->precioPara($tipoPrecioId) ?? $producto->precio_venta;
                 $subtotalLinea = $cantidad * $precioUnitario;
                 
                 $subtotal += $subtotalLinea;
@@ -315,6 +319,7 @@ class PedidosController extends Controller
 
             $igv = $subtotal * 0.18;
             $total = $subtotal + $igv;
+            $moneda = optional(TipoPrecio::find($tipoPrecioId))->tipo_moneda ?? 's';
 
             // Crear pedido con toda la información
             $pedido = Pedido::create([
@@ -338,6 +343,7 @@ class PedidosController extends Controller
                 'cliente_email' => $request->cliente_email,
                 'forma_envio' => $request->forma_envio,
                 'costo_envio' => $request->costo_envio ?? 0,
+                'moneda' => $moneda,
                 'departamento_id' => $request->departamento_id,
                 'provincia_id' => $request->provincia_id,
                 'distrito_id' => $request->distrito_id,
@@ -356,7 +362,8 @@ class PedidosController extends Controller
                     'nombre_producto' => $prod['producto']->nombre,
                     'cantidad' => $prod['cantidad'],
                     'precio_unitario' => $prod['precio_unitario'],
-                    'subtotal_linea' => $prod['subtotal_linea']
+                    'subtotal_linea' => $prod['subtotal_linea'],
+                    'moneda' => $moneda
                 ]);
 
                 // Actualizar stock

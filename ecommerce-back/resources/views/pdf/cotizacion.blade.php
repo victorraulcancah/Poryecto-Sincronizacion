@@ -291,12 +291,15 @@
             </thead>
             <tbody>
                 @foreach($productos as $producto)
+                    @php
+                        $sim = ($producto['moneda'] ?? $moneda ?? 's') === 'd' ? 'US$' : 'S/';
+                    @endphp
                     <tr>
                         <td style="font-weight: bold; color: #111827;">{{ $producto['id'] ?? 'N/A' }}</td>
                         <td>{{ $producto['nombre'] }}</td>
                         <td style="text-align: center; font-weight: bold;">{{ $producto['cantidad'] }}</td>
-                        <td style="text-align: right">S/ {{ number_format($producto['precio'], 2) }}</td>
-                        <td style="text-align: right; font-weight: bold; color: #111827;">S/ {{ number_format($producto['precio'] * $producto['cantidad'], 2) }}</td>
+                        <td style="text-align: right">{{ $sim }} {{ number_format($producto['precio'], 2) }}</td>
+                        <td style="text-align: right; font-weight: bold; color: #111827;">{{ $sim }} {{ number_format($producto['precio'] * $producto['cantidad'], 2) }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -307,15 +310,21 @@
         <table class="totals-table">
             <tr>
                 <td style="color: #6b7280; font-weight: 500;">Subtotal:</td>
-                <td style="text-align: right; font-weight: bold; color: #111827;">S/ {{ number_format($total - ($total * 0.18), 2) }}</td>
+                <td style="text-align: right; font-weight: bold; color: #111827;">{{ $simbolo_moneda }} {{ number_format($subtotal, 2) }}</td>
             </tr>
             <tr>
                 <td style="color: #6b7280; font-weight: 500;">IGV (18%):</td>
-                <td style="text-align: right; font-weight: bold; color: #111827;">S/ {{ number_format($total * 0.18, 2) }}</td>
+                <td style="text-align: right; font-weight: bold; color: #111827;">{{ $simbolo_moneda }} {{ number_format($igv, 2) }}</td>
             </tr>
+            @if(($costo_envio ?? 0) > 0)
+            <tr>
+                <td style="color: #6b7280; font-weight: 500;">Envío:</td>
+                <td style="text-align: right; font-weight: bold; color: #111827;">{{ $simbolo_moneda }} {{ number_format($costo_envio, 2) }}</td>
+            </tr>
+            @endif
             <tr class="total-row">
                 <td style="border-radius: 8px 0 0 8px;">TOTAL COTIZADO:</td>
-                <td style="text-align: right; border-radius: 0 8px 8px 0;">S/ {{ number_format($total, 2) }}</td>
+                <td style="text-align: right; border-radius: 0 8px 8px 0;">{{ $simbolo_moneda }} {{ number_format($total, 2) }}</td>
             </tr>
         </table>
         <div class="clear"></div>

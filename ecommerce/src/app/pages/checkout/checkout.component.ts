@@ -16,6 +16,7 @@ import { ClienteService } from '../../services/cliente.service';
 import { FormaEnvioService, FormaEnvio } from '../../services/forma-envio.service';
 import { TipoPagoService, TipoPago } from '../../services/tipo-pago.service';
 import { OfertasService } from '../../services/ofertas.service';
+import { MonedaPipe } from '../../pipes/moneda.pipe';
 import { Subject, takeUntil } from 'rxjs';
 import Swal from 'sweetalert2';
 
@@ -28,7 +29,8 @@ import Swal from 'sweetalert2';
     ReactiveFormsModule,
     FormsModule,
     BreadcrumbComponent,
-    ShippingComponent
+    ShippingComponent,
+    MonedaPipe
   ],
   templateUrl: './checkout.component.html',
   styleUrl: './checkout.component.scss'
@@ -110,7 +112,10 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   getTotalConDescuento(): number {
-    return (this.cartSummary.total || 0) - this.descuentoCupon + this.costoEnvioCalculado;
+    // Forzar Number para evitar concatenación cuando costo_envio viene como string del backend.
+    return (Number(this.cartSummary.total) || 0)
+         - (Number(this.descuentoCupon) || 0)
+         + (Number(this.costoEnvioCalculado) || 0);
   }
 
   ngOnDestroy(): void {
@@ -360,7 +365,9 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     const formaEnvioSeleccionada = this.formasEnvioFiltradas.find(f => f.id === Number(formaEnvioId));
 
     if (formaEnvioSeleccionada) {
-      this.costoEnvioCalculado = formaEnvioSeleccionada.costo;
+      // Coerción explícita: el costo viene del backend como decimal (string) y
+      // sin esto se concatena al sumar con otros precios.
+      this.costoEnvioCalculado = Number(formaEnvioSeleccionada.costo) || 0;
     } else {
       this.costoEnvioCalculado = 0;
     }
@@ -437,7 +444,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
                 <i class="ph ph-check-circle text-success mb-3" style="font-size: 4rem;"></i>
                 <h5>Cotización ${response.codigo_cotizacion}</h5>
                 <p class="text-muted">Tu cotización ha sido registrada exitosamente.</p>
-                <p><strong>Total: S/ ${this.formatPrice(this.getTotalFinal())}</strong></p>
+                <p><strong>Total: ${(response.cotizacion?.moneda || this.cartItems[0]?.moneda || 's') === 'd' ? 'US$' : 'S/'} ${this.formatPrice(response.cotizacion?.total ?? this.getTotalFinal())}</strong></p>
                 <p class="text-sm text-gray-600">Puedes ver el estado de tu cotización en "Mi Cuenta"</p>
               </div>
             `,
@@ -526,8 +533,8 @@ export class CheckoutComponent implements OnInit, OnDestroy {
                 <i class="ph ph-check-circle text-success mb-3" style="font-size: 4rem;"></i>
                 <h5>Compra ${response.codigo_compra}</h5>
                 <p class="text-muted">Tu compra ha sido registrada exitosamente.</p>
-                ${this.cuponAplicado ? `<p class="text-success">Descuento aplicado: -S/ ${this.formatPrice(this.descuentoCupon)}</p>` : ''}
-                <p><strong>Total: S/ ${this.formatPrice(totalFinal)}</strong></p>
+                ${this.cuponAplicado ? `<p class="text-success">Descuento aplicado: -${(this.cartItems[0]?.moneda || 's') === 'd' ? 'US$' : 'S/'} ${this.formatPrice(this.descuentoCupon)}</p>` : ''}
+                <p><strong>Total: ${(this.cartItems[0]?.moneda || 's') === 'd' ? 'US$' : 'S/'} ${this.formatPrice(totalFinal)}</strong></p>
                 <p class="text-sm text-gray-600">Puedes ver el estado de tu compra en "Mi Cuenta"</p>
               </div>
             `,
@@ -611,11 +618,12 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   getTotalFinal(): number {
-    const subtotal = typeof this.cartSummary.subtotal === 'number' ? this.cartSummary.subtotal : 0;
-    const envio = this.costoEnvioCalculado;
-    const descuento = this.descuentoCupon || 0;
+    const subtotal = Number(this.cartSummary.subtotal) || 0;
+    const igv = Number(this.cartSummary.igv) || 0;
+    const envio = Number(this.costoEnvioCalculado) || 0;
+    const descuento = Number(this.descuentoCupon) || 0;
 
-    return subtotal - descuento + envio;
+    return subtotal + igv - descuento + envio;
   }
 
   formatPrice(price: number | string | null | undefined): string {
@@ -786,7 +794,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       this.mensajeSinEnvio = '';
       if (this.formasEnvioFiltradas.length === 1) {
         this.checkoutForm.patchValue({ formaEnvio: this.formasEnvioFiltradas[0].id });
-        this.costoEnvioCalculado = this.formasEnvioFiltradas[0].costo;
+        this.costoEnvioCalculado = Number(this.formasEnvioFiltradas[0].costo) || 0;
       } else {
         this.checkoutForm.patchValue({ formaEnvio: '' });
         this.costoEnvioCalculado = 0;

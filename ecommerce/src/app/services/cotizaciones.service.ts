@@ -12,6 +12,7 @@ export interface Cotizacion {
   subtotal?: number;
   igv?: number;
   costo_envio?: number;
+  moneda?: string;
   total: number;
   estado_actual: EstadoCotizacion;
   forma_envio: string;
@@ -35,6 +36,7 @@ export interface ProductoCotizacion {
   cantidad: number;
   precio_unitario: number;
   subtotal: number;
+  moneda?: string;
 }
 
 export interface EstadoCotizacion {

@@ -6,12 +6,13 @@ import { FormsModule } from '@angular/forms';
 import { PedidosService } from '../../../services/pedidos.service';
 import { ProductosService } from '../../../services/productos.service';
 import { ReniecService } from '../../../services/reniec.service';
+import { MonedaPipe } from '../../../pipes/moneda.pipe';
 import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-pedidos-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, MonedaPipe],
   templateUrl: "./pedidos-list.component.html",
   styleUrl: "./pedidos-list.component.scss"
 })
@@ -42,7 +43,7 @@ export class PedidosListComponent implements OnInit {
 
   // ── Crear pedido ──────────────────────────────────────────
   creandoPedido = false;
-  nuevoPedido = {
+  nuevoPedido: { cliente_nombre: string; cliente_email: string; telefono_contacto: string; numero_documento: string; metodo_pago: string; forma_envio: string; direccion_envio: string; costo_envio: number; observaciones: string; moneda?: string } = {
     cliente_nombre: '',
     cliente_email: '',
     telefono_contacto: '',
@@ -52,6 +53,7 @@ export class PedidosListComponent implements OnInit {
     direccion_envio: '',
     costo_envio: 0,
     observaciones: '',
+    moneda: 's',
   };
   productosDelNuevoPedido: { producto: any; cantidad: number; precio_unitario: number }[] = [];
   terminoBusquedaProducto: string = '';

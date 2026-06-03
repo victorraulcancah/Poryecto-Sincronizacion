@@ -18,7 +18,8 @@ class CotizacionDetalle extends Model
         'nombre_producto',
         'cantidad',
         'precio_unitario',
-        'subtotal_linea'
+        'subtotal_linea',
+        'moneda'
     ];
 
     protected $casts = [

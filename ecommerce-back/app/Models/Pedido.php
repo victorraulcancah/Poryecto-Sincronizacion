@@ -30,6 +30,7 @@ class Pedido extends Model
         'cliente_email',
         'forma_envio',
         'costo_envio',
+        'moneda',
         'departamento_id',
         'provincia_id',
         'distrito_id',

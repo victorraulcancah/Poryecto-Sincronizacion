@@ -47,7 +47,7 @@
             <span class="badge bg-info-50 text-info-600 px-12 py-6 rounded-pill mb-8">
               {{ cotizacion.estado_actual.nombre || 'Pendiente' }}
             </span>
-            <h6 class="text-heading mb-0">S/ {{ cotizacion.total | number:'1.2-2' }}</h6>
+            <h6 class="text-heading mb-0">{{ (cotizacion.moneda || 's') | moneda }} {{ cotizacion.total | number:'1.2-2' }}</h6>
             <p class="text-xs text-gray-500 mb-0">{{ (cotizacion.productos && cotizacion.productos.length) || 0 }} productos</p>
           </div>
 
@@ -267,7 +267,7 @@
                      class="edit-thumb flex-shrink-0" alt="">
                 <div class="flex-grow-1" style="min-width:0;">
                   <div class="text-sm text-truncate">{{ p.nombre }}</div>
-                  <div class="text-xs fw-bold" style="color:#c22026;">S/ {{ p.precio | number:'1.2-2' }}</div>
+                  <div class="text-xs fw-bold" style="color:#c22026;">{{ (p.moneda || cotizacionEnEdicion?.moneda || 's') | moneda }} {{ p.precio | number:'1.2-2' }}</div>
                 </div>
                 <div class="edit-qty flex-shrink-0">
                   <button type="button" class="edit-qty__btn"
@@ -303,7 +303,7 @@
                    class="edit-thumb flex-shrink-0" alt="">
               <div class="flex-grow-1" style="min-width:0;">
                 <div class="text-sm fw-semibold text-heading text-truncate">{{ item.nombre }}</div>
-                <div class="text-xs text-gray-500">S/ {{ item.precio_unitario | number:'1.2-2' }} c/u</div>
+                <div class="text-xs text-gray-500">{{ (item.moneda || cotizacionEnEdicion?.moneda || 's') | moneda }} {{ item.precio_unitario | number:'1.2-2' }} c/u</div>
               </div>
               <div class="edit-qty">
                 <button type="button" class="edit-qty__btn" (click)="cambiarCantidadEdicion(item, -1)">−</button>
@@ -313,7 +313,7 @@
                 <button type="button" class="edit-qty__btn" (click)="cambiarCantidadEdicion(item, 1)">+</button>
               </div>
               <span class="text-sm fw-bold text-end flex-shrink-0" style="min-width:78px; color:#c22026;">
-                S/ {{ (item.cantidad * item.precio_unitario) | number:'1.2-2' }}
+                {{ (item.moneda || cotizacionEnEdicion?.moneda || 's') | moneda }} {{ (item.cantidad * item.precio_unitario) | number:'1.2-2' }}
               </span>
               <button type="button" class="edit-prod-row__del" (click)="quitarProductoEdicion(i)">
                 <i class="ph ph-trash"></i>
@@ -325,19 +325,19 @@
           <div class="bg-white rounded-12 border border-gray-100 p-20 mt-20">
             <div class="d-flex justify-content-between text-sm mb-8">
               <span class="text-gray-500">Subtotal</span>
-              <span class="fw-semibold text-heading">S/ {{ subtotalEdicion | number:'1.2-2' }}</span>
+              <span class="fw-semibold text-heading">{{ (cotizacionEnEdicion?.moneda || 's') | moneda }} {{ subtotalEdicion | number:'1.2-2' }}</span>
             </div>
             <div class="d-flex justify-content-between text-sm mb-8">
               <span class="text-gray-500">IGV (18%)</span>
-              <span class="fw-semibold text-heading">S/ {{ igvEdicion | number:'1.2-2' }}</span>
+              <span class="fw-semibold text-heading">{{ (cotizacionEnEdicion?.moneda || 's') | moneda }} {{ igvEdicion | number:'1.2-2' }}</span>
             </div>
             <div class="d-flex justify-content-between text-sm mb-12">
               <span class="text-gray-500">Costo de envío</span>
-              <span class="fw-semibold text-heading">S/ {{ cotizacionEnEdicion?.costo_envio || 0 | number:'1.2-2' }}</span>
+              <span class="fw-semibold text-heading">{{ (cotizacionEnEdicion?.moneda || 's') | moneda }} {{ cotizacionEnEdicion?.costo_envio || 0 | number:'1.2-2' }}</span>
             </div>
             <div class="d-flex justify-content-between pt-12 border-top">
               <span class="fw-bold text-heading">TOTAL</span>
-              <span class="fw-bold fs-5" style="color:#c22026;">S/ {{ totalEdicion | number:'1.2-2' }}</span>
+              <span class="fw-bold fs-5" style="color:#c22026;">{{ (cotizacionEnEdicion?.moneda || 's') | moneda }} {{ totalEdicion | number:'1.2-2' }}</span>
             </div>
           </div>
         </div>

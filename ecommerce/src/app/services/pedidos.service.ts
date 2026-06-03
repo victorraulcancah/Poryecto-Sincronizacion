@@ -28,6 +28,7 @@ export interface Pedido {
   cliente_email?: string | null;
   forma_envio?: string | null;
   costo_envio?: string | null;
+  moneda?: string | null;
   departamento_id?: string | null;
   provincia_id?: string | null;
   distrito_id?: string | null;
@@ -63,6 +64,7 @@ export interface PedidoDetalle {
   cantidad: number;
   precio_unitario: string;
   subtotal_linea: string;
+  moneda?: string | null;
   imagen_url: string;
   producto?: {
     id: number;

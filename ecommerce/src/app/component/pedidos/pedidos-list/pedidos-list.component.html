@@ -43,7 +43,7 @@
                 </div>
                 <div class="d-flex justify-content-between align-items-center mt-4">
                   <span class="text-xs text-gray-500">{{ p.fecha_pedido | date:'dd/MM/yyyy HH:mm' }}</span>
-                  <span class="text-xs fw-semibold text-main-600">S/ {{ p.total | number:'1.2-2' }}</span>
+                  <span class="text-xs fw-semibold text-main-600">{{ (p.moneda || 's') | moneda }} {{ p.total | number:'1.2-2' }}</span>
                 </div>
               </button>
             </div>
@@ -167,7 +167,7 @@
             <!-- Total -->
             <td>
               <div class="pedido-total-info">
-                <div class="total-amount">S/ {{ pedido.total | number:'1.2-2' }}</div>
+                <div class="total-amount">{{ (pedido.moneda || 's') | moneda }} {{ pedido.total | number:'1.2-2' }}</div>
                 <div class="total-label">Total</div>
               </div>
             </td>
@@ -527,7 +527,7 @@
                       <div class="text-xs text-gray-400">{{ p.codigo_producto }}</div>
                       <div class="d-flex align-items-center gap-8 mt-4">
                         <span class="text-success-600 fw-semibold text-sm">
-                          S/ {{ p.precio_venta | number:'1.2-2' }}
+                          {{ (p.moneda || 's') | moneda }} {{ p.precio_venta | number:'1.2-2' }}
                         </span>
                         <span class="badge text-xs"
                               [class]="p.stock > 10 ? 'bg-success-50 text-success-600' :
@@ -602,7 +602,7 @@
 
                     <!-- Subtotal línea -->
                     <span class="carrito-item__subtotal fw-bold text-success-600">
-                      S/ {{ (item.cantidad * item.precio_unitario) | number:'1.2-2' }}
+                      {{ (item.producto?.moneda || 's') | moneda }} {{ (item.cantidad * item.precio_unitario) | number:'1.2-2' }}
                     </span>
 
                     <!-- Eliminar -->
@@ -617,11 +617,11 @@
                      class="border-top mt-12 pt-12">
                   <div class="d-flex justify-content-between align-items-center text-sm mb-6">
                     <span class="text-gray-500">Subtotal (sin IGV)</span>
-                    <span>S/ {{ subtotalNuevoPedido | number:'1.2-2' }}</span>
+                    <span>{{ (nuevoPedido.moneda || 's') | moneda }} {{ subtotalNuevoPedido | number:'1.2-2' }}</span>
                   </div>
                   <div class="d-flex justify-content-between align-items-center text-sm mb-6">
                     <span class="text-gray-500">IGV 18%</span>
-                    <span>S/ {{ igvNuevoPedido | number:'1.2-2' }}</span>
+                    <span>{{ (nuevoPedido.moneda || 's') | moneda }} {{ igvNuevoPedido | number:'1.2-2' }}</span>
                   </div>
                   <div class="d-flex justify-content-between align-items-center text-sm mb-8">
                     <span class="text-gray-500">
@@ -630,12 +630,12 @@
                         {{ formatFormaEnvio(nuevoPedido.forma_envio) }}
                       </span>
                     </span>
-                    <span>S/ {{ nuevoPedido.costo_envio | number:'1.2-2' }}</span>
+                    <span>{{ (nuevoPedido.moneda || 's') | moneda }} {{ nuevoPedido.costo_envio | number:'1.2-2' }}</span>
                   </div>
                   <div class="d-flex justify-content-between align-items-center fw-bold border-top pt-8">
                     <span class="text-base">TOTAL</span>
                     <span class="text-success-600" style="font-size:1.25rem;">
-                      S/ {{ totalNuevoPedido | number:'1.2-2' }}
+                      {{ (nuevoPedido.moneda || 's') | moneda }} {{ totalNuevoPedido | number:'1.2-2' }}
                     </span>
                   </div>
                 </div>
@@ -776,15 +776,15 @@
                   <div class="total-summary-box mt-24">
                     <div class="d-flex justify-content-between mb-8">
                       <span class="text-gray-500">Subtotal</span>
-                      <span class="fw-semibold">S/ {{ pedidoSeleccionado?.subtotal | number:'1.2-2' }}</span>
+                      <span class="fw-semibold">{{ (pedidoSeleccionado?.moneda || 's') | moneda }} {{ pedidoSeleccionado?.subtotal | number:'1.2-2' }}</span>
                     </div>
                     <div class="d-flex justify-content-between mb-12">
                       <span class="text-gray-500">IGV (18%)</span>
-                      <span class="fw-semibold">S/ {{ pedidoSeleccionado?.igv | number:'1.2-2' }}</span>
+                      <span class="fw-semibold">{{ (pedidoSeleccionado?.moneda || 's') | moneda }} {{ pedidoSeleccionado?.igv | number:'1.2-2' }}</span>
                     </div>
                     <div class="d-flex justify-content-between pt-12 border-top">
                       <span class="fw-bold text-heading">TOTAL</span>
-                      <span class="fw-bold text-success-600 fs-5">S/ {{ pedidoSeleccionado?.total | number:'1.2-2' }}</span>
+                      <span class="fw-bold text-success-600 fs-5">{{ (pedidoSeleccionado?.moneda || 's') | moneda }} {{ pedidoSeleccionado?.total | number:'1.2-2' }}</span>
                     </div>
                   </div>
                 </div>
@@ -893,8 +893,8 @@
                       {{ detalle.cantidad }}
                     </span>
                   </td>
-                  <td class="text-end text-muted">S/ {{ detalle.precio_unitario | number:'1.2-2' }}</td>
-                  <td class="text-end pe-24 fw-bold text-success-600">S/ {{ (detalle.cantidad * detalle.precio_unitario) | number:'1.2-2' }}</td>
+                  <td class="text-end text-muted">{{ (detalle.moneda || pedidoSeleccionado?.moneda || 's') | moneda }} {{ detalle.precio_unitario | number:'1.2-2' }}</td>
+                  <td class="text-end pe-24 fw-bold text-success-600">{{ (detalle.moneda || pedidoSeleccionado?.moneda || 's') | moneda }} {{ (detalle.cantidad * detalle.precio_unitario) | number:'1.2-2' }}</td>
                 </tr>
               </tbody>
             </table>
@@ -905,19 +905,19 @@
                 <div class="col-md-5 col-lg-4">
                   <div class="summary-row">
                     <span class="summary-label">Subtotal:</span>
-                    <span class="summary-value">S/ {{ pedidoSeleccionado?.subtotal | number:'1.2-2' }}</span>
+                    <span class="summary-value">{{ (pedidoSeleccionado?.moneda || 's') | moneda }} {{ pedidoSeleccionado?.subtotal | number:'1.2-2' }}</span>
                   </div>
                   <div class="summary-row">
                     <span class="summary-label">IGV (18%):</span>
-                    <span class="summary-value">S/ {{ pedidoSeleccionado?.igv | number:'1.2-2' }}</span>
+                    <span class="summary-value">{{ (pedidoSeleccionado?.moneda || 's') | moneda }} {{ pedidoSeleccionado?.igv | number:'1.2-2' }}</span>
                   </div>
                   <div class="summary-row">
                     <span class="summary-label">Envío:</span>
-                    <span class="summary-value">S/ {{ pedidoSeleccionado?.costo_envio | number:'1.2-2' }}</span>
+                    <span class="summary-value">{{ (pedidoSeleccionado?.moneda || 's') | moneda }} {{ pedidoSeleccionado?.costo_envio | number:'1.2-2' }}</span>
                   </div>
                   <div class="summary-row total-row mt-12 pt-12">
                     <span class="summary-label">Total:</span>
-                    <span class="summary-value text-success-600">S/ {{ pedidoSeleccionado?.total | number:'1.2-2' }}</span>
+                    <span class="summary-value text-success-600">{{ (pedidoSeleccionado?.moneda || 's') | moneda }} {{ pedidoSeleccionado?.total | number:'1.2-2' }}</span>
                   </div>
                 </div>
               </div>
@@ -1055,7 +1055,7 @@
             <div class="col-6 col-md-3">
               <div class="summary-item">
                 <span class="label">Total</span>
-                <span class="value text-success-600">S/ {{ pedidoSeleccionado?.total | number:'1.2-2' }}</span>
+                <span class="value text-success-600">{{ (pedidoSeleccionado?.moneda || 's') | moneda }} {{ pedidoSeleccionado?.total | number:'1.2-2' }}</span>
               </div>
             </div>
             <div class="col-6 col-md-3">

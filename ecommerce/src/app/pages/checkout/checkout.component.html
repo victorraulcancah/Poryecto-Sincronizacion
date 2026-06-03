@@ -341,7 +341,7 @@
                         {{
                           forma.ubicacion_completa || forma.departamento_nombre || 'Envío'
                         }}
-                        - S/ {{ forma.costo | number : "1.2-2" }}
+                        - {{ cartItems[0]?.moneda | moneda }} {{ forma.costo | number : "1.2-2" }}
                       </option>
                     </select>
 
@@ -524,7 +524,7 @@
                     >
                   </div>
                   <span class="text-sm fw-medium"
-                    >S/ {{ formatPrice(getItemSubtotal(item)) }}</span
+                    >{{ item.moneda | moneda }} {{ formatPrice(getItemSubtotal(item)) }}</span
                   >
                 </div>
               </div>
@@ -536,7 +536,17 @@
                 >
                   <span class="text-gray-600">SubTotal</span>
                   <span class="fw-medium"
-                    >S/ {{ formatPrice(cartSummary.subtotal) }}</span
+                    >{{ cartItems[0]?.moneda | moneda }} {{ formatPrice(cartSummary.subtotal) }}</span
+                  >
+                </div>
+
+                <div
+                  *ngIf="cartSummary.igv > 0"
+                  class="d-flex justify-content-between align-items-center mb-12"
+                >
+                  <span class="text-gray-600">IGV (18%)</span>
+                  <span class="fw-medium"
+                    >{{ cartItems[0]?.moneda | moneda }} {{ formatPrice(cartSummary.igv) }}</span
                   >
                 </div>
 
@@ -550,7 +560,7 @@
                     Cupón ({{ cuponAplicado.codigo }})
                   </span>
                   <span class="text-success-600 fw-medium"
-                    >-S/ {{ formatPrice(descuentoCupon) }}</span
+                    >-{{ cartItems[0]?.moneda | moneda }} {{ formatPrice(descuentoCupon) }}</span
                   >
                 </div>
 
@@ -566,7 +576,7 @@
                       {{ cuponAplicado.valor_descuento }}% de descuento
                     </ng-container>
                     <ng-container *ngIf="cuponAplicado.tipo_descuento === 'cantidad_fija'">
-                      S/ {{ cuponAplicado.valor_descuento }} de descuento
+                      {{ cartItems[0]?.moneda | moneda }} {{ cuponAplicado.valor_descuento }} de descuento
                     </ng-container>
                   </span>
                 </div>
@@ -576,7 +586,7 @@
                 >
                   <span class="text-gray-600">Envío</span>
                   <span class="fw-medium"
-                    >S/ {{ formatPrice(costoEnvioCalculado) }}</span
+                    >{{ cartItems[0]?.moneda | moneda }} {{ formatPrice(costoEnvioCalculado) }}</span
                   >
                 </div>
 
@@ -585,7 +595,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                   <span class="text-heading fw-bold">Total</span>
                   <span class="text-heading fw-bold"
-                    >S/ {{ formatPrice(getTotalFinal()) }}</span
+                    >{{ cartItems[0]?.moneda | moneda }} {{ formatPrice(getTotalFinal()) }}</span
                   >
                 </div>
               </div>
@@ -658,7 +668,7 @@
                     }}:</span
                   >
                   <span class="text-sm fw-medium"
-                    >S/ {{ formatPrice(forma.costo) }}</span>
+                    >{{ cartItems[0]?.moneda | moneda }} {{ formatPrice(forma.costo) }}</span>
                 </div>
                 <div
                   *ngIf="formasEnvioFiltradas.length === 0"

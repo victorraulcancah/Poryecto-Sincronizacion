@@ -8,6 +8,7 @@ use App\Models\CotizacionTracking;
 use App\Models\EstadoCotizacion;
 use App\Models\UserCliente;
 use App\Models\Producto;
+use App\Models\TipoPrecio;
 use App\Models\Compra;
 use App\Models\Pedido;
 use App\Models\PedidoDetalle;
@@ -163,28 +164,39 @@ class CotizacionesController extends Controller
 
             // Calcular totales
             $subtotal = 0;
+            $igv = 0;
             $productosValidados = [];
 
             foreach ($request->productos as $prod) {
                 $producto = Producto::findOrFail($prod['producto_id']);
 
                 $cantidad = $prod['cantidad'];
-                $precioUnitario = $producto->precio_oferta ?: $producto->precio_venta;
-                $subtotalLinea = $cantidad * $precioUnitario;
+                $tipoPrecioId = optional($userCliente)->tipoPrecioEfectivoId();
+                $precioUnitario = $producto->precioPara($tipoPrecioId) ?? $producto->precio_venta;
+                $subtotalLineaBruto = $cantidad * $precioUnitario;
 
-                $subtotal += $subtotalLinea;
+                if ($producto->mostrar_igv) {
+                    $subtotalLineaBase = $subtotalLineaBruto / 1.18;
+                    $igvLinea = $subtotalLineaBruto - $subtotalLineaBase;
+                } else {
+                    $subtotalLineaBase = $subtotalLineaBruto;
+                    $igvLinea = $subtotalLineaBruto * 0.18;
+                }
+
+                $subtotal += $subtotalLineaBase;
+                $igv += $igvLinea;
 
                 $productosValidados[] = [
                     'producto' => $producto,
                     'cantidad' => $cantidad,
                     'precio_unitario' => $precioUnitario,
-                    'subtotal_linea' => $subtotalLinea
+                    'subtotal_linea' => $subtotalLineaBase
                 ];
             }
 
-            $igv = $subtotal * 0.18;
             $costoEnvio = $request->costo_envio ?? 0;
             $total = $subtotal + $igv + $costoEnvio;
+            $moneda = optional(TipoPrecio::find($tipoPrecioId))->tipo_moneda ?? 's';
 
             // Crear cotización
             $cotizacion = Cotizacion::create([
@@ -205,6 +217,7 @@ class CotizacionesController extends Controller
                 'cliente_email' => $request->cliente_email,
                 'forma_envio' => $request->forma_envio,
                 'costo_envio' => $costoEnvio,
+                'moneda' => $moneda,
                 'departamento_id' => $request->departamento_id,
                 'provincia_id' => $request->provincia_id,
                 'distrito_id' => $request->distrito_id,
@@ -227,7 +240,8 @@ class CotizacionesController extends Controller
                     'nombre_producto' => $prod['producto']->nombre,
                     'cantidad' => $prod['cantidad'],
                     'precio_unitario' => $prod['precio_unitario'],
-                    'subtotal_linea' => $prod['subtotal_linea']
+                    'subtotal_linea' => $prod['subtotal_linea'],
+                    'moneda' => $moneda
                 ]);
             }
 
@@ -314,31 +328,45 @@ class CotizacionesController extends Controller
 
             // Recalcular totales
             $subtotal = 0;
+            $igv = 0;
             $productosValidados = [];
 
             foreach ($request->productos as $prod) {
                 $producto = Producto::findOrFail($prod['producto_id']);
                 $cantidad = $prod['cantidad'];
-                $precioUnitario = $producto->precio_oferta ?: $producto->precio_venta;
-                $subtotalLinea = $cantidad * $precioUnitario;
-                $subtotal += $subtotalLinea;
+                $userCliente = UserCliente::find($cotizacion->user_cliente_id);
+                $tipoPrecioId = optional($userCliente)->tipoPrecioEfectivoId();
+                $precioUnitario = $producto->precioPara($tipoPrecioId) ?? $producto->precio_venta;
+                $subtotalLineaBruto = $cantidad * $precioUnitario;
+
+                if ($producto->mostrar_igv) {
+                    $subtotalLineaBase = $subtotalLineaBruto / 1.18;
+                    $igvLinea = $subtotalLineaBruto - $subtotalLineaBase;
+                } else {
+                    $subtotalLineaBase = $subtotalLineaBruto;
+                    $igvLinea = $subtotalLineaBruto * 0.18;
+                }
+
+                $subtotal += $subtotalLineaBase;
+                $igv += $igvLinea;
 
                 $productosValidados[] = [
                     'producto' => $producto,
                     'cantidad' => $cantidad,
                     'precio_unitario' => $precioUnitario,
-                    'subtotal_linea' => $subtotalLinea
+                    'subtotal_linea' => $subtotalLineaBase
                 ];
             }
 
-            $igv = $subtotal * 0.18;
             $costoEnvio = $cotizacion->costo_envio ?? 0;
             $total = $subtotal + $igv + $costoEnvio;
+            $moneda = optional(TipoPrecio::find($tipoPrecioId))->tipo_moneda ?? $cotizacion->moneda ?? 's';
 
             $cotizacion->update([
                 'subtotal' => $subtotal,
                 'igv' => $igv,
                 'total' => $total,
+                'moneda' => $moneda,
                 'metodo_pago_preferido' => $request->metodo_pago_preferido,
                 'direccion_envio' => $request->direccion_envio,
                 'telefono_contacto' => $request->telefono_contacto,
@@ -358,7 +386,8 @@ class CotizacionesController extends Controller
                     'nombre_producto' => $prod['producto']->nombre,
                     'cantidad' => $prod['cantidad'],
                     'precio_unitario' => $prod['precio_unitario'],
-                    'subtotal_linea' => $prod['subtotal_linea']
+                    'subtotal_linea' => $prod['subtotal_linea'],
+                    'moneda' => $moneda
                 ]);
             }
 
@@ -422,6 +451,7 @@ class CotizacionesController extends Controller
                         'igv' => $cotizacion->igv,
                         'costo_envio' => $cotizacion->costo_envio,
                         'total' => $cotizacion->total,
+                        'moneda' => $cotizacion->moneda ?? 's',
                         'estado_actual' => $cotizacion->estadoCotizacion,
                         'forma_envio' => $cotizacion->forma_envio,
                         'direccion_envio' => $cotizacion->direccion_envio,
@@ -433,14 +463,15 @@ class CotizacionesController extends Controller
                         'metodo_pago_preferido' => $cotizacion->metodo_pago_preferido,
                         'puede_convertir_compra' => $cotizacion->puedeConvertirseACompra(),
                         'esta_vencida' => $cotizacion->estaVencida(),
-                        'productos' => $cotizacion->detalles->map(function($detalle) {
+                        'productos' => $cotizacion->detalles->map(function($detalle) use ($cotizacion) {
                             return [
                                 'producto_id' => $detalle->producto_id,
                                 'nombre' => $detalle->nombre_producto,
                                 'imagen' => $detalle->producto->imagen_url ?? null,
                                 'cantidad' => $detalle->cantidad,
                                 'precio_unitario' => $detalle->precio_unitario,
-                                'subtotal' => $detalle->subtotal_linea
+                                'subtotal' => $detalle->subtotal_linea,
+                                'moneda' => $cotizacion->moneda ?? 's'
                             ];
                         }),
                         'detalles_count' => $cotizacion->detalles->count()
@@ -840,6 +871,7 @@ class CotizacionesController extends Controller
                 'metodo_pago'        => $cotizacion->metodo_pago_preferido ?? 'Por confirmar',
                 'forma_envio'        => $cotizacion->forma_envio,
                 'costo_envio'        => $cotizacion->costo_envio ?? 0,
+                'moneda'             => $cotizacion->moneda ?? 's',
                 'direccion_envio'    => $cotizacion->direccion_envio,
                 'telefono_contacto'  => $cotizacion->telefono_contacto,
                 'cliente_nombre'     => $cotizacion->cliente_nombre,
@@ -864,6 +896,7 @@ class CotizacionesController extends Controller
                     'cantidad'        => $detalle->cantidad,
                     'precio_unitario' => $detalle->precio_unitario,
                     'subtotal_linea'  => $detalle->subtotal_linea,
+                    'moneda'          => $detalle->moneda ?? $cotizacion->moneda ?? 's',
                 ]);
             }
 
@@ -933,9 +966,12 @@ class CotizacionesController extends Controller
                     'id' => $detalle->producto->id,
                     'nombre' => $detalle->producto->nombre,
                     'cantidad' => $detalle->cantidad,
-                    'precio' => $detalle->precio_unitario
+                    'precio' => $detalle->precio_unitario,
+                    'moneda' => $detalle->moneda ?? $cotizacion->moneda ?? 's'
                 ];
             });
+
+            $simboloMoneda = ($cotizacion->moneda ?? 's') === 'd' ? 'US$' : 'S/';
 
             $datos = [
                 'numero_cotizacion' => $cotizacion->codigo_cotizacion,
@@ -950,7 +986,12 @@ class CotizacionesController extends Controller
                 'forma_envio' => $cotizacion->forma_envio,
                 'tipo_pago' => $cotizacion->metodo_pago_preferido ?? 'N/A',
                 'observaciones' => $cotizacion->observaciones,
+                'subtotal' => $cotizacion->subtotal,
+                'igv' => $cotizacion->igv,
+                'costo_envio' => $cotizacion->costo_envio ?? 0,
                 'total' => $cotizacion->total,
+                'moneda' => $cotizacion->moneda ?? 's',
+                'simbolo_moneda' => $simboloMoneda,
                 'productos' => $productos,
                 'empresa' => $empresa,
                 'logo_base64' => null // Por ahora sin logo
