@@ -5,12 +5,16 @@ namespace App\Mail;
 use App\Models\UserMotorizado;
 use App\Models\Motorizado;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class MotorizadoPasswordResetMail extends Mailable
+class MotorizadoPasswordResetMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
+
+    public $connection = 'database';
+    public $queue = 'emails';
 
     public $userMotorizado;
     public $motorizado;
