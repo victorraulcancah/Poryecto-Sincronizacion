@@ -496,11 +496,11 @@ class MotorizadosController extends Controller
             // Enviar email con nueva contraseña
             $emailEnviado = false;
             try {
-                Mail::to($motorizado->correo)->send(
+                Mail::to($motorizado->correo)->queue(
                     new \App\Mail\MotorizadoPasswordResetMail($motorizado->userMotorizado, $motorizado, $password)
                 );
                 $emailEnviado = true;
-                Log::info('📧 Email de reseteo enviado exitosamente', [
+                Log::info('📧 Email de reseteo encolado exitosamente', [
                     'motorizado_id' => $motorizado->id,
                     'correo' => $motorizado->correo
                 ]);

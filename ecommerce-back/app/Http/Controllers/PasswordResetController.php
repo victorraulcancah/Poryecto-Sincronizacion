@@ -210,7 +210,7 @@ class PasswordResetController extends Controller
             ]);
         }
 
-        Mail::to($user->email)->send(new \App\Mail\PasswordResetMail($user, $resetUrl, $template));
+        Mail::to($user->email)->queue(new \App\Mail\PasswordResetMail($user, $resetUrl, $template));
     }
 
 }
