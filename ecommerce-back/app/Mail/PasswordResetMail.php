@@ -14,9 +14,6 @@ class PasswordResetMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
-    public $connection = 'database';
-    public $queue = 'emails';
-
     public $user;
     public $resetUrl;
     public $template;
@@ -45,4 +42,7 @@ class PasswordResetMail extends Mailable implements ShouldQueue
                         'empresaInfo' => $empresaInfo
                     ]);
     }
+
+    public function onConnection(): string { return 'database'; }
+    public function onQueue(): string { return 'emails'; }
 }

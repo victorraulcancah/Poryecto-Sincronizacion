@@ -13,9 +13,6 @@ class MotorizadoPasswordResetMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
-    public $connection = 'database';
-    public $queue = 'emails';
-
     public $userMotorizado;
     public $motorizado;
     public $newPassword;
@@ -40,4 +37,7 @@ class MotorizadoPasswordResetMail extends Mailable implements ShouldQueue
                         'empresaInfo' => $empresaInfo
                     ]);
     }
+
+    public function onConnection(): string { return 'database'; }
+    public function onQueue(): string { return 'emails'; }
 }
