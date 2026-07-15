@@ -78,13 +78,7 @@ export interface ClienteDetalle {
 
 export interface ClientesResponse {
   status: string;
-  data: {
-    data: Cliente[];
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-  };
+  data: Cliente[];
 }
 
 export interface ClientesFiltros {

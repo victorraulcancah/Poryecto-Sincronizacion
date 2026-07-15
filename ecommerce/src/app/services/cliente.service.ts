@@ -20,7 +20,7 @@ export class ClienteService {
 
   getClientes(filtros: ClientesFiltros = {}): Observable<ClientesResponse> {
     let params = new HttpParams();
-    
+
     if (filtros.search) params = params.set('search', filtros.search);
     if (filtros.estado !== undefined && filtros.estado !== '') {
       params = params.set('estado', filtros.estado.toString());
@@ -28,8 +28,6 @@ export class ClienteService {
     if (filtros.tipo_login) params = params.set('tipo_login', filtros.tipo_login);
     if (filtros.fecha_desde) params = params.set('fecha_desde', filtros.fecha_desde);
     if (filtros.fecha_hasta) params = params.set('fecha_hasta', filtros.fecha_hasta);
-    if (filtros.per_page) params = params.set('per_page', filtros.per_page.toString());
-    if (filtros.page) params = params.set('page', filtros.page.toString());
 
     return this.http.get<ClientesResponse>(this.apiUrl, { params });
   }

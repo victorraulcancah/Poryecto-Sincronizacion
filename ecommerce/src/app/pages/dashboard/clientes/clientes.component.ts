@@ -51,15 +51,12 @@ export class ClientesComponent implements OnInit, OnDestroy {
     search: '',
     estado: '',
     tipo_login: '',
-    per_page: 15,
-    page: 1
   };
 
-  // Paginación
   paginacion = {
     current_page: 1,
     last_page: 1,
-    per_page: 15,
+    per_page: 0,
     total: 0
   };
 
@@ -126,13 +123,13 @@ export class ClientesComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           if (response.status === 'success') {
-            this.clientes = response.data.data;
+            this.clientes = response.data;
             this.clientesFiltrados = [...this.clientes];
             this.paginacion = {
-              current_page: response.data.current_page,
-              last_page: response.data.last_page,
-              per_page: response.data.per_page,
-              total: response.data.total
+              current_page: 1,
+              last_page: 1,
+              per_page: this.clientes.length,
+              total: this.clientes.length
             };
           }
           this.loading = false;
@@ -145,7 +142,6 @@ export class ClientesComponent implements OnInit, OnDestroy {
   }
 
   buscar(): void {
-    this.filtros.page = 1;
     this.cargarClientes();
   }
 
@@ -154,17 +150,8 @@ export class ClientesComponent implements OnInit, OnDestroy {
       search: '',
       estado: '',
       tipo_login: '',
-      per_page: 15,
-      page: 1
     };
     this.cargarClientes();
-  }
-
-  cambiarPagina(page: number): void {
-    if (page >= 1 && page <= this.paginacion.last_page) {
-      this.filtros.page = page;
-      this.cargarClientes();
-    }
   }
 
 
