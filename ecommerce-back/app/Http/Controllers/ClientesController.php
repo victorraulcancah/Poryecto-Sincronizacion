@@ -44,11 +44,10 @@ class ClientesController extends Controller
                 $query->whereDate('created_at', '<=', $request->fecha_hasta);
             }
 
-            $perPage = $request->get('per_page', 15);
-            $clientes = $query->orderBy('created_at', 'desc')->paginate($perPage);
+            $clientes = $query->orderBy('created_at', 'desc')->get();
 
-            // Transformar los datos para que coincidan con el frontend
-            $clientesTransformados = $clientes->getCollection()->map(function ($cliente) {
+            // Transformar los datos
+            $clientesTransformados = $clientes->map(function ($cliente) {
                 return [
                     'id_cliente' => $cliente->id,
                     'nombres' => $cliente->nombres,
@@ -65,18 +64,15 @@ class ClientesController extends Controller
                     'tipo_precio_id' => $cliente->tipo_precio_id,
                     'fecha_registro' => $cliente->created_at->toISOString(),
                     'foto' => $cliente->foto_url,
-                    'tipo_login' => 'manual', // Por defecto manual, ajusta según tu lógica
+                    'tipo_login' => 'manual',
                     'genero' => $cliente->genero,
                     'fecha_nacimiento' => $cliente->fecha_nacimiento?->format('Y-m-d'),
                 ];
             });
 
-            // Reemplazar la colección transformada
-            $clientes->setCollection($clientesTransformados);
-
             return response()->json([
                 'status' => 'success',
-                'data' => $clientes
+                'data' => $clientesTransformados
             ]);
 
         } catch (\Exception $e) {
