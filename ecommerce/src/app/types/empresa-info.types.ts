@@ -18,6 +18,7 @@ export interface EmpresaInfo {
   instagram?: string;
   twitter?: string;
   youtube?: string;
+  tiktok?: string;
   whatsapp?: string;
   horario_atencion?: string;
   created_at: string;
@@ -40,6 +41,7 @@ export interface EmpresaInfoCreate {
   instagram?: string;
   twitter?: string;
   youtube?: string;
+  tiktok?: string;
   whatsapp?: string;
   horario_atencion?: string;
 }

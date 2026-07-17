@@ -55,6 +55,7 @@ class EmpresaInfoController extends Controller
                 'instagram' => 'nullable|string|max:255',
                 'twitter' => 'nullable|string|max:255',
                 'youtube' => 'nullable|string|max:255',
+                'tiktok' => 'nullable|string|max:255',
                 'whatsapp' => 'nullable|string|max:20',
                 'horario_atencion' => 'nullable|string'
             ]);
@@ -113,6 +114,7 @@ class EmpresaInfoController extends Controller
                 'instagram' => 'nullable|string|max:255',
                 'twitter' => 'nullable|string|max:255',
                 'youtube' => 'nullable|string|max:255',
+                'tiktok' => 'nullable|string|max:255',
                 'whatsapp' => 'nullable|string|max:20',
                 'horario_atencion' => 'nullable|string'
             ]);
@@ -195,6 +197,7 @@ class EmpresaInfoController extends Controller
             'instagram' => $empresaInfo->getAttribute('instagram'),
             'twitter' => $empresaInfo->getAttribute('twitter'),
             'youtube' => $empresaInfo->getAttribute('youtube'),
+            'tiktok' => $empresaInfo->getAttribute('tiktok'),
             'whatsapp' => $empresaInfo->getAttribute('whatsapp'),
             'horario_atencion' => $empresaInfo->getAttribute('horario_atencion'),
             'logo_url' => $empresaInfo->logo

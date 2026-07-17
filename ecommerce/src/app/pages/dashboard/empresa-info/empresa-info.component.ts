@@ -300,16 +300,30 @@ import Swal from 'sweetalert2';
                 </div>
               </div>
 
-              <div class="mb-16">
-                <label class="form-label text-heading fw-medium mb-8"
-                  ><i class="ph ph-whatsapp-logo me-8 text-success"></i>WhatsApp</label
-                >
-                <input
-                  type="tel"
-                  class="form-control px-16 py-12 border rounded-8"
-                  formControlName="whatsapp"
-                  placeholder="987654321"
-                />
+              <div class="row">
+                <div class="col-md-6 mb-16">
+                  <label class="form-label text-heading fw-medium mb-8"
+                    ><i class="ph ph-tiktok-logo me-8 text-dark"></i>TikTok</label
+                  >
+                  <input
+                    type="url"
+                    class="form-control px-16 py-12 border rounded-8"
+                    formControlName="tiktok"
+                    placeholder="https://tiktok.com/@magustec"
+                  />
+                </div>
+
+                <div class="col-md-6 mb-16">
+                  <label class="form-label text-heading fw-medium mb-8"
+                    ><i class="ph ph-whatsapp-logo me-8 text-success"></i>WhatsApp</label
+                  >
+                  <input
+                    type="tel"
+                    class="form-control px-16 py-12 border rounded-8"
+                    formControlName="whatsapp"
+                    placeholder="987654321"
+                  />
+                </div>
               </div>
             </div>
 
@@ -487,6 +501,7 @@ export class EmpresaInfoComponent implements OnInit {
       instagram: [''],
       twitter: [''],
       youtube: [''],
+      tiktok: [''],
       whatsapp: [''],
       horario_atencion: [''],
       color_navbar: [this.COLOR_NAVBAR_DEFAULT, [Validators.pattern(/^#[0-9A-Fa-f]{6}$/)]],
@@ -518,6 +533,7 @@ export class EmpresaInfoComponent implements OnInit {
           instagram: empresaInfo.instagram || '',
           twitter: empresaInfo.twitter || '',
           youtube: empresaInfo.youtube || '',
+          tiktok: empresaInfo.tiktok || '',
           whatsapp: empresaInfo.whatsapp || '',
           horario_atencion: empresaInfo.horario_atencion || '',
           color_navbar: empresaInfo.color_navbar || this.COLOR_NAVBAR_DEFAULT,

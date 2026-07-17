@@ -74,6 +74,10 @@ export class EmpresaInfoService {
       formData.append('youtube', empresaInfo.youtube);
     }
 
+    if (empresaInfo.tiktok) {
+      formData.append('tiktok', empresaInfo.tiktok);
+    }
+
     if (empresaInfo.whatsapp) {
       formData.append('whatsapp', empresaInfo.whatsapp);
     }

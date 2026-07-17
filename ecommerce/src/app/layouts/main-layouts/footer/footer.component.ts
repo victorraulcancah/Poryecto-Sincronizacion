@@ -92,6 +92,7 @@ export class FooterComponent implements OnInit, OnDestroy {
         if (data.instagram) this.socialLinks.push({ icon: 'ph-fill ph-instagram-logo', url: data.instagram });
         if (data.twitter) this.socialLinks.push({ icon: 'ph-fill ph-twitter-logo', url: data.twitter });
         if (data.youtube) this.socialLinks.push({ icon: 'ph-fill ph-youtube-logo', url: data.youtube });
+        if (data.tiktok) this.socialLinks.push({ icon: 'ph-fill ph-tiktok-logo', url: data.tiktok });
         if (data.whatsapp) this.socialLinks.push({ icon: 'ph-fill ph-whatsapp-logo', url: `https://wa.me/${data.whatsapp}` });
       });
   }

@@ -37,6 +37,7 @@ class EmpresaInfo extends Model
         'instagram',
         'twitter',
         'youtube',
+        'tiktok',
         'whatsapp',
         'horario_atencion'
     ];
