@@ -171,6 +171,7 @@ class EmpresaInfoController extends Controller
 
             $validator = Validator::make($request->all(), [
                 'sobre_nosotros' => 'nullable|string',
+                'imagen_introduccion' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
             ]);
 
             if ($validator->fails()) {
@@ -181,7 +182,21 @@ class EmpresaInfoController extends Controller
                 ], 422);
             }
 
-            $empresaInfo->update(['sobre_nosotros' => $request->input('sobre_nosotros', '')]);
+            $data = ['sobre_nosotros' => $request->input('sobre_nosotros', '')];
+
+            if ($request->hasFile('imagen_introduccion')) {
+                if ($empresaInfo->imagen_introduccion && Storage::disk('public')->exists($empresaInfo->imagen_introduccion)) {
+                    Storage::disk('public')->delete($empresaInfo->imagen_introduccion);
+                }
+                $data['imagen_introduccion'] = $request->file('imagen_introduccion')->store('empresa/introduccion', 'public');
+            } elseif ($request->boolean('eliminar_imagen_introduccion')) {
+                if ($empresaInfo->imagen_introduccion && Storage::disk('public')->exists($empresaInfo->imagen_introduccion)) {
+                    Storage::disk('public')->delete($empresaInfo->imagen_introduccion);
+                }
+                $data['imagen_introduccion'] = null;
+            }
+
+            $empresaInfo->update($data);
 
             return response()->json([
                 'success' => true,
@@ -282,6 +297,9 @@ class EmpresaInfoController extends Controller
                     'nombre_empresa' => $empresaInfo?->getAttribute('nombre_empresa'),
                     'descripcion' => $empresaInfo?->getAttribute('descripcion'),
                     'sobre_nosotros' => $empresaInfo?->getAttribute('sobre_nosotros'),
+                    'imagen_introduccion_url' => $empresaInfo?->imagen_introduccion
+                        ? url('storage/' . $empresaInfo->imagen_introduccion)
+                        : null,
                     'horario_atencion' => $empresaInfo?->getAttribute('horario_atencion'),
                     'direccion' => $empresaInfo?->getAttribute('direccion'),
                     'telefono' => $empresaInfo?->getAttribute('telefono'),

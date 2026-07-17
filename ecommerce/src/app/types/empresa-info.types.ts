@@ -15,6 +15,8 @@ export interface EmpresaInfo {
   color_navbar?: string;
   descripcion?: string;
   sobre_nosotros?: string;
+  imagen_introduccion?: string;
+  imagen_introduccion_url?: string;
   facebook?: string;
   instagram?: string;
   twitter?: string;

@@ -104,6 +104,13 @@
   color: var(--heading-color, #1a1a1a);
 }
 
+.intro-imagen {
+  max-width: 100%;
+  max-height: 420px;
+  width: auto;
+  object-fit: contain;
+}
+
 .sobre-nosotros-descripcion {
   font-size: 1.2rem;
   font-weight: 500;
@@ -178,63 +185,83 @@
   color: var(--heading-color, #1a1a1a);
 }
 
-// ===== Valores (carrusel) =====
-.valor-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 32px 24px;
-  height: 100%;
-  min-height: 260px;
-  text-align: center;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+// ===== Valores (filas alternadas, estilo oscuro) =====
+.valores-seccion {
+  background: #161616;
+  padding: 72px 0;
+}
 
-  &:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+.valores-fila {
+  display: flex;
+  align-items: center;
+  gap: 48px;
+  padding: 40px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &--invertida {
+    flex-direction: row-reverse;
+  }
+
+  &__texto {
+    flex: 1 1 50%;
+    min-width: 0;
+  }
+
+  &__titulo {
+    color: #fff;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-size: clamp(1.15rem, 2vw, 1.5rem);
+    margin-bottom: 16px;
+  }
+
+  &__descripcion {
+    color: #c9c9c9;
+    font-size: 1rem;
+    line-height: 1.75;
+    margin-bottom: 0;
+    white-space: pre-line;
   }
 
   &__imagen {
-    width: 72px;
-    height: 72px;
-    border-radius: 50%;
+    flex: 1 1 42%;
+    min-width: 0;
+    border-radius: 12px;
     overflow: hidden;
-    margin-bottom: 20px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 
     img {
+      display: block;
       width: 100%;
-      height: 100%;
+      height: 260px;
       object-fit: cover;
     }
   }
 
   &__icono {
-    width: 72px;
-    height: 72px;
-    border-radius: 50%;
-    background: var(--main-50, #fbeaea);
-    color: var(--main-600, #9b1c1c);
+    height: 260px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 32px;
-    margin-bottom: 20px;
+    background: linear-gradient(135deg, var(--main-600, #9b1c1c), #2b2b2b);
+    color: #fff;
+    font-size: 56px;
   }
 
-  &__titulo {
-    font-weight: 700;
-    margin-bottom: 12px;
-    color: var(--heading-color, #1a1a1a);
-  }
+  @media (max-width: 767px) {
+    flex-direction: column !important;
+    gap: 24px;
 
-  &__descripcion {
-    color: #333333;
-    font-size: 0.95rem;
-    line-height: 1.6;
-    margin-bottom: 0;
+    &__texto,
+    &__imagen {
+      flex: 1 1 100%;
+      width: 100%;
+    }
   }
 }
 
@@ -280,6 +307,7 @@
     font-size: 0.95rem;
     line-height: 1.6;
     margin-bottom: 0;
+    white-space: pre-line;
   }
 }
 
@@ -339,7 +367,6 @@
 
 // Espaciado interno de los slides (ngx-slick agrega su propio wrapper)
 :host ::ng-deep {
-  .valores-slider,
   .hitos-slider {
     .slick-slide > div {
       height: 100%;

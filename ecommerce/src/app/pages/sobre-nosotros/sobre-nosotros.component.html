@@ -33,17 +33,34 @@
   <!-- ============================================================ -->
   <section class="py-80 sobre-nosotros-intro">
     <div class="container">
-      <div class="row justify-content-center">
-        <div class="col-lg-9 text-center">
+      <!-- Con imagen: dos columnas (imagen | texto), estilo DS18 -->
+      <div class="row align-items-center" *ngIf="imagenIntroduccionUrl">
+        <div class="col-lg-5 text-center mb-32 mb-lg-0">
+          <img [src]="imagenIntroduccionUrl" [alt]="nombreEmpresa" class="intro-imagen" />
+        </div>
+        <div class="col-lg-7">
           <p *ngIf="descripcion" class="sobre-nosotros-descripcion mb-24">{{ descripcion }}</p>
-
           <p *ngIf="sobreNosotros" class="sobre-nosotros-texto" style="white-space: pre-line;">{{ sobreNosotros }}</p>
-
           <p *ngIf="!sobreNosotros && !descripcion" class="sobre-nosotros-vacio">
             Aún no se ha configurado la información de "Sobre Nosotros".
           </p>
+        </div>
+      </div>
 
-          <!-- Info de contacto -->
+      <!-- Sin imagen: bloque centrado -->
+      <div class="row justify-content-center" *ngIf="!imagenIntroduccionUrl">
+        <div class="col-lg-9 text-center">
+          <p *ngIf="descripcion" class="sobre-nosotros-descripcion mb-24">{{ descripcion }}</p>
+          <p *ngIf="sobreNosotros" class="sobre-nosotros-texto" style="white-space: pre-line;">{{ sobreNosotros }}</p>
+          <p *ngIf="!sobreNosotros && !descripcion" class="sobre-nosotros-vacio">
+            Aún no se ha configurado la información de "Sobre Nosotros".
+          </p>
+        </div>
+      </div>
+
+      <!-- Info de contacto -->
+      <div class="row justify-content-center" *ngIf="tieneInfoContacto || redesSociales.length">
+        <div class="col-lg-9 text-center">
           <div class="contacto-info" *ngIf="tieneInfoContacto">
             <div class="contacto-info__item" *ngIf="direccion">
               <i class="ph ph-map-pin"></i>
@@ -80,29 +97,26 @@
   </section>
 
   <!-- ============================================================ -->
-  <!-- VALORES / CULTURA (carrusel)                                   -->
+  <!-- VALORES / CULTURA (filas alternadas)                           -->
   <!-- ============================================================ -->
-  <section class="py-80 bg-gray-25" *ngIf="valores.length">
+  <section class="valores-seccion" *ngIf="valores.length">
     <div class="container">
-      <div class="text-center mb-48">
-        <span class="sobre-nosotros-eyebrow">Nuestra Cultura</span>
-        <h2 class="sobre-nosotros-subtitulo">Lo que nos define</h2>
-      </div>
-
-      <ngx-slick-carousel class="valores-slider arrow-style-two" [config]="valoresConfig">
-        <div ngxSlickItem class="px-12" *ngFor="let valor of valores">
-          <div class="valor-card">
-            <div class="valor-card__imagen" *ngIf="valor.imagen_url">
-              <img [src]="valor.imagen_url" [alt]="valor.titulo" />
-            </div>
-            <div class="valor-card__icono" *ngIf="!valor.imagen_url">
-              <i class="ph ph-heart"></i>
-            </div>
-            <h5 class="valor-card__titulo">{{ valor.titulo }}</h5>
-            <p class="valor-card__descripcion">{{ valor.descripcion }}</p>
+      <div
+        class="valores-fila"
+        *ngFor="let valor of valores; let i = index"
+        [class.valores-fila--invertida]="i % 2 !== 0"
+      >
+        <div class="valores-fila__texto">
+          <h3 class="valores-fila__titulo">{{ valor.titulo }}</h3>
+          <p class="valores-fila__descripcion">{{ valor.descripcion }}</p>
+        </div>
+        <div class="valores-fila__imagen">
+          <img *ngIf="valor.imagen_url" [src]="valor.imagen_url" [alt]="valor.titulo" />
+          <div class="valores-fila__icono" *ngIf="!valor.imagen_url">
+            <i class="ph ph-heart"></i>
           </div>
         </div>
-      </ngx-slick-carousel>
+      </div>
     </div>
   </section>
 

@@ -58,6 +58,9 @@ export class EmpresaInfoService {
         logo_url: response.data.logo
           ? `${this.baseUrl}/storage/${response.data.logo}`
           : undefined,
+        imagen_introduccion_url: response.data.imagen_introduccion
+          ? `${this.baseUrl}/storage/${response.data.imagen_introduccion}`
+          : undefined,
       }))
     );
   }
@@ -156,11 +159,22 @@ export class EmpresaInfoService {
     return this.http.post<any>(`${this.apiUrl}/empresa-info/${id}`, formData);
   }
 
-  // Actualiza solo el texto de "Sobre Nosotros" (no requiere el resto de campos obligatorios)
-  actualizarSobreNosotros(id: number, sobreNosotros: string): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/empresa-info/${id}/sobre-nosotros`, {
-      sobre_nosotros: sobreNosotros,
-    });
+  // Actualiza el texto y la imagen de "Sobre Nosotros" (no requiere el resto de campos obligatorios)
+  actualizarSobreNosotros(
+    id: number,
+    datos: { sobreNosotros: string; imagen?: File | null; eliminarImagen?: boolean }
+  ): Observable<any> {
+    const formData = new FormData();
+    formData.append('sobre_nosotros', datos.sobreNosotros);
+
+    if (datos.imagen) {
+      formData.append('imagen_introduccion', datos.imagen);
+    } else if (datos.eliminarImagen) {
+      formData.append('eliminar_imagen_introduccion', '1');
+    }
+
+    formData.append('_method', 'PUT');
+    return this.http.post<any>(`${this.apiUrl}/empresa-info/${id}/sobre-nosotros`, formData);
   }
 
   // Obtener información específica por ID

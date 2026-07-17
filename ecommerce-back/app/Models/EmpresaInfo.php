@@ -34,6 +34,7 @@ class EmpresaInfo extends Model
         'color_navbar',
         'descripcion',
         'sobre_nosotros',
+        'imagen_introduccion',
         'facebook',
         'instagram',
         'twitter',

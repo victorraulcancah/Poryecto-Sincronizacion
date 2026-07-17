@@ -30,6 +30,7 @@ export class SobreNosotrosComponent implements OnInit {
   nombreEmpresa = '';
   descripcion = '';
   sobreNosotros = '';
+  imagenIntroduccionUrl = '';
   horarioAtencion = '';
   direccion = '';
   telefono = '';
@@ -56,22 +57,8 @@ export class SobreNosotrosComponent implements OnInit {
     pauseOnHover: false,
   };
 
-  valoresConfig = {
-    slidesToShow: 3,
-    slidesToScroll: 1,
-    arrows: true,
-    dots: false,
-    infinite: false,
-    autoplay: false,
-    speed: 500,
-    responsive: [
-      { breakpoint: 992, settings: { slidesToShow: 2 } },
-      { breakpoint: 576, settings: { slidesToShow: 1, arrows: false, dots: true } },
-    ],
-  };
-
   hitosConfig = {
-    slidesToShow: 3,
+    slidesToShow: 4,
     slidesToScroll: 1,
     arrows: true,
     dots: false,
@@ -79,6 +66,7 @@ export class SobreNosotrosComponent implements OnInit {
     autoplay: false,
     speed: 500,
     responsive: [
+      { breakpoint: 1200, settings: { slidesToShow: 3 } },
       { breakpoint: 992, settings: { slidesToShow: 2 } },
       { breakpoint: 576, settings: { slidesToShow: 1, arrows: false, dots: true } },
     ],
@@ -107,6 +95,7 @@ export class SobreNosotrosComponent implements OnInit {
     this.nombreEmpresa = data.nombre_empresa || '';
     this.descripcion = data.descripcion || '';
     this.sobreNosotros = data.sobre_nosotros || '';
+    this.imagenIntroduccionUrl = data.imagen_introduccion_url || '';
     this.horarioAtencion = data.horario_atencion || '';
     this.direccion = data.direccion || '';
     this.telefono = data.telefono || '';

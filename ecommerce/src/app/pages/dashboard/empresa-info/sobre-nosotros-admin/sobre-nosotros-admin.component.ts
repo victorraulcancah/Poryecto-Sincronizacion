@@ -41,6 +41,9 @@ export class SobreNosotrosAdminComponent implements OnInit {
   introForm: FormGroup;
   isLoadingIntro = true;
   isSavingIntro = false;
+  introImagenSeleccionada: File | null = null;
+  introImagenPreview: string | null = null;
+  introImagenEliminada = false;
 
   // ===== Valores =====
   valores: EmpresaValor[] = [];
@@ -248,6 +251,9 @@ export class SobreNosotrosAdminComponent implements OnInit {
       next: (empresaInfo) => {
         this.empresaId = empresaInfo.id;
         this.introForm.patchValue({ sobre_nosotros: empresaInfo.sobre_nosotros || '' });
+        this.introImagenPreview = empresaInfo.imagen_introduccion_url || null;
+        this.introImagenSeleccionada = null;
+        this.introImagenEliminada = false;
         this.isLoadingIntro = false;
       },
       error: () => {
@@ -256,6 +262,23 @@ export class SobreNosotrosAdminComponent implements OnInit {
         this.isLoadingIntro = false;
       },
     });
+  }
+
+  onIntroImagenSeleccionada(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.introImagenSeleccionada = file;
+      this.introImagenEliminada = false;
+      const reader = new FileReader();
+      reader.onload = (e: any) => (this.introImagenPreview = e.target.result);
+      reader.readAsDataURL(file);
+    }
+  }
+
+  eliminarIntroImagen(): void {
+    this.introImagenSeleccionada = null;
+    this.introImagenPreview = null;
+    this.introImagenEliminada = true;
   }
 
   guardarIntro(): void {
@@ -271,10 +294,16 @@ export class SobreNosotrosAdminComponent implements OnInit {
 
     this.isSavingIntro = true;
     this.empresaInfoService
-      .actualizarSobreNosotros(this.empresaId, this.introForm.get('sobre_nosotros')?.value || '')
+      .actualizarSobreNosotros(this.empresaId, {
+        sobreNosotros: this.introForm.get('sobre_nosotros')?.value || '',
+        imagen: this.introImagenSeleccionada,
+        eliminarImagen: this.introImagenEliminada,
+      })
       .subscribe({
         next: () => {
           this.isSavingIntro = false;
+          this.introImagenSeleccionada = null;
+          this.introImagenEliminada = false;
           this.empresaInfoService.refreshPublicInfo();
           Swal.fire({
             title: '¡Guardado!',
@@ -285,14 +314,9 @@ export class SobreNosotrosAdminComponent implements OnInit {
             showConfirmButton: false,
           });
         },
-        error: () => {
+        error: (error) => {
           this.isSavingIntro = false;
-          Swal.fire({
-            title: 'Error',
-            text: 'No se pudo guardar la introducción. Inténtalo de nuevo.',
-            icon: 'error',
-            confirmButtonColor: '#dc3545',
-          });
+          mostrarErrorGuardado(error, 'la introducción');
         },
       });
   }

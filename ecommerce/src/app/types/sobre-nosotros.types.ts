@@ -92,6 +92,7 @@ export interface SobreNosotrosPublico {
   nombre_empresa?: string;
   descripcion?: string;
   sobre_nosotros?: string;
+  imagen_introduccion_url?: string;
   horario_atencion?: string;
   direccion?: string;
   telefono?: string;
