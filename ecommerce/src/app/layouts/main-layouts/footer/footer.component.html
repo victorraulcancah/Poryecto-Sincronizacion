@@ -1,6 +1,10 @@
 <!-- src\app\layouts\main-layouts\footer\footer.component.html -->
 <!-- ==================== Footer Start Here ==================== -->
-<footer class="footer py-60 bg-main-600">
+<footer
+    class="footer py-60"
+    [class.bg-main-600]="!empresaInfo?.color_navbar"
+    [style.background-color]="empresaInfo?.color_navbar || null"
+>
     <div class="container container-lg">
         <div class="row align-items-start">
             <!-- Logo y información de contacto -->
