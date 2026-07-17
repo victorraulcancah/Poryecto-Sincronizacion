@@ -93,6 +93,7 @@ export interface SobreNosotrosPublico {
   descripcion?: string;
   sobre_nosotros?: string;
   imagen_introduccion_url?: string;
+  duracion_banner_segundos?: number;
   horario_atencion?: string;
   direccion?: string;
   telefono?: string;

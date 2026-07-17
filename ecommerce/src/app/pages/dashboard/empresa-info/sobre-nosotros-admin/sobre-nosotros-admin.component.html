@@ -77,6 +77,40 @@
       </button>
     </div>
 
+    <!-- Duración del carrusel -->
+    <div class="border rounded-8 p-16 mb-24 d-flex align-items-center flex-wrap gap-16">
+      <form [formGroup]="duracionBannerForm" (ngSubmit)="guardarDuracionBanner()" class="d-flex align-items-end gap-12 flex-wrap">
+        <div>
+          <label class="form-label text-heading fw-medium mb-8">
+            Duración de cada imagen (segundos)
+          </label>
+          <input
+            type="number"
+            class="form-control px-16 py-12 border rounded-8"
+            style="width: 120px;"
+            formControlName="duracion_banner_segundos"
+            [min]="DURACION_MIN"
+            [max]="DURACION_MAX"
+          />
+          <small class="text-gray-500 d-block mt-4">Entre {{ DURACION_MIN }} y {{ DURACION_MAX }} segundos.</small>
+          <div
+            class="text-danger text-xs mt-4"
+            *ngIf="duracionBannerForm.get('duracion_banner_segundos')?.invalid && duracionBannerForm.get('duracion_banner_segundos')?.touched"
+          >
+            Ingresa un valor entre {{ DURACION_MIN }} y {{ DURACION_MAX }} segundos.
+          </div>
+        </div>
+        <button
+          type="submit"
+          class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8"
+          [disabled]="isSavingDuracion || !puedeEditar()"
+        >
+          <span *ngIf="isSavingDuracion" class="spinner-border spinner-border-sm me-8"></span>
+          {{ isSavingDuracion ? 'Guardando...' : 'Guardar duración' }}
+        </button>
+      </form>
+    </div>
+
     <!-- Formulario -->
     <div *ngIf="mostrarFormBanner" class="border rounded-8 p-16 mb-24 bg-gray-25">
       <form [formGroup]="bannerForm" (ngSubmit)="guardarBanner()">

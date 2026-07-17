@@ -101,6 +101,7 @@ export class SobreNosotrosComponent implements OnInit {
     this.telefono = data.telefono || '';
     this.celular = data.celular || '';
     this.email = data.email || '';
+    this.bannerConfig.autoplaySpeed = (data.duracion_banner_segundos || 5) * 1000;
     this.banners = data.banners || [];
     this.valores = data.valores || [];
     this.hitos = data.hitos || [];

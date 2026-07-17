@@ -177,6 +177,13 @@ export class EmpresaInfoService {
     return this.http.post<any>(`${this.apiUrl}/empresa-info/${id}/sobre-nosotros`, formData);
   }
 
+  // Actualiza la duración (en segundos) del carrusel del banner principal
+  actualizarConfigBanner(id: number, duracionSegundos: number): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/empresa-info/${id}/config-banner`, {
+      duracion_banner_segundos: duracionSegundos,
+    });
+  }
+
   // Obtener información específica por ID
   obtenerEmpresaInfoPorId(id: number): Observable<EmpresaInfo> {
     return this.http.get<{ success: boolean; data: EmpresaInfo }>(`${this.apiUrl}/empresa-info/${id}`).pipe(

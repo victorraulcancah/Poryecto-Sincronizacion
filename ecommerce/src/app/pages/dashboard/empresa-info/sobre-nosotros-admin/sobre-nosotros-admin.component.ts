@@ -36,6 +36,11 @@ export class SobreNosotrosAdminComponent implements OnInit {
   bannerImagenPreview: string | null = null;
   isSavingBanner = false;
 
+  readonly DURACION_MIN = 2;
+  readonly DURACION_MAX = 30;
+  duracionBannerForm: FormGroup;
+  isSavingDuracion = false;
+
   // ===== Introducción =====
   empresaId: number | null = null;
   introForm: FormGroup;
@@ -86,6 +91,13 @@ export class SobreNosotrosAdminComponent implements OnInit {
       subtitulo: [''],
       orden: [0],
       activo: [true],
+    });
+
+    this.duracionBannerForm = this.fb.group({
+      duracion_banner_segundos: [
+        5,
+        [Validators.required, Validators.min(this.DURACION_MIN), Validators.max(this.DURACION_MAX)],
+      ],
     });
 
     this.introForm = this.fb.group({
@@ -242,6 +254,45 @@ export class SobreNosotrosAdminComponent implements OnInit {
     });
   }
 
+  guardarDuracionBanner(): void {
+    if (!this.duracionBannerForm.valid) {
+      this.duracionBannerForm.markAllAsTouched();
+      return;
+    }
+
+    if (!this.empresaId) {
+      Swal.fire({
+        title: 'Falta información',
+        text: 'Primero completa los datos generales de la empresa en la pestaña "Datos de la Empresa".',
+        icon: 'warning',
+        confirmButtonColor: '#dc3545',
+      });
+      return;
+    }
+
+    this.isSavingDuracion = true;
+    this.empresaInfoService
+      .actualizarConfigBanner(this.empresaId, this.duracionBannerForm.get('duracion_banner_segundos')?.value)
+      .subscribe({
+        next: () => {
+          this.isSavingDuracion = false;
+          this.empresaInfoService.refreshPublicInfo();
+          Swal.fire({
+            title: '¡Guardado!',
+            text: 'La duración del carrusel se actualizó exitosamente.',
+            icon: 'success',
+            confirmButtonColor: '#198754',
+            timer: 2000,
+            showConfirmButton: false,
+          });
+        },
+        error: (error) => {
+          this.isSavingDuracion = false;
+          mostrarErrorGuardado(error, 'la duración del carrusel');
+        },
+      });
+  }
+
   // ==================================================
   // INTRODUCCIÓN
   // ==================================================
@@ -254,6 +305,9 @@ export class SobreNosotrosAdminComponent implements OnInit {
         this.introImagenPreview = empresaInfo.imagen_introduccion_url || null;
         this.introImagenSeleccionada = null;
         this.introImagenEliminada = false;
+        this.duracionBannerForm.patchValue({
+          duracion_banner_segundos: empresaInfo.duracion_banner_segundos || 5,
+        });
         this.isLoadingIntro = false;
       },
       error: () => {

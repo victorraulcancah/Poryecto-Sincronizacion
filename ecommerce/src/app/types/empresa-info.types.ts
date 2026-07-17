@@ -17,6 +17,7 @@ export interface EmpresaInfo {
   sobre_nosotros?: string;
   imagen_introduccion?: string;
   imagen_introduccion_url?: string;
+  duracion_banner_segundos?: number;
   facebook?: string;
   instagram?: string;
   twitter?: string;
