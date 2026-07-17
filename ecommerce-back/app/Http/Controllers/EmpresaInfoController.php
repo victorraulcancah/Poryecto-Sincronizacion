@@ -49,6 +49,7 @@ class EmpresaInfoController extends Controller
                 'email' => 'nullable|email|max:255',
                 'website' => 'nullable|url|max:255',
                 'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'color_navbar' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
                 'descripcion' => 'nullable|string',
                 'facebook' => 'nullable|string|max:255',
                 'instagram' => 'nullable|string|max:255',
@@ -106,6 +107,7 @@ class EmpresaInfoController extends Controller
                 'email' => 'nullable|email|max:255',
                 'website' => 'nullable|url|max:255',
                 'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'color_navbar' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
                 'descripcion' => 'nullable|string',
                 'facebook' => 'nullable|string|max:255',
                 'instagram' => 'nullable|string|max:255',
@@ -195,9 +197,10 @@ class EmpresaInfoController extends Controller
             'youtube' => $empresaInfo->getAttribute('youtube'),
             'whatsapp' => $empresaInfo->getAttribute('whatsapp'),
             'horario_atencion' => $empresaInfo->getAttribute('horario_atencion'),
-            'logo_url' => $empresaInfo->logo 
+            'logo_url' => $empresaInfo->logo
                 ? url('storage/' . $empresaInfo->logo)
-                : null
+                : null,
+            'color_navbar' => $empresaInfo->getAttribute('color_navbar')
         ];
 
         return response()->json([

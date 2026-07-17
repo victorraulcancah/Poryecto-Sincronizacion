@@ -31,6 +31,7 @@ class EmpresaInfo extends Model
         'sol_endpoint',
         'website',
         'logo',
+        'color_navbar',
         'descripcion',
         'facebook',
         'instagram',
