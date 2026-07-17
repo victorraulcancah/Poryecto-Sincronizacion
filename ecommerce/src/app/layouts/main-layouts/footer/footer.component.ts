@@ -40,7 +40,8 @@ export class FooterComponent implements OnInit, OnDestroy {
     {
       title: 'Contáctanos',
       links: [
-        { label: 'Contacto', route: ['/contact'] }
+        { label: 'Contacto', route: ['/contact'] },
+        { label: 'Sobre Nosotros', route: ['/sobre-nosotros'] }
       ]
     },
     {
@@ -62,13 +63,16 @@ export class FooterComponent implements OnInit, OnDestroy {
     }
   ];
 
-  paymentMethods = [
-    { name: 'Visa', image: '/assets/images/payment/visa.png' },
-    { name: 'Mastercard', image: '/assets/images/payment/mastercard.png' },
-    { name: 'American Express', image: '/assets/images/payment/amex.png' },
-    { name: 'Yape', image: '/assets/images/payment/yape.png' },
-    { name: 'Plin', image: '/assets/images/payment/plin.png' }
+  // Catálogo completo; cuáles se muestran depende de empresaInfo.metodos_pago
+  private readonly todosLosMetodosPago = [
+    { key: 'visa', name: 'Visa', image: '/assets/images/payment/visa.png' },
+    { key: 'mastercard', name: 'Mastercard', image: '/assets/images/payment/mastercard.png' },
+    { key: 'amex', name: 'American Express', image: '/assets/images/payment/amex.png' },
+    { key: 'yape', name: 'Yape', image: '/assets/images/payment/yape.png' },
+    { key: 'plin', name: 'Plin', image: '/assets/images/payment/plin.png' }
   ];
+
+  paymentMethods = [...this.todosLosMetodosPago];
 
   constructor(private empresaInfoService: EmpresaInfoService) {}
 
@@ -94,6 +98,11 @@ export class FooterComponent implements OnInit, OnDestroy {
         if (data.youtube) this.socialLinks.push({ icon: 'ph-fill ph-youtube-logo', url: data.youtube });
         if (data.tiktok) this.socialLinks.push({ icon: 'ph-fill ph-tiktok-logo', url: data.tiktok });
         if (data.whatsapp) this.socialLinks.push({ icon: 'ph-fill ph-whatsapp-logo', url: `https://wa.me/${data.whatsapp}` });
+
+        // Si nunca se configuró nada (undefined), se muestran todos por defecto
+        this.paymentMethods = data.metodos_pago
+          ? this.todosLosMetodosPago.filter((m) => data.metodos_pago.includes(m.key))
+          : [...this.todosLosMetodosPago];
       });
   }
 

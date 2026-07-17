@@ -1,5 +1,6 @@
 // src/services/empresa-info.service.ts
-import { Injectable } from '@angular/core';
+import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, map, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -11,11 +12,43 @@ import { EmpresaInfo, EmpresaInfoCreate } from '../types/empresa-info.types';
 export class EmpresaInfoService {
   private apiUrl = `${environment.apiUrl}`;
   private baseUrl = environment.baseUrl;
+  private isBrowser: boolean;
+
+  // Cache en localStorage para evitar el "flash" de color/logo por defecto
+  // mientras se resuelve la llamada asíncrona a /empresa-info/publica.
+  private readonly CACHE_KEY = 'empresa_info_publica_cache';
 
   private empresaInfoPublicaSubject = new BehaviorSubject<any>(null);
   public empresaInfoPublica$ = this.empresaInfoPublicaSubject.asObservable();
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, @Inject(PLATFORM_ID) platformId: Object) {
+    this.isBrowser = isPlatformBrowser(platformId);
+
+    if (this.isBrowser) {
+      const cached = this.leerCache();
+      if (cached) {
+        this.empresaInfoPublicaSubject.next(cached);
+      }
+    }
+  }
+
+  private leerCache(): any {
+    try {
+      const raw = localStorage.getItem(this.CACHE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private guardarCache(data: any): void {
+    if (!this.isBrowser) return;
+    try {
+      localStorage.setItem(this.CACHE_KEY, JSON.stringify(data));
+    } catch {
+      // localStorage no disponible (modo privado, cuota llena, etc.) - se ignora
+    }
+  }
 
   // Obtener información de la empresa
   obtenerEmpresaInfo(): Observable<EmpresaInfo> {
@@ -58,6 +91,10 @@ export class EmpresaInfoService {
       formData.append('descripcion', empresaInfo.descripcion);
     }
 
+    if (empresaInfo.sobre_nosotros) {
+      formData.append('sobre_nosotros', empresaInfo.sobre_nosotros);
+    }
+
     if (empresaInfo.facebook) {
       formData.append('facebook', empresaInfo.facebook);
     }
@@ -90,6 +127,13 @@ export class EmpresaInfoService {
       formData.append('color_navbar', empresaInfo.color_navbar);
     }
 
+    if (empresaInfo.metodos_pago) {
+      formData.append('metodos_pago_enviado', '1');
+      empresaInfo.metodos_pago.forEach((metodo) => {
+        formData.append('metodos_pago[]', metodo);
+      });
+    }
+
     if (empresaInfo.logo) {
       formData.append('logo', empresaInfo.logo);
     }
@@ -106,12 +150,15 @@ export class EmpresaInfoService {
 
     Object.keys(empresaInfo).forEach((key) => {
       const value = (empresaInfo as any)[key];
-      if (value !== null && value !== undefined) {
-        if (key === 'logo' && value instanceof File) {
-          formData.append(key, value);
-        } else {
-          formData.append(key, value.toString());
-        }
+      if (value === null || value === undefined) return;
+
+      if (key === 'logo' && value instanceof File) {
+        formData.append(key, value);
+      } else if (key === 'metodos_pago' && Array.isArray(value)) {
+        formData.append('metodos_pago_enviado', '1');
+        value.forEach((metodo: string) => formData.append('metodos_pago[]', metodo));
+      } else {
+        formData.append(key, value.toString());
       }
     });
 
@@ -134,7 +181,10 @@ export class EmpresaInfoService {
   obtenerEmpresaInfoPublica(): Observable<any> {
     return this.http.get<{ success: boolean; data: any }>(`${this.apiUrl}/empresa-info/publica?_t=${Date.now()}`).pipe(
       map((response) => response.data),
-      tap((data) => this.empresaInfoPublicaSubject.next(data))
+      tap((data) => {
+        this.empresaInfoPublicaSubject.next(data);
+        this.guardarCache(data);
+      })
     );
   }
 

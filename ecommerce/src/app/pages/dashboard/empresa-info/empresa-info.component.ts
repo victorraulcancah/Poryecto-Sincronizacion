@@ -236,6 +236,18 @@ import Swal from 'sweetalert2';
 
               <div class="mb-16">
                 <label class="form-label text-heading fw-medium mb-8"
+                  >Sobre Nosotros</label
+                >
+                <textarea
+                  class="form-control px-16 py-12 border rounded-8"
+                  rows="5"
+                  formControlName="sobre_nosotros"
+                  placeholder="Cuenta la historia, misión y valores de tu empresa. Este texto se muestra en la página pública 'Sobre Nosotros' de la tienda."
+                ></textarea>
+              </div>
+
+              <div class="mb-16">
+                <label class="form-label text-heading fw-medium mb-8"
                   >Horario de Atención</label
                 >
                 <textarea
@@ -324,6 +336,32 @@ import Swal from 'sweetalert2';
                     placeholder="987654321"
                   />
                 </div>
+              </div>
+
+              <!-- Métodos de pago (footer de la tienda) -->
+              <h6 class="text-heading fw-semibold mb-16">
+                Métodos de Pago (footer de la tienda)
+              </h6>
+              <p class="text-gray-500 text-sm mb-16">
+                Marca los métodos de pago que quieres mostrar en el footer de la tienda.
+              </p>
+              <div class="d-flex flex-wrap gap-16 mb-16">
+                <label
+                  *ngFor="let metodo of metodosPagoDisponibles"
+                  class="d-flex align-items-center gap-8 border rounded-8 px-16 py-10 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    class="form-check-input m-0"
+                    [formControlName]="'pago_' + metodo.key"
+                  />
+                  <img
+                    [src]="metodo.image"
+                    [alt]="metodo.label"
+                    style="height: 24px; width: auto; object-fit: contain;"
+                  />
+                  <span class="text-sm">{{ metodo.label }}</span>
+                </label>
               </div>
             </div>
 
@@ -474,6 +512,15 @@ export class EmpresaInfoComponent implements OnInit {
   // Color por defecto del navbar (equivale al main-600 actual del tema)
   readonly COLOR_NAVBAR_DEFAULT = '#9B1C1C';
 
+  // Métodos de pago que se pueden mostrar/ocultar en el footer de la tienda
+  readonly metodosPagoDisponibles = [
+    { key: 'visa', label: 'Visa', image: '/assets/images/payment/visa.png' },
+    { key: 'mastercard', label: 'Mastercard', image: '/assets/images/payment/mastercard.png' },
+    { key: 'amex', label: 'American Express', image: '/assets/images/payment/amex.png' },
+    { key: 'yape', label: 'Yape', image: '/assets/images/payment/yape.png' },
+    { key: 'plin', label: 'Plin', image: '/assets/images/payment/plin.png' },
+  ];
+
   empresaForm: FormGroup;
   empresaInfo: EmpresaInfo | null = null;
   selectedLogo: File | null = null;
@@ -497,6 +544,7 @@ export class EmpresaInfoComponent implements OnInit {
       email: ['', [Validators.email]],
       website: ['', [Validators.pattern(/^https?:\/\/.+/)]],
       descripcion: [''],
+      sobre_nosotros: [''],
       facebook: [''],
       instagram: [''],
       twitter: [''],
@@ -505,6 +553,9 @@ export class EmpresaInfoComponent implements OnInit {
       whatsapp: [''],
       horario_atencion: [''],
       color_navbar: [this.COLOR_NAVBAR_DEFAULT, [Validators.pattern(/^#[0-9A-Fa-f]{6}$/)]],
+      ...Object.fromEntries(
+        this.metodosPagoDisponibles.map((m) => ['pago_' + m.key, [true]])
+      ),
     });
   }
 
@@ -529,6 +580,7 @@ export class EmpresaInfoComponent implements OnInit {
           email: empresaInfo.email || '',
           website: empresaInfo.website || '',
           descripcion: empresaInfo.descripcion || '',
+          sobre_nosotros: empresaInfo.sobre_nosotros || '',
           facebook: empresaInfo.facebook || '',
           instagram: empresaInfo.instagram || '',
           twitter: empresaInfo.twitter || '',
@@ -537,6 +589,15 @@ export class EmpresaInfoComponent implements OnInit {
           whatsapp: empresaInfo.whatsapp || '',
           horario_atencion: empresaInfo.horario_atencion || '',
           color_navbar: empresaInfo.color_navbar || this.COLOR_NAVBAR_DEFAULT,
+          ...Object.fromEntries(
+            this.metodosPagoDisponibles.map((m) => [
+              'pago_' + m.key,
+              // Si nunca se guardó nada (undefined), por defecto se muestran todos
+              empresaInfo.metodos_pago
+                ? empresaInfo.metodos_pago.includes(m.key)
+                : true,
+            ])
+          ),
         });
         this.logoPreview = empresaInfo.logo_url || null;
         this.isLoading = false;
@@ -575,8 +636,16 @@ export class EmpresaInfoComponent implements OnInit {
     if (this.empresaForm.valid && this.permissionsService.canEditEmpresaInfo()) {
       this.isSubmitting = true;
 
+      const { ...rawValue } = this.empresaForm.value;
+      this.metodosPagoDisponibles.forEach((m) => delete rawValue['pago_' + m.key]);
+
+      const metodosPago = this.metodosPagoDisponibles
+        .filter((m) => this.empresaForm.get('pago_' + m.key)?.value)
+        .map((m) => m.key);
+
       const formValue: EmpresaInfoCreate = {
-        ...this.empresaForm.value,
+        ...rawValue,
+        metodos_pago: metodosPago,
         logo: this.selectedLogo,
       };
 

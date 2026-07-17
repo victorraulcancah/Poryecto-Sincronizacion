@@ -51,13 +51,16 @@ class EmpresaInfoController extends Controller
                 'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'color_navbar' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
                 'descripcion' => 'nullable|string',
+                'sobre_nosotros' => 'nullable|string',
                 'facebook' => 'nullable|string|max:255',
                 'instagram' => 'nullable|string|max:255',
                 'twitter' => 'nullable|string|max:255',
                 'youtube' => 'nullable|string|max:255',
                 'tiktok' => 'nullable|string|max:255',
                 'whatsapp' => 'nullable|string|max:20',
-                'horario_atencion' => 'nullable|string'
+                'horario_atencion' => 'nullable|string',
+                'metodos_pago' => 'nullable|array',
+                'metodos_pago.*' => 'in:visa,mastercard,amex,yape,plin'
             ]);
 
             if ($validator->fails()) {
@@ -69,6 +72,12 @@ class EmpresaInfoController extends Controller
             }
 
             $data = $request->except(['logo']);
+
+            // Los checkboxes desmarcados no llegan en el request; si el front indica
+            // que envió la sección de métodos de pago, respetar el array (aunque venga vacío)
+            if ($request->has('metodos_pago_enviado')) {
+                $data['metodos_pago'] = $request->input('metodos_pago', []);
+            }
 
             // Procesar logo si existe
             if ($request->hasFile('logo')) {
@@ -110,13 +119,16 @@ class EmpresaInfoController extends Controller
                 'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'color_navbar' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
                 'descripcion' => 'nullable|string',
+                'sobre_nosotros' => 'nullable|string',
                 'facebook' => 'nullable|string|max:255',
                 'instagram' => 'nullable|string|max:255',
                 'twitter' => 'nullable|string|max:255',
                 'youtube' => 'nullable|string|max:255',
                 'tiktok' => 'nullable|string|max:255',
                 'whatsapp' => 'nullable|string|max:20',
-                'horario_atencion' => 'nullable|string'
+                'horario_atencion' => 'nullable|string',
+                'metodos_pago' => 'nullable|array',
+                'metodos_pago.*' => 'in:visa,mastercard,amex,yape,plin'
             ]);
 
             if ($validator->fails()) {
@@ -128,6 +140,10 @@ class EmpresaInfoController extends Controller
             }
 
             $data = $request->except(['logo']);
+
+            if ($request->has('metodos_pago_enviado')) {
+                $data['metodos_pago'] = $request->input('metodos_pago', []);
+            }
 
             // Procesar nuevo logo si existe
             if ($request->hasFile('logo')) {
@@ -203,7 +219,9 @@ class EmpresaInfoController extends Controller
             'logo_url' => $empresaInfo->logo
                 ? url('storage/' . $empresaInfo->logo)
                 : null,
-            'color_navbar' => $empresaInfo->getAttribute('color_navbar')
+            'color_navbar' => $empresaInfo->getAttribute('color_navbar'),
+            'sobre_nosotros' => $empresaInfo->getAttribute('sobre_nosotros'),
+            'metodos_pago' => $empresaInfo->getAttribute('metodos_pago')
         ];
 
         return response()->json([

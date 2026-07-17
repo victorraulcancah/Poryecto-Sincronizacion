@@ -1,0 +1,27 @@
+<app-breadcrumb title="Sobre Nosotros" subtitle="Conoce más sobre nuestra empresa"></app-breadcrumb>
+
+<section class="py-80">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="table-wrapper">
+                    <h1 class="page-title">{{ nombreEmpresa || 'Sobre Nosotros' }}</h1>
+
+                    <div *ngIf="isLoading" class="text-center py-40">
+                        <div class="spinner-border text-main-600" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                    </div>
+
+                    <p *ngIf="!isLoading && sobreNosotros" class="email" style="white-space: pre-line;">{{ sobreNosotros }}</p>
+
+                    <p *ngIf="!isLoading && !sobreNosotros" class="text-muted">
+                        Aún no se ha configurado la información de "Sobre Nosotros".
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<app-shipping></app-shipping>

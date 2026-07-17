@@ -14,6 +14,7 @@ export interface EmpresaInfo {
   logo_url?: string;
   color_navbar?: string;
   descripcion?: string;
+  sobre_nosotros?: string;
   facebook?: string;
   instagram?: string;
   twitter?: string;
@@ -21,6 +22,7 @@ export interface EmpresaInfo {
   tiktok?: string;
   whatsapp?: string;
   horario_atencion?: string;
+  metodos_pago?: string[];
   created_at: string;
   updated_at: string;
 }
@@ -37,6 +39,7 @@ export interface EmpresaInfoCreate {
   logo?: File;
   color_navbar?: string;
   descripcion?: string;
+  sobre_nosotros?: string;
   facebook?: string;
   instagram?: string;
   twitter?: string;
@@ -44,4 +47,5 @@ export interface EmpresaInfoCreate {
   tiktok?: string;
   whatsapp?: string;
   horario_atencion?: string;
+  metodos_pago?: string[];
 }

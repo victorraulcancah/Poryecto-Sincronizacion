@@ -33,17 +33,20 @@ class EmpresaInfo extends Model
         'logo',
         'color_navbar',
         'descripcion',
+        'sobre_nosotros',
         'facebook',
         'instagram',
         'twitter',
         'youtube',
         'tiktok',
         'whatsapp',
-        'horario_atencion'
+        'horario_atencion',
+        'metodos_pago'
     ];
 
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'metodos_pago' => 'array',
     ];
 }

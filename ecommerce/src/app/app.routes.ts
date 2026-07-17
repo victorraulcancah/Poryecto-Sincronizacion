@@ -291,6 +291,14 @@ export const routes: Routes = [
         title: 'Política de Privacidad',
       },
       {
+        path: 'sobre-nosotros',
+        loadComponent: () =>
+          import('./pages/sobre-nosotros/sobre-nosotros.component').then(
+            (m) => m.SobreNosotrosComponent
+          ),
+        title: 'Sobre Nosotros',
+      },
+      {
         path: 'politica-cookies',
         loadComponent: () =>
           import('./pages/politica-cookies/politica-cookies.component').then(
