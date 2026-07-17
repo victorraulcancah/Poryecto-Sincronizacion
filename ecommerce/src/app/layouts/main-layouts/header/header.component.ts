@@ -290,8 +290,11 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private cargarInformacionEmpresa(): void {
-    if (!this.isBrowser) return;
-
+    // Se ejecuta también en el servidor (SSR) para que el HTML ya llegue
+    // pintado con el color/logo reales y no haya "flash" de color por defecto
+    // mientras se resuelve la llamada en el cliente. Si el backend no está
+    // disponible (p. ej. durante el prerender de build sin API corriendo),
+    // el error se ignora y simplemente se usa el color por defecto.
     this.empresaInfoService.empresaInfoPublica$
       .pipe(takeUntil(this.destroy$))
       .subscribe((info) => {
