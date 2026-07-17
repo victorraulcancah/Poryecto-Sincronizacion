@@ -13,6 +13,7 @@ import { PermissionsService } from '../../../services/permissions.service';
 import { EmpresaInfo, EmpresaInfoCreate } from '../../../types/empresa-info.types';
 import { SobreNosotrosAdminComponent } from './sobre-nosotros-admin/sobre-nosotros-admin.component';
 import { MetodosPagoAdminComponent } from './metodos-pago-admin/metodos-pago-admin.component';
+import { mostrarErrorGuardado } from '../../../utils/mostrar-error.util';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -272,12 +273,45 @@ import Swal from 'sweetalert2';
                 <label class="form-label text-heading fw-medium mb-8"
                   >Descripción</label
                 >
-                <textarea
-                  class="form-control px-16 py-12 border rounded-8"
-                  rows="3"
-                  formControlName="descripcion"
-                  placeholder="Descripción de la empresa..."
-                ></textarea>
+                <p class="text-gray-500 text-xs mb-8">
+                  Se muestra en su propia sección en "Sobre Nosotros", separada de la Introducción.
+                </p>
+                <div class="row">
+                  <div class="col-md-8">
+                    <textarea
+                      class="form-control px-16 py-12 border rounded-8"
+                      rows="5"
+                      formControlName="descripcion"
+                      placeholder="Descripción de la empresa..."
+                    ></textarea>
+                  </div>
+                  <div class="col-md-4">
+                    <div
+                      class="upload-area border-2 border-dashed border-gray-200 rounded-8 p-12 text-center"
+                      [class.border-main-600]="descripcionImagenPreview"
+                    >
+                      <div *ngIf="!descripcionImagenPreview">
+                        <i class="ph ph-image text-gray-400 text-3xl mb-8"></i>
+                        <label class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm d-block">
+                          Subir imagen
+                          <input type="file" class="d-none" accept="image/*" (change)="onDescripcionImagenSelected($event)" />
+                        </label>
+                      </div>
+                      <div *ngIf="descripcionImagenPreview">
+                        <img [src]="descripcionImagenPreview" class="img-fluid rounded-6 mb-8" style="max-height: 90px;" />
+                        <div class="d-flex gap-8 justify-content-center">
+                          <label class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm">
+                            Cambiar
+                            <input type="file" class="d-none" accept="image/*" (change)="onDescripcionImagenSelected($event)" />
+                          </label>
+                          <button type="button" class="btn bg-danger-50 text-danger px-12 py-6 rounded-6 text-sm" (click)="eliminarDescripcionImagen()">
+                            Quitar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div class="mb-16">
@@ -546,6 +580,9 @@ export class EmpresaInfoComponent implements OnInit {
   empresaInfo: EmpresaInfo | null = null;
   selectedLogo: File | null = null;
   logoPreview: string | null = null;
+  descripcionImagenSeleccionada: File | null = null;
+  descripcionImagenPreview: string | null = null;
+  descripcionImagenEliminada = false;
   isLoading = true;
   isSubmitting = false;
   hasError = false;
@@ -607,6 +644,9 @@ export class EmpresaInfoComponent implements OnInit {
           color_navbar: empresaInfo.color_navbar || this.COLOR_NAVBAR_DEFAULT,
         });
         this.logoPreview = empresaInfo.logo_url || null;
+        this.descripcionImagenPreview = empresaInfo.imagen_descripcion_url || null;
+        this.descripcionImagenSeleccionada = null;
+        this.descripcionImagenEliminada = false;
         this.isLoading = false;
       },
       error: (error) => {
@@ -639,6 +679,26 @@ export class EmpresaInfoComponent implements OnInit {
     }
   }
 
+  onDescripcionImagenSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.descripcionImagenSeleccionada = file;
+      this.descripcionImagenEliminada = false;
+
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.descripcionImagenPreview = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  eliminarDescripcionImagen(): void {
+    this.descripcionImagenSeleccionada = null;
+    this.descripcionImagenPreview = null;
+    this.descripcionImagenEliminada = true;
+  }
+
   onSubmit(): void {
     if (this.empresaForm.valid && this.permissionsService.canEditEmpresaInfo()) {
       this.isSubmitting = true;
@@ -646,6 +706,8 @@ export class EmpresaInfoComponent implements OnInit {
       const formValue: EmpresaInfoCreate = {
         ...this.empresaForm.value,
         logo: this.selectedLogo,
+        imagen_descripcion: this.descripcionImagenSeleccionada || undefined,
+        eliminar_imagen_descripcion: this.descripcionImagenEliminada,
       };
 
       const request = this.empresaInfo
@@ -673,16 +735,7 @@ export class EmpresaInfoComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error al guardar información de empresa:', error);
-          Swal.fire({
-            title: 'Error',
-            text: 'No se pudo guardar la información. Inténtalo de nuevo.',
-            icon: 'error',
-            confirmButtonColor: '#dc3545',
-            customClass: {
-              popup: 'rounded-12',
-              confirmButton: 'rounded-8',
-            },
-          });
+          mostrarErrorGuardado(error, 'la información de la empresa');
           this.isSubmitting = false;
         },
       });
@@ -698,6 +751,9 @@ export class EmpresaInfoComponent implements OnInit {
       this.empresaForm.reset();
       this.logoPreview = null;
       this.selectedLogo = null;
+      this.descripcionImagenPreview = null;
+      this.descripcionImagenSeleccionada = null;
+      this.descripcionImagenEliminada = false;
     }
   }
 

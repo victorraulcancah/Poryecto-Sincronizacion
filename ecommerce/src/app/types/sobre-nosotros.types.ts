@@ -91,6 +91,7 @@ export interface EmpresaMetodoPagoForm {
 export interface SobreNosotrosPublico {
   nombre_empresa?: string;
   descripcion?: string;
+  imagen_descripcion_url?: string;
   sobre_nosotros?: string;
   imagen_introduccion_url?: string;
   duracion_banner_segundos?: number;

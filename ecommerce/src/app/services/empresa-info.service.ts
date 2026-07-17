@@ -61,6 +61,9 @@ export class EmpresaInfoService {
         imagen_introduccion_url: response.data.imagen_introduccion
           ? `${this.baseUrl}/storage/${response.data.imagen_introduccion}`
           : undefined,
+        imagen_descripcion_url: response.data.imagen_descripcion
+          ? `${this.baseUrl}/storage/${response.data.imagen_descripcion}`
+          : undefined,
       }))
     );
   }
@@ -92,6 +95,10 @@ export class EmpresaInfoService {
 
     if (empresaInfo.descripcion) {
       formData.append('descripcion', empresaInfo.descripcion);
+    }
+
+    if (empresaInfo.imagen_descripcion) {
+      formData.append('imagen_descripcion', empresaInfo.imagen_descripcion);
     }
 
     if (empresaInfo.sobre_nosotros) {
@@ -148,8 +155,10 @@ export class EmpresaInfoService {
       const value = (empresaInfo as any)[key];
       if (value === null || value === undefined) return;
 
-      if (key === 'logo' && value instanceof File) {
+      if (value instanceof File) {
         formData.append(key, value);
+      } else if (typeof value === 'boolean') {
+        formData.append(key, value ? '1' : '0');
       } else {
         formData.append(key, value.toString());
       }

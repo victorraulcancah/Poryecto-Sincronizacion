@@ -29,6 +29,7 @@ export class SobreNosotrosComponent implements OnInit {
 
   nombreEmpresa = '';
   descripcion = '';
+  imagenDescripcionUrl = '';
   sobreNosotros = '';
   imagenIntroduccionUrl = '';
   horarioAtencion = '';
@@ -94,6 +95,7 @@ export class SobreNosotrosComponent implements OnInit {
   private aplicarDatos(data: SobreNosotrosPublico): void {
     this.nombreEmpresa = data.nombre_empresa || '';
     this.descripcion = data.descripcion || '';
+    this.imagenDescripcionUrl = data.imagen_descripcion_url || '';
     this.sobreNosotros = data.sobre_nosotros || '';
     this.imagenIntroduccionUrl = data.imagen_introduccion_url || '';
     this.horarioAtencion = data.horario_atencion || '';

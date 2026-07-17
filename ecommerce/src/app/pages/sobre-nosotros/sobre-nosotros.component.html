@@ -29,37 +29,78 @@
   </section>
 
   <!-- ============================================================ -->
-  <!-- INTRODUCCIÓN + INFO DE CONTACTO                                -->
+  <!-- DESCRIPCIÓN                                                    -->
   <!-- ============================================================ -->
-  <section class="py-80 sobre-nosotros-intro">
+  <section class="py-80 sobre-nosotros-intro" *ngIf="descripcion || imagenDescripcionUrl">
+    <div class="container">
+      <!-- Con imagen: dos columnas (imagen | texto) -->
+      <div class="row align-items-center" *ngIf="imagenDescripcionUrl">
+        <div class="col-lg-5 text-center mb-32 mb-lg-0">
+          <img [src]="imagenDescripcionUrl" [alt]="nombreEmpresa" class="intro-imagen" />
+        </div>
+        <div class="col-lg-7">
+          <p *ngIf="descripcion" class="sobre-nosotros-descripcion mb-0">{{ descripcion }}</p>
+        </div>
+      </div>
+
+      <!-- Sin imagen: bloque centrado -->
+      <div class="row justify-content-center" *ngIf="!imagenDescripcionUrl">
+        <div class="col-lg-9 text-center">
+          <p class="sobre-nosotros-descripcion mb-0">{{ descripcion }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- INTRODUCCIÓN                                                   -->
+  <!-- ============================================================ -->
+  <section class="py-80 sobre-nosotros-intro" *ngIf="sobreNosotros || imagenIntroduccionUrl">
     <div class="container">
       <!-- Con imagen: dos columnas (imagen | texto), estilo DS18 -->
       <div class="row align-items-center" *ngIf="imagenIntroduccionUrl">
-        <div class="col-lg-5 text-center mb-32 mb-lg-0">
+        <div class="col-lg-5 text-center mb-32 mb-lg-0 order-lg-2">
           <img [src]="imagenIntroduccionUrl" [alt]="nombreEmpresa" class="intro-imagen" />
         </div>
-        <div class="col-lg-7">
-          <p *ngIf="descripcion" class="sobre-nosotros-descripcion mb-24">{{ descripcion }}</p>
-          <p *ngIf="sobreNosotros" class="sobre-nosotros-texto" style="white-space: pre-line;">{{ sobreNosotros }}</p>
-          <p *ngIf="!sobreNosotros && !descripcion" class="sobre-nosotros-vacio">
-            Aún no se ha configurado la información de "Sobre Nosotros".
-          </p>
+        <div class="col-lg-7 order-lg-1">
+          <p *ngIf="sobreNosotros" class="sobre-nosotros-texto mb-0" style="white-space: pre-line;">{{ sobreNosotros }}</p>
         </div>
       </div>
 
       <!-- Sin imagen: bloque centrado -->
       <div class="row justify-content-center" *ngIf="!imagenIntroduccionUrl">
         <div class="col-lg-9 text-center">
-          <p *ngIf="descripcion" class="sobre-nosotros-descripcion mb-24">{{ descripcion }}</p>
-          <p *ngIf="sobreNosotros" class="sobre-nosotros-texto" style="white-space: pre-line;">{{ sobreNosotros }}</p>
-          <p *ngIf="!sobreNosotros && !descripcion" class="sobre-nosotros-vacio">
+          <p class="sobre-nosotros-texto mb-0" style="white-space: pre-line;">{{ sobreNosotros }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Mensaje si no hay ni Descripción ni Introducción configuradas -->
+  <section class="py-80 sobre-nosotros-intro" *ngIf="!descripcion && !imagenDescripcionUrl && !sobreNosotros && !imagenIntroduccionUrl">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-9 text-center">
+          <p class="sobre-nosotros-vacio">
             Aún no se ha configurado la información de "Sobre Nosotros".
           </p>
         </div>
       </div>
 
-      <!-- Info de contacto -->
-      <div class="row justify-content-center" *ngIf="tieneInfoContacto || redesSociales.length">
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- INFO DE CONTACTO (sección aparte)                              -->
+  <!-- ============================================================ -->
+  <section class="py-80 bg-gray-25" *ngIf="tieneInfoContacto || redesSociales.length">
+    <div class="container">
+      <div class="text-center mb-48">
+        <span class="sobre-nosotros-eyebrow">Contáctanos</span>
+        <h2 class="sobre-nosotros-subtitulo">Cómo encontrarnos</h2>
+      </div>
+
+      <div class="row justify-content-center">
         <div class="col-lg-9 text-center">
           <div class="contacto-info" *ngIf="tieneInfoContacto">
             <div class="contacto-info__item" *ngIf="direccion">
