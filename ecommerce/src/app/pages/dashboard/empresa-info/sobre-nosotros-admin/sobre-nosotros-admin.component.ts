@@ -11,6 +11,7 @@ import {
   EmpresaPremio,
   EmpresaBannerNosotros,
 } from '../../../../types/sobre-nosotros.types';
+import { mostrarErrorGuardado } from '../../../../utils/mostrar-error.util';
 import Swal from 'sweetalert2';
 
 type SubTab = 'banner' | 'intro' | 'valores' | 'historia' | 'premios';
@@ -202,14 +203,9 @@ export class SobreNosotrosAdminComponent implements OnInit {
         this.cargarBanners();
         this.empresaInfoService.refreshPublicInfo();
       },
-      error: () => {
+      error: (error) => {
         this.isSavingBanner = false;
-        Swal.fire({
-          title: 'Error',
-          text: 'No se pudo guardar el banner. Inténtalo de nuevo.',
-          icon: 'error',
-          confirmButtonColor: '#dc3545',
-        });
+        mostrarErrorGuardado(error, 'el banner');
       },
     });
   }
@@ -376,14 +372,9 @@ export class SobreNosotrosAdminComponent implements OnInit {
         this.cargarValores();
         this.empresaInfoService.refreshPublicInfo();
       },
-      error: () => {
+      error: (error) => {
         this.isSavingValor = false;
-        Swal.fire({
-          title: 'Error',
-          text: 'No se pudo guardar el valor. Inténtalo de nuevo.',
-          icon: 'error',
-          confirmButtonColor: '#dc3545',
-        });
+        mostrarErrorGuardado(error, 'el valor');
       },
     });
   }
@@ -489,14 +480,9 @@ export class SobreNosotrosAdminComponent implements OnInit {
         this.cargarHitos();
         this.empresaInfoService.refreshPublicInfo();
       },
-      error: () => {
+      error: (error) => {
         this.isSavingHito = false;
-        Swal.fire({
-          title: 'Error',
-          text: 'No se pudo guardar el hito. Inténtalo de nuevo.',
-          icon: 'error',
-          confirmButtonColor: '#dc3545',
-        });
+        mostrarErrorGuardado(error, 'el hito');
       },
     });
   }
@@ -602,14 +588,9 @@ export class SobreNosotrosAdminComponent implements OnInit {
         this.cargarPremios();
         this.empresaInfoService.refreshPublicInfo();
       },
-      error: () => {
+      error: (error) => {
         this.isSavingPremio = false;
-        Swal.fire({
-          title: 'Error',
-          text: 'No se pudo guardar el premio. Inténtalo de nuevo.',
-          icon: 'error',
-          confirmButtonColor: '#dc3545',
-        });
+        mostrarErrorGuardado(error, 'el premio');
       },
     });
   }

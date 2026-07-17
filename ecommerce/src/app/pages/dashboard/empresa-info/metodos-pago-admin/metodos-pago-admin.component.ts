@@ -6,6 +6,7 @@ import { SobreNosotrosService } from '../../../../services/sobre-nosotros.servic
 import { EmpresaInfoService } from '../../../../services/empresa-info.service';
 import { PermissionsService } from '../../../../services/permissions.service';
 import { EmpresaMetodoPago } from '../../../../types/sobre-nosotros.types';
+import { mostrarErrorGuardado } from '../../../../utils/mostrar-error.util';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -127,14 +128,9 @@ export class MetodosPagoAdminComponent implements OnInit {
         this.cargarMetodos();
         this.empresaInfoService.refreshPublicInfo();
       },
-      error: () => {
+      error: (error) => {
         this.isSaving = false;
-        Swal.fire({
-          title: 'Error',
-          text: 'No se pudo guardar el método de pago. Inténtalo de nuevo.',
-          icon: 'error',
-          confirmButtonColor: '#dc3545',
-        });
+        mostrarErrorGuardado(error, 'el método de pago');
       },
     });
   }

@@ -15,9 +15,31 @@
     justify-content: center;
   }
 
-  &__slider,
-  &__slide {
+  &__slider {
     height: 100%;
+  }
+
+  &__slide {
+    position: relative;
+    height: 100%;
+  }
+
+  // ngx-slick-carousel envuelve cada item en varios divs propios
+  // (.slick-list > .slick-track > .slick-slide > div) que por defecto
+  // no heredan la altura del contenedor; hay que forzarla en toda la cadena.
+  :host ::ng-deep &__slider {
+    height: 100%;
+
+    .slick-list,
+    .slick-track,
+    .slick-slide,
+    .slick-slide > div {
+      height: 100%;
+    }
+
+    .slick-track {
+      display: flex !important;
+    }
   }
 
   &__imagen {
@@ -91,7 +113,11 @@
 .sobre-nosotros-texto {
   font-size: 1.125rem;
   line-height: 1.8;
-  color: #565656;
+  color: #333333;
+}
+
+.sobre-nosotros-vacio {
+  color: #333333;
 }
 
 // ===== Info de contacto =====
@@ -108,7 +134,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #565656;
+    color: #333333;
     font-size: 0.95rem;
 
     i {
@@ -205,7 +231,7 @@
   }
 
   &__descripcion {
-    color: #6b6b6b;
+    color: #333333;
     font-size: 0.95rem;
     line-height: 1.6;
     margin-bottom: 0;
@@ -250,7 +276,7 @@
   }
 
   &__descripcion {
-    color: #565656;
+    color: #333333;
     font-size: 0.95rem;
     line-height: 1.6;
     margin-bottom: 0;
@@ -305,7 +331,7 @@
   }
 
   &__anio {
-    color: #8a8a8a;
+    color: #555555;
     font-size: 0.85rem;
     margin-bottom: 0;
   }
