@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "ecommerce-frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "start", "--prefix", "ecommerce"],
+      "port": 4200
+    }
+  ]
+}

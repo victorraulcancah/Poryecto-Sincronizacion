@@ -3,6 +3,11 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmpresaInfoController;
+use App\Http\Controllers\EmpresaValorController;
+use App\Http\Controllers\EmpresaHitoController;
+use App\Http\Controllers\EmpresaPremioController;
+use App\Http\Controllers\EmpresaBannerNosotrosController;
+use App\Http\Controllers\EmpresaMetodoPagoController;
 use App\Http\Controllers\HorariosController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserRegistrationController;
@@ -100,6 +105,38 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('permission:empresa_info.edit')->group(function () {
         Route::post('/empresa-info', [EmpresaInfoController::class, 'store']);
         Route::put('/empresa-info/{id}', [EmpresaInfoController::class, 'update']);
+        Route::put('/empresa-info/{id}/sobre-nosotros', [EmpresaInfoController::class, 'actualizarSobreNosotros']);
+    });
+
+    // Sobre Nosotros: banner, valores institucionales, historia (hitos) y premios
+    Route::middleware('permission:empresa_info.ver')->group(function () {
+        Route::get('/empresa-banners-nosotros', [EmpresaBannerNosotrosController::class, 'index']);
+        Route::get('/empresa-valores', [EmpresaValorController::class, 'index']);
+        Route::get('/empresa-hitos', [EmpresaHitoController::class, 'index']);
+        Route::get('/empresa-premios', [EmpresaPremioController::class, 'index']);
+        Route::get('/empresa-metodos-pago', [EmpresaMetodoPagoController::class, 'index']);
+    });
+
+    Route::middleware('permission:empresa_info.edit')->group(function () {
+        Route::post('/empresa-banners-nosotros', [EmpresaBannerNosotrosController::class, 'store']);
+        Route::put('/empresa-banners-nosotros/{id}', [EmpresaBannerNosotrosController::class, 'update']);
+        Route::delete('/empresa-banners-nosotros/{id}', [EmpresaBannerNosotrosController::class, 'destroy']);
+
+        Route::post('/empresa-valores', [EmpresaValorController::class, 'store']);
+        Route::put('/empresa-valores/{id}', [EmpresaValorController::class, 'update']);
+        Route::delete('/empresa-valores/{id}', [EmpresaValorController::class, 'destroy']);
+
+        Route::post('/empresa-hitos', [EmpresaHitoController::class, 'store']);
+        Route::put('/empresa-hitos/{id}', [EmpresaHitoController::class, 'update']);
+        Route::delete('/empresa-hitos/{id}', [EmpresaHitoController::class, 'destroy']);
+
+        Route::post('/empresa-premios', [EmpresaPremioController::class, 'store']);
+        Route::put('/empresa-premios/{id}', [EmpresaPremioController::class, 'update']);
+        Route::delete('/empresa-premios/{id}', [EmpresaPremioController::class, 'destroy']);
+
+        Route::post('/empresa-metodos-pago', [EmpresaMetodoPagoController::class, 'store']);
+        Route::put('/empresa-metodos-pago/{id}', [EmpresaMetodoPagoController::class, 'update']);
+        Route::delete('/empresa-metodos-pago/{id}', [EmpresaMetodoPagoController::class, 'destroy']);
     });
 
     // ============================================

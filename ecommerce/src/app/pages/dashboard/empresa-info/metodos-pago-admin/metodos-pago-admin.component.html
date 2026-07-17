@@ -1,0 +1,128 @@
+<div class="card border-0 shadow-sm rounded-12 mt-24">
+  <div class="card-body p-24">
+    <div class="d-flex justify-content-between align-items-start mb-16">
+      <div>
+        <h6 class="text-heading fw-semibold mb-8">Métodos de Pago</h6>
+        <p class="text-gray-500 text-sm mb-0">
+          Estos íconos se muestran en el footer de la tienda. Puedes agregar, editar u ocultar los que quieras.
+        </p>
+      </div>
+      <button
+        type="button"
+        class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8 flex-shrink-0"
+        *ngIf="puedeEditar() && !mostrarForm"
+        (click)="nuevoMetodo()"
+      >
+        <i class="ph ph-plus me-6"></i>
+        Agregar método de pago
+      </button>
+    </div>
+
+    <!-- Formulario -->
+    <div *ngIf="mostrarForm" class="border rounded-8 p-16 mb-24 bg-gray-25">
+      <form [formGroup]="metodoForm" (ngSubmit)="guardarMetodo()">
+        <div class="row">
+          <div class="col-md-8">
+            <div class="mb-16">
+              <label class="form-label text-heading fw-medium mb-8">Nombre *</label>
+              <input
+                type="text"
+                class="form-control px-16 py-12 border rounded-8"
+                formControlName="nombre"
+                placeholder="Ej: Transferencia BCP"
+              />
+            </div>
+            <div class="row">
+              <div class="col-6">
+                <label class="form-label text-heading fw-medium mb-8">Orden</label>
+                <input
+                  type="number"
+                  class="form-control px-16 py-12 border rounded-8"
+                  formControlName="orden"
+                  min="0"
+                />
+              </div>
+              <div class="col-6 d-flex align-items-end">
+                <div class="form-check mb-16">
+                  <input class="form-check-input" type="checkbox" formControlName="activo" id="metodoActivo" />
+                  <label class="form-check-label" for="metodoActivo">Visible en la tienda</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label text-heading fw-medium mb-8">Ícono *</label>
+            <div
+              class="upload-area border-2 border-dashed border-gray-200 rounded-8 p-12 text-center"
+              [class.border-main-600]="imagenPreview"
+            >
+              <div *ngIf="!imagenPreview">
+                <i class="ph ph-image text-gray-400 text-3xl mb-8"></i>
+                <label class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm d-block">
+                  Subir
+                  <input type="file" class="d-none" accept="image/*" (change)="onImagenSeleccionada($event)" />
+                </label>
+              </div>
+              <div *ngIf="imagenPreview">
+                <img [src]="imagenPreview" class="img-fluid rounded-6 mb-8" style="max-height: 80px;" />
+                <label class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm d-block">
+                  Cambiar
+                  <input type="file" class="d-none" accept="image/*" (change)="onImagenSeleccionada($event)" />
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-12 mt-8">
+          <button type="button" class="btn bg-gray-100 hover-bg-gray-200 text-gray-600 px-16 py-8 rounded-8" (click)="cancelarForm()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8" [disabled]="isSaving">
+            <span *ngIf="isSaving" class="spinner-border spinner-border-sm me-8"></span>
+            {{ isSaving ? 'Guardando...' : (metodoEditando ? 'Actualizar' : 'Guardar') }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div *ngIf="isLoading" class="text-center py-24">
+      <div class="spinner-border text-main-600" role="status"></div>
+    </div>
+
+    <div *ngIf="!isLoading && !metodos.length" class="text-center text-gray-500 py-24">
+      Aún no has agregado métodos de pago.
+    </div>
+
+    <div class="row g-16" *ngIf="!isLoading && metodos.length">
+      <div class="col-md-3" *ngFor="let metodo of metodos">
+        <div class="border rounded-8 p-16 h-100 d-flex flex-column text-center">
+          <img
+            *ngIf="metodo.imagen_url"
+            [src]="metodo.imagen_url"
+            class="mb-12 mx-auto"
+            style="height: 40px; width: auto; object-fit: contain;"
+          />
+          <h6 class="text-heading fw-semibold mb-8">{{ metodo.nombre }}</h6>
+          <span
+            class="badge mb-12"
+            [class.bg-success-50]="metodo.activo"
+            [class.text-success]="metodo.activo"
+            [class.bg-gray-100]="!metodo.activo"
+            [class.text-gray-500]="!metodo.activo"
+          >
+            {{ metodo.activo ? 'Visible' : 'Oculto' }}
+          </span>
+          <div class="d-flex gap-8 justify-content-center mt-auto">
+            <button type="button" class="btn btn-sm bg-main-50 text-main-600 px-12 py-6 rounded-6" *ngIf="puedeEditar()" (click)="editarMetodo(metodo)">
+              <i class="ph ph-pencil"></i>
+            </button>
+            <button type="button" class="btn btn-sm bg-danger-50 text-danger px-12 py-6 rounded-6" *ngIf="puedeEditar()" (click)="eliminarMetodo(metodo)">
+              <i class="ph ph-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

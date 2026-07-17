@@ -103,9 +103,9 @@
                 <div>
                     <h6 class="text-white fw-medium mb-16 text-sm">Métodos de pago</h6>
                     <div class="d-flex flex-wrap gap-8">
-                        <img *ngFor="let method of paymentMethods" 
-                             [src]="method.image" 
-                             [alt]="method.name"
+                        <img *ngFor="let method of paymentMethods"
+                             [src]="method.imagen_url"
+                             [alt]="method.nombre"
                              class="payment-method-img"
                              style="height: 32px; width: auto; object-fit: contain;">
                     </div>

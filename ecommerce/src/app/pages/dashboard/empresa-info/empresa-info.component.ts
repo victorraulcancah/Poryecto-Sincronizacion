@@ -11,12 +11,20 @@ import {
 import { EmpresaInfoService } from '../../../services/empresa-info.service';
 import { PermissionsService } from '../../../services/permissions.service';
 import { EmpresaInfo, EmpresaInfoCreate } from '../../../types/empresa-info.types';
+import { SobreNosotrosAdminComponent } from './sobre-nosotros-admin/sobre-nosotros-admin.component';
+import { MetodosPagoAdminComponent } from './metodos-pago-admin/metodos-pago-admin.component';
 import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-empresa-info',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [
+    CommonModule,
+    RouterModule,
+    ReactiveFormsModule,
+    SobreNosotrosAdminComponent,
+    MetodosPagoAdminComponent,
+  ],
   template: `
     <div class="d-flex justify-content-between align-items-center mb-24">
       <div>
@@ -25,8 +33,43 @@ import Swal from 'sweetalert2';
       </div>
     </div>
 
+    <!-- Tabs principales -->
+    <div class="card border-0 shadow-sm rounded-12 mb-24">
+      <div class="card-body p-0">
+        <nav class="nav nav-tabs border-0">
+          <button
+            type="button"
+            class="nav-link px-24 py-16 border-0 text-heading fw-medium"
+            [class.active]="tabPrincipal === 'datos'"
+            (click)="tabPrincipal = 'datos'"
+          >
+            <i class="ph ph-buildings me-8"></i>
+            Datos de la Empresa
+          </button>
+          <button
+            type="button"
+            class="nav-link px-24 py-16 border-0 text-heading fw-medium"
+            [class.active]="tabPrincipal === 'nosotros'"
+            (click)="tabPrincipal = 'nosotros'"
+          >
+            <i class="ph ph-info me-8"></i>
+            Sobre Nosotros
+          </button>
+          <button
+            type="button"
+            class="nav-link px-24 py-16 border-0 text-heading fw-medium"
+            [class.active]="tabPrincipal === 'pagos'"
+            (click)="tabPrincipal = 'pagos'"
+          >
+            <i class="ph ph-credit-card me-8"></i>
+            Métodos de Pago
+          </button>
+        </nav>
+      </div>
+    </div>
+
     <!-- Loading state -->
-    <div *ngIf="isLoading" class="text-center py-40">
+    <div *ngIf="isLoading && tabPrincipal === 'datos'" class="text-center py-40">
       <div class="spinner-border text-main-600" role="status">
         <span class="visually-hidden">Cargando...</span>
       </div>
@@ -34,7 +77,10 @@ import Swal from 'sweetalert2';
     </div>
 
     <!-- Formulario -->
-    <div *ngIf="!isLoading" class="card border-0 shadow-sm rounded-12">
+    <div
+      *ngIf="!isLoading && tabPrincipal === 'datos'"
+      class="card border-0 shadow-sm rounded-12"
+    >
       <div class="card-body p-24">
         <form [formGroup]="empresaForm" (ngSubmit)="onSubmit()">
           <div class="row">
@@ -236,18 +282,6 @@ import Swal from 'sweetalert2';
 
               <div class="mb-16">
                 <label class="form-label text-heading fw-medium mb-8"
-                  >Sobre Nosotros</label
-                >
-                <textarea
-                  class="form-control px-16 py-12 border rounded-8"
-                  rows="5"
-                  formControlName="sobre_nosotros"
-                  placeholder="Cuenta la historia, misión y valores de tu empresa. Este texto se muestra en la página pública 'Sobre Nosotros' de la tienda."
-                ></textarea>
-              </div>
-
-              <div class="mb-16">
-                <label class="form-label text-heading fw-medium mb-8"
                   >Horario de Atención</label
                 >
                 <textarea
@@ -338,31 +372,6 @@ import Swal from 'sweetalert2';
                 </div>
               </div>
 
-              <!-- Métodos de pago (footer de la tienda) -->
-              <h6 class="text-heading fw-semibold mb-16">
-                Métodos de Pago (footer de la tienda)
-              </h6>
-              <p class="text-gray-500 text-sm mb-16">
-                Marca los métodos de pago que quieres mostrar en el footer de la tienda.
-              </p>
-              <div class="d-flex flex-wrap gap-16 mb-16">
-                <label
-                  *ngFor="let metodo of metodosPagoDisponibles"
-                  class="d-flex align-items-center gap-8 border rounded-8 px-16 py-10 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    class="form-check-input m-0"
-                    [formControlName]="'pago_' + metodo.key"
-                  />
-                  <img
-                    [src]="metodo.image"
-                    [alt]="metodo.label"
-                    style="height: 24px; width: auto; object-fit: contain;"
-                  />
-                  <span class="text-sm">{{ metodo.label }}</span>
-                </label>
-              </div>
             </div>
 
             <!-- Logo -->
@@ -486,7 +495,7 @@ import Swal from 'sweetalert2';
 
     <!-- Estado sin información -->
     <div
-      *ngIf="!isLoading && !empresaInfo && !hasError"
+      *ngIf="!isLoading && !empresaInfo && !hasError && tabPrincipal === 'datos'"
       class="card border-0 shadow-sm rounded-12"
     >
       <div class="card-body text-center py-40">
@@ -495,6 +504,12 @@ import Swal from 'sweetalert2';
         <p class="text-gray-500 mb-16">Completa la información básica de tu empresa</p>
       </div>
     </div>
+
+    <!-- Tab: Sobre Nosotros -->
+    <app-sobre-nosotros-admin *ngIf="tabPrincipal === 'nosotros'"></app-sobre-nosotros-admin>
+
+    <!-- Tab: Métodos de Pago -->
+    <app-metodos-pago-admin *ngIf="tabPrincipal === 'pagos'"></app-metodos-pago-admin>
   `,
   styles: [
     `
@@ -505,21 +520,27 @@ import Swal from 'sweetalert2';
       .upload-area:hover {
         border-color: var(--bs-main-600) !important;
       }
+      .nav-tabs .nav-link {
+        border-radius: 0;
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+      .nav-tabs .nav-link.active {
+        background-color: var(--bs-main-50);
+        color: var(--bs-main-600);
+        border-bottom: 2px solid var(--bs-main-600);
+      }
+      .nav-tabs .nav-link:hover {
+        background-color: var(--bs-gray-50);
+      }
     `,
   ],
 })
 export class EmpresaInfoComponent implements OnInit {
+  tabPrincipal: 'datos' | 'nosotros' | 'pagos' = 'datos';
+
   // Color por defecto del navbar (equivale al main-600 actual del tema)
   readonly COLOR_NAVBAR_DEFAULT = '#9B1C1C';
-
-  // Métodos de pago que se pueden mostrar/ocultar en el footer de la tienda
-  readonly metodosPagoDisponibles = [
-    { key: 'visa', label: 'Visa', image: '/assets/images/payment/visa.png' },
-    { key: 'mastercard', label: 'Mastercard', image: '/assets/images/payment/mastercard.png' },
-    { key: 'amex', label: 'American Express', image: '/assets/images/payment/amex.png' },
-    { key: 'yape', label: 'Yape', image: '/assets/images/payment/yape.png' },
-    { key: 'plin', label: 'Plin', image: '/assets/images/payment/plin.png' },
-  ];
 
   empresaForm: FormGroup;
   empresaInfo: EmpresaInfo | null = null;
@@ -544,7 +565,6 @@ export class EmpresaInfoComponent implements OnInit {
       email: ['', [Validators.email]],
       website: ['', [Validators.pattern(/^https?:\/\/.+/)]],
       descripcion: [''],
-      sobre_nosotros: [''],
       facebook: [''],
       instagram: [''],
       twitter: [''],
@@ -553,9 +573,6 @@ export class EmpresaInfoComponent implements OnInit {
       whatsapp: [''],
       horario_atencion: [''],
       color_navbar: [this.COLOR_NAVBAR_DEFAULT, [Validators.pattern(/^#[0-9A-Fa-f]{6}$/)]],
-      ...Object.fromEntries(
-        this.metodosPagoDisponibles.map((m) => ['pago_' + m.key, [true]])
-      ),
     });
   }
 
@@ -580,7 +597,6 @@ export class EmpresaInfoComponent implements OnInit {
           email: empresaInfo.email || '',
           website: empresaInfo.website || '',
           descripcion: empresaInfo.descripcion || '',
-          sobre_nosotros: empresaInfo.sobre_nosotros || '',
           facebook: empresaInfo.facebook || '',
           instagram: empresaInfo.instagram || '',
           twitter: empresaInfo.twitter || '',
@@ -589,15 +605,6 @@ export class EmpresaInfoComponent implements OnInit {
           whatsapp: empresaInfo.whatsapp || '',
           horario_atencion: empresaInfo.horario_atencion || '',
           color_navbar: empresaInfo.color_navbar || this.COLOR_NAVBAR_DEFAULT,
-          ...Object.fromEntries(
-            this.metodosPagoDisponibles.map((m) => [
-              'pago_' + m.key,
-              // Si nunca se guardó nada (undefined), por defecto se muestran todos
-              empresaInfo.metodos_pago
-                ? empresaInfo.metodos_pago.includes(m.key)
-                : true,
-            ])
-          ),
         });
         this.logoPreview = empresaInfo.logo_url || null;
         this.isLoading = false;
@@ -636,16 +643,8 @@ export class EmpresaInfoComponent implements OnInit {
     if (this.empresaForm.valid && this.permissionsService.canEditEmpresaInfo()) {
       this.isSubmitting = true;
 
-      const { ...rawValue } = this.empresaForm.value;
-      this.metodosPagoDisponibles.forEach((m) => delete rawValue['pago_' + m.key]);
-
-      const metodosPago = this.metodosPagoDisponibles
-        .filter((m) => this.empresaForm.get('pago_' + m.key)?.value)
-        .map((m) => m.key);
-
       const formValue: EmpresaInfoCreate = {
-        ...rawValue,
-        metodos_pago: metodosPago,
+        ...this.empresaForm.value,
         logo: this.selectedLogo,
       };
 

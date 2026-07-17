@@ -1,42 +1,132 @@
 // src/app/pages/sobre-nosotros/sobre-nosotros.component.ts
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Subject, takeUntil } from 'rxjs';
-import { BreadcrumbComponent } from '../../component/breadcrumb/breadcrumb.component';
+import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { SlickCarouselModule } from 'ngx-slick-carousel';
 import { ShippingComponent } from '../../component/shipping/shipping.component';
-import { EmpresaInfoService } from '../../services/empresa-info.service';
+import { SobreNosotrosService } from '../../services/sobre-nosotros.service';
+import {
+  EmpresaValor,
+  EmpresaHito,
+  EmpresaPremio,
+  EmpresaBannerNosotros,
+  SobreNosotrosPublico,
+} from '../../types/sobre-nosotros.types';
+
+interface RedSocial {
+  icon: string;
+  url: string;
+}
 
 @Component({
   selector: 'app-sobre-nosotros',
   standalone: true,
-  imports: [CommonModule, BreadcrumbComponent, ShippingComponent],
+  imports: [CommonModule, ShippingComponent, SlickCarouselModule],
   templateUrl: './sobre-nosotros.component.html',
   styleUrl: './sobre-nosotros.component.scss',
 })
-export class SobreNosotrosComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject<void>();
+export class SobreNosotrosComponent implements OnInit {
+  isBrowser: boolean;
 
   nombreEmpresa = '';
+  descripcion = '';
   sobreNosotros = '';
+  horarioAtencion = '';
+  direccion = '';
+  telefono = '';
+  celular = '';
+  email = '';
+  banners: EmpresaBannerNosotros[] = [];
+  valores: EmpresaValor[] = [];
+  hitos: EmpresaHito[] = [];
+  premios: EmpresaPremio[] = [];
+  redesSociales: RedSocial[] = [];
   isLoading = true;
 
-  constructor(private empresaInfoService: EmpresaInfoService) {}
+  bannerConfig = {
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    arrows: false,
+    dots: true,
+    infinite: true,
+    autoplay: true,
+    autoplaySpeed: 6000,
+    speed: 700,
+    fade: true,
+    cssEase: 'ease-in-out',
+    pauseOnHover: false,
+  };
 
-  ngOnInit(): void {
-    this.empresaInfoService.empresaInfoPublica$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((data) => {
-        if (!data) return;
-        this.nombreEmpresa = data.nombre_empresa || '';
-        this.sobreNosotros = data.sobre_nosotros || '';
-        this.isLoading = false;
-      });
+  valoresConfig = {
+    slidesToShow: 3,
+    slidesToScroll: 1,
+    arrows: true,
+    dots: false,
+    infinite: false,
+    autoplay: false,
+    speed: 500,
+    responsive: [
+      { breakpoint: 992, settings: { slidesToShow: 2 } },
+      { breakpoint: 576, settings: { slidesToShow: 1, arrows: false, dots: true } },
+    ],
+  };
 
-    this.empresaInfoService.refreshPublicInfo();
+  hitosConfig = {
+    slidesToShow: 3,
+    slidesToScroll: 1,
+    arrows: true,
+    dots: false,
+    infinite: false,
+    autoplay: false,
+    speed: 500,
+    responsive: [
+      { breakpoint: 992, settings: { slidesToShow: 2 } },
+      { breakpoint: 576, settings: { slidesToShow: 1, arrows: false, dots: true } },
+    ],
+  };
+
+  constructor(
+    private sobreNosotrosService: SobreNosotrosService,
+    @Inject(PLATFORM_ID) platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
+  ngOnInit(): void {
+    this.sobreNosotrosService.obtenerSobreNosotrosPublico().subscribe({
+      next: (data) => {
+        this.aplicarDatos(data);
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+      },
+    });
+  }
+
+  private aplicarDatos(data: SobreNosotrosPublico): void {
+    this.nombreEmpresa = data.nombre_empresa || '';
+    this.descripcion = data.descripcion || '';
+    this.sobreNosotros = data.sobre_nosotros || '';
+    this.horarioAtencion = data.horario_atencion || '';
+    this.direccion = data.direccion || '';
+    this.telefono = data.telefono || '';
+    this.celular = data.celular || '';
+    this.email = data.email || '';
+    this.banners = data.banners || [];
+    this.valores = data.valores || [];
+    this.hitos = data.hitos || [];
+    this.premios = data.premios || [];
+
+    this.redesSociales = [];
+    if (data.facebook) this.redesSociales.push({ icon: 'ph-fill ph-facebook-logo', url: data.facebook });
+    if (data.instagram) this.redesSociales.push({ icon: 'ph-fill ph-instagram-logo', url: data.instagram });
+    if (data.twitter) this.redesSociales.push({ icon: 'ph-fill ph-twitter-logo', url: data.twitter });
+    if (data.youtube) this.redesSociales.push({ icon: 'ph-fill ph-youtube-logo', url: data.youtube });
+    if (data.tiktok) this.redesSociales.push({ icon: 'ph-fill ph-tiktok-logo', url: data.tiktok });
+    if (data.whatsapp) this.redesSociales.push({ icon: 'ph-fill ph-whatsapp-logo', url: `https://wa.me/${data.whatsapp}` });
+  }
+
+  get tieneInfoContacto(): boolean {
+    return !!(this.horarioAtencion || this.direccion || this.telefono || this.celular || this.email || this.redesSociales.length);
   }
 }

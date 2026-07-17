@@ -1,0 +1,11 @@
+.upload-area {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.upload-area:hover {
+  border-color: var(--bs-main-600) !important;
+}
+
+.bg-gray-25 {
+  background-color: #fafafa;
+}

@@ -22,7 +22,6 @@ export interface EmpresaInfo {
   tiktok?: string;
   whatsapp?: string;
   horario_atencion?: string;
-  metodos_pago?: string[];
   created_at: string;
   updated_at: string;
 }
@@ -47,5 +46,4 @@ export interface EmpresaInfoCreate {
   tiktok?: string;
   whatsapp?: string;
   horario_atencion?: string;
-  metodos_pago?: string[];
 }

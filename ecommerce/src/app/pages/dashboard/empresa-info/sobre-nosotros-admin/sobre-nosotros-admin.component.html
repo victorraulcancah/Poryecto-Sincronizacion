@@ -1,0 +1,660 @@
+<div class="card border-0 shadow-sm rounded-12">
+  <div class="card-body p-0">
+    <nav class="nav nav-tabs border-0 sub-tabs">
+      <button
+        type="button"
+        class="nav-link px-20 py-14 border-0 text-heading fw-medium"
+        [class.active]="subTab === 'banner'"
+        (click)="subTab = 'banner'"
+      >
+        <i class="ph ph-image me-6"></i>
+        Banner Principal
+        <span class="badge bg-main-50 text-main-600 ms-6">{{ banners.length }}</span>
+      </button>
+      <button
+        type="button"
+        class="nav-link px-20 py-14 border-0 text-heading fw-medium"
+        [class.active]="subTab === 'intro'"
+        (click)="subTab = 'intro'"
+      >
+        <i class="ph ph-text-align-left me-6"></i>
+        Introducción
+      </button>
+      <button
+        type="button"
+        class="nav-link px-20 py-14 border-0 text-heading fw-medium"
+        [class.active]="subTab === 'valores'"
+        (click)="subTab = 'valores'"
+      >
+        <i class="ph ph-heart me-6"></i>
+        Valores
+        <span class="badge bg-main-50 text-main-600 ms-6">{{ valores.length }}</span>
+      </button>
+      <button
+        type="button"
+        class="nav-link px-20 py-14 border-0 text-heading fw-medium"
+        [class.active]="subTab === 'historia'"
+        (click)="subTab = 'historia'"
+      >
+        <i class="ph ph-clock-counter-clockwise me-6"></i>
+        Historia
+        <span class="badge bg-main-50 text-main-600 ms-6">{{ hitos.length }}</span>
+      </button>
+      <button
+        type="button"
+        class="nav-link px-20 py-14 border-0 text-heading fw-medium"
+        [class.active]="subTab === 'premios'"
+        (click)="subTab = 'premios'"
+      >
+        <i class="ph ph-trophy me-6"></i>
+        Premios
+        <span class="badge bg-main-50 text-main-600 ms-6">{{ premios.length }}</span>
+      </button>
+    </nav>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- BANNER PRINCIPAL (hero carrusel)                               -->
+<!-- ============================================================ -->
+<div *ngIf="subTab === 'banner'" class="card border-0 shadow-sm rounded-12 mt-24">
+  <div class="card-body p-24">
+    <div class="d-flex justify-content-between align-items-start mb-16">
+      <div>
+        <h6 class="text-heading fw-semibold mb-8">Banner Principal</h6>
+        <p class="text-gray-500 text-sm mb-0">
+          Imagen(es) grande(s) que se muestran al inicio de la página "Sobre Nosotros", como un carrusel a pantalla completa. Si agregas más de una, rotan automáticamente.
+        </p>
+      </div>
+      <button
+        type="button"
+        class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8 flex-shrink-0"
+        *ngIf="puedeEditar() && !mostrarFormBanner"
+        (click)="nuevoBanner()"
+      >
+        <i class="ph ph-plus me-6"></i>
+        Agregar banner
+      </button>
+    </div>
+
+    <!-- Formulario -->
+    <div *ngIf="mostrarFormBanner" class="border rounded-8 p-16 mb-24 bg-gray-25">
+      <form [formGroup]="bannerForm" (ngSubmit)="guardarBanner()">
+        <div class="row">
+          <div class="col-md-5">
+            <label class="form-label text-heading fw-medium mb-8">Imagen *</label>
+            <div
+              class="upload-area border-2 border-dashed border-gray-200 rounded-8 p-12 text-center"
+              [class.border-main-600]="bannerImagenPreview"
+            >
+              <div *ngIf="!bannerImagenPreview">
+                <i class="ph ph-image text-gray-400 text-3xl mb-8"></i>
+                <p class="text-gray-500 text-xs mb-8">Recomendado: imagen ancha (ej. 1900x500px)</p>
+                <label class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm d-block">
+                  Subir
+                  <input type="file" class="d-none" accept="image/*" (change)="onBannerImagenSeleccionada($event)" />
+                </label>
+              </div>
+              <div *ngIf="bannerImagenPreview">
+                <img [src]="bannerImagenPreview" class="img-fluid rounded-6 mb-8" style="max-height: 120px;" />
+                <label class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm d-block">
+                  Cambiar
+                  <input type="file" class="d-none" accept="image/*" (change)="onBannerImagenSeleccionada($event)" />
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-7">
+            <div class="mb-16">
+              <label class="form-label text-heading fw-medium mb-8">Título (opcional)</label>
+              <input
+                type="text"
+                class="form-control px-16 py-12 border rounded-8"
+                formControlName="titulo"
+                placeholder="Ej: NUESTRA EMPRESA"
+              />
+            </div>
+            <div class="mb-16">
+              <label class="form-label text-heading fw-medium mb-8">Subtítulo (opcional)</label>
+              <input
+                type="text"
+                class="form-control px-16 py-12 border rounded-8"
+                formControlName="subtitulo"
+                placeholder="Ej: Conoce nuestra historia"
+              />
+            </div>
+            <div class="row">
+              <div class="col-6">
+                <label class="form-label text-heading fw-medium mb-8">Orden</label>
+                <input
+                  type="number"
+                  class="form-control px-16 py-12 border rounded-8"
+                  formControlName="orden"
+                  min="0"
+                />
+              </div>
+              <div class="col-6 d-flex align-items-end">
+                <div class="form-check mb-16">
+                  <input class="form-check-input" type="checkbox" formControlName="activo" id="bannerActivo" />
+                  <label class="form-check-label" for="bannerActivo">Visible en la tienda</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-12 mt-8">
+          <button type="button" class="btn bg-gray-100 hover-bg-gray-200 text-gray-600 px-16 py-8 rounded-8" (click)="cancelarFormBanner()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8" [disabled]="isSavingBanner">
+            <span *ngIf="isSavingBanner" class="spinner-border spinner-border-sm me-8"></span>
+            {{ isSavingBanner ? 'Guardando...' : (bannerEditando ? 'Actualizar' : 'Guardar') }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div *ngIf="isLoadingBanners" class="text-center py-24">
+      <div class="spinner-border text-main-600" role="status"></div>
+    </div>
+
+    <div *ngIf="!isLoadingBanners && !banners.length" class="text-center text-gray-500 py-24">
+      Aún no has agregado ninguna imagen de banner.
+    </div>
+
+    <div class="row g-16" *ngIf="!isLoadingBanners && banners.length">
+      <div class="col-md-4" *ngFor="let banner of banners">
+        <div class="border rounded-8 overflow-hidden h-100 d-flex flex-column">
+          <img [src]="banner.imagen_url" class="w-100" style="height: 140px; object-fit: cover;" />
+          <div class="p-12 d-flex flex-column flex-grow-1">
+            <h6 class="text-heading fw-semibold mb-4" *ngIf="banner.titulo">{{ banner.titulo }}</h6>
+            <p class="text-gray-500 text-sm mb-8" *ngIf="banner.subtitulo">{{ banner.subtitulo }}</p>
+            <span
+              class="badge mb-12 align-self-start"
+              [class.bg-success-50]="banner.activo"
+              [class.text-success]="banner.activo"
+              [class.bg-gray-100]="!banner.activo"
+              [class.text-gray-500]="!banner.activo"
+            >
+              {{ banner.activo ? 'Visible' : 'Oculto' }}
+            </span>
+            <div class="d-flex gap-8 mt-auto">
+              <button type="button" class="btn btn-sm bg-main-50 text-main-600 px-12 py-6 rounded-6" *ngIf="puedeEditar()" (click)="editarBanner(banner)">
+                <i class="ph ph-pencil"></i> Editar
+              </button>
+              <button type="button" class="btn btn-sm bg-danger-50 text-danger px-12 py-6 rounded-6" *ngIf="puedeEditar()" (click)="eliminarBanner(banner)">
+                <i class="ph ph-trash"></i> Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- INTRODUCCIÓN                                                   -->
+<!-- ============================================================ -->
+<div *ngIf="subTab === 'intro'" class="card border-0 shadow-sm rounded-12 mt-24">
+  <div class="card-body p-24">
+    <div *ngIf="isLoadingIntro" class="text-center py-40">
+      <div class="spinner-border text-main-600" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+    </div>
+
+    <div *ngIf="!isLoadingIntro">
+      <h6 class="text-heading fw-semibold mb-8">Introducción</h6>
+      <p class="text-gray-500 text-sm mb-16">
+        Este texto se muestra al inicio de la página pública "Sobre Nosotros" de la tienda.
+      </p>
+
+      <div
+        *ngIf="!empresaId"
+        class="alert alert-warning rounded-8 mb-16"
+      >
+        Primero completa los datos generales de la empresa en la pestaña
+        <strong>"Datos de la Empresa"</strong> para poder guardar esta sección.
+      </div>
+
+      <form [formGroup]="introForm" (ngSubmit)="guardarIntro()">
+        <textarea
+          class="form-control px-16 py-12 border rounded-8"
+          rows="8"
+          formControlName="sobre_nosotros"
+          placeholder="Cuenta la historia, misión y valores de tu empresa..."
+        ></textarea>
+
+        <div class="d-flex justify-content-end mt-16">
+          <button
+            type="submit"
+            class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8"
+            [disabled]="isSavingIntro || !puedeEditar() || !empresaId"
+          >
+            <span *ngIf="isSavingIntro" class="spinner-border spinner-border-sm me-8"></span>
+            <i *ngIf="!isSavingIntro" class="ph ph-check me-8"></i>
+            {{ isSavingIntro ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- VALORES                                                        -->
+<!-- ============================================================ -->
+<div *ngIf="subTab === 'valores'" class="card border-0 shadow-sm rounded-12 mt-24">
+  <div class="card-body p-24">
+    <div class="d-flex justify-content-between align-items-start mb-16">
+      <div>
+        <h6 class="text-heading fw-semibold mb-8">Valores institucionales</h6>
+        <p class="text-gray-500 text-sm mb-0">
+          Estas tarjetas se muestran en un carrusel: cultura, actitud, propósito, misión, visión, etc.
+        </p>
+      </div>
+      <button
+        type="button"
+        class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8 flex-shrink-0"
+        *ngIf="puedeEditar() && !mostrarFormValor"
+        (click)="nuevoValor()"
+      >
+        <i class="ph ph-plus me-6"></i>
+        Agregar valor
+      </button>
+    </div>
+
+    <!-- Formulario -->
+    <div *ngIf="mostrarFormValor" class="border rounded-8 p-16 mb-24 bg-gray-25">
+      <form [formGroup]="valorForm" (ngSubmit)="guardarValor()">
+        <div class="row">
+          <div class="col-md-8">
+            <div class="mb-16">
+              <label class="form-label text-heading fw-medium mb-8">Título *</label>
+              <input
+                type="text"
+                class="form-control px-16 py-12 border rounded-8"
+                formControlName="titulo"
+                placeholder="Ej: Nuestra Actitud"
+              />
+            </div>
+            <div class="mb-16">
+              <label class="form-label text-heading fw-medium mb-8">Descripción</label>
+              <textarea
+                class="form-control px-16 py-12 border rounded-8"
+                rows="3"
+                formControlName="descripcion"
+                placeholder="Breve descripción del valor..."
+              ></textarea>
+            </div>
+            <div class="row">
+              <div class="col-6">
+                <label class="form-label text-heading fw-medium mb-8">Orden</label>
+                <input
+                  type="number"
+                  class="form-control px-16 py-12 border rounded-8"
+                  formControlName="orden"
+                  min="0"
+                />
+              </div>
+              <div class="col-6 d-flex align-items-end">
+                <div class="form-check mb-16">
+                  <input class="form-check-input" type="checkbox" formControlName="activo" id="valorActivo" />
+                  <label class="form-check-label" for="valorActivo">Visible en la tienda</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label text-heading fw-medium mb-8">Imagen (opcional)</label>
+            <div
+              class="upload-area border-2 border-dashed border-gray-200 rounded-8 p-12 text-center"
+              [class.border-main-600]="valorImagenPreview"
+            >
+              <div *ngIf="!valorImagenPreview">
+                <i class="ph ph-image text-gray-400 text-3xl mb-8"></i>
+                <label class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm d-block">
+                  Subir
+                  <input type="file" class="d-none" accept="image/*" (change)="onValorImagenSeleccionada($event)" />
+                </label>
+              </div>
+              <div *ngIf="valorImagenPreview">
+                <img [src]="valorImagenPreview" class="img-fluid rounded-6 mb-8" style="max-height: 100px;" />
+                <label class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm d-block">
+                  Cambiar
+                  <input type="file" class="d-none" accept="image/*" (change)="onValorImagenSeleccionada($event)" />
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-12 mt-8">
+          <button type="button" class="btn bg-gray-100 hover-bg-gray-200 text-gray-600 px-16 py-8 rounded-8" (click)="cancelarFormValor()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8" [disabled]="isSavingValor">
+            <span *ngIf="isSavingValor" class="spinner-border spinner-border-sm me-8"></span>
+            {{ isSavingValor ? 'Guardando...' : (valorEditando ? 'Actualizar' : 'Guardar') }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div *ngIf="isLoadingValores" class="text-center py-24">
+      <div class="spinner-border text-main-600" role="status"></div>
+    </div>
+
+    <div *ngIf="!isLoadingValores && !valores.length" class="text-center text-gray-500 py-24">
+      Aún no has agregado valores institucionales.
+    </div>
+
+    <div class="row g-16" *ngIf="!isLoadingValores && valores.length">
+      <div class="col-md-4" *ngFor="let valor of valores">
+        <div class="border rounded-8 p-16 h-100 d-flex flex-column">
+          <img
+            *ngIf="valor.imagen_url"
+            [src]="valor.imagen_url"
+            class="rounded-6 mb-12"
+            style="height: 100px; width: 100%; object-fit: cover;"
+          />
+          <div class="d-flex justify-content-between align-items-start mb-8">
+            <h6 class="text-heading fw-semibold mb-0">{{ valor.titulo }}</h6>
+            <span class="badge" [class.bg-success-50]="valor.activo" [class.text-success]="valor.activo" [class.bg-gray-100]="!valor.activo" [class.text-gray-500]="!valor.activo">
+              {{ valor.activo ? 'Visible' : 'Oculto' }}
+            </span>
+          </div>
+          <p class="text-gray-500 text-sm mb-16 flex-grow-1">{{ valor.descripcion }}</p>
+          <div class="d-flex gap-8">
+            <button type="button" class="btn btn-sm bg-main-50 text-main-600 px-12 py-6 rounded-6" *ngIf="puedeEditar()" (click)="editarValor(valor)">
+              <i class="ph ph-pencil"></i> Editar
+            </button>
+            <button type="button" class="btn btn-sm bg-danger-50 text-danger px-12 py-6 rounded-6" *ngIf="puedeEditar()" (click)="eliminarValor(valor)">
+              <i class="ph ph-trash"></i> Eliminar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- HISTORIA / LÍNEA DE TIEMPO                                     -->
+<!-- ============================================================ -->
+<div *ngIf="subTab === 'historia'" class="card border-0 shadow-sm rounded-12 mt-24">
+  <div class="card-body p-24">
+    <div class="d-flex justify-content-between align-items-start mb-16">
+      <div>
+        <h6 class="text-heading fw-semibold mb-8">Historia / Línea de tiempo</h6>
+        <p class="text-gray-500 text-sm mb-0">
+          Hitos cronológicos de la empresa (año + descripción). Se muestran en un carrusel horizontal.
+        </p>
+      </div>
+      <button
+        type="button"
+        class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8 flex-shrink-0"
+        *ngIf="puedeEditar() && !mostrarFormHito"
+        (click)="nuevoHito()"
+      >
+        <i class="ph ph-plus me-6"></i>
+        Agregar hito
+      </button>
+    </div>
+
+    <!-- Formulario -->
+    <div *ngIf="mostrarFormHito" class="border rounded-8 p-16 mb-24 bg-gray-25">
+      <form [formGroup]="hitoForm" (ngSubmit)="guardarHito()">
+        <div class="row">
+          <div class="col-md-8">
+            <div class="row">
+              <div class="col-4 mb-16">
+                <label class="form-label text-heading fw-medium mb-8">Año *</label>
+                <input
+                  type="text"
+                  class="form-control px-16 py-12 border rounded-8"
+                  formControlName="anio"
+                  placeholder="2018"
+                  maxlength="10"
+                />
+              </div>
+              <div class="col-8 mb-16">
+                <label class="form-label text-heading fw-medium mb-8">Orden</label>
+                <input
+                  type="number"
+                  class="form-control px-16 py-12 border rounded-8"
+                  formControlName="orden"
+                  min="0"
+                />
+              </div>
+            </div>
+            <div class="mb-16">
+              <label class="form-label text-heading fw-medium mb-8">Descripción *</label>
+              <textarea
+                class="form-control px-16 py-12 border rounded-8"
+                rows="3"
+                formControlName="descripcion"
+                placeholder="Qué pasó ese año..."
+              ></textarea>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" formControlName="activo" id="hitoActivo" />
+              <label class="form-check-label" for="hitoActivo">Visible en la tienda</label>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label text-heading fw-medium mb-8">Imagen (opcional)</label>
+            <div
+              class="upload-area border-2 border-dashed border-gray-200 rounded-8 p-12 text-center"
+              [class.border-main-600]="hitoImagenPreview"
+            >
+              <div *ngIf="!hitoImagenPreview">
+                <i class="ph ph-image text-gray-400 text-3xl mb-8"></i>
+                <label class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm d-block">
+                  Subir
+                  <input type="file" class="d-none" accept="image/*" (change)="onHitoImagenSeleccionada($event)" />
+                </label>
+              </div>
+              <div *ngIf="hitoImagenPreview">
+                <img [src]="hitoImagenPreview" class="img-fluid rounded-6 mb-8" style="max-height: 100px;" />
+                <label class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm d-block">
+                  Cambiar
+                  <input type="file" class="d-none" accept="image/*" (change)="onHitoImagenSeleccionada($event)" />
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-12 mt-8">
+          <button type="button" class="btn bg-gray-100 hover-bg-gray-200 text-gray-600 px-16 py-8 rounded-8" (click)="cancelarFormHito()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8" [disabled]="isSavingHito">
+            <span *ngIf="isSavingHito" class="spinner-border spinner-border-sm me-8"></span>
+            {{ isSavingHito ? 'Guardando...' : (hitoEditando ? 'Actualizar' : 'Guardar') }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div *ngIf="isLoadingHitos" class="text-center py-24">
+      <div class="spinner-border text-main-600" role="status"></div>
+    </div>
+
+    <div *ngIf="!isLoadingHitos && !hitos.length" class="text-center text-gray-500 py-24">
+      Aún no has agregado hitos históricos.
+    </div>
+
+    <div class="d-flex flex-column gap-12" *ngIf="!isLoadingHitos && hitos.length">
+      <div class="border rounded-8 p-16 d-flex gap-16 align-items-start" *ngFor="let hito of hitos">
+        <img
+          *ngIf="hito.imagen_url"
+          [src]="hito.imagen_url"
+          class="rounded-6 flex-shrink-0"
+          style="width: 80px; height: 80px; object-fit: cover;"
+        />
+        <div class="flex-grow-1">
+          <div class="d-flex justify-content-between align-items-start mb-8">
+            <h6 class="text-heading fw-semibold mb-0">{{ hito.anio }}</h6>
+            <span class="badge" [class.bg-success-50]="hito.activo" [class.text-success]="hito.activo" [class.bg-gray-100]="!hito.activo" [class.text-gray-500]="!hito.activo">
+              {{ hito.activo ? 'Visible' : 'Oculto' }}
+            </span>
+          </div>
+          <p class="text-gray-500 text-sm mb-8">{{ hito.descripcion }}</p>
+          <div class="d-flex gap-8">
+            <button type="button" class="btn btn-sm bg-main-50 text-main-600 px-12 py-6 rounded-6" *ngIf="puedeEditar()" (click)="editarHito(hito)">
+              <i class="ph ph-pencil"></i> Editar
+            </button>
+            <button type="button" class="btn btn-sm bg-danger-50 text-danger px-12 py-6 rounded-6" *ngIf="puedeEditar()" (click)="eliminarHito(hito)">
+              <i class="ph ph-trash"></i> Eliminar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PREMIOS                                                        -->
+<!-- ============================================================ -->
+<div *ngIf="subTab === 'premios'" class="card border-0 shadow-sm rounded-12 mt-24">
+  <div class="card-body p-24">
+    <div class="d-flex justify-content-between align-items-start mb-16">
+      <div>
+        <h6 class="text-heading fw-semibold mb-8">Premios y reconocimientos</h6>
+        <p class="text-gray-500 text-sm mb-0">
+          Logros y reconocimientos destacados de la empresa.
+        </p>
+      </div>
+      <button
+        type="button"
+        class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8 flex-shrink-0"
+        *ngIf="puedeEditar() && !mostrarFormPremio"
+        (click)="nuevoPremio()"
+      >
+        <i class="ph ph-plus me-6"></i>
+        Agregar premio
+      </button>
+    </div>
+
+    <!-- Formulario -->
+    <div *ngIf="mostrarFormPremio" class="border rounded-8 p-16 mb-24 bg-gray-25">
+      <form [formGroup]="premioForm" (ngSubmit)="guardarPremio()">
+        <div class="row">
+          <div class="col-md-8">
+            <div class="mb-16">
+              <label class="form-label text-heading fw-medium mb-8">Título *</label>
+              <input
+                type="text"
+                class="form-control px-16 py-12 border rounded-8"
+                formControlName="titulo"
+                placeholder="Ej: Inc. 5000 - Puesto #2001"
+              />
+            </div>
+            <div class="row">
+              <div class="col-6 mb-16">
+                <label class="form-label text-heading fw-medium mb-8">Año</label>
+                <input
+                  type="text"
+                  class="form-control px-16 py-12 border rounded-8"
+                  formControlName="anio"
+                  placeholder="2022"
+                  maxlength="10"
+                />
+              </div>
+              <div class="col-6 mb-16">
+                <label class="form-label text-heading fw-medium mb-8">Orden</label>
+                <input
+                  type="number"
+                  class="form-control px-16 py-12 border rounded-8"
+                  formControlName="orden"
+                  min="0"
+                />
+              </div>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" formControlName="activo" id="premioActivo" />
+              <label class="form-check-label" for="premioActivo">Visible en la tienda</label>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label text-heading fw-medium mb-8">Imagen / logo (opcional)</label>
+            <div
+              class="upload-area border-2 border-dashed border-gray-200 rounded-8 p-12 text-center"
+              [class.border-main-600]="premioImagenPreview"
+            >
+              <div *ngIf="!premioImagenPreview">
+                <i class="ph ph-image text-gray-400 text-3xl mb-8"></i>
+                <label class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm d-block">
+                  Subir
+                  <input type="file" class="d-none" accept="image/*" (change)="onPremioImagenSeleccionada($event)" />
+                </label>
+              </div>
+              <div *ngIf="premioImagenPreview">
+                <img [src]="premioImagenPreview" class="img-fluid rounded-6 mb-8" style="max-height: 100px;" />
+                <label class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm d-block">
+                  Cambiar
+                  <input type="file" class="d-none" accept="image/*" (change)="onPremioImagenSeleccionada($event)" />
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-12 mt-8">
+          <button type="button" class="btn bg-gray-100 hover-bg-gray-200 text-gray-600 px-16 py-8 rounded-8" (click)="cancelarFormPremio()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn bg-main-600 hover-bg-main-700 text-white px-16 py-8 rounded-8" [disabled]="isSavingPremio">
+            <span *ngIf="isSavingPremio" class="spinner-border spinner-border-sm me-8"></span>
+            {{ isSavingPremio ? 'Guardando...' : (premioEditando ? 'Actualizar' : 'Guardar') }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div *ngIf="isLoadingPremios" class="text-center py-24">
+      <div class="spinner-border text-main-600" role="status"></div>
+    </div>
+
+    <div *ngIf="!isLoadingPremios && !premios.length" class="text-center text-gray-500 py-24">
+      Aún no has agregado premios.
+    </div>
+
+    <div class="row g-16" *ngIf="!isLoadingPremios && premios.length">
+      <div class="col-md-3" *ngFor="let premio of premios">
+        <div class="border rounded-8 p-16 h-100 d-flex flex-column text-center">
+          <img
+            *ngIf="premio.imagen_url"
+            [src]="premio.imagen_url"
+            class="rounded-6 mb-12 mx-auto"
+            style="height: 80px; width: 80px; object-fit: contain;"
+          />
+          <h6 class="text-heading fw-semibold mb-4">{{ premio.titulo }}</h6>
+          <p class="text-gray-500 text-sm mb-8" *ngIf="premio.anio">{{ premio.anio }}</p>
+          <span
+            class="badge mb-12"
+            [class.bg-success-50]="premio.activo"
+            [class.text-success]="premio.activo"
+            [class.bg-gray-100]="!premio.activo"
+            [class.text-gray-500]="!premio.activo"
+          >
+            {{ premio.activo ? 'Visible' : 'Oculto' }}
+          </span>
+          <div class="d-flex gap-8 justify-content-center mt-auto">
+            <button type="button" class="btn btn-sm bg-main-50 text-main-600 px-12 py-6 rounded-6" *ngIf="puedeEditar()" (click)="editarPremio(premio)">
+              <i class="ph ph-pencil"></i>
+            </button>
+            <button type="button" class="btn btn-sm bg-danger-50 text-danger px-12 py-6 rounded-6" *ngIf="puedeEditar()" (click)="eliminarPremio(premio)">
+              <i class="ph ph-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

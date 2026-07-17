@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { EmpresaInfoService } from '../../../services/empresa-info.service';
+import { EmpresaMetodoPago } from '../../../types/sobre-nosotros.types';
 
 @Component({
   selector: 'app-footer',
@@ -63,16 +64,8 @@ export class FooterComponent implements OnInit, OnDestroy {
     }
   ];
 
-  // Catálogo completo; cuáles se muestran depende de empresaInfo.metodos_pago
-  private readonly todosLosMetodosPago = [
-    { key: 'visa', name: 'Visa', image: '/assets/images/payment/visa.png' },
-    { key: 'mastercard', name: 'Mastercard', image: '/assets/images/payment/mastercard.png' },
-    { key: 'amex', name: 'American Express', image: '/assets/images/payment/amex.png' },
-    { key: 'yape', name: 'Yape', image: '/assets/images/payment/yape.png' },
-    { key: 'plin', name: 'Plin', image: '/assets/images/payment/plin.png' }
-  ];
-
-  paymentMethods = [...this.todosLosMetodosPago];
+  // Se cargan desde el CRUD de "Métodos de Pago" en el panel de administración
+  paymentMethods: EmpresaMetodoPago[] = [];
 
   constructor(private empresaInfoService: EmpresaInfoService) {}
 
@@ -99,10 +92,7 @@ export class FooterComponent implements OnInit, OnDestroy {
         if (data.tiktok) this.socialLinks.push({ icon: 'ph-fill ph-tiktok-logo', url: data.tiktok });
         if (data.whatsapp) this.socialLinks.push({ icon: 'ph-fill ph-whatsapp-logo', url: `https://wa.me/${data.whatsapp}` });
 
-        // Si nunca se configuró nada (undefined), se muestran todos por defecto
-        this.paymentMethods = data.metodos_pago
-          ? this.todosLosMetodosPago.filter((m) => data.metodos_pago.includes(m.key))
-          : [...this.todosLosMetodosPago];
+        this.paymentMethods = data.metodos_pago || [];
       });
   }
 

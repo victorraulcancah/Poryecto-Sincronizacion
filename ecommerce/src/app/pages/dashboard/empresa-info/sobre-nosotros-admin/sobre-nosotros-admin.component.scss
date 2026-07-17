@@ -1,0 +1,25 @@
+.sub-tabs .nav-link {
+  border-radius: 0;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.sub-tabs .nav-link.active {
+  background-color: var(--bs-main-50);
+  color: var(--bs-main-600);
+  border-bottom: 2px solid var(--bs-main-600);
+}
+.sub-tabs .nav-link:hover {
+  background-color: var(--bs-gray-50);
+}
+
+.upload-area {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.upload-area:hover {
+  border-color: var(--bs-main-600) !important;
+}
+
+.bg-gray-25 {
+  background-color: #fafafa;
+}

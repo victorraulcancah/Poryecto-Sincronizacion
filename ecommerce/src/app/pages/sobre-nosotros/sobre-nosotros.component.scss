@@ -1,0 +1,326 @@
+.bg-gray-25 {
+  background-color: #fafafa;
+}
+
+// ===== Hero / Banner principal =====
+.hero-nosotros {
+  position: relative;
+  height: clamp(320px, 45vw, 520px);
+  overflow: hidden;
+
+  &--fallback {
+    background: linear-gradient(135deg, var(--main-600, #9b1c1c), #2b2b2b);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__slider,
+  &__slide {
+    height: 100%;
+  }
+
+  &__imagen {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+  }
+
+  &__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.55) 100%);
+  }
+
+  &__contenido {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0 24px;
+
+    h1 {
+      color: #fff;
+      font-size: clamp(2rem, 5vw, 3.75rem);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    p {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 1.1rem;
+      margin-bottom: 0;
+    }
+  }
+
+  :host ::ng-deep &__slider .slick-dots {
+    bottom: 20px;
+    z-index: 3;
+
+    li button:before {
+      color: #fff;
+      opacity: 0.6;
+    }
+    li.slick-active button:before {
+      opacity: 1;
+    }
+  }
+}
+
+// ===== Introducción =====
+.sobre-nosotros-titulo {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  color: var(--heading-color, #1a1a1a);
+}
+
+.sobre-nosotros-descripcion {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--heading-color, #1a1a1a);
+}
+
+.sobre-nosotros-texto {
+  font-size: 1.125rem;
+  line-height: 1.8;
+  color: #565656;
+}
+
+// ===== Info de contacto =====
+.contacto-info {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 32px;
+  padding-top: 32px;
+  border-top: 1px solid #eee;
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #565656;
+    font-size: 0.95rem;
+
+    i {
+      color: var(--main-600, #9b1c1c);
+      font-size: 1.25rem;
+    }
+  }
+}
+
+.red-social-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--main-50, #fbeaea);
+  color: var(--main-600, #9b1c1c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  transition: all 0.25s ease;
+
+  &:hover {
+    background: var(--main-600, #9b1c1c);
+    color: #fff;
+  }
+}
+
+.sobre-nosotros-eyebrow {
+  display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--main-600, #9b1c1c);
+  margin-bottom: 8px;
+}
+
+.sobre-nosotros-subtitulo {
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-weight: 700;
+  color: var(--heading-color, #1a1a1a);
+}
+
+// ===== Valores (carrusel) =====
+.valor-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px 24px;
+  height: 100%;
+  min-height: 260px;
+  text-align: center;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  &:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  }
+
+  &__imagen {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-bottom: 20px;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__icono {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--main-50, #fbeaea);
+    color: var(--main-600, #9b1c1c);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin-bottom: 20px;
+  }
+
+  &__titulo {
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--heading-color, #1a1a1a);
+  }
+
+  &__descripcion {
+    color: #6b6b6b;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 0;
+  }
+}
+
+// ===== Historia (timeline carrusel) =====
+.hito-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px 24px;
+  height: 100%;
+  min-height: 220px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  border-top: 4px solid var(--main-600, #9b1c1c);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+  &:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  }
+
+  &__imagen {
+    width: 100%;
+    height: 140px;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 16px;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__anio {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--main-600, #9b1c1c);
+    margin-bottom: 8px;
+  }
+
+  &__descripcion {
+    color: #565656;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 0;
+  }
+}
+
+// ===== Premios (grid) =====
+.premio-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 16px;
+  height: 100%;
+  text-align: center;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+  &:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  }
+
+  &__imagen {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+  }
+
+  &__icono {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--main-50, #fbeaea);
+    color: var(--main-600, #9b1c1c);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    margin: 0 auto 16px;
+  }
+
+  &__titulo {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--heading-color, #1a1a1a);
+    margin-bottom: 4px;
+  }
+
+  &__anio {
+    color: #8a8a8a;
+    font-size: 0.85rem;
+    margin-bottom: 0;
+  }
+}
+
+// Espaciado interno de los slides (ngx-slick agrega su propio wrapper)
+:host ::ng-deep {
+  .valores-slider,
+  .hitos-slider {
+    .slick-slide > div {
+      height: 100%;
+    }
+    .slick-track {
+      display: flex !important;
+      align-items: stretch;
+    }
+  }
+}

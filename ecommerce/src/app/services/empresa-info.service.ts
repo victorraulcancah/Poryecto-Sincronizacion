@@ -127,13 +127,6 @@ export class EmpresaInfoService {
       formData.append('color_navbar', empresaInfo.color_navbar);
     }
 
-    if (empresaInfo.metodos_pago) {
-      formData.append('metodos_pago_enviado', '1');
-      empresaInfo.metodos_pago.forEach((metodo) => {
-        formData.append('metodos_pago[]', metodo);
-      });
-    }
-
     if (empresaInfo.logo) {
       formData.append('logo', empresaInfo.logo);
     }
@@ -154,9 +147,6 @@ export class EmpresaInfoService {
 
       if (key === 'logo' && value instanceof File) {
         formData.append(key, value);
-      } else if (key === 'metodos_pago' && Array.isArray(value)) {
-        formData.append('metodos_pago_enviado', '1');
-        value.forEach((metodo: string) => formData.append('metodos_pago[]', metodo));
       } else {
         formData.append(key, value.toString());
       }
@@ -164,6 +154,13 @@ export class EmpresaInfoService {
 
     formData.append('_method', 'PUT');
     return this.http.post<any>(`${this.apiUrl}/empresa-info/${id}`, formData);
+  }
+
+  // Actualiza solo el texto de "Sobre Nosotros" (no requiere el resto de campos obligatorios)
+  actualizarSobreNosotros(id: number, sobreNosotros: string): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/empresa-info/${id}/sobre-nosotros`, {
+      sobre_nosotros: sobreNosotros,
+    });
   }
 
   // Obtener información específica por ID

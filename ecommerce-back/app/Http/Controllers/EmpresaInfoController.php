@@ -4,6 +4,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\EmpresaInfo;
+use App\Models\EmpresaValor;
+use App\Models\EmpresaHito;
+use App\Models\EmpresaPremio;
+use App\Models\EmpresaBannerNosotros;
+use App\Models\EmpresaMetodoPago;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
@@ -59,8 +64,6 @@ class EmpresaInfoController extends Controller
                 'tiktok' => 'nullable|string|max:255',
                 'whatsapp' => 'nullable|string|max:20',
                 'horario_atencion' => 'nullable|string',
-                'metodos_pago' => 'nullable|array',
-                'metodos_pago.*' => 'in:visa,mastercard,amex,yape,plin'
             ]);
 
             if ($validator->fails()) {
@@ -72,12 +75,6 @@ class EmpresaInfoController extends Controller
             }
 
             $data = $request->except(['logo']);
-
-            // Los checkboxes desmarcados no llegan en el request; si el front indica
-            // que envió la sección de métodos de pago, respetar el array (aunque venga vacío)
-            if ($request->has('metodos_pago_enviado')) {
-                $data['metodos_pago'] = $request->input('metodos_pago', []);
-            }
 
             // Procesar logo si existe
             if ($request->hasFile('logo')) {
@@ -127,8 +124,6 @@ class EmpresaInfoController extends Controller
                 'tiktok' => 'nullable|string|max:255',
                 'whatsapp' => 'nullable|string|max:20',
                 'horario_atencion' => 'nullable|string',
-                'metodos_pago' => 'nullable|array',
-                'metodos_pago.*' => 'in:visa,mastercard,amex,yape,plin'
             ]);
 
             if ($validator->fails()) {
@@ -140,10 +135,6 @@ class EmpresaInfoController extends Controller
             }
 
             $data = $request->except(['logo']);
-
-            if ($request->has('metodos_pago_enviado')) {
-                $data['metodos_pago'] = $request->input('metodos_pago', []);
-            }
 
             // Procesar nuevo logo si existe
             if ($request->hasFile('logo')) {
@@ -168,6 +159,39 @@ class EmpresaInfoController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al actualizar información de empresa',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function actualizarSobreNosotros(Request $request, $id): JsonResponse
+    {
+        try {
+            $empresaInfo = EmpresaInfo::findOrFail($id);
+
+            $validator = Validator::make($request->all(), [
+                'sobre_nosotros' => 'nullable|string',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Errores de validación',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $empresaInfo->update(['sobre_nosotros' => $request->input('sobre_nosotros', '')]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Introducción actualizada exitosamente',
+                'data' => $empresaInfo
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar la introducción',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -221,7 +245,13 @@ class EmpresaInfoController extends Controller
                 : null,
             'color_navbar' => $empresaInfo->getAttribute('color_navbar'),
             'sobre_nosotros' => $empresaInfo->getAttribute('sobre_nosotros'),
-            'metodos_pago' => $empresaInfo->getAttribute('metodos_pago')
+            'metodos_pago' => EmpresaMetodoPago::where('activo', true)
+                ->orderBy('orden')->orderBy('id')->get()
+                ->map(fn ($m) => [
+                    'id' => $m->id,
+                    'nombre' => $m->nombre,
+                    'imagen_url' => $m->imagen ? url('storage/' . $m->imagen) : null,
+                ])
         ];
 
         return response()->json([
@@ -236,5 +266,50 @@ class EmpresaInfoController extends Controller
         ], 500);
     }
 }
+
+    public function obtenerSobreNosotrosPublico(): JsonResponse
+    {
+        try {
+            $empresaInfo = EmpresaInfo::first();
+
+            $mapearImagen = fn ($item) => array_merge($item->toArray(), [
+                'imagen_url' => $item->imagen ? url('storage/' . $item->imagen) : null,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'nombre_empresa' => $empresaInfo?->getAttribute('nombre_empresa'),
+                    'descripcion' => $empresaInfo?->getAttribute('descripcion'),
+                    'sobre_nosotros' => $empresaInfo?->getAttribute('sobre_nosotros'),
+                    'horario_atencion' => $empresaInfo?->getAttribute('horario_atencion'),
+                    'direccion' => $empresaInfo?->getAttribute('direccion'),
+                    'telefono' => $empresaInfo?->getAttribute('telefono'),
+                    'celular' => $empresaInfo?->getAttribute('celular'),
+                    'email' => $empresaInfo?->getAttribute('email'),
+                    'facebook' => $empresaInfo?->getAttribute('facebook'),
+                    'instagram' => $empresaInfo?->getAttribute('instagram'),
+                    'twitter' => $empresaInfo?->getAttribute('twitter'),
+                    'youtube' => $empresaInfo?->getAttribute('youtube'),
+                    'tiktok' => $empresaInfo?->getAttribute('tiktok'),
+                    'whatsapp' => $empresaInfo?->getAttribute('whatsapp'),
+                    'banners' => EmpresaBannerNosotros::where('activo', true)
+                        ->orderBy('orden')->orderBy('id')->get()->map($mapearImagen),
+                    'valores' => EmpresaValor::where('activo', true)
+                        ->orderBy('orden')->orderBy('id')->get()->map($mapearImagen),
+                    'hitos' => EmpresaHito::where('activo', true)
+                        ->orderBy('orden')->orderBy('anio')->get()->map($mapearImagen),
+                    'premios' => EmpresaPremio::where('activo', true)
+                        ->orderBy('orden')->orderBy('id')->get()->map($mapearImagen),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener la información de "Sobre Nosotros"',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 
 }

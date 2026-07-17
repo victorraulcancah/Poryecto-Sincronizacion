@@ -104,6 +104,7 @@ Route::get('/cupones/activos', [CuponesController::class, 'cuponesActivos']);
 // INFORMACIÓN DE EMPRESA
 // ============================================
 Route::get('/empresa-info/publica', [EmpresaInfoController::class, 'obtenerInfoPublica']);
+Route::get('/sobre-nosotros/publico', [EmpresaInfoController::class, 'obtenerSobreNosotrosPublico']);
 Route::get('/asesores/disponibles', [HorariosController::class, 'asesorDisponibles']);
 
 // ============================================
