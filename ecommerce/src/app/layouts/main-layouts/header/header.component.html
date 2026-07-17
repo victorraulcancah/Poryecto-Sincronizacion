@@ -154,7 +154,8 @@
 
 <!-- ======================= Inicio del encabezado medio ========================= -->
 <header
-  class="header-middle border-bottom border-gray-100 bg-main-600"
+  class="header-middle border-bottom border-gray-100"
+  [class.bg-main-600]="!empresaInfo?.color_navbar"
   [style.background-color]="empresaInfo?.color_navbar || null"
 >
   <div class="container container-lg">
