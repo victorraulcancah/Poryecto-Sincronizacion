@@ -70,7 +70,11 @@
   </button>
   <div class="mobile-menu__inner">
     <a [routerLink]="['/']" class="mobile-menu__logo">
-      <img src="assets/images/logo/logo.svg" alt="Logo" />
+      <img
+        [src]="empresaInfo?.logo_url || 'assets/images/logo/logo.svg'"
+        alt="Logo"
+        (error)="onLogoError($event)"
+      />
     </a>
     <div class="mobile-menu__menu">
       <!-- Nav Menu Start -->
@@ -149,13 +153,20 @@
 <!-- ==================== Mobile Menu End Here ==================== -->
 
 <!-- ======================= Inicio del encabezado medio ========================= -->
-<header class="header-middle border-bottom border-gray-100 bg-main-600">
+<header
+  class="header-middle border-bottom border-gray-100 bg-main-600"
+  [style.background-color]="empresaInfo?.color_navbar || null"
+>
   <div class="container container-lg">
     <nav class="header-inner flex-between gap-8">
       <!-- Logo Start -->
       <div class="logo">
         <a [routerLink]="['']" class="link">
-          <img src="assets/images/logo/logo.svg" alt="Logo" />
+          <img
+            [src]="empresaInfo?.logo_url || 'assets/images/logo/logo.svg'"
+            alt="Logo"
+            (error)="onLogoError($event)"
+          />
         </a>
       </div>
       <!-- Logo End  -->

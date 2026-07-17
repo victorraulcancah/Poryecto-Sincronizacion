@@ -148,6 +148,14 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+  onLogoError(event: any): void {
+    const img = event.target as HTMLImageElement;
+    // Si el logo subido falla, volver al logo del tema (anti-loop)
+    if (img.dataset['fallback']) return;
+    img.dataset['fallback'] = '1';
+    img.src = 'assets/images/logo/logo.svg';
+  }
+
   onImageError(event: any): void {
     const img = event.target as HTMLImageElement;
     // Anti-loop: si el placeholder también falla, no re-disparar.

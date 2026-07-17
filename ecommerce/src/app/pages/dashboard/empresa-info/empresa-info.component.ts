@@ -366,6 +366,41 @@ import Swal from 'sweetalert2';
               <small class="text-gray-500 text-xs mt-8 d-block">
                 Formatos: JPG, PNG, GIF (máx. 2MB)
               </small>
+
+              <!-- Color del navbar -->
+              <div class="mt-24">
+                <label class="form-label text-heading fw-medium mb-8"
+                  >Color del navbar (tienda)</label
+                >
+                <div class="d-flex align-items-center gap-12">
+                  <input
+                    type="color"
+                    class="form-control form-control-color border rounded-8"
+                    style="width: 56px; height: 42px; padding: 4px;"
+                    formControlName="color_navbar"
+                  />
+                  <input
+                    type="text"
+                    class="form-control px-16 py-12 border rounded-8"
+                    formControlName="color_navbar"
+                    placeholder="#9B1C1C"
+                    maxlength="7"
+                  />
+                </div>
+                <div
+                  class="rounded-8 mt-12 px-16 py-10 text-white text-sm fw-medium"
+                  [style.background-color]="empresaForm.get('color_navbar')?.value || '#9B1C1C'"
+                >
+                  Vista previa del navbar
+                </div>
+                <button
+                  type="button"
+                  class="btn btn-link text-main-600 text-sm px-0 mt-8"
+                  (click)="restaurarColorNavbar()"
+                >
+                  Restaurar color original
+                </button>
+              </div>
             </div>
           </div>
 
@@ -422,6 +457,9 @@ import Swal from 'sweetalert2';
   ],
 })
 export class EmpresaInfoComponent implements OnInit {
+  // Color por defecto del navbar (equivale al main-600 actual del tema)
+  readonly COLOR_NAVBAR_DEFAULT = '#9B1C1C';
+
   empresaForm: FormGroup;
   empresaInfo: EmpresaInfo | null = null;
   selectedLogo: File | null = null;
@@ -451,6 +489,7 @@ export class EmpresaInfoComponent implements OnInit {
       youtube: [''],
       whatsapp: [''],
       horario_atencion: [''],
+      color_navbar: [this.COLOR_NAVBAR_DEFAULT, [Validators.pattern(/^#[0-9A-Fa-f]{6}$/)]],
     });
   }
 
@@ -481,6 +520,7 @@ export class EmpresaInfoComponent implements OnInit {
           youtube: empresaInfo.youtube || '',
           whatsapp: empresaInfo.whatsapp || '',
           horario_atencion: empresaInfo.horario_atencion || '',
+          color_navbar: empresaInfo.color_navbar || this.COLOR_NAVBAR_DEFAULT,
         });
         this.logoPreview = empresaInfo.logo_url || null;
         this.isLoading = false;
@@ -496,6 +536,10 @@ export class EmpresaInfoComponent implements OnInit {
         this.isLoading = false;
       },
     });
+  }
+
+  restaurarColorNavbar(): void {
+    this.empresaForm.get('color_navbar')?.setValue(this.COLOR_NAVBAR_DEFAULT);
   }
 
   onLogoSelected(event: any): void {

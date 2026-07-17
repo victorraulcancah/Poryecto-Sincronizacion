@@ -82,6 +82,10 @@ export class EmpresaInfoService {
       formData.append('horario_atencion', empresaInfo.horario_atencion);
     }
 
+    if (empresaInfo.color_navbar) {
+      formData.append('color_navbar', empresaInfo.color_navbar);
+    }
+
     if (empresaInfo.logo) {
       formData.append('logo', empresaInfo.logo);
     }
