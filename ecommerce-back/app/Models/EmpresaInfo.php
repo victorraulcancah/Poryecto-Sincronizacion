@@ -35,6 +35,7 @@ class EmpresaInfo extends Model
         'descripcion',
         'sobre_nosotros',
         'imagen_introduccion',
+        'duracion_banner_segundos',
         'facebook',
         'instagram',
         'twitter',

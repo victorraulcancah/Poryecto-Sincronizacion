@@ -212,6 +212,41 @@ class EmpresaInfoController extends Controller
         }
     }
 
+    public function actualizarConfigBanner(Request $request, $id): JsonResponse
+    {
+        try {
+            $empresaInfo = EmpresaInfo::findOrFail($id);
+
+            $validator = Validator::make($request->all(), [
+                'duracion_banner_segundos' => 'required|integer|min:2|max:30',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Errores de validación',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $empresaInfo->update([
+                'duracion_banner_segundos' => $request->input('duracion_banner_segundos'),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Duración del carrusel actualizada exitosamente',
+                'data' => $empresaInfo
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar la duración del carrusel',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function show($id): JsonResponse
     {
         try {
@@ -300,6 +335,7 @@ class EmpresaInfoController extends Controller
                     'imagen_introduccion_url' => $empresaInfo?->imagen_introduccion
                         ? url('storage/' . $empresaInfo->imagen_introduccion)
                         : null,
+                    'duracion_banner_segundos' => $empresaInfo?->getAttribute('duracion_banner_segundos') ?? 5,
                     'horario_atencion' => $empresaInfo?->getAttribute('horario_atencion'),
                     'direccion' => $empresaInfo?->getAttribute('direccion'),
                     'telefono' => $empresaInfo?->getAttribute('telefono'),
