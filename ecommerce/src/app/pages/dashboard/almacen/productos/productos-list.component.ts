@@ -368,17 +368,17 @@ export class ProductosListComponent implements OnInit, OnDestroy {
     return `${selected} seleccionado${selected > 1 ? 's' : ''} de ${total}`;
   }
 
-  // Métodos de estadísticas
+  // Métodos de estadísticas — deben responder a los filtros de marca/categoría/búsqueda activos
   getProductosActivos(): number {
-    return this.productos.filter(p => p.activo).length;
+    return this.productosFiltrados.filter(p => p.activo).length;
   }
 
   getProductosInactivos(): number {
-    return this.productos.filter(p => !p.activo).length;
+    return this.productosFiltrados.filter(p => !p.activo).length;
   }
 
   getProductosStockBajo(): number {
-    return this.productos.filter(p => p.stock <= p.stock_minimo).length;
+    return this.productosFiltrados.filter(p => p.stock <= p.stock_minimo).length;
   }
 
   // Método para obtener tiempo relativo
