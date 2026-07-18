@@ -323,19 +323,19 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
       });
   }
 
-  // Modifica el método existente buscarProductos():
+  // Permite buscar solo por texto, solo por categoría, o ambos combinados
   private buscarProductos(termino: string): void {
-    if (!termino.trim() || termino.length < 2) {
+    const categoriaFiltro = this.selectedCategory && this.selectedCategory !== '' ? this.selectedCategory : undefined;
+    const hayTermino = termino.trim().length >= 2;
+
+    if (!hayTermino && !categoriaFiltro) {
       this.hideSuggestions();
       return;
     }
 
     this.isLoadingSuggestions = true;
 
-    // ✅ MODIFICADO: Pasar categoría seleccionada para filtrar sugerencias
-    const categoriaFiltro = this.selectedCategory && this.selectedCategory !== '' ? this.selectedCategory : undefined;
-
-    this.productosService.buscarProductos(termino, categoriaFiltro)
+    this.productosService.buscarProductos(termino.trim(), categoriaFiltro)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (sugerencias) => {
@@ -408,12 +408,10 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
     this.router.navigate(['/product-details', producto.id]);
   }
 
-  // ✅ NUEVO: Método para manejar cambios en la categoría
+  // Al elegir categoría (con o sin texto escrito) se muestra el dropdown
+  // de sugerencias con los productos de esa categoría, con scroll.
   onCategoryChange(): void {
-    // Si hay un término de búsqueda, realizar búsqueda inmediatamente
-    if (this.searchTerm.trim()) {
-      this.onSearch();
-    }
+    this.buscarProductos(this.searchTerm);
   }
 
   // ✅ NUEVO: Manejar clics fuera del buscador

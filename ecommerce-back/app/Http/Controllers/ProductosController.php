@@ -543,43 +543,53 @@ class ProductosController extends Controller
     public function buscarProductos(Request $request)
     {
         try {
-            $termino = $request->get('q', '');
-            
-            if (strlen($termino) < 2) {
+            $termino = trim($request->get('q', ''));
+            $categoriaId = $request->get('categoria', '');
+            $hayTermino = strlen($termino) >= 2;
+            $hayCategoria = $categoriaId !== '' && $categoriaId !== null;
+
+            // Antes se exigía texto siempre; ahora también se permite listar
+            // solo por categoría (sin escribir nada) para el dropdown del header.
+            if (!$hayTermino && !$hayCategoria) {
                 return response()->json([]);
             }
 
-            // MODIFICAR: Agregar filtro por categoría
             $query = Producto::with(['categoria'])
                 ->where('activo', true)
-                ->where('stock', '>', 0)
-                ->where(function ($query) use ($termino) {
+                ->where('stock', '>', 0);
+
+            if ($hayTermino) {
+                $query->where(function ($query) use ($termino) {
                     $query->where('nombre', 'LIKE', "%{$termino}%")
                         ->orWhere('descripcion', 'LIKE', "%{$termino}%")
                         ->orWhere('codigo_producto', 'LIKE', "%{$termino}%");
                 });
-
-            // ✅ NUEVO: Filtrar por categoría si se proporciona
-            if ($request->has('categoria') && $request->categoria !== '') {
-                $query->where('categoria_id', $request->categoria);
             }
 
-            // Orden por relevancia:
-            //   1) nombre que empieza por el término
-            //   2) nombre que contiene el término
-            //   3) código que coincide
-            //   4) descripción que contiene el término
-            //   Empate -> alfabético por nombre.
-            $query->orderByRaw('
-                CASE
-                    WHEN nombre LIKE ? THEN 1
-                    WHEN nombre LIKE ? THEN 2
-                    WHEN codigo_producto LIKE ? THEN 3
-                    WHEN descripcion LIKE ? THEN 4
-                    ELSE 5
-                END
-            ', ["{$termino}%", "%{$termino}%", "%{$termino}%", "%{$termino}%"])
-            ->orderBy('nombre', 'asc');
+            if ($hayCategoria) {
+                $query->where('categoria_id', $categoriaId);
+            }
+
+            if ($hayTermino) {
+                // Orden por relevancia:
+                //   1) nombre que empieza por el término
+                //   2) nombre que contiene el término
+                //   3) código que coincide
+                //   4) descripción que contiene el término
+                //   Empate -> alfabético por nombre.
+                $query->orderByRaw('
+                    CASE
+                        WHEN nombre LIKE ? THEN 1
+                        WHEN nombre LIKE ? THEN 2
+                        WHEN codigo_producto LIKE ? THEN 3
+                        WHEN descripcion LIKE ? THEN 4
+                        ELSE 5
+                    END
+                ', ["{$termino}%", "%{$termino}%", "%{$termino}%", "%{$termino}%"])
+                ->orderBy('nombre', 'asc');
+            } else {
+                $query->orderBy('nombre', 'asc');
+            }
 
             $productos = $query->limit(10)
                 ->get()
