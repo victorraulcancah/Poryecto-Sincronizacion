@@ -75,6 +75,7 @@ export class DashboardSidebarComponent implements OnInit, AfterViewInit, OnDestr
 
   isDesktop = false;
   colorSidebar: string | null = null;
+  logoUrl: string | null = null;
   private permisosSub: Subscription | null = null;
   private empresaInfoSub: Subscription | null = null;
   private router = inject(Router);
@@ -110,9 +111,16 @@ export class DashboardSidebarComponent implements OnInit, AfterViewInit, OnDestr
     this.syncRecompensasDropdownWithRoute(this.router.url);
 
     this.empresaInfoSub = this.empresaInfoService.empresaInfoPublica$.subscribe((info) => {
-      if (info !== null) this.colorSidebar = info.color_sidebar || null;
+      if (info !== null) {
+        this.colorSidebar = info.color_sidebar || null;
+        this.logoUrl = info.logo_url || null;
+      }
     });
     this.empresaInfoService.refreshPublicInfo();
+  }
+
+  onLogoError(): void {
+    this.logoUrl = null;
   }
 
   ngOnDestroy(): void {

@@ -2,7 +2,6 @@
 import { ChangeDetectorRef, Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { SlickCarouselModule } from 'ngx-slick-carousel';
-import { ShippingComponent } from '../../component/shipping/shipping.component';
 import { SobreNosotrosService } from '../../services/sobre-nosotros.service';
 import {
   EmpresaValor,
@@ -20,7 +19,7 @@ interface RedSocial {
 @Component({
   selector: 'app-sobre-nosotros',
   standalone: true,
-  imports: [CommonModule, ShippingComponent, SlickCarouselModule],
+  imports: [CommonModule, SlickCarouselModule],
   templateUrl: './sobre-nosotros.component.html',
   styleUrl: './sobre-nosotros.component.scss',
 })
