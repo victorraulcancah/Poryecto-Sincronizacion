@@ -92,6 +92,12 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
   imagenesPreview: string[] = [];
   imagenesExistentes: string[] = [];
 
+  // Manual del usuario (PDF)
+  selectedManual: File | null = null;
+  manualPreview: string | null = null;
+  manualNombre: string | null = null;
+  manualEliminado = false;
+
   // Estados
   isLoading = false;
   activeTab: string = 'basico';
@@ -209,6 +215,11 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
     this.selectedImage = null;
     this.clearImageValidation();
 
+    this.manualPreview = this.producto.manual_pdf_url || null;
+    this.manualNombre = this.producto.manual_pdf_url ? 'Manual del usuario.pdf' : null;
+    this.selectedManual = null;
+    this.manualEliminado = false;
+
     // Cargar detalles si el producto existe
     this.cargarDetallesProducto();
   }
@@ -254,6 +265,12 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
     this.imagenesSeleccionadas = [];
     this.imagenesExistentes = [];
     this.clearImageValidation();
+
+    // Limpiar manual PDF
+    this.manualPreview = null;
+    this.manualNombre = null;
+    this.selectedManual = null;
+    this.manualEliminado = false;
 
     // Volver al primer tab
     this.activeTab = 'basico';
@@ -486,6 +503,40 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
+  onManualSelected(event: any): void {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      alert('El manual debe ser un archivo PDF.');
+      event.target.value = '';
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert('El PDF es muy grande. El tamaño máximo permitido es 10MB.');
+      event.target.value = '';
+      return;
+    }
+
+    this.selectedManual = file;
+    this.manualNombre = file.name;
+    this.manualEliminado = false;
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.manualPreview = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  eliminarManual(): void {
+    this.selectedManual = null;
+    this.manualPreview = null;
+    this.manualNombre = null;
+    this.manualEliminado = true;
+  }
+
   private showImageValidation(
     message: string,
     type: 'error' | 'warning'
@@ -702,6 +753,8 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
         ...this.productoForm.value,
         activo: Boolean(this.productoForm.get('activo')?.value),
         imagen: this.selectedImage,
+        manual_pdf: this.selectedManual,
+        eliminar_manual_pdf: this.manualEliminado,
       };
 
       // ✅ CORRECCIÓN: Convertir marca_id vacío o string vacío a null

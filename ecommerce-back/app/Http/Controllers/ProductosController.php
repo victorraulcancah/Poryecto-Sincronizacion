@@ -60,6 +60,7 @@ class ProductosController extends Controller
             'stock' => 'required|integer|min:0',
             'stock_minimo' => 'required|integer|min:0',
             'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'manual_pdf' => 'nullable|file|mimes:pdf|max:10240',
             'activo' => 'boolean',
             'destacado' => 'boolean',
             'mostrar_igv' => 'boolean',
@@ -106,6 +107,20 @@ class ProductosController extends Controller
                 // Mover imagen directamente a public/storage/productos
                 $imagen->move($directorioDestino, $nombreImagen);
                 $data['imagen'] = $nombreImagen;
+            }
+
+            // MÉTODO MANUAL - Manejar manual en PDF (mismo patrón que la imagen)
+            if ($request->hasFile('manual_pdf')) {
+                $manual = $request->file('manual_pdf');
+                $nombreManual = time() . '_' . uniqid() . '.' . $manual->getClientOriginalExtension();
+
+                $directorioManuales = public_path('storage/productos/manuales');
+                if (!file_exists($directorioManuales)) {
+                    mkdir($directorioManuales, 0755, true);
+                }
+
+                $manual->move($directorioManuales, $nombreManual);
+                $data['manual_pdf'] = $nombreManual;
             }
 
             $producto = Producto::create($data);
@@ -173,6 +188,7 @@ class ProductosController extends Controller
             'stock' => 'required|integer|min:0',
             'stock_minimo' => 'required|integer|min:0',
             'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'manual_pdf' => 'nullable|file|mimes:pdf|max:10240',
             'activo' => 'required|in:true,false,1,0',
             'mostrar_igv' => 'boolean'
         ]);
@@ -218,6 +234,35 @@ class ProductosController extends Controller
                 // Mover imagen directamente a public/storage/productos
                 $imagen->move($directorioDestino, $nombreImagen);
                 $data['imagen'] = $nombreImagen;
+            }
+
+            // MÉTODO MANUAL - Manejar manual en PDF (mismo patrón que la imagen)
+            if ($request->hasFile('manual_pdf')) {
+                if ($producto->manual_pdf) {
+                    $rutaManualAnterior = public_path('storage/productos/manuales/' . $producto->manual_pdf);
+                    if (file_exists($rutaManualAnterior)) {
+                        unlink($rutaManualAnterior);
+                    }
+                }
+
+                $manual = $request->file('manual_pdf');
+                $nombreManual = time() . '_' . uniqid() . '.' . $manual->getClientOriginalExtension();
+
+                $directorioManuales = public_path('storage/productos/manuales');
+                if (!file_exists($directorioManuales)) {
+                    mkdir($directorioManuales, 0755, true);
+                }
+
+                $manual->move($directorioManuales, $nombreManual);
+                $data['manual_pdf'] = $nombreManual;
+            } elseif ($request->boolean('eliminar_manual_pdf')) {
+                if ($producto->manual_pdf) {
+                    $rutaManualAnterior = public_path('storage/productos/manuales/' . $producto->manual_pdf);
+                    if (file_exists($rutaManualAnterior)) {
+                        unlink($rutaManualAnterior);
+                    }
+                }
+                $data['manual_pdf'] = null;
             }
 
             $producto->update($data);

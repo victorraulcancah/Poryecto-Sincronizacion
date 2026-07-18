@@ -278,6 +278,10 @@ export class AlmacenService {
       formData.append('imagen', producto.imagen);
     }
 
+    if (producto.manual_pdf) {
+      formData.append('manual_pdf', producto.manual_pdf);
+    }
+
     return this.http.post<any>(`${this.apiUrl}/productos`, formData);
   }
 
@@ -290,9 +294,9 @@ export class AlmacenService {
     Object.keys(producto).forEach((key) => {
       const value = (producto as any)[key];
       if (value !== null && value !== undefined) {
-        if (key === 'imagen' && value instanceof File) {
+        if (value instanceof File) {
           formData.append(key, value);
-        } else if (key === 'activo') {
+        } else if (typeof value === 'boolean') {
           formData.append(key, value ? '1' : '0');
         } else {
           formData.append(key, value.toString());

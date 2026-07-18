@@ -715,6 +715,39 @@
               <p class="text-gray-500 mt-16">No hay imágenes en la galería</p>
               <p class="text-gray-400 text-sm">Haz clic en "Subir Imágenes" para agregar fotos del producto</p>
             </div>
+
+            <!-- Manual del Usuario (PDF) -->
+            <hr class="my-24">
+            <div class="d-flex justify-content-between align-items-center mb-16">
+              <h6 class="mb-0">Manual del Usuario (PDF)</h6>
+              <label class="btn btn-sm bg-main-600 text-white cursor-pointer" *ngIf="!manualPreview">
+                <i class="ph ph-upload me-8"></i>Subir Manual
+                <input type="file" class="d-none" accept="application/pdf"
+                       (change)="onManualSelected($event)">
+              </label>
+            </div>
+
+            <div *ngIf="manualPreview" class="d-flex align-items-center justify-content-between border-2 border-dashed border-gray-200 rounded-8 p-16">
+              <div class="d-flex align-items-center gap-8">
+                <i class="ph ph-file-pdf text-danger" style="font-size: 32px;"></i>
+                <div>
+                  <p class="mb-0 text-gray-700">{{ manualNombre }}</p>
+                  <a [href]="manualPreview" target="_blank" class="text-sm text-main-600">Ver manual</a>
+                </div>
+              </div>
+              <button type="button" class="btn btn-sm btn-danger" (click)="eliminarManual()">
+                <i class="ph ph-trash me-4"></i>Quitar
+              </button>
+            </div>
+
+            <div *ngIf="!manualPreview" class="text-center py-24">
+              <i class="ph ph-file-pdf text-gray-300" style="font-size: 40px;"></i>
+              <p class="text-gray-500 mt-8 mb-0">No hay manual del usuario cargado</p>
+            </div>
+
+            <small class="text-gray-500 text-xs d-block mt-8">
+              <strong>Formato:</strong> PDF (máx. 10MB)
+            </small>
           </div>
 
         </div>

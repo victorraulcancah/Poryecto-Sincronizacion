@@ -58,6 +58,8 @@ export interface Producto {
   stock_minimo: number
   imagen?: string
   imagen_url?: string
+  manual_pdf?: string
+  manual_pdf_url?: string
   activo: boolean
   destacado: boolean
   mostrar_igv:boolean
@@ -76,6 +78,8 @@ export interface ProductoCreate {
   stock: number
   stock_minimo: number
   imagen?: File
+  manual_pdf?: File
+  eliminar_manual_pdf?: boolean
   activo: boolean
   destacado: boolean
 }

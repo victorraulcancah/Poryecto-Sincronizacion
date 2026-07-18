@@ -21,9 +21,10 @@ class Producto extends Model
         'stock',
         'stock_minimo',
         'imagen',
+        'manual_pdf',
         'activo',
         'destacado',
-        'mostrar_igv' 
+        'mostrar_igv'
     ];
 
     protected $casts = [
@@ -41,7 +42,7 @@ class Producto extends Model
 
     protected $dates = ['deleted_at'];
 
-    protected $appends = ['imagen_url'];
+    protected $appends = ['imagen_url', 'manual_pdf_url'];
 
     // Relación con categoría
     public function categoria()
@@ -118,6 +119,15 @@ class Producto extends Model
         return null;
     }
 
+    // Accessor para la URL completa del manual en PDF
+    public function getManualPdfUrlAttribute()
+    {
+        if ($this->manual_pdf) {
+            return asset('storage/productos/manuales/' . $this->manual_pdf);
+        }
+        return null;
+    }
+
     // Accessor para verificar si el stock está bajo
     public function getStockBajoAttribute()
     {
@@ -157,6 +167,13 @@ class Producto extends Model
                 $rutaImagen = public_path('storage/productos/' . $producto->imagen);
                 if (file_exists($rutaImagen)) {
                     unlink($rutaImagen);
+                }
+            }
+            // Eliminar manual PDF si existe
+            if ($producto->manual_pdf) {
+                $rutaManual = public_path('storage/productos/manuales/' . $producto->manual_pdf);
+                if (file_exists($rutaManual)) {
+                    unlink($rutaManual);
                 }
             }
         });
