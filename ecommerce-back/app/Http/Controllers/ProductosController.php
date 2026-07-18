@@ -366,9 +366,11 @@ class ProductosController extends Controller
             ? optional(\App\Models\TipoPrecio::find($tipoPrecioId))->tipo_moneda
             : null;
 
+        // Se muestran todos los productos activos, incluidos los que no
+        // tienen stock (se marcan como "Agotado" en el catálogo en vez de
+        // ocultarse, para que coincida con el conteo de "Activos" del admin).
         $query = Producto::with(['categoria.seccion', 'precios'])
-            ->where('activo', true)
-            ->where('stock', '>', 0);
+            ->where('activo', true);
 
         // Filtrar por categoría si se proporciona
         if ($request->has('categoria')) {
