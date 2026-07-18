@@ -221,14 +221,7 @@ export class ProductosService {
   }
 
   obtenerCategoriasParaSidebar(): Observable<CategoriaParaSidebar[]> {
-    // ✅ USAR BACKEND DE MAGUS
-    return this.http.get<any[]>(`${this.apiUrl}/categorias`).pipe(
-      map(categorias => categorias.map(cat => ({
-        id: cat.id,
-        nombre: cat.nombre,
-        productos_count: 0 // TODO: Agregar conteo de productos
-      })))
-    );
+    return this.http.get<CategoriaParaSidebar[]>(`${this.apiUrl}/categorias-sidebar`);
   }
 
   obtenerEstadisticasProductos(): Observable<EstadisticasProductos> {
