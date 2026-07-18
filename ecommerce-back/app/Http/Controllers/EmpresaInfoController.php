@@ -56,6 +56,7 @@ class EmpresaInfoController extends Controller
                 'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'color_navbar' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
                 'descripcion' => 'nullable|string',
+                'imagen_descripcion' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
                 'sobre_nosotros' => 'nullable|string',
                 'facebook' => 'nullable|string|max:255',
                 'instagram' => 'nullable|string|max:255',
@@ -74,12 +75,16 @@ class EmpresaInfoController extends Controller
                 ], 422);
             }
 
-            $data = $request->except(['logo']);
+            $data = $request->except(['logo', 'imagen_descripcion']);
 
             // Procesar logo si existe
             if ($request->hasFile('logo')) {
                 $logoPath = $request->file('logo')->store('empresa/logos', 'public');
                 $data['logo'] = $logoPath;
+            }
+
+            if ($request->hasFile('imagen_descripcion')) {
+                $data['imagen_descripcion'] = $request->file('imagen_descripcion')->store('empresa/descripcion', 'public');
             }
 
             $empresaInfo = EmpresaInfo::create($data);
@@ -116,6 +121,7 @@ class EmpresaInfoController extends Controller
                 'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'color_navbar' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
                 'descripcion' => 'nullable|string',
+                'imagen_descripcion' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
                 'sobre_nosotros' => 'nullable|string',
                 'facebook' => 'nullable|string|max:255',
                 'instagram' => 'nullable|string|max:255',
@@ -134,7 +140,7 @@ class EmpresaInfoController extends Controller
                 ], 422);
             }
 
-            $data = $request->except(['logo']);
+            $data = $request->except(['logo', 'imagen_descripcion']);
 
             // Procesar nuevo logo si existe
             if ($request->hasFile('logo')) {
@@ -142,9 +148,21 @@ class EmpresaInfoController extends Controller
                 if ($empresaInfo->logo && Storage::disk('public')->exists($empresaInfo->logo)) {
                     Storage::disk('public')->delete($empresaInfo->logo);
                 }
-                
+
                 $logoPath = $request->file('logo')->store('empresa/logos', 'public');
                 $data['logo'] = $logoPath;
+            }
+
+            if ($request->hasFile('imagen_descripcion')) {
+                if ($empresaInfo->imagen_descripcion && Storage::disk('public')->exists($empresaInfo->imagen_descripcion)) {
+                    Storage::disk('public')->delete($empresaInfo->imagen_descripcion);
+                }
+                $data['imagen_descripcion'] = $request->file('imagen_descripcion')->store('empresa/descripcion', 'public');
+            } elseif ($request->boolean('eliminar_imagen_descripcion')) {
+                if ($empresaInfo->imagen_descripcion && Storage::disk('public')->exists($empresaInfo->imagen_descripcion)) {
+                    Storage::disk('public')->delete($empresaInfo->imagen_descripcion);
+                }
+                $data['imagen_descripcion'] = null;
             }
 
             $empresaInfo->update($data);
@@ -331,6 +349,9 @@ class EmpresaInfoController extends Controller
                 'data' => [
                     'nombre_empresa' => $empresaInfo?->getAttribute('nombre_empresa'),
                     'descripcion' => $empresaInfo?->getAttribute('descripcion'),
+                    'imagen_descripcion_url' => $empresaInfo?->imagen_descripcion
+                        ? url('storage/' . $empresaInfo->imagen_descripcion)
+                        : null,
                     'sobre_nosotros' => $empresaInfo?->getAttribute('sobre_nosotros'),
                     'imagen_introduccion_url' => $empresaInfo?->imagen_introduccion
                         ? url('storage/' . $empresaInfo->imagen_introduccion)

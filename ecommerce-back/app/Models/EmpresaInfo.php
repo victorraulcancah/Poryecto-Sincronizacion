@@ -33,6 +33,7 @@ class EmpresaInfo extends Model
         'logo',
         'color_navbar',
         'descripcion',
+        'imagen_descripcion',
         'sobre_nosotros',
         'imagen_introduccion',
         'duracion_banner_segundos',
