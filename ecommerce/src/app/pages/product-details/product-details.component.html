@@ -30,46 +30,13 @@
 <section class="product-details py-80" *ngIf="!isLoading && !error && producto">
     <div class="container container-lg">
         <div class="row gy-4">
-            <div class="col-lg-9">
+            <div class="col-lg-12">
                 <div class="row gy-4">
                     <div class="col-xl-6">
                         <div class="product-details__left">
 
-                            <!-- ✅ NUEVO LAYOUT VERTICAL PARA IMÁGENES Y VIDEOS CON ZOOM DINÁMICO -->
+                            <!-- ✅ NUEVO LAYOUT: imagen principal arriba, thumbnails horizontales abajo -->
                             <div class="product-details__images-container" *ngIf="imagenesProducto.length > 0 || videosProducto.length > 0">
-                                <!-- Thumbnails verticales a la izquierda -->
-                                <div class="product-details__thumbnails" *ngIf="(imagenesProducto.length + videosProducto.length) > 1">
-                                    <!-- Thumbnails de imágenes -->
-                                    <div
-                                        class="product-details__thumbnail"
-                                        [class.active]="imagen === imagenPrincipal"
-                                        *ngFor="let imagen of imagenesProducto; trackBy: trackByImageUrl"
-                                        (click)="cambiarImagenPrincipal(imagen)">
-                                        <img
-                                            [src]="imagen"
-                                            [alt]="producto.nombre"
-                                            (error)="onImageError($event)"
-                                            loading="lazy">
-                                    </div>
-
-                                    <!-- Thumbnails de videos -->
-                                    <div
-                                        class="product-details__thumbnail video-thumbnail"
-                                        *ngFor="let video of videosProducto; let i = index"
-                                        title="Video demostrativo">
-                                        <div class="video-thumbnail-content">
-                                            <img
-                                                [src]="getYouTubeThumbnail(video)"
-                                                [alt]="'Video ' + (i + 1) + ' de ' + producto.nombre"
-                                                (error)="onImageError($event)"
-                                                loading="lazy"
-                                                (click)="mostrarVideo(video)">
-                                            <div class="video-play-overlay" (click)="mostrarVideoEnModal(video)">
-                                                <i class="ph ph-play-circle"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
 
                                 <!-- Contenido principal (imagen o video) -->
                                 <div class="product-details__main-image">
@@ -140,6 +107,58 @@
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+
+                                <!-- Thumbnails horizontales debajo de la imagen principal -->
+                                <div class="product-details__thumbnails-row" *ngIf="(imagenesProducto.length + videosProducto.length) > 1">
+                                    <button
+                                        type="button"
+                                        class="thumbnails-nav-btn"
+                                        (click)="anteriorContenido()"
+                                        title="Contenido anterior">
+                                        <i class="ph ph-caret-left"></i>
+                                    </button>
+
+                                    <div class="product-details__thumbnails">
+                                        <!-- Thumbnails de imágenes -->
+                                        <div
+                                            class="product-details__thumbnail"
+                                            [class.active]="imagen === imagenPrincipal"
+                                            *ngFor="let imagen of imagenesProducto; trackBy: trackByImageUrl"
+                                            (click)="cambiarImagenPrincipal(imagen)">
+                                            <img
+                                                [src]="imagen"
+                                                [alt]="producto.nombre"
+                                                (error)="onImageError($event)"
+                                                loading="lazy">
+                                        </div>
+
+                                        <!-- Thumbnails de videos -->
+                                        <div
+                                            class="product-details__thumbnail video-thumbnail"
+                                            *ngFor="let video of videosProducto; let i = index"
+                                            title="Video demostrativo">
+                                            <div class="video-thumbnail-content">
+                                                <img
+                                                    [src]="getYouTubeThumbnail(video)"
+                                                    [alt]="'Video ' + (i + 1) + ' de ' + producto.nombre"
+                                                    (error)="onImageError($event)"
+                                                    loading="lazy"
+                                                    (click)="mostrarVideo(video)">
+                                                <div class="video-play-overlay" (click)="mostrarVideoEnModal(video)">
+                                                    <i class="ph ph-play-circle"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        class="thumbnails-nav-btn"
+                                        (click)="siguienteContenido()"
+                                        title="Siguiente contenido">
+                                        <i class="ph ph-caret-right"></i>
+                                    </button>
                                 </div>
                             </div>
 
@@ -359,7 +378,8 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3">
+            <!-- Columna lateral (Vendido por / Stock / Comprar ahora / Formas de pago) desactivada con *ngIf="false" — no se borra por si se necesita revertir -->
+            <div class="col-lg-3" *ngIf="false">
                 <div class="product-details__sidebar border border-gray-100 rounded-16 overflow-hidden bg-white">
                     
                     <!-- Envío gratis -->
@@ -497,6 +517,8 @@
             </div>
         </div>
 
+        <!-- DISEÑO ANTERIOR (tabs) desactivado con *ngIf="false" — no se borra por si se necesita revertir -->
+        <ng-container *ngIf="false">
         <div class="pt-80">
             <div class="product-dContent border rounded-24">
                 <div class="product-dContent__header border-bottom border-gray-100 flex-between flex-wrap gap-16">
@@ -531,7 +553,7 @@
                                 <h6 class="mb-24">Descripción del producto</h6>
                                 <div [innerHTML]="safeDescripcionDetallada"></div> <!-- ✅ Usa la nueva propiedad -->
                             </div>
-                            
+
                             <!-- ✅ ESPECIFICACIONES DINÁMICAS -->
                             <div class="mb-40" *ngIf="getEspecificaciones().length > 0">
                                 <h6 class="mb-24">Especificaciones del producto</h6>
@@ -805,6 +827,93 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+        </ng-container>
+
+        <!-- ============================================================ -->
+        <!-- NUEVO DISEÑO: acordeón Características / Descripción / Manual -->
+        <!-- ============================================================ -->
+        <div class="pt-80">
+            <div class="product-accordion">
+
+                <div class="product-accordion__item">
+                    <button type="button" class="product-accordion__header"
+                        (click)="toggleAccordion('caracteristicas')">
+                        <span>Características principales</span>
+                        <i class="ph" [class.ph-plus]="accordionAbierto !== 'caracteristicas'"
+                            [class.ph-minus]="accordionAbierto === 'caracteristicas'"></i>
+                    </button>
+                    <div class="product-accordion__body" *ngIf="accordionAbierto === 'caracteristicas'">
+                        <div class="mb-32" *ngIf="getEspecificaciones().length > 0">
+                            <h6 class="mb-24">Especificaciones del producto</h6>
+                            <ul class="mt-32">
+                                <li *ngFor="let spec of getEspecificaciones()" class="text-gray-400 mb-14 flex-align gap-14">
+                                    <span class="w-20 h-20 bg-main-50 text-main-600 text-xs flex-center rounded-circle">
+                                        <i class="ph ph-check"></i>
+                                    </span>
+                                    <span class="text-heading fw-medium">
+                                        {{ spec.nombre }}:
+                                        <span class="text-gray-500"> {{ spec.valor }}</span>
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="mb-0" *ngIf="getCaracteristicasTecnicas().length > 0">
+                            <h6 class="mb-24">Características técnicas</h6>
+                            <ul class="mt-32">
+                                <li *ngFor="let caracteristica of getCaracteristicasTecnicas()" class="text-gray-400 mb-14 flex-align gap-14">
+                                    <span class="w-20 h-20 bg-main-50 text-main-600 text-xs flex-center rounded-circle">
+                                        <i class="ph ph-check"></i>
+                                    </span>
+                                    <span class="text-heading fw-medium">
+                                        {{ caracteristica.caracteristica }}:
+                                        <span class="text-gray-500"> {{ caracteristica.detalle }}</span>
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <p class="text-gray-500" *ngIf="!getEspecificaciones().length && !getCaracteristicasTecnicas().length">
+                            Este producto no tiene características principales registradas.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="product-accordion__item">
+                    <button type="button" class="product-accordion__header"
+                        (click)="toggleAccordion('descripcion')">
+                        <span>Descripción del producto</span>
+                        <i class="ph" [class.ph-plus]="accordionAbierto !== 'descripcion'"
+                            [class.ph-minus]="accordionAbierto === 'descripcion'"></i>
+                    </button>
+                    <div class="product-accordion__body" *ngIf="accordionAbierto === 'descripcion'">
+                        <div [innerHTML]="safeDescripcionDetallada"></div>
+
+                        <div class="mt-32" *ngIf="detalles?.instrucciones_uso">
+                            <h6 class="mb-24">Instrucciones de uso</h6>
+                            <p class="text-gray-700">{{ detalles.instrucciones_uso }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-accordion__item" *ngIf="producto?.manual_pdf_url">
+                    <button type="button" class="product-accordion__header"
+                        (click)="toggleAccordion('manual')">
+                        <span>Manual del usuario</span>
+                        <i class="ph" [class.ph-plus]="accordionAbierto !== 'manual'"
+                            [class.ph-minus]="accordionAbierto === 'manual'"></i>
+                    </button>
+                    <div class="product-accordion__body" *ngIf="accordionAbierto === 'manual'">
+                        <a [href]="producto.manual_pdf_url" target="_blank" rel="noopener"
+                            class="btn bg-color-one rounded-16 flex-align gap-8 text-main-600 hover-bg-main-600 hover-text-white">
+                            <i class="ph ph-file-pdf"></i>
+                            Ver / Descargar manual (PDF)
+                        </a>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
