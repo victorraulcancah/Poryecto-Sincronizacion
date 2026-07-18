@@ -162,7 +162,7 @@
   </section>
 
   <!-- ============================================================ -->
-  <!-- HISTORIA / LÍNEA DE TIEMPO (carrusel)                          -->
+  <!-- HISTORIA / LÍNEA DE TIEMPO (grilla, sin carrusel)              -->
   <!-- ============================================================ -->
   <section class="py-80" *ngIf="hitos.length">
     <div class="container">
@@ -171,20 +171,18 @@
         <h2 class="sobre-nosotros-subtitulo">El camino recorrido</h2>
       </div>
 
-      <ngx-slick-carousel class="hitos-slider arrow-style-two" [config]="hitosConfig">
-        <div ngxSlickItem class="px-12" *ngFor="let hito of hitos">
-          <div class="hito-item">
-            <div class="hito-item__imagen">
-              <img *ngIf="hito.imagen_url" [src]="hito.imagen_url" [alt]="hito.anio" />
-              <div class="hito-item__icono" *ngIf="!hito.imagen_url">
-                <i class="ph ph-calendar-check"></i>
-              </div>
+      <div class="hitos-grid">
+        <div class="hito-item" *ngFor="let hito of hitos">
+          <div class="hito-item__imagen">
+            <img *ngIf="hito.imagen_url" [src]="hito.imagen_url" [alt]="hito.anio" />
+            <div class="hito-item__icono" *ngIf="!hito.imagen_url">
+              <i class="ph ph-calendar-check"></i>
             </div>
-            <div class="hito-item__anio">{{ hito.anio }}</div>
-            <p class="hito-item__descripcion">{{ hito.descripcion }}</p>
           </div>
+          <div class="hito-item__anio">{{ hito.anio }}</div>
+          <p class="hito-item__descripcion">{{ hito.descripcion }}</p>
         </div>
-      </ngx-slick-carousel>
+      </div>
     </div>
   </section>
 

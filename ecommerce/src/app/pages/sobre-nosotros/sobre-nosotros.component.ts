@@ -1,5 +1,5 @@
 // src/app/pages/sobre-nosotros/sobre-nosotros.component.ts
-import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { SlickCarouselModule } from 'ngx-slick-carousel';
 import { ShippingComponent } from '../../component/shipping/shipping.component';
@@ -58,23 +58,9 @@ export class SobreNosotrosComponent implements OnInit {
     pauseOnHover: false,
   };
 
-  hitosConfig = {
-    slidesToShow: 4,
-    slidesToScroll: 1,
-    arrows: true,
-    dots: false,
-    infinite: false,
-    autoplay: false,
-    speed: 500,
-    responsive: [
-      { breakpoint: 1200, settings: { slidesToShow: 3 } },
-      { breakpoint: 992, settings: { slidesToShow: 2 } },
-      { breakpoint: 576, settings: { slidesToShow: 1, arrows: false, dots: true } },
-    ],
-  };
-
   constructor(
     private sobreNosotrosService: SobreNosotrosService,
+    private cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) platformId: Object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
@@ -85,11 +71,38 @@ export class SobreNosotrosComponent implements OnInit {
       next: (data) => {
         this.aplicarDatos(data);
         this.isLoading = false;
+        this.reinicializarSliders();
       },
       error: () => {
         this.isLoading = false;
       },
     });
+  }
+
+  // El banner hero sigue usando ngx-slick-carousel; los datos llegan async
+  // después de que el plugin ya se inicializó, así que hay que refrescarlo
+  // para que mida bien el contenido. Mismo patrón ya usado en index.component.ts.
+  // (Historia/hitos ya no usa slick — se cambió a una grilla CSS simple.)
+  private reinicializarSliders(): void {
+    if (!this.isBrowser) return;
+
+    setTimeout(() => {
+      try {
+        if (typeof (window as any).$ !== 'undefined') {
+          const $ = (window as any).$;
+          $('.slick-slider').each(function (this: any) {
+            if ($(this).hasClass('slick-initialized')) {
+              $(this).slick('refresh');
+              $(this).slick('setPosition');
+            }
+          });
+        }
+        this.cdr.detectChanges();
+        window.dispatchEvent(new Event('resize'));
+      } catch (error) {
+        console.warn('Error al refrescar sliders en Sobre Nosotros:', error);
+      }
+    }, 150);
   }
 
   private aplicarDatos(data: SobreNosotrosPublico): void {
