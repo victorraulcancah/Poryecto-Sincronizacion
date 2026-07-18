@@ -96,8 +96,16 @@ export const routes: Routes = [
         children: [
           {
             path: '',
-            redirectTo: 'direcciones',
+            redirectTo: 'datos-personales',
             pathMatch: 'full'
+          },
+          {
+            path: 'datos-personales',
+            loadComponent: () =>
+              import('./pages/my-account/datos-personales/datos-personales.component').then(
+                (m) => m.DatosPersonalesComponent
+              ),
+            title: 'Datos personales'
           },
           {
             path: 'direcciones',
@@ -154,6 +162,14 @@ export const routes: Routes = [
                 (m) => m.CuponesComponent
               ),
             title: 'Mis Cupones'
+          },
+          {
+            path: 'configuracion',
+            loadComponent: () =>
+              import('./pages/my-account/configuracion/configuracion.component').then(
+                (m) => m.ConfiguracionComponent
+              ),
+            title: 'Configuración de cuenta'
           }
         ]
       },

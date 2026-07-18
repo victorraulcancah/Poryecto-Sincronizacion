@@ -109,7 +109,12 @@ export class AuthService {
       numero_unidad: response.user.numero_unidad,
       estadisticas: response.user.estadisticas,
       // ✅ Incluir campo foto si existe
-      foto: (response.user as any).foto
+      foto: (response.user as any).foto,
+      // ✅ Datos personales del cliente (Configuración de cuenta)
+      nombre_completo: response.user.nombre_completo,
+      telefono: response.user.telefono,
+      numero_documento: response.user.numero_documento,
+      tipo_documento: response.user.tipo_documento
     };
 
     localStorage.setItem(this.userKey, JSON.stringify(user));
@@ -344,6 +349,22 @@ export class AuthService {
    */
   changePassword(passwordData: any): Observable<any> {
     return this.http.post<any>(`${environment.apiUrl}/user/change-password`, passwordData);
+  }
+
+  /**
+   * Actualizar el celular del cliente autenticado (Datos personales)
+   */
+  actualizarTelefono(telefono: string): Observable<any> {
+    return this.http.patch<any>(`${environment.apiUrl}/user/telefono`, { telefono }).pipe(
+      tap((response: any) => {
+        const currentUser = this.getCurrentUser();
+        if (currentUser) {
+          currentUser.telefono = response.telefono ?? telefono;
+          localStorage.setItem(this.userKey, JSON.stringify(currentUser));
+          this.currentUserSubject.next(currentUser);
+        }
+      })
+    );
   }
 
   /**

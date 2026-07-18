@@ -1,0 +1,95 @@
+<div class="border border-gray-100 hover-border-main-600 rounded-16 overflow-hidden bg-white transition-2">
+  <!-- Header -->
+  <div class="p-24 p-md-32 border-bottom border-gray-100 bg-main-50">
+    <div class="flex-align gap-16">
+      <div class="w-48 h-48 bg-main-600 text-white rounded-circle flex-center">
+        <i class="ph-bold ph-lock-key text-xl"></i>
+      </div>
+      <div>
+        <h4 class="mb-4 text-heading">Configuración de cuenta</h4>
+        <p class="text-gray-500 mb-0 text-sm">Cambia la contraseña de tu cuenta</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido -->
+  <div class="p-24 p-md-32">
+    <form [formGroup]="passwordForm" (ngSubmit)="onSubmit()" style="max-width: 480px;">
+
+      <div class="mb-20">
+        <label class="form-label text-heading fw-medium mb-8">Contraseña actual</label>
+        <input
+          type="password"
+          class="form-control px-16 py-12 border rounded-8"
+          formControlName="current_password"
+          placeholder="Ingresa tu contraseña actual">
+        <div
+          class="text-danger text-xs mt-4"
+          *ngIf="passwordForm.get('current_password')?.invalid && passwordForm.get('current_password')?.touched">
+          La contraseña actual es requerida.
+        </div>
+      </div>
+
+      <div class="mb-12">
+        <label class="form-label text-heading fw-medium mb-8">Nueva contraseña</label>
+        <input
+          type="password"
+          class="form-control px-16 py-12 border rounded-8"
+          formControlName="new_password"
+          placeholder="Ingresa tu nueva contraseña">
+      </div>
+
+      <!-- Checklist de fortaleza -->
+      <div class="row g-8 mb-20">
+        <div class="col-6">
+          <div class="d-flex align-items-center gap-4 text-xs"
+               [ngClass]="passwordChecks.hasMinLength ? 'text-success' : 'text-gray-400'">
+            <i class="ph ph-check-circle"></i>
+            Mín. 8 caracteres
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="d-flex align-items-center gap-4 text-xs"
+               [ngClass]="passwordChecks.hasUpperCase ? 'text-success' : 'text-gray-400'">
+            <i class="ph ph-check-circle"></i>
+            Mayúscula
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="d-flex align-items-center gap-4 text-xs"
+               [ngClass]="passwordChecks.hasLowerCase ? 'text-success' : 'text-gray-400'">
+            <i class="ph ph-check-circle"></i>
+            Minúscula
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="d-flex align-items-center gap-4 text-xs"
+               [ngClass]="passwordChecks.hasNumber ? 'text-success' : 'text-gray-400'">
+            <i class="ph ph-check-circle"></i>
+            Número
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-12">
+        <label class="form-label text-heading fw-medium mb-8">Confirmar nueva contraseña</label>
+        <input
+          type="password"
+          class="form-control px-16 py-12 border rounded-8"
+          formControlName="new_password_confirmation"
+          placeholder="Repite tu nueva contraseña">
+        <div class="text-danger text-xs mt-4" *ngIf="hasPasswordMismatch">
+          Las contraseñas no coinciden.
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        class="btn bg-main-600 hover-bg-main-700 text-white px-24 py-10 rounded-8 mt-8"
+        [disabled]="isSubmitting">
+        <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-8"></span>
+        {{ isSubmitting ? 'Guardando...' : 'Actualizar contraseña' }}
+      </button>
+    </form>
+  </div>
+</div>

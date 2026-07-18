@@ -14,6 +14,9 @@ export interface User {
   telefono?: string;
   direccion?: string;
   avatar?: string;
+  nombre_completo?: string;
+  numero_documento?: string;
+  tipo_documento?: string;
 
   // Para clientes - foto de perfil
   foto_url?: string;
@@ -54,6 +57,9 @@ export interface AuthResponse {
     roles: string[];
     permissions: string[];
     email_verified_at?: string;
+    telefono?: string;
+    numero_documento?: string;
+    tipo_documento?: string;
 
     // Para clientes - foto de perfil
     foto_url?: string;

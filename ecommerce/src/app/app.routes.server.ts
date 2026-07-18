@@ -131,6 +131,10 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Prerender
   },
   {
+    path: 'my-account/datos-personales',
+    renderMode: RenderMode.Prerender
+  },
+  {
 
     path: 'my-account/direcciones',
     renderMode: RenderMode.Prerender
@@ -193,6 +197,10 @@ export const serverRoutes: ServerRoute[] = [
   },
   {
     path: 'my-account/cupones',
+    renderMode: RenderMode.Prerender
+  },
+  {
+    path: 'my-account/configuracion',
     renderMode: RenderMode.Prerender
   },
   {

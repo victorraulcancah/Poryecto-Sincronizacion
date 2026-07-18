@@ -1,0 +1,68 @@
+<div class="border border-gray-100 hover-border-main-600 rounded-16 overflow-hidden bg-white transition-2">
+  <!-- Header -->
+  <div class="p-24 p-md-32 border-bottom border-gray-100 bg-main-50">
+    <div class="flex-align gap-16">
+      <div class="w-48 h-48 bg-main-600 text-white rounded-circle flex-center">
+        <i class="ph-bold ph-identification-card text-xl"></i>
+      </div>
+      <div>
+        <h4 class="mb-4 text-heading">Datos personales</h4>
+        <p class="text-gray-500 mb-0 text-sm">Información de tu cuenta</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido -->
+  <div class="p-24 p-md-32">
+    <div class="datos-personales-row">
+      <span class="datos-personales-row__label">Código cliente</span>
+      <span class="datos-personales-row__value">{{ codigoCliente }}</span>
+    </div>
+
+    <div class="datos-personales-row">
+      <span class="datos-personales-row__label">Razón social o nombre</span>
+      <span class="datos-personales-row__value">{{ razonSocialONombre }}</span>
+    </div>
+
+    <div class="datos-personales-row">
+      <span class="datos-personales-row__label">Tipo de documento</span>
+      <span class="datos-personales-row__value">{{ currentUser?.tipo_documento || '-' }}</span>
+    </div>
+
+    <div class="datos-personales-row" *ngIf="!editandoCelular">
+      <span class="datos-personales-row__label">Celular</span>
+      <span class="flex-align gap-12">
+        <span class="datos-personales-row__value">{{ currentUser?.telefono || 'No registrado' }}</span>
+        <button type="button" class="btn btn-link text-main-600 text-sm p-0" (click)="editarCelular()">
+          <i class="ph ph-pencil-simple me-4"></i>Editar
+        </button>
+      </span>
+    </div>
+
+    <div class="datos-personales-row datos-personales-row--editando" *ngIf="editandoCelular">
+      <span class="datos-personales-row__label mb-8">Celular</span>
+      <div class="d-flex flex-wrap align-items-center gap-8">
+        <input
+          type="text"
+          class="form-control px-12 py-8 border rounded-8"
+          style="max-width: 180px;"
+          maxlength="9"
+          [(ngModel)]="celularEditado"
+          placeholder="9XXXXXXXX">
+        <button type="button" class="btn bg-main-600 hover-bg-main-700 text-white btn-sm rounded-8 px-16" [disabled]="isSavingCelular" (click)="guardarCelular()">
+          <span *ngIf="isSavingCelular" class="spinner-border spinner-border-sm me-6"></span>
+          <i *ngIf="!isSavingCelular" class="ph ph-check me-6"></i>
+          Guardar
+        </button>
+        <button type="button" class="btn bg-gray-100 hover-bg-gray-200 text-gray-600 btn-sm rounded-8 px-16" [disabled]="isSavingCelular" (click)="cancelarEdicionCelular()">
+          Cancelar
+        </button>
+      </div>
+    </div>
+
+    <div class="datos-personales-row datos-personales-row--last">
+      <span class="datos-personales-row__label">Correo</span>
+      <span class="datos-personales-row__value">{{ currentUser?.email || '-' }}</span>
+    </div>
+  </div>
+</div>
