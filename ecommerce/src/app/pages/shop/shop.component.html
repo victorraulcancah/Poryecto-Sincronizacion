@@ -73,8 +73,8 @@
                         </ul>
                     </div>
 
-                    <!-- ✅ Banner dinámico del sidebar -->
-                    <div *ngIf="bannerSidebar" class="shop-sidebar__box rounded-8 overflow-hidden">
+                    <!-- ✅ Banner dinámico del sidebar oculto con *ngIf="false" — no se borra por si se necesita revertir -->
+                    <div *ngIf="bannerSidebar && false" class="shop-sidebar__box rounded-8 overflow-hidden">
                         <a [href]="bannerSidebar.enlace_url" class="d-block">
                             <img
                                 [src]="bannerSidebar.imagen_url"
