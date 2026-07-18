@@ -220,8 +220,10 @@ export class ProductosService {
     return this.http.post<any>(`${this.apiUrl}/categorias`, categoria);
   }
 
-  obtenerCategoriasParaSidebar(): Observable<CategoriaParaSidebar[]> {
-    return this.http.get<CategoriaParaSidebar[]>(`${this.apiUrl}/categorias-sidebar`);
+  obtenerCategoriasParaSidebar(marcaId?: number): Observable<CategoriaParaSidebar[]> {
+    let params = new HttpParams();
+    if (marcaId) params = params.set('marca_id', marcaId.toString());
+    return this.http.get<CategoriaParaSidebar[]>(`${this.apiUrl}/categorias-sidebar`, { params });
   }
 
   obtenerEstadisticasProductos(): Observable<EstadisticasProductos> {

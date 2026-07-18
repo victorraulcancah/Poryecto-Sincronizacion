@@ -288,13 +288,22 @@ class MarcaProductoController extends Controller
         }
     }
 
-    public function marcasPublicas()
+    public function marcasPublicas(Request $request)
     {
         try {
+            $categoriaId = $request->get('categoria_id', '');
+
             $marcas = MarcaProducto::activas()
-                ->withCount(['productos' => function($query) {
-                    $query->where('activo', true)->where('stock', '>', 0);
-                }])
+                ->withCount([
+                    // El conteo respeta la misma categoría seleccionada en el sidebar (si hay alguna)
+                    // y el mismo criterio de "activo" que usa el listado público (sin exigir stock > 0).
+                    'productos' => function ($query) use ($categoriaId) {
+                        $query->where('activo', true);
+                        if ($categoriaId !== '') {
+                            $query->where('categoria_id', $categoriaId);
+                        }
+                    }
+                ])
                 ->orderBy('nombre')
                 ->get();
 

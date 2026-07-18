@@ -435,9 +435,11 @@ export class AlmacenService {
     );
   }
 
-  obtenerMarcasPublicas(): Observable<MarcaProducto[]> {
+  obtenerMarcasPublicas(categoriaId?: number): Observable<MarcaProducto[]> {
     // ✅ USAR MAGUS para marcas públicas
-    return this.http.get<MarcaProducto[]>(`${this.apiUrl}/marcas/publicas`).pipe(
+    let params = new HttpParams();
+    if (categoriaId) params = params.set('categoria_id', categoriaId.toString());
+    return this.http.get<MarcaProducto[]>(`${this.apiUrl}/marcas/publicas`, { params }).pipe(
       map(marcas => marcas.map(marca => ({
         ...marca,
         slug: marca.slug || marca.nombre.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),

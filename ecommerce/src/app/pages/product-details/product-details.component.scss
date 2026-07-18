@@ -509,4 +509,62 @@
         padding-bottom: 32px;
     }
 }
+
+/* ===== Compra con confianza ===== */
+.compra-confianza {
+    padding: 24px;
+
+    &__titulo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        margin-bottom: 24px;
+
+        span {
+            flex: 1;
+            height: 1px;
+            background-color: var(--bs-gray-200, #e5e7eb);
+        }
+
+        h6 {
+            white-space: nowrap;
+            letter-spacing: 0.5px;
+        }
+    }
+
+    &__grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+
+        @media screen and (max-width: 768px) {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    &__item {
+        text-align: center;
+    }
+
+    &__icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 12px;
+        border: 2px solid;
+
+        i {
+            font-size: 26px;
+        }
+
+        &--danger, &--success, &--gray {
+            border-color: var(--bs-heading-color, #1a1a2e);
+            color: var(--bs-heading-color, #1a1a2e);
+        }
+    }
+}
 /* ============================ Product Details Css End ============================= */

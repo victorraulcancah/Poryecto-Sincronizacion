@@ -565,11 +565,18 @@ class ProductosController extends Controller
     }
 
     // ✅ NUEVO MÉTODO PARA OBTENER CATEGORÍAS PARA EL SIDEBAR
-    public function categoriasParaSidebar()
+    public function categoriasParaSidebar(Request $request)
     {
+        $marcaId = $request->get('marca_id', '');
+
         $categorias = Categoria::withCount([
-            'productos' => function ($query) {
-                $query->where('activo', true)->where('stock', '>', 0);
+            // El conteo respeta la misma marca seleccionada en el sidebar (si hay alguna)
+            // y el mismo criterio de "activo" que usa el listado público (sin exigir stock > 0).
+            'productos' => function ($query) use ($marcaId) {
+                $query->where('activo', true);
+                if ($marcaId !== '') {
+                    $query->where('marca_id', $marcaId);
+                }
             }
         ])
             ->where('activo', true)

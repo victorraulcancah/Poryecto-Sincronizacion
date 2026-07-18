@@ -21,20 +21,30 @@
     <ul class="max-h-540 overflow-y-auto scroll-sm">
         <!-- Opción para todas las categorías -->
         <li class="mb-24">
-            <a (click)="limpiarFiltros()" 
-               class="text-gray-900 hover-text-main-600 cursor-pointer"
-               [class.fw-bold]="!categoriaSeleccionada">
-                Todas las categorías ({{ totalProductos }})
-            </a>
+            <div class="form-check common-check common-radio">
+                <input
+                    class="form-check-input"
+                    type="radio"
+                    name="categoria"
+                    id="categoria-todas"
+                    [checked]="!categoriaSeleccionada"
+                    (change)="limpiarFiltros()">
+                <label class="form-check-label" for="categoria-todas">Todas las categorías ({{ totalProductos }})</label>
+            </div>
         </li>
-        
+
         <li class="mb-24" *ngFor="let categoria of categorias; let last = last"
             [ngClass]="{ 'mb-0': last }">
-            <a (click)="seleccionarCategoria(categoria.id)" 
-               class="text-gray-900 hover-text-main-600 cursor-pointer"
-               [class.fw-bold]="categoriaSeleccionada === categoria.id">
-                {{ categoria.nombre }} ({{ categoria.productos_count }})
-            </a>
+            <div class="form-check common-check common-radio">
+                <input
+                    class="form-check-input"
+                    type="radio"
+                    name="categoria"
+                    [id]="'categoria-' + categoria.id"
+                    [checked]="categoriaSeleccionada === categoria.id"
+                    (change)="seleccionarCategoria(categoria.id)">
+                <label class="form-check-label" [for]="'categoria-' + categoria.id">{{ categoria.nombre }} ({{ categoria.productos_count }})</label>
+            </div>
         </li>
     </ul>
 </div>
@@ -57,7 +67,7 @@
                                         [id]="'marca-' + marca.id"
                                         [checked]="marcaSeleccionada === marca.id"
                                         (change)="seleccionarMarca(marca.id)">
-                                    <label class="form-check-label" [for]="'marca-' + marca.id">{{ marca.nombre }}</label>
+                                    <label class="form-check-label" [for]="'marca-' + marca.id">{{ marca.nombre }} ({{ marca.productos_count || 0 }})</label>
                                 </div>
                             </li>
                         </ul>

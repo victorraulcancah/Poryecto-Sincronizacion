@@ -177,7 +177,10 @@
                     </div>
                     <div class="col-xl-6">
                         <div class="product-details__content">
-                            <h5 class="mb-12">{{ producto.nombre }}</h5>
+                            <h5 class="mb-12">
+                                {{ producto.nombre }}
+                                <span *ngIf="producto.codigo_producto" class="text-danger-600">&nbsp;- {{ producto.codigo_producto }}</span>
+                            </h5>
                             <div class="flex-align flex-wrap gap-12">
                                 <div class="flex-align gap-12 flex-wrap">
                                     <div class="flex-align gap-8">
@@ -215,7 +218,8 @@
                                         Antes: {{ producto.moneda | moneda }} {{ getPrecioOriginal() | number:'1.2-2' }}
                                       </span>
                                   </div>
-                                  <button (click)="ordenarPorWhatsApp()" class="btn bg-danger-20 hover:bg-danger-10 rounded-pill">
+                                  <!-- Botón "Ordenar por WhatsApp" oculto con *ngIf="false" — no se borra por si se necesita revertir -->
+                                  <button *ngIf="false" (click)="ordenarPorWhatsApp()" class="btn bg-danger-20 hover:bg-danger-10 rounded-pill">
                                       <i class="ph ph-whatsapp-logo me-2"></i>
                                       Ordenar por WhatsApp
                                   </button>
@@ -305,7 +309,7 @@
                                     </div>
                                     <button
                                         (click)="agregarAlCarrito()"
-                                        class="btn bg-danger-20 rounded-pill flex-align d-inline-flex gap-8 px-48"
+                                        class="btn bg-gray-900 hover-bg-gray-800 text-white rounded-pill flex-align d-inline-flex gap-8 px-48"
                                         [disabled]="producto.stock <= 0">
                                         <i class="ph ph-shopping-cart"></i>
                                         {{ producto.stock <= 0 ? 'Sin Stock' : 'Agregar al Carrito' }}
@@ -352,6 +356,45 @@
                             </div>
 
                             <span class="mt-32 pt-32 text-gray-700 border-top border-gray-100 d-block"></span>
+
+                            <!-- ✅ COMPRA CON CONFIANZA -->
+                            <div class="compra-confianza border border-gray-100 rounded-16 mb-24">
+                                <div class="compra-confianza__titulo">
+                                    <span></span>
+                                    <h6 class="mb-0 text-heading fw-bold">COMPRA CON CONFIANZA</h6>
+                                    <span></span>
+                                </div>
+                                <div class="compra-confianza__grid">
+                                    <div class="compra-confianza__item">
+                                        <span class="compra-confianza__icon compra-confianza__icon--danger">
+                                            <i class="ph-fill ph-truck"></i>
+                                        </span>
+                                        <h6 class="text-heading fw-bold mb-4">ENVÍO GRATIS</h6>
+                                        <p class="text-gray-500 text-sm mb-0">En pedidos superiores a S/ 2,500.00</p>
+                                    </div>
+                                    <div class="compra-confianza__item">
+                                        <span class="compra-confianza__icon compra-confianza__icon--success">
+                                            <i class="ph-fill ph-shield-check"></i>
+                                        </span>
+                                        <h6 class="text-heading fw-bold mb-4">GARANTÍA OFICIAL</h6>
+                                        <p class="text-gray-500 text-sm mb-0">6 a 12 meses según el producto.</p>
+                                    </div>
+                                    <div class="compra-confianza__item">
+                                        <span class="compra-confianza__icon compra-confianza__icon--danger">
+                                            <i class="ph-fill ph-headset"></i>
+                                        </span>
+                                        <h6 class="text-heading fw-bold mb-4">COMPRA ASESORADA</h6>
+                                        <p class="text-gray-500 text-sm mb-0">Te ayudamos a elegir el equipo ideal para ti.</p>
+                                    </div>
+                                    <div class="compra-confianza__item">
+                                        <span class="compra-confianza__icon compra-confianza__icon--gray">
+                                            <i class="ph-fill ph-bank"></i>
+                                        </span>
+                                        <h6 class="text-heading fw-bold mb-4">PAGO SEGURO</h6>
+                                        <p class="text-gray-500 text-sm mb-0">Transferencia bancaria o efectivo.</p>
+                                    </div>
+                                </div>
+                            </div>
 
                             <!-- ✅ CUPONES DINÁMICOS SI EXISTEN -->
                             <div

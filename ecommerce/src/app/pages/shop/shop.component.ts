@@ -181,7 +181,8 @@ export class ShopComponent implements OnInit {
   }
 
   cargarCategorias(): void {
-    this.productosService.obtenerCategoriasParaSidebar().subscribe({
+    // ✅ El conteo por categoría respeta la marca actualmente seleccionada
+    this.productosService.obtenerCategoriasParaSidebar(this.marcaSeleccionada).subscribe({
       next: (categorias) => {
         this.categorias = categorias;
       },
@@ -191,7 +192,8 @@ export class ShopComponent implements OnInit {
     });
   }
   cargarMarcas(): void {
-    this.almacenService.obtenerMarcasPublicas().subscribe({
+    // ✅ El conteo por marca respeta la categoría actualmente seleccionada
+    this.almacenService.obtenerMarcasPublicas(this.categoriaSeleccionada).subscribe({
       next: (marcas) => {
         this.marcas = marcas;
       },
@@ -216,6 +218,10 @@ export class ShopComponent implements OnInit {
   // Modifica el método existente cargarProductos():
   cargarProductos(): void {
     this.isLoading = true;
+
+    // ✅ Los conteos del sidebar se refrescan con el filtro cruzado (categoría <-> marca) actual
+    this.cargarCategorias();
+    this.cargarMarcas();
 
     const filtros: any = {
       categoria: this.categoriaSeleccionada,
@@ -257,22 +263,11 @@ export class ShopComponent implements OnInit {
   }
 
   seleccionarCategoria(categoriaId: number): void {
-    // ✅ MEJORADO: Navegar con slug en lugar de query parameter
-    const categoria = this.categorias.find((cat) => cat.id === categoriaId);
-    if (categoria) {
-      const slug = SlugHelper.getSlugFromCategoria({
-        nombre: categoria.nombre,
-        slug: (categoria as any).slug,
-      });
-      this.router.navigate(['/shop/categoria', slug]);
-    } else {
-      // Fallback: usar query parameter si no se encuentra la categoría
-      this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: { categoria: categoriaId },
-        queryParamsHandling: 'merge',
-      });
-    }
+    // ✅ Combinable con marca: navega por query params en vez de la ruta SEO dedicada,
+    // así ambos filtros (categoría + marca) pueden coexistir en la misma URL.
+    this.categoriaSeleccionada = categoriaId;
+    this.currentPage = 1;
+    this.navegarConFiltrosActuales();
   }
 
   // ✅ NUEVO: Buscar marca por slug
@@ -305,21 +300,20 @@ export class ShopComponent implements OnInit {
     });
   }
 
-  // ✅ MEJORADO: Método para seleccionar marca con slug
+  // ✅ Combinable con categoría: navega por query params en vez de la ruta SEO dedicada,
+  // así ambos filtros (categoría + marca) pueden coexistir en la misma URL.
   seleccionarMarca(marcaId: number): void {
-    const marca = this.marcas.find((m) => m.id === marcaId);
-    if (marca) {
-      const slug = SlugHelper.getSlugFromCategoria({
-        nombre: marca.nombre,
-        slug: marca.slug,
-      });
-      this.router.navigate(['/shop/marca', slug]);
-    } else {
-      this.router.navigate(['/shop'], {
-        queryParams: { marca: marcaId },
-        queryParamsHandling: 'merge',
-      });
-    }
+    this.marcaSeleccionada = marcaId;
+    this.currentPage = 1;
+    this.navegarConFiltrosActuales();
+  }
+
+  private navegarConFiltrosActuales(): void {
+    const queryParams: any = {};
+    if (this.categoriaSeleccionada) queryParams.categoria = this.categoriaSeleccionada;
+    if (this.marcaSeleccionada) queryParams.marca = this.marcaSeleccionada;
+    if (this.searchTerm) queryParams.search = this.searchTerm;
+    this.router.navigate(['/shop'], { queryParams });
   }
 
   // ✅ NUEVO: Aplicar filtro por precio
