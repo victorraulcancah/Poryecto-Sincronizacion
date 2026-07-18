@@ -124,6 +124,14 @@ export const routes: Routes = [
             title: 'Mis Cotizaciones'
           },
           {
+            path: 'estado-cuenta',
+            loadComponent: () =>
+              import('./pages/my-account/estado-cuenta/estado-cuenta.component').then(
+                (m) => m.EstadoCuentaComponent
+              ),
+            title: 'Mi estado de cuenta'
+          },
+          {
             path: 'compras',
             loadComponent: () =>
               import('./pages/my-account/compras/compras.component').then(

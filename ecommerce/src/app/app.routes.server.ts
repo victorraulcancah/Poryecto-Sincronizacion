@@ -148,6 +148,10 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Prerender
   },
   {
+    path: 'my-account/estado-cuenta',
+    renderMode: RenderMode.Prerender
+  },
+  {
     path: 'my-account/reclamos',
     renderMode: RenderMode.Prerender
   },
