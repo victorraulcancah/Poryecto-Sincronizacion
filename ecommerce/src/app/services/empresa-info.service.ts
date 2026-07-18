@@ -190,6 +190,24 @@ export class EmpresaInfoService {
     return this.http.post<any>(`${this.apiUrl}/empresa-info/${id}/sobre-nosotros`, formData);
   }
 
+  // Actualiza el texto y la imagen de "Descripción" (no requiere el resto de campos obligatorios)
+  actualizarDescripcion(
+    id: number,
+    datos: { descripcion: string; imagen?: File | null; eliminarImagen?: boolean }
+  ): Observable<any> {
+    const formData = new FormData();
+    formData.append('descripcion', datos.descripcion);
+
+    if (datos.imagen) {
+      formData.append('imagen_descripcion', datos.imagen);
+    } else if (datos.eliminarImagen) {
+      formData.append('eliminar_imagen_descripcion', '1');
+    }
+
+    formData.append('_method', 'PUT');
+    return this.http.post<any>(`${this.apiUrl}/empresa-info/${id}/descripcion`, formData);
+  }
+
   // Actualiza la duración (en segundos) del carrusel del banner principal
   actualizarConfigBanner(id: number, duracionSegundos: number): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/empresa-info/${id}/config-banner`, {

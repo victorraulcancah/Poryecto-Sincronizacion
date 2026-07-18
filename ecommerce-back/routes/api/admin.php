@@ -106,6 +106,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/empresa-info', [EmpresaInfoController::class, 'store']);
         Route::put('/empresa-info/{id}', [EmpresaInfoController::class, 'update']);
         Route::put('/empresa-info/{id}/sobre-nosotros', [EmpresaInfoController::class, 'actualizarSobreNosotros']);
+        Route::put('/empresa-info/{id}/descripcion', [EmpresaInfoController::class, 'actualizarDescripcion']);
         Route::put('/empresa-info/{id}/config-banner', [EmpresaInfoController::class, 'actualizarConfigBanner']);
     });
 

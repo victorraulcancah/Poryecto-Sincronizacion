@@ -232,6 +232,54 @@ class EmpresaInfoController extends Controller
         }
     }
 
+    public function actualizarDescripcion(Request $request, $id): JsonResponse
+    {
+        try {
+            $empresaInfo = EmpresaInfo::findOrFail($id);
+
+            $validator = Validator::make($request->all(), [
+                'descripcion' => 'nullable|string',
+                'imagen_descripcion' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Errores de validación',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $data = ['descripcion' => $request->input('descripcion', '')];
+
+            if ($request->hasFile('imagen_descripcion')) {
+                if ($empresaInfo->imagen_descripcion && Storage::disk('public')->exists($empresaInfo->imagen_descripcion)) {
+                    Storage::disk('public')->delete($empresaInfo->imagen_descripcion);
+                }
+                $data['imagen_descripcion'] = $request->file('imagen_descripcion')->store('empresa/descripcion', 'public');
+            } elseif ($request->boolean('eliminar_imagen_descripcion')) {
+                if ($empresaInfo->imagen_descripcion && Storage::disk('public')->exists($empresaInfo->imagen_descripcion)) {
+                    Storage::disk('public')->delete($empresaInfo->imagen_descripcion);
+                }
+                $data['imagen_descripcion'] = null;
+            }
+
+            $empresaInfo->update($data);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Descripción actualizada exitosamente',
+                'data' => $empresaInfo
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar la descripción',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function actualizarConfigBanner(Request $request, $id): JsonResponse
     {
         try {

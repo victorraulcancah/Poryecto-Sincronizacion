@@ -50,6 +50,13 @@ export class SobreNosotrosAdminComponent implements OnInit {
   introImagenPreview: string | null = null;
   introImagenEliminada = false;
 
+  // ===== Descripción =====
+  descripcionForm: FormGroup;
+  isSavingDescripcion = false;
+  descripcionImagenSeleccionada: File | null = null;
+  descripcionImagenPreview: string | null = null;
+  descripcionImagenEliminada = false;
+
   // ===== Valores =====
   valores: EmpresaValor[] = [];
   isLoadingValores = true;
@@ -102,6 +109,10 @@ export class SobreNosotrosAdminComponent implements OnInit {
 
     this.introForm = this.fb.group({
       sobre_nosotros: [''],
+    });
+
+    this.descripcionForm = this.fb.group({
+      descripcion: [''],
     });
 
     this.valorForm = this.fb.group({
@@ -305,6 +316,10 @@ export class SobreNosotrosAdminComponent implements OnInit {
         this.introImagenPreview = empresaInfo.imagen_introduccion_url || null;
         this.introImagenSeleccionada = null;
         this.introImagenEliminada = false;
+        this.descripcionForm.patchValue({ descripcion: empresaInfo.descripcion || '' });
+        this.descripcionImagenPreview = empresaInfo.imagen_descripcion_url || null;
+        this.descripcionImagenSeleccionada = null;
+        this.descripcionImagenEliminada = false;
         this.duracionBannerForm.patchValue({
           duracion_banner_segundos: empresaInfo.duracion_banner_segundos || 5,
         });
@@ -371,6 +386,66 @@ export class SobreNosotrosAdminComponent implements OnInit {
         error: (error) => {
           this.isSavingIntro = false;
           mostrarErrorGuardado(error, 'la introducción');
+        },
+      });
+  }
+
+  // ==================================================
+  // DESCRIPCIÓN
+  // ==================================================
+  onDescripcionImagenSeleccionada(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.descripcionImagenSeleccionada = file;
+      this.descripcionImagenEliminada = false;
+      const reader = new FileReader();
+      reader.onload = (e: any) => (this.descripcionImagenPreview = e.target.result);
+      reader.readAsDataURL(file);
+    }
+  }
+
+  eliminarDescripcionImagen(): void {
+    this.descripcionImagenSeleccionada = null;
+    this.descripcionImagenPreview = null;
+    this.descripcionImagenEliminada = true;
+  }
+
+  guardarDescripcion(): void {
+    if (!this.empresaId) {
+      Swal.fire({
+        title: 'Falta información',
+        text: 'Primero completa los datos generales de la empresa en la pestaña "Datos de la Empresa".',
+        icon: 'warning',
+        confirmButtonColor: '#dc3545',
+      });
+      return;
+    }
+
+    this.isSavingDescripcion = true;
+    this.empresaInfoService
+      .actualizarDescripcion(this.empresaId, {
+        descripcion: this.descripcionForm.get('descripcion')?.value || '',
+        imagen: this.descripcionImagenSeleccionada,
+        eliminarImagen: this.descripcionImagenEliminada,
+      })
+      .subscribe({
+        next: () => {
+          this.isSavingDescripcion = false;
+          this.descripcionImagenSeleccionada = null;
+          this.descripcionImagenEliminada = false;
+          this.empresaInfoService.refreshPublicInfo();
+          Swal.fire({
+            title: '¡Guardado!',
+            text: 'La descripción de "Sobre Nosotros" se actualizó exitosamente.',
+            icon: 'success',
+            confirmButtonColor: '#198754',
+            timer: 2000,
+            showConfirmButton: false,
+          });
+        },
+        error: (error) => {
+          this.isSavingDescripcion = false;
+          mostrarErrorGuardado(error, 'la descripción');
         },
       });
   }
