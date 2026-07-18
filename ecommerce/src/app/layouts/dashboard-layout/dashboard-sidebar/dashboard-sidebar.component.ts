@@ -14,6 +14,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { PermissionsService } from '../../../services/permissions.service';
+import { EmpresaInfoService } from '../../../services/empresa-info.service';
 import { Subscription } from 'rxjs';
 import { NavigationEnd } from '@angular/router';
 
@@ -73,12 +74,15 @@ export class DashboardSidebarComponent implements OnInit, AfterViewInit, OnDestr
   puedeVerContabilidad = false; // ✅ NUEVO: Para Contabilidad
 
   isDesktop = false;
+  colorSidebar: string | null = null;
   private permisosSub: Subscription | null = null;
+  private empresaInfoSub: Subscription | null = null;
   private router = inject(Router);
 
   constructor(
     private authService: AuthService,
-    public permissionsService: PermissionsService   // <- Cambiar private por public
+    public permissionsService: PermissionsService,   // <- Cambiar private por public
+    private empresaInfoService: EmpresaInfoService
   ) {}
 
 
@@ -104,10 +108,16 @@ export class DashboardSidebarComponent implements OnInit, AfterViewInit, OnDestr
 
     // Estado inicial basado en la URL actual
     this.syncRecompensasDropdownWithRoute(this.router.url);
+
+    this.empresaInfoSub = this.empresaInfoService.empresaInfoPublica$.subscribe((info) => {
+      if (info !== null) this.colorSidebar = info.color_sidebar || null;
+    });
+    this.empresaInfoService.refreshPublicInfo();
   }
 
   ngOnDestroy(): void {
     this.permisosSub?.unsubscribe();
+    this.empresaInfoSub?.unsubscribe();
   }
 
   private checkPermissions(): void {

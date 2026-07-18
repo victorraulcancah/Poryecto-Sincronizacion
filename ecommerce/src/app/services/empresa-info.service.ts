@@ -137,6 +137,10 @@ export class EmpresaInfoService {
       formData.append('color_navbar', empresaInfo.color_navbar);
     }
 
+    if (empresaInfo.color_sidebar) {
+      formData.append('color_sidebar', empresaInfo.color_sidebar);
+    }
+
     if (empresaInfo.logo) {
       formData.append('logo', empresaInfo.logo);
     }

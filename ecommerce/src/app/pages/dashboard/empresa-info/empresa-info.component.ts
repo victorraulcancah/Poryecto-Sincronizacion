@@ -496,6 +496,41 @@ import Swal from 'sweetalert2';
                   Restaurar color original
                 </button>
               </div>
+
+              <!-- Color del sidebar (panel admin) -->
+              <div class="mt-24">
+                <label class="form-label text-heading fw-medium mb-8"
+                  >Color del menú lateral (panel admin)</label
+                >
+                <div class="d-flex align-items-center gap-12">
+                  <input
+                    type="color"
+                    class="form-control form-control-color border rounded-8"
+                    style="width: 56px; height: 42px; padding: 4px;"
+                    formControlName="color_sidebar"
+                  />
+                  <input
+                    type="text"
+                    class="form-control px-16 py-12 border rounded-8"
+                    formControlName="color_sidebar"
+                    placeholder="#9B1C1C"
+                    maxlength="7"
+                  />
+                </div>
+                <div
+                  class="rounded-8 mt-12 px-16 py-10 text-white text-sm fw-medium"
+                  [style.background-color]="empresaForm.get('color_sidebar')?.value || '#9B1C1C'"
+                >
+                  Vista previa del menú lateral
+                </div>
+                <button
+                  type="button"
+                  class="btn btn-link text-main-600 text-sm px-0 mt-8"
+                  (click)="restaurarColorSidebar()"
+                >
+                  Restaurar color original
+                </button>
+              </div>
             </div>
           </div>
 
@@ -575,6 +610,8 @@ export class EmpresaInfoComponent implements OnInit {
 
   // Color por defecto del navbar (equivale al main-600 actual del tema)
   readonly COLOR_NAVBAR_DEFAULT = '#9B1C1C';
+  // Color por defecto del sidebar admin (equivale al main-600 actual del tema)
+  readonly COLOR_SIDEBAR_DEFAULT = '#9B1C1C';
 
   empresaForm: FormGroup;
   empresaInfo: EmpresaInfo | null = null;
@@ -610,6 +647,7 @@ export class EmpresaInfoComponent implements OnInit {
       whatsapp: [''],
       horario_atencion: [''],
       color_navbar: [this.COLOR_NAVBAR_DEFAULT, [Validators.pattern(/^#[0-9A-Fa-f]{6}$/)]],
+      color_sidebar: [this.COLOR_SIDEBAR_DEFAULT, [Validators.pattern(/^#[0-9A-Fa-f]{6}$/)]],
     });
   }
 
@@ -642,6 +680,7 @@ export class EmpresaInfoComponent implements OnInit {
           whatsapp: empresaInfo.whatsapp || '',
           horario_atencion: empresaInfo.horario_atencion || '',
           color_navbar: empresaInfo.color_navbar || this.COLOR_NAVBAR_DEFAULT,
+          color_sidebar: empresaInfo.color_sidebar || this.COLOR_SIDEBAR_DEFAULT,
         });
         this.logoPreview = empresaInfo.logo_url || null;
         this.descripcionImagenPreview = empresaInfo.imagen_descripcion_url || null;
@@ -664,6 +703,10 @@ export class EmpresaInfoComponent implements OnInit {
 
   restaurarColorNavbar(): void {
     this.empresaForm.get('color_navbar')?.setValue(this.COLOR_NAVBAR_DEFAULT);
+  }
+
+  restaurarColorSidebar(): void {
+    this.empresaForm.get('color_sidebar')?.setValue(this.COLOR_SIDEBAR_DEFAULT);
   }
 
   onLogoSelected(event: any): void {

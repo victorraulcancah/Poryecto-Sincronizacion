@@ -13,6 +13,7 @@ export interface EmpresaInfo {
   logo?: string;
   logo_url?: string;
   color_navbar?: string;
+  color_sidebar?: string;
   descripcion?: string;
   imagen_descripcion?: string;
   imagen_descripcion_url?: string;
@@ -42,6 +43,7 @@ export interface EmpresaInfoCreate {
   website?: string;
   logo?: File;
   color_navbar?: string;
+  color_sidebar?: string;
   descripcion?: string;
   imagen_descripcion?: File;
   eliminar_imagen_descripcion?: boolean;
