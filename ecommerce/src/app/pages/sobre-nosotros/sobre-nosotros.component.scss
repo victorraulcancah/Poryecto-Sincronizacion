@@ -263,29 +263,20 @@
   }
 }
 
-// ===== Historia (timeline carrusel) =====
-.hito-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 28px 24px;
-  height: 100%;
-  min-height: 220px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-  border-top: 4px solid var(--main-600, #9b1c1c);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-
-  &:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
-  }
+// ===== Historia (timeline) — imagen en recuadro simple, separada del texto =====
+.hito-item {
+  text-align: center;
+  padding: 0 4px;
 
   &__imagen {
     position: relative;
     width: 100%;
-    height: 140px;
-    border-radius: 10px;
+    height: 200px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
     overflow: hidden;
     margin-bottom: 16px;
+    background: #fafafa;
     flex-shrink: 0;
 
     img {
@@ -299,8 +290,18 @@
     }
   }
 
+  &__icono {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--main-600, #9b1c1c);
+    font-size: 40px;
+  }
+
   &__anio {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: 800;
     color: var(--main-600, #9b1c1c);
     margin-bottom: 8px;
@@ -308,7 +309,7 @@
 
   &__descripcion {
     color: #333333;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     line-height: 1.6;
     margin-bottom: 0;
     white-space: pre-line;
@@ -369,15 +370,3 @@
   }
 }
 
-// Espaciado interno de los slides (ngx-slick agrega su propio wrapper)
-:host ::ng-deep {
-  .hitos-slider {
-    .slick-slide > div {
-      height: 100%;
-    }
-    .slick-track {
-      display: flex !important;
-      align-items: stretch;
-    }
-  }
-}

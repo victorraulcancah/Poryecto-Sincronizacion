@@ -173,12 +173,15 @@
 
       <ngx-slick-carousel class="hitos-slider arrow-style-two" [config]="hitosConfig">
         <div ngxSlickItem class="px-12" *ngFor="let hito of hitos">
-          <div class="hito-card">
-            <div class="hito-card__imagen" *ngIf="hito.imagen_url">
-              <img [src]="hito.imagen_url" [alt]="hito.anio" />
+          <div class="hito-item">
+            <div class="hito-item__imagen">
+              <img *ngIf="hito.imagen_url" [src]="hito.imagen_url" [alt]="hito.anio" />
+              <div class="hito-item__icono" *ngIf="!hito.imagen_url">
+                <i class="ph ph-calendar-check"></i>
+              </div>
             </div>
-            <div class="hito-card__anio">{{ hito.anio }}</div>
-            <p class="hito-card__descripcion">{{ hito.descripcion }}</p>
+            <div class="hito-item__anio">{{ hito.anio }}</div>
+            <p class="hito-item__descripcion">{{ hito.descripcion }}</p>
           </div>
         </div>
       </ngx-slick-carousel>
