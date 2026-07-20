@@ -6,7 +6,7 @@
 <!-- ================================ Checkout Section Start ================================ -->
 <section class="checkout py-80">
   <div class="container container-lg">
-    <app-checkout-steps [pasoActual]="2"></app-checkout-steps>
+    <app-checkout-steps [pasoActual]="pasoActual"></app-checkout-steps>
     <div class="row gy-4">
       <!-- Formulario de Checkout -->
       <div class="col-lg-8">
@@ -15,13 +15,18 @@
             <div class="card-header bg-main-600 text-white py-16">
               <h5 class="mb-0 fw-semibold text-white">
                 <i class="ph ph-shopping-cart me-8"></i>
-                Detalle Compra
+                {{ pasoActual === 2 ? 'Datos de Entrega' : 'Método de Pago' }}
               </h5>
             </div>
             <div class="card-body p-24">
               <form [formGroup]="checkoutForm" (ngSubmit)="onSubmit()">
-                <!-- DNI / RUC -->
-                <div class="row mb-20">
+                <!-- ============================================================ -->
+                <!-- PASO 2: ENTREGA -->
+                <!-- ============================================================ -->
+                <ng-container *ngIf="pasoActual === 2">
+                <!-- DNI / RUC y Cliente: ya se piden al registrarse, no se vuelven a pedir aquí.
+                     Ocultos con *ngIf="false" — no se borran por si se necesitan revertir. -->
+                <div class="row mb-20" *ngIf="false">
                   <div class="col-md-6">
                     <label class="form-label text-heading fw-medium"
                       >DNI / RUC</label
@@ -53,8 +58,7 @@
                   </div>
                 </div>
 
-                <!-- Cliente -->
-                <div class="mb-20">
+                <div class="mb-20" *ngIf="false">
                   <label class="form-label text-heading fw-medium">
                     Cliente <span class="text-danger">*</span>
                   </label>
@@ -195,8 +199,8 @@
                   </div>
                 </div>
 
-                <!-- Celular -->
-                <div class="mb-20">
+                <!-- Celular: solo se pide si el perfil del cliente no tiene uno registrado -->
+                <div class="mb-20" *ngIf="mostrarCelularManual">
                   <label class="form-label text-heading fw-medium">
                     Celular <span class="text-danger">*</span>
                   </label>
@@ -318,10 +322,10 @@
                   </div>
                 </div>
 
-                <!-- Forma de Envío y Tipo de Pago -->
-                <div class="row mb-20">
-                  <!-- Forma de Envío -->
-                  <div class="col-md-6 mb-16 mb-md-0">
+                <!-- Forma de Envío: se selecciona automáticamente, ya no se le pide al cliente.
+                     Selector oculto con *ngIf="false" — no se borra por si se necesita revertir. -->
+                <div class="row mb-20" *ngIf="false">
+                  <div class="col-md-12">
                     <label class="form-label text-heading fw-medium">
                       Forma de Envío <span class="text-danger">*</span>
                     </label>
@@ -346,16 +350,6 @@
                       </option>
                     </select>
 
-                    <!-- ✅ Alerta si no hay formas de envío -->
-                    <div
-                      *ngIf="mensajeSinEnvio"
-                      class="alert alert-warning d-flex align-items-center gap-2 py-8 px-12 mt-12"
-                      style="font-size: 0.85rem;"
-                    >
-                      <i class="ph ph-warning-circle"></i>
-                      <span>{{ mensajeSinEnvio }}</span>
-                    </div>
-
                     <div
                       class="invalid-feedback"
                       *ngIf="
@@ -366,9 +360,72 @@
                       Seleccione una forma de envío
                     </div>
                   </div>
+                </div>
 
-                  <!-- Tipo de Pago -->
-                  <div class="col-md-6">
+                <!-- ✅ Alerta si no hay formas de envío configuradas para la zona (se mantiene visible
+                     aunque el selector de arriba esté oculto, para avisar al cliente igual) -->
+                <div
+                  *ngIf="mensajeSinEnvio"
+                  class="alert alert-warning d-flex align-items-center gap-2 py-8 px-12 mb-20"
+                  style="font-size: 0.85rem;"
+                >
+                  <i class="ph ph-warning-circle"></i>
+                  <span>{{ mensajeSinEnvio }}</span>
+                </div>
+
+                <!-- Email: ya se pidió al registrarse, no se vuelve a pedir aquí.
+                     Oculto con *ngIf="false" — no se borra por si se necesita revertir. -->
+                <div class="mb-20" *ngIf="false">
+                  <label class="form-label text-heading fw-medium">
+                    Email <span class="text-danger">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    class="form-control rounded-8"
+                    formControlName="email"
+                    placeholder="correo@ejemplo.com"
+                    [class.is-invalid]="
+                      checkoutForm.get('email')?.invalid &&
+                      checkoutForm.get('email')?.touched
+                    "
+                  />
+                  <div
+                    class="invalid-feedback"
+                    *ngIf="
+                      checkoutForm.get('email')?.invalid &&
+                      checkoutForm.get('email')?.touched
+                    "
+                  >
+                    <span
+                      *ngIf="checkoutForm.get('email')?.errors?.['required']"
+                      >El email es requerido</span
+                    >
+                    <span *ngIf="checkoutForm.get('email')?.errors?.['email']"
+                      >Ingrese un email válido</span
+                    >
+                  </div>
+                </div>
+
+                <!-- Botón para avanzar al paso de Pago -->
+                <div class="d-flex justify-content-end">
+                  <button
+                    type="button"
+                    class="btn btn-main py-12 px-32 rounded-8"
+                    (click)="continuarAPago()"
+                  >
+                    Continuar
+                    <i class="ph ph-arrow-right ms-8"></i>
+                  </button>
+                </div>
+                </ng-container>
+
+                <!-- ============================================================ -->
+                <!-- PASO 3: PAGO -->
+                <!-- ============================================================ -->
+                <ng-container *ngIf="pasoActual === 3">
+                <!-- Tipo de Pago -->
+                <div class="row mb-20">
+                  <div class="col-md-12">
                     <label class="form-label text-heading fw-medium">
                       Tipo de Pago <span class="text-danger">*</span>
                     </label>
@@ -402,38 +459,6 @@
                     >
                       Seleccione un tipo de pago
                     </div>
-                  </div>
-                </div>
-
-                <!-- Email -->
-                <div class="mb-20">
-                  <label class="form-label text-heading fw-medium">
-                    Email <span class="text-danger">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    class="form-control rounded-8"
-                    formControlName="email"
-                    placeholder="correo@ejemplo.com"
-                    [class.is-invalid]="
-                      checkoutForm.get('email')?.invalid &&
-                      checkoutForm.get('email')?.touched
-                    "
-                  />
-                  <div
-                    class="invalid-feedback"
-                    *ngIf="
-                      checkoutForm.get('email')?.invalid &&
-                      checkoutForm.get('email')?.touched
-                    "
-                  >
-                    <span
-                      *ngIf="checkoutForm.get('email')?.errors?.['required']"
-                      >El email es requerido</span
-                    >
-                    <span *ngIf="checkoutForm.get('email')?.errors?.['email']"
-                      >Ingrese un email válido</span
-                    >
                   </div>
                 </div>
 
@@ -490,6 +515,19 @@
                     placeholder="Instrucciones especiales para la entrega, referencias de ubicación, etc."
                   ></textarea>
                 </div>
+
+                <!-- Botón para volver al paso de Entrega -->
+                <div class="d-flex justify-content-start mt-20">
+                  <button
+                    type="button"
+                    class="btn bg-gray-100 hover-bg-gray-200 text-gray-600 py-12 px-32 rounded-8"
+                    (click)="volverAEntrega()"
+                  >
+                    <i class="ph ph-arrow-left me-8"></i>
+                    Volver a Entrega
+                  </button>
+                </div>
+                </ng-container>
               </form>
             </div>
           </div>
@@ -603,8 +641,8 @@
             </div>
           </div>
 
-          <!-- Procesamiento -->
-          <div class="card border-0 shadow-sm rounded-12 mb-20">
+          <!-- Procesamiento (solo en el paso de Pago) -->
+          <div *ngIf="pasoActual === 3" class="card border-0 shadow-sm rounded-12 mb-20">
             <div class="card-header bg-info-50 py-16">
               <h6 class="mb-0 fw-semibold text-heading">Procesamiento</h6>
             </div>
@@ -650,8 +688,8 @@
             </div>
           </div>
 
-<!-- Costo por envío -->
-          <div class="card border-0 shadow-sm rounded-12">
+<!-- Costo por envío (oculto con *ngIf="false" — no se borra por si se necesita revertir) -->
+          <div *ngIf="false" class="card border-0 shadow-sm rounded-12">
             <div class="card-header bg-warning-50 py-16">
               <h6 class="mb-0 fw-semibold text-heading">
                 Costos de Envío Disponibles

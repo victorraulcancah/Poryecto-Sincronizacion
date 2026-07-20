@@ -55,6 +55,14 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   procesandoPedido = false;
   isLoggedIn = false;
 
+  // ✅ Pasos del checkout: 2 = Entrega, 3 = Pago (1 = Carro, ya pasado)
+  pasoActual: 2 | 3 = 2;
+  // ✅ Solo se pide el celular manualmente si el perfil del cliente no tiene uno registrado
+  mostrarCelularManual = true;
+  private readonly camposEntrega = [
+    'cliente', 'direccion', 'celular', 'departamento', 'provincia', 'distrito', 'formaEnvio', 'email'
+  ];
+
   direccionesGuardadas: Direccion[] = [];
   direccionSeleccionada: Direccion | null = null;
   usarDireccionPersonalizada = false;
@@ -240,9 +248,14 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       .subscribe(user => {
         this.isLoggedIn = !!user;
         if (user) {
+          // ✅ Estos datos ya se pidieron al registrarse; no se vuelven a
+          // pedir en el checkout (solo se muestran/editan las direcciones).
+          this.mostrarCelularManual = !user.telefono;
           this.checkoutForm.patchValue({
-            cliente: user.name,
-            email: user.email
+            cliente: user.nombre_completo || user.name,
+            email: user.email,
+            celular: user.telefono || '',
+            numeroDocumento: user.numero_documento || ''
           });
         }
       });
@@ -360,6 +373,36 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       icon: 'warning',
       confirmButtonColor: '#ffc107'
     });
+  }
+
+  continuarAPago(): void {
+    const entregaValida = this.camposEntrega.every(campo => {
+      const control = this.checkoutForm.get(campo);
+      control?.markAsTouched();
+      return control?.valid;
+    });
+
+    if (!entregaValida) {
+      Swal.fire({
+        title: 'Faltan datos de entrega',
+        text: 'Por favor completa todos los campos requeridos antes de continuar.',
+        icon: 'warning',
+        confirmButtonColor: '#dc3545'
+      });
+      return;
+    }
+
+    this.pasoActual = 3;
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  volverAEntrega(): void {
+    this.pasoActual = 2;
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 
   onFormaEnvioChange(): void {
@@ -794,13 +837,10 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       this.costoEnvioCalculado = 0;
     } else {
       this.mensajeSinEnvio = '';
-      if (this.formasEnvioFiltradas.length === 1) {
-        this.checkoutForm.patchValue({ formaEnvio: this.formasEnvioFiltradas[0].id });
-        this.costoEnvioCalculado = Number(this.formasEnvioFiltradas[0].costo) || 0;
-      } else {
-        this.checkoutForm.patchValue({ formaEnvio: '' });
-        this.costoEnvioCalculado = 0;
-      }
+      // ✅ El selector de "Forma de Envío" ya no se muestra al cliente, así que
+      // siempre se autoselecciona la primera opción disponible para la zona.
+      this.checkoutForm.patchValue({ formaEnvio: this.formasEnvioFiltradas[0].id });
+      this.costoEnvioCalculado = Number(this.formasEnvioFiltradas[0].costo) || 0;
     }
   }
 
