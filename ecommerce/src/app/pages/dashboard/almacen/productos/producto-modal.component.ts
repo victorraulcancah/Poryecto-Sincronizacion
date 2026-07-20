@@ -842,8 +842,10 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
 
           const productoId = this.producto?.id || response.producto?.id;
 
-          // Si hay detalles para guardar
-          if (productoId && this.tieneDetallesParaGuardar()) {
+          // ✅ Al editar un producto existente siempre se sincronizan los detalles
+          // (para que las eliminaciones, ej. quitar "Garantía", también se guarden).
+          // Al crear uno nuevo, solo si hay algo cargado (evita una llamada vacía).
+          if (productoId && (this.producto || this.tieneDetallesParaGuardar())) {
             this.guardarDetalles(productoId);
           } else {
             // ✅ Obtener el producto completo con sus relaciones (marca, categoría)
@@ -871,10 +873,7 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
 
     // Verificar si hay algún detalle con contenido
     return !!(
-      detalles.descripcion_detallada ||
-      detalles.instrucciones_uso ||
-      detalles.garantia ||
-      detalles.politicas_devolucion ||
+      this.informacionAdicional.value.some((item: any) => item.titulo && item.titulo.trim() !== '') ||
       this.especificaciones.value.some(
         (spec: any) => spec.nombre && spec.valor
       ) ||

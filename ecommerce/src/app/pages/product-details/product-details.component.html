@@ -890,10 +890,10 @@
                     <button type="button" class="product-accordion__header"
                         (click)="toggleAccordion('caracteristicas')">
                         <span>Características principales</span>
-                        <i class="ph" [class.ph-plus]="accordionAbierto !== 'caracteristicas'"
-                            [class.ph-minus]="accordionAbierto === 'caracteristicas'"></i>
+                        <i class="ph" [class.ph-plus]="!estaSeccionAbierta('caracteristicas')"
+                            [class.ph-minus]="estaSeccionAbierta('caracteristicas')"></i>
                     </button>
-                    <div class="product-accordion__body" *ngIf="accordionAbierto === 'caracteristicas'">
+                    <div class="product-accordion__body" *ngIf="estaSeccionAbierta('caracteristicas')">
                         <div class="mb-32" *ngIf="getEspecificaciones().length > 0">
                             <h6 class="mb-24">Especificaciones del producto</h6>
                             <ul class="mt-32">
@@ -934,22 +934,22 @@
                     <button type="button" class="product-accordion__header"
                         (click)="toggleAccordion('descripcion')">
                         <span>Descripción del producto</span>
-                        <i class="ph" [class.ph-plus]="accordionAbierto !== 'descripcion'"
-                            [class.ph-minus]="accordionAbierto === 'descripcion'"></i>
+                        <i class="ph" [class.ph-plus]="!estaSeccionAbierta('descripcion')"
+                            [class.ph-minus]="estaSeccionAbierta('descripcion')"></i>
                     </button>
-                    <div class="product-accordion__body" *ngIf="accordionAbierto === 'descripcion'">
-                        <div [innerHTML]="safeDescripcionDetallada"></div>
+                    <div class="product-accordion__body" *ngIf="estaSeccionAbierta('descripcion')">
+                        <!-- ✅ Descripción de Información (CRUD dinámico: título + texto) -->
+                        <ng-container *ngIf="getInformacionAdicional().length > 0; else descripcionBasica">
+                            <div class="mb-32" *ngFor="let item of getInformacionAdicional(); let last = last" [class.mb-0]="last">
+                                <h6 class="mb-24">{{ item.titulo }}</h6>
+                                <div [innerHTML]="item.textoSeguro"></div>
+                            </div>
+                        </ng-container>
 
-                        <div class="mt-32" *ngIf="detalles?.instrucciones_uso">
-                            <h6 class="mb-24">Instrucciones de uso</h6>
-                            <p class="text-gray-700">{{ detalles.instrucciones_uso }}</p>
-                        </div>
-
-                        <!-- ✅ Información adicional (CRUD dinámico: título + texto) -->
-                        <div class="mt-32" *ngFor="let item of getInformacionAdicional()">
-                            <h6 class="mb-24">{{ item.titulo }}</h6>
-                            <div [innerHTML]="getSafeHtml(item.texto)"></div>
-                        </div>
+                        <!-- Fallback: productos sin campos dinámicos cargados aún -->
+                        <ng-template #descripcionBasica>
+                            <div [innerHTML]="safeDescripcionDetallada"></div>
+                        </ng-template>
                     </div>
                 </div>
 
@@ -957,10 +957,10 @@
                     <button type="button" class="product-accordion__header"
                         (click)="toggleAccordion('manual')">
                         <span>Manual del usuario</span>
-                        <i class="ph" [class.ph-plus]="accordionAbierto !== 'manual'"
-                            [class.ph-minus]="accordionAbierto === 'manual'"></i>
+                        <i class="ph" [class.ph-plus]="!estaSeccionAbierta('manual')"
+                            [class.ph-minus]="estaSeccionAbierta('manual')"></i>
                     </button>
-                    <div class="product-accordion__body" *ngIf="accordionAbierto === 'manual'">
+                    <div class="product-accordion__body" *ngIf="estaSeccionAbierta('manual')">
                         <a [href]="producto.manual_pdf_url" target="_blank" rel="noopener"
                             class="btn bg-color-one rounded-16 flex-align gap-8 text-main-600 hover-bg-main-600 hover-text-white">
                             <i class="ph ph-file-pdf"></i>

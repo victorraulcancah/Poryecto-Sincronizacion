@@ -67,11 +67,19 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   esFavorito: boolean = false
   compartirMensaje: string = ''
 
-  // Acordeón de detalles: 'caracteristicas' | 'descripcion' | 'manual' | null
-  accordionAbierto: string | null = 'caracteristicas'
+  // Acordeón de detalles: cada sección se expande/colapsa de forma independiente
+  private seccionesAbiertas = new Set<string>(['caracteristicas'])
 
   toggleAccordion(seccion: string): void {
-    this.accordionAbierto = this.accordionAbierto === seccion ? null : seccion
+    if (this.seccionesAbiertas.has(seccion)) {
+      this.seccionesAbiertas.delete(seccion)
+    } else {
+      this.seccionesAbiertas.add(seccion)
+    }
+  }
+
+  estaSeccionAbierta(seccion: string): boolean {
+    return this.seccionesAbiertas.has(seccion)
   }
 
   productThumbSlider = { slidesToShow: 1, slidesToScroll: 1, arrows: false, fade: true, asNavFor: ".product-details__images-slider" };
@@ -602,12 +610,18 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
     try {
       if (!this.detalles?.informacion_adicional) return;
       let items = (typeof this.detalles.informacion_adicional === "string") ? JSON.parse(this.detalles.informacion_adicional) : this.detalles.informacion_adicional;
-      if (Array.isArray(items)) { this.informacionAdicionalProcesada = items.filter(i => i && i.titulo && i.texto); }
+      if (Array.isArray(items)) {
+        // ✅ El HTML seguro se calcula UNA sola vez aquí (no en el template) para
+        // evitar que Angular lo re-sanitice/re-renderice en cada ciclo de detección
+        // de cambios (eso congelaba la pestaña con textos largos o con imágenes).
+        this.informacionAdicionalProcesada = items
+          .filter(i => i && i.titulo && i.texto)
+          .map(i => ({ ...i, textoSeguro: this.sanitizer.bypassSecurityTrustHtml(i.texto) }));
+      }
     } catch (error) { console.warn("Error procesando información adicional:", error); }
   }
 
   getInformacionAdicional(): any[] { return this.informacionAdicionalProcesada; }
-  getSafeHtml(html: string): SafeHtml { return this.sanitizer.bypassSecurityTrustHtml(html || ''); }
 
   private procesarCaracteristicas(): void {
     this.caracteristicasProcesadas = [];
