@@ -30,6 +30,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/remove/{producto_id}', [CartController::class, 'remove']);
         Route::delete('/clear', [CartController::class, 'clear']);
         Route::post('/sync', [CartController::class, 'sync']);
+        Route::post('/save-for-later/{producto_id}', [CartController::class, 'saveForLater']);
+        Route::post('/move-to-cart/{producto_id}', [CartController::class, 'moveToCart']);
     });
 
     // ============================================

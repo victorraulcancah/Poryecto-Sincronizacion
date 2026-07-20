@@ -67,6 +67,7 @@ class CartController extends Controller
                 'stock_disponible' => (int) $item->producto->stock,
                 'codigo_producto' => $item->producto->codigo_producto,
                 'mostrar_igv' => (bool) $item->producto->mostrar_igv,
+                'guardado_para_despues' => (bool) $item->guardado_para_despues,
             ];
         });
 
@@ -221,6 +222,70 @@ if ($authenticatedUser instanceof \App\Models\User) {
     }
 
     /**
+     * Resuelve el CartItem del usuario autenticado para un producto dado,
+     * sin importar si está en el carrito o guardado para después.
+     */
+    private function resolverCartItem(Request $request, $producto_id): ?CartItem
+    {
+        $authenticatedUser = $request->user();
+
+        if (!$authenticatedUser) {
+            return null;
+        }
+
+        $query = CartItem::where('producto_id', $producto_id);
+
+        if ($authenticatedUser instanceof \App\Models\User) {
+            $query->where('user_id', $authenticatedUser->id);
+        } elseif ($authenticatedUser instanceof \App\Models\UserCliente) {
+            $query->where('user_cliente_id', $authenticatedUser->id);
+        } else {
+            return null;
+        }
+
+        return $query->first();
+    }
+
+    /**
+     * Marcar un producto del carrito como "guardado para después".
+     */
+    public function saveForLater(Request $request, $producto_id)
+    {
+        $cartItem = $this->resolverCartItem($request, $producto_id);
+
+        if (!$cartItem) {
+            return response()->json(['message' => 'Producto no encontrado en el carrito.'], 404);
+        }
+
+        $cartItem->guardado_para_despues = true;
+        $cartItem->save();
+
+        return response()->json(['message' => 'Producto guardado para después.']);
+    }
+
+    /**
+     * Devolver un producto guardado para después al carrito activo.
+     */
+    public function moveToCart(Request $request, $producto_id)
+    {
+        $cartItem = $this->resolverCartItem($request, $producto_id);
+
+        if (!$cartItem) {
+            return response()->json(['message' => 'Producto no encontrado en guardados.'], 404);
+        }
+
+        $producto = Producto::find($producto_id);
+        if ($producto && $producto->stock < $cartItem->cantidad) {
+            return response()->json(['message' => 'Stock insuficiente para mover este producto al carrito.'], 409);
+        }
+
+        $cartItem->guardado_para_despues = false;
+        $cartItem->save();
+
+        return response()->json(['message' => 'Producto movido al carrito.']);
+    }
+
+    /**
      * Vaciar todo el carrito del usuario.
      */
     public function clear(Request $request)
@@ -231,8 +296,10 @@ if ($authenticatedUser instanceof \App\Models\User) {
             return response()->json(['message' => 'Usuario no autenticado.'], 401);
         }
 
-        $query = CartItem::query();
-        
+        // ✅ Solo se vacían los items ACTIVOS del carrito; los "guardados para
+        // después" no se tocan (vaciar el carrito no debe borrar la lista guardada).
+        $query = CartItem::where('guardado_para_despues', false);
+
         // Verificar si es un User (admin) o UserCliente (cliente e-commerce)
         if ($authenticatedUser instanceof \App\Models\User) {
             $query->where('user_id', $authenticatedUser->id);
@@ -241,7 +308,7 @@ if ($authenticatedUser instanceof \App\Models\User) {
         } else {
             return response()->json(['message' => 'Tipo de usuario no válido.'], 401);
         }
-        
+
         $query->delete();
 
         return response()->json(['message' => 'Carrito vaciado exitosamente.']);

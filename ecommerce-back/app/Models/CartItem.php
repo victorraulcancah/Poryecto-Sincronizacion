@@ -11,11 +11,13 @@ class CartItem extends Model
         'user_id',
         'user_cliente_id',
         'producto_id',
-        'cantidad'
+        'cantidad',
+        'guardado_para_despues'
     ];
 
     protected $casts = [
-        'cantidad' => 'integer'
+        'cantidad' => 'integer',
+        'guardado_para_despues' => 'boolean'
     ];
 
     /**

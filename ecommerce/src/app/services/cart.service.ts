@@ -23,6 +23,7 @@ export interface CartItem {
   categoria?: string;
   marca?: string;
   mostrar_igv?: boolean;
+  guardado_para_despues?: boolean;
 }
 
 export interface CartSummary {
@@ -121,6 +122,24 @@ export class CartService {
     }
   }
 
+  public saveForLater(item: CartItem): Observable<any> {
+    if (this.authService.isLoggedIn()) {
+      return this.saveForLaterApi(item.producto_id);
+    } else {
+      this.saveForLaterLocal(item.id);
+      return of({ message: 'Producto guardado para después.' });
+    }
+  }
+
+  public moveToCart(item: CartItem): Observable<any> {
+    if (this.authService.isLoggedIn()) {
+      return this.moveToCartApi(item.producto_id);
+    } else {
+      this.moveToCartLocal(item.id);
+      return of({ message: 'Producto movido al carrito.' });
+    }
+  }
+
   public clearCart(): Observable<any> {
     if (this.authService.isLoggedIn()) {
       return this.clearCartApi();
@@ -156,7 +175,7 @@ export class CartService {
   }
 
   public isEmpty(): boolean {
-    return this.cartItemsSubject.value.length === 0;
+    return this.cartItemsSubject.value.every(item => item.guardado_para_despues);
   }
 
   public getTotalItems(): number {
@@ -220,6 +239,20 @@ export class CartService {
     );
   }
   
+
+  private saveForLaterApi(productoId: number): Observable<any> {
+    return this.http.post(`${this.API_URL}/save-for-later/${productoId}`, {}).pipe(
+      tap(() => this.loadCartFromApi().subscribe()),
+      catchError(this.handleError)
+    );
+  }
+
+  private moveToCartApi(productoId: number): Observable<any> {
+    return this.http.post(`${this.API_URL}/move-to-cart/${productoId}`, {}).pipe(
+      tap(() => this.loadCartFromApi().subscribe()),
+      catchError(this.handleError)
+    );
+  }
 
   private clearCartApi(): Observable<any> {
     return this.http.delete(`${this.API_URL}/clear`).pipe(
@@ -321,6 +354,26 @@ export class CartService {
     this.updateCartState(currentItems);
   }
 
+  private saveForLaterLocal(itemId: number): void {
+    const currentItems = this.cartItemsSubject.value;
+    const idx = currentItems.findIndex(item => item.id === itemId);
+    if (idx > -1) {
+      currentItems[idx].guardado_para_despues = true;
+      this.saveCartToStorage(currentItems);
+      this.updateCartState(currentItems);
+    }
+  }
+
+  private moveToCartLocal(itemId: number): void {
+    const currentItems = this.cartItemsSubject.value;
+    const idx = currentItems.findIndex(item => item.id === itemId);
+    if (idx > -1) {
+      currentItems[idx].guardado_para_despues = false;
+      this.saveCartToStorage(currentItems);
+      this.updateCartState(currentItems);
+    }
+  }
+
   private clearCartLocal(): void {
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem(this.STORAGE_KEY);
@@ -377,8 +430,11 @@ export class CartService {
 
   // REEMPLAZAR COMPLETAMENTE EL MÉTODO updateCartSummary:
   private updateCartSummary(items: CartItem[]): void {
+    // ✅ Los productos "guardados para después" no cuentan en el resumen/total del carrito
+    const itemsActivos = items.filter(item => !item.guardado_para_despues);
+
     // Calcular el total usando precio con descuento si existe
-    const total = items.reduce((sum, item) => {
+    const total = itemsActivos.reduce((sum, item) => {
       let precioFinal = item.precio || 0;
 
       // Si tiene descuento, usar precio_con_descuento
@@ -394,13 +450,13 @@ export class CartService {
     let igv = 0;
 
     // Solo calcular IGV si hay exactamente 1 producto Y ese producto tiene mostrar_igv = true
-    if (items.length === 1 && items[0].mostrar_igv === true) {
+    if (itemsActivos.length === 1 && itemsActivos[0].mostrar_igv === true) {
       // El precio ya incluye IGV, así que calculamos el subtotal sin IGV
       subtotal = total / 1.18;
       igv = total - subtotal;
     }
 
-    const cantidad_items = items.reduce((sum, item) => sum + (item.cantidad || 0), 0);
+    const cantidad_items = itemsActivos.reduce((sum, item) => sum + (item.cantidad || 0), 0);
 
     this.cartSummarySubject.next({
       subtotal: subtotal,
@@ -453,7 +509,8 @@ export class CartService {
   }
 
   public procesarPedido(datosCheckout: any): Observable<any> {
-    const items = this.cartItemsSubject.value;
+    // ✅ Los productos "guardados para después" no forman parte del pedido
+    const items = this.cartItemsSubject.value.filter(item => !item.guardado_para_despues);
     if (items.length === 0) {
       return throwError(() => new Error('El carrito está vacío'));
     }

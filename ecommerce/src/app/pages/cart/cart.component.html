@@ -75,7 +75,12 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let item of cartItems" class="border-bottom border-gray-100">
+                <tr *ngIf="productosEnCarrito.length === 0">
+                  <td colspan="5" class="text-center text-gray-500 py-24">
+                    No tienes productos en el carrito.
+                  </td>
+                </tr>
+                <tr *ngFor="let item of productosEnCarrito" class="border-bottom border-gray-100">
                   <!-- Producto -->
                   <td class="px-12 py-12">
                     <div class="d-flex align-items-center gap-12">
@@ -182,14 +187,31 @@
                   </td>
 
                   <!-- Acciones -->
-                  <td class="px-12 py-12 text-center" style="vertical-align: middle;">
+                  <td class="px-12 py-12 text-center position-relative" style="vertical-align: middle;">
                     <button
-                      class="btn bg-danger-50 hover-bg-danger-100 text-danger-600 rounded-6 d-flex align-items-center justify-content-center transition-2 mx-auto"
+                      type="button"
+                      class="btn bg-gray-50 hover-bg-gray-100 text-gray-700 rounded-6 d-flex align-items-center justify-content-center transition-2 mx-auto"
                       style="width: 32px; height: 32px;"
-                      (click)="removeProduct(item.id)"
-                      title="Eliminar producto">
-                      <i class="ph ph-trash" style="font-size: 0.9rem;"></i>
+                      (click)="toggleMenu(item.id, $event)"
+                      title="Más opciones">
+                      <i class="ph ph-dots-three-vertical" style="font-size: 1.1rem;"></i>
                     </button>
+
+                    <div *ngIf="menuAbiertoId === item.id"
+                         class="cart-item-menu position-absolute bg-white border border-gray-100 rounded-8 shadow-sm"
+                         style="right: 12px; top: 100%; z-index: 10; min-width: 180px; text-align: left;"
+                         (click)="$event.stopPropagation()">
+                      <button type="button"
+                              class="btn d-block w-100 text-start px-16 py-10 text-gray-900 border-0"
+                              (click)="guardarParaDespues(item)">
+                        Guardar para después
+                      </button>
+                      <button type="button"
+                              class="btn d-block w-100 text-start px-16 py-10 text-gray-900 border-0 border-top border-gray-100"
+                              (click)="removeProduct(item.id)">
+                        Eliminar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -266,6 +288,38 @@
             </div>
           </div>
         </div>
+
+        <!-- ✅ Guardados para después -->
+        <div *ngIf="productosGuardados.length > 0" class="cart-table border border-gray-100 rounded-12 p-24 mt-24">
+          <h6 class="text-heading fw-semibold mb-20">
+            Guardados para después ({{ productosGuardados.length }} productos)
+          </h6>
+
+          <div class="saved-carousel-wrapper d-flex align-items-center gap-8">
+            <button type="button" class="saved-carousel-nav" (click)="scrollGuardados(-1)" title="Anterior">
+              <i class="ph ph-caret-left"></i>
+            </button>
+
+            <div class="saved-carousel" #guardadosScroll>
+              <div class="saved-carousel__card" *ngFor="let item of productosGuardados">
+                <button type="button" class="saved-carousel__remove" (click)="eliminarDeGuardados(item)" title="Quitar de guardados">
+                  <i class="ph ph-x"></i>
+                </button>
+                <img [src]="item.imagen_url" [alt]="item.nombre" (error)="onImageError($event)">
+                <h6 class="saved-carousel__title" [title]="item.nombre">{{ item.nombre }}</h6>
+                <p class="saved-carousel__subtitle">Código: {{ item.codigo_producto }}</p>
+                <p class="saved-carousel__price" *ngIf="isLoggedIn">{{ item.moneda | moneda }} {{ formatPrice(item.precio) }}</p>
+                <button type="button" class="btn btn-main btn-sm w-100 rounded-6" (click)="moverAlCarrito(item)">
+                  Agregar
+                </button>
+              </div>
+            </div>
+
+            <button type="button" class="saved-carousel-nav" (click)="scrollGuardados(1)" title="Siguiente">
+              <i class="ph ph-caret-right"></i>
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Resumen del carrito -->
@@ -290,19 +344,19 @@
               <!-- Subtotal -->
               <div class="d-flex justify-content-between align-items-center mb-16">
                 <span class="text-gray-600">Subtotal ({{ cartSummary.cantidad_items }} items):</span>
-                <span class="text-heading fw-medium">{{ cartItems[0]?.moneda | moneda }} {{ formatPrice(cartSummary.subtotal) }}</span>
+                <span class="text-heading fw-medium">{{ productosEnCarrito[0]?.moneda | moneda }} {{ formatPrice(cartSummary.subtotal) }}</span>
               </div>
 
               <!-- IGV (solo mostrar si hay exactamente 1 producto Y tiene mostrar_igv = true) -->
-              <div *ngIf="cartItems.length === 1 && cartItems[0].mostrar_igv === true" class="d-flex justify-content-between align-items-center mb-16">
+              <div *ngIf="productosEnCarrito.length === 1 && productosEnCarrito[0].mostrar_igv === true" class="d-flex justify-content-between align-items-center mb-16">
                 <span class="text-gray-600">IGV (18%):</span>
-                <span class="text-heading fw-medium">{{ cartItems[0]?.moneda | moneda }} {{ formatPrice(cartSummary.igv) }}</span>
+                <span class="text-heading fw-medium">{{ productosEnCarrito[0]?.moneda | moneda }} {{ formatPrice(cartSummary.igv) }}</span>
               </div>
 
               <!-- Descuento por cupón -->
               <div *ngIf="descuentoCupon > 0" class="d-flex justify-content-between align-items-center mb-16">
                 <span class="text-success-600">Descuento cupón:</span>
-                <span class="text-success-600 fw-medium">-{{ cartItems[0]?.moneda | moneda }} {{ formatPrice(descuentoCupon) }}</span>
+                <span class="text-success-600 fw-medium">-{{ productosEnCarrito[0]?.moneda | moneda }} {{ formatPrice(descuentoCupon) }}</span>
               </div>
 
               <!-- Envío -->
@@ -316,7 +370,7 @@
               <!-- Total -->
               <div class="d-flex justify-content-between align-items-center mb-32">
                 <span class="text-heading text-xl fw-bold">Total:</span>
-                <span class="text-heading text-xl fw-bold">{{ cartItems[0]?.moneda | moneda }} {{ formatPrice(getTotalFinal()) }}</span>
+                <span class="text-heading text-xl fw-bold">{{ productosEnCarrito[0]?.moneda | moneda }} {{ formatPrice(getTotalFinal()) }}</span>
               </div>
             </ng-container>
 

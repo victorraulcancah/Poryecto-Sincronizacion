@@ -1,5 +1,5 @@
 // src/app/pages/cart/cart.component.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -28,7 +28,10 @@ export class CartComponent implements OnInit, OnDestroy {
   isUpdating = false;
   isLoggedIn = false;
   isValidatingCupon = false;
+  menuAbiertoId: number | null = null;
   private destroy$ = new Subject<void>();
+
+  @ViewChild('guardadosScroll') guardadosScroll?: ElementRef<HTMLDivElement>;
 
   constructor(
     private cartService: CartService,
@@ -36,6 +39,14 @@ export class CartComponent implements OnInit, OnDestroy {
     private ofertasService: OfertasService,
     private router: Router
   ) {}
+
+  get productosEnCarrito(): CartItem[] {
+    return this.cartItems.filter(item => !item.guardado_para_despues);
+  }
+
+  get productosGuardados(): CartItem[] {
+    return this.cartItems.filter(item => item.guardado_para_despues);
+  }
 
   ngOnInit(): void {
     this.cartService.cartItems$.pipe(takeUntil(this.destroy$)).subscribe(items => { 
@@ -107,36 +118,68 @@ export class CartComponent implements OnInit, OnDestroy {
 
   removeProduct(itemId: number): void {
     if (!itemId) return;
-    
+
     const itemToRemove = this.cartItems.find(i => i.id === itemId);
     if (!itemToRemove) return;
 
-    Swal.fire({
-      title: '¿Eliminar producto?',
-      text: `¿Estás seguro de que quieres eliminar "${itemToRemove.nombre || 'Producto'}" del carrito?`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#dc3545',
-      cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.cartService.removeFromCart(itemToRemove).subscribe(() => {
-          Swal.fire({ 
-            title: '¡Eliminado!', 
-            text: 'El producto ha sido eliminado del carrito.', 
-            icon: 'success', 
-            timer: 2000, 
-            showConfirmButton: false 
-          });
+    this.cerrarMenu();
+    // ✅ Eliminación instantánea, sin modal de confirmación
+    this.cartService.removeFromCart(itemToRemove).subscribe();
+  }
+
+  toggleMenu(itemId: number, event: Event): void {
+    event.stopPropagation();
+    this.menuAbiertoId = this.menuAbiertoId === itemId ? null : itemId;
+  }
+
+  cerrarMenu(): void {
+    this.menuAbiertoId = null;
+  }
+
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    this.cerrarMenu();
+  }
+
+  guardarParaDespues(item: CartItem): void {
+    this.cerrarMenu();
+    this.cartService.saveForLater(item).subscribe({
+      error: () => {
+        Swal.fire({
+          title: 'Error',
+          text: 'No se pudo guardar el producto para después.',
+          icon: 'error',
+          confirmButtonColor: '#dc3545'
         });
       }
     });
   }
 
+  moverAlCarrito(item: CartItem): void {
+    this.cartService.moveToCart(item).subscribe({
+      error: (err) => {
+        Swal.fire({
+          title: 'No se pudo mover al carrito',
+          text: err?.message || 'Verifica el stock disponible.',
+          icon: 'warning',
+          confirmButtonColor: '#dc3545'
+        });
+      }
+    });
+  }
+
+  eliminarDeGuardados(item: CartItem): void {
+    this.cartService.removeFromCart(item).subscribe();
+  }
+
+  scrollGuardados(direccion: number): void {
+    const el = this.guardadosScroll?.nativeElement;
+    if (!el) return;
+    el.scrollBy({ left: direccion * 260, behavior: 'smooth' });
+  }
+
   clearCart(): void {
-    if (this.cartItems.length === 0) return;
+    if (this.productosEnCarrito.length === 0) return;
     Swal.fire({
       title: '¿Vaciar carrito?',
       text: '¿Estás seguro de que quieres eliminar todos los productos del carrito?',
@@ -248,7 +291,7 @@ export class CartComponent implements OnInit, OnDestroy {
   }
 
   proceedToCheckout(): void {
-    if (this.cartItems.length === 0) {
+    if (this.productosEnCarrito.length === 0) {
       Swal.fire('Carrito vacío', 'Agrega productos al carrito antes de continuar', 'warning');
       return;
     }
