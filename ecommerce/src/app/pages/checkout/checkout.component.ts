@@ -6,6 +6,7 @@ import { combineLatest, firstValueFrom } from 'rxjs';
 import { BreadcrumbComponent } from '../../component/breadcrumb/breadcrumb.component';
 import { ShippingComponent } from '../../component/shipping/shipping.component';
 import { CheckoutStepsComponent } from '../../component/checkout-steps/checkout-steps.component';
+import { ModalDireccionComponent } from '../../component/modal-direccion/modal-direccion.component';
 import { CartService, CartItem, CartSummary } from '../../services/cart.service';
 import { AuthService } from '../../services/auth.service';
 import { UbigeoService, Departamento, Provincia, Distrito } from '../../services/ubigeo.service';
@@ -32,6 +33,7 @@ import Swal from 'sweetalert2';
     BreadcrumbComponent,
     ShippingComponent,
     CheckoutStepsComponent,
+    ModalDireccionComponent,
     MonedaPipe
   ],
   templateUrl: './checkout.component.html',
@@ -59,6 +61,10 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   pasoActual: 2 | 3 = 2;
   // ✅ Solo se pide el celular manualmente si el perfil del cliente no tiene uno registrado
   mostrarCelularManual = true;
+  // ✅ Modal para elegir entre las direcciones guardadas del cliente
+  mostrarModalDirecciones = false;
+  // ✅ Modal para crear una dirección nueva (con su propio botón "Guardar")
+  mostrarModalNuevaDireccion = false;
   private readonly camposEntrega = [
     'cliente', 'direccion', 'celular', 'departamento', 'provincia', 'distrito', 'formaEnvio', 'email'
   ];
@@ -681,7 +687,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     return numPrice.toFixed(2);
   }
 
-  private loadDireccionesGuardadas(): void {
+  private loadDireccionesGuardadas(seleccionarMasReciente: boolean = false): void {
     if (this.isLoggedIn) {
       this.direccionesService.obtenerDirecciones()
         .pipe(takeUntil(this.destroy$))
@@ -689,6 +695,15 @@ export class CheckoutComponent implements OnInit, OnDestroy {
           next: (response) => {
             if (response.status === 'success') {
               this.direccionesGuardadas = response.direcciones || [];
+
+              if (seleccionarMasReciente && this.direccionesGuardadas.length > 0) {
+                // ✅ Recién agregada desde el modal de nueva dirección: seleccionar la última creada
+                const masReciente = [...this.direccionesGuardadas].sort((a, b) =>
+                  new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+                )[0];
+                this.seleccionarDireccion(masReciente);
+                return;
+              }
 
               const direccionPredeterminada = this.direccionesGuardadas.find(d => d.predeterminada);
               if (direccionPredeterminada && !this.usarDireccionPersonalizada) {
@@ -701,9 +716,33 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     }
   }
 
+  abrirModalDirecciones(): void {
+    this.mostrarModalDirecciones = true;
+  }
+
+  cerrarModalDirecciones(): void {
+    this.mostrarModalDirecciones = false;
+  }
+
+  abrirModalNuevaDireccion(): void {
+    this.mostrarModalDirecciones = false;
+    this.mostrarModalNuevaDireccion = true;
+  }
+
+  cerrarModalNuevaDireccion(): void {
+    this.mostrarModalNuevaDireccion = false;
+  }
+
+  onNuevaDireccionGuardada(): void {
+    this.mostrarModalNuevaDireccion = false;
+    this.usarDireccionPersonalizada = false;
+    this.loadDireccionesGuardadas(true);
+  }
+
   seleccionarDireccion(direccion: Direccion): void {
     this.direccionSeleccionada = direccion;
     this.usarDireccionPersonalizada = false;
+    this.cerrarModalDirecciones();
 
     this.checkoutForm.patchValue({
       cliente: direccion.nombre_destinatario,
@@ -728,25 +767,6 @@ export class CheckoutComponent implements OnInit, OnDestroy {
             });
           }
         });
-      }
-    }
-  }
-
-  onCambiarTipoDireccion(): void {
-    if (this.usarDireccionPersonalizada) {
-      this.direccionSeleccionada = null;
-      this.checkoutForm.patchValue({
-        direccion: '',
-        departamento: '',
-        provincia: '',
-        distrito: ''
-      });
-      this.provincias = [];
-      this.distritos = [];
-    } else {
-      const direccionPredeterminada = this.direccionesGuardadas.find(d => d.predeterminada);
-      if (direccionPredeterminada) {
-        this.seleccionarDireccion(direccionPredeterminada);
       }
     }
   }

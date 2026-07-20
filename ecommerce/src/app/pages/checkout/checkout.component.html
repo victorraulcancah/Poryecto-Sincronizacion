@@ -83,113 +83,72 @@
                   </div>
                 </div>
 
-                <!-- Direcciones Guardadas -->
-                <div class="mb-20" *ngIf="direccionesGuardadas.length > 0">
+                <!-- Dirección de entrega: resumen + Cambiar/Elegir/Agregar dirección -->
+                <div class="mb-20">
                   <label class="form-label text-heading fw-medium">
-                    Direcciones Guardadas
+                    Dirección de entrega <span class="text-danger">*</span>
                   </label>
-                  <div class="row g-2">
-                    <div
-                      class="col-12"
-                      *ngFor="let direccion of direccionesGuardadas"
-                    >
-                      <div
-                        class="border border-gray-100 rounded-8 p-12 cursor-pointer hover-bg-main-25 transition-2"
-                        [class.border-main-600]="
-                          direccionSeleccionada?.id === direccion.id
-                        "
-                        [class.bg-main-25]="
-                          direccionSeleccionada?.id === direccion.id
-                        "
-                        (click)="seleccionarDireccion(direccion)"
-                      >
-                        <div class="flex-between align-items-start">
-                          <div class="flex-grow-1">
-                            <div class="flex-align gap-8 mb-4">
-                              <input
-                                type="radio"
-                                [checked]="
-                                  direccionSeleccionada?.id === direccion.id
-                                "
-                                name="direccionGuardada"
-                              />
-                              <h6 class="mb-0 text-sm fw-medium">
-                                {{ direccion.nombre_destinatario }}
-                              </h6>
-                              <span
-                                *ngIf="direccion.predeterminada"
-                                class="bg-success-50 text-success-600 px-6 py-1 rounded-pill text-xs"
-                              >
-                                Principal
-                              </span>
-                            </div>
-                            <p class="text-sm text-gray-600 mb-2">
-                              {{ direccion.direccion_completa }}
-                            </p>
-                            <p
-                              class="text-xs text-gray-500 mb-0"
-                              *ngIf="direccion.ubigeo"
-                            >
-                              {{ direccion.ubigeo.distrito_nombre }},
-                              {{ direccion.ubigeo.provincia_nombre }},
-                              {{ direccion.ubigeo.departamento_nombre }}
-                            </p>
-                          </div>
+
+                  <div class="border border-main-600 bg-main-25 rounded-8 p-12" *ngIf="direccionSeleccionada">
+                    <div class="flex-between align-items-start gap-12">
+                      <div class="flex-grow-1">
+                        <div class="flex-align gap-8 mb-4">
+                          <h6 class="mb-0 text-sm fw-medium">
+                            {{ direccionSeleccionada.nombre_destinatario }}
+                          </h6>
+                          <span
+                            *ngIf="direccionSeleccionada.predeterminada"
+                            class="bg-success-50 text-success-600 px-6 py-1 rounded-pill text-xs"
+                          >
+                            Principal
+                          </span>
                         </div>
+                        <p class="text-sm text-gray-600 mb-2">
+                          {{ direccionSeleccionada.direccion_completa }}
+                        </p>
+                        <p
+                          class="text-xs text-gray-500 mb-0"
+                          *ngIf="direccionSeleccionada.ubigeo"
+                        >
+                          {{ direccionSeleccionada.ubigeo.distrito_nombre }},
+                          {{ direccionSeleccionada.ubigeo.provincia_nombre }},
+                          {{ direccionSeleccionada.ubigeo.departamento_nombre }}
+                        </p>
                       </div>
-                    </div>
-                  </div>
-
-                  <!-- Checkbox para usar dirección personalizada -->
-                  <div class="mt-12">
-                    <div class="form-check">
-                      <input
-                        class="form-check-input"
-                        type="checkbox"
-                        [(ngModel)]="usarDireccionPersonalizada"
-                        [ngModelOptions]="{ standalone: true }"
-                        (change)="onCambiarTipoDireccion()"
-                        id="usarDireccionPersonalizada"
-                      />
-                      <label
-                        class="form-check-label text-sm"
-                        for="usarDireccionPersonalizada"
+                      <button
+                        type="button"
+                        class="btn btn-sm bg-main-600 text-white rounded-6 flex-shrink-0"
+                        (click)="abrirModalDirecciones()"
                       >
-                        Usar una dirección diferente
-                      </label>
+                        Cambiar dirección
+                      </button>
                     </div>
                   </div>
-                </div>
 
-                <!-- Dirección Manual -->
-                <div
-                  class="mb-20"
-                  *ngIf="
-                    direccionesGuardadas.length === 0 ||
-                    usarDireccionPersonalizada
-                  "
-                >
-                  <label class="form-label text-heading fw-medium">
-                    <span *ngIf="direccionesGuardadas.length === 0"
-                      >Dirección</span
+                  <div class="border border-dashed border-gray-300 rounded-8 p-16 text-center" *ngIf="!direccionSeleccionada">
+                    <p class="text-sm text-gray-500 mb-12">No tienes una dirección seleccionada.</p>
+                    <button
+                      *ngIf="direccionesGuardadas.length > 0"
+                      type="button"
+                      class="btn btn-sm bg-main-600 text-white rounded-6"
+                      (click)="abrirModalDirecciones()"
                     >
-                    <span *ngIf="direccionesGuardadas.length > 0"
-                      >Dirección Personalizada</span
+                      <i class="ph ph-map-pin me-4"></i>
+                      Elegir dirección guardada
+                    </button>
+                    <button
+                      *ngIf="direccionesGuardadas.length === 0"
+                      type="button"
+                      class="btn btn-sm bg-main-600 text-white rounded-6"
+                      (click)="abrirModalNuevaDireccion()"
                     >
-                    <span class="text-danger">*</span>
-                  </label>
-                  <textarea
-                    class="form-control rounded-8"
-                    formControlName="direccion"
-                    rows="2"
-                    placeholder="Ingrese su dirección completa"
-                    [class.is-invalid]="
-                      checkoutForm.get('direccion')?.invalid &&
-                      checkoutForm.get('direccion')?.touched
-                    "
-                  ></textarea>
+                      <i class="ph ph-plus me-4"></i>
+                      Agregar dirección
+                    </button>
+                  </div>
+
                   <div
-                    class="invalid-feedback"
+                    class="invalid-feedback d-block"
                     *ngIf="
                       checkoutForm.get('direccion')?.invalid &&
                       checkoutForm.get('direccion')?.touched
@@ -226,8 +185,9 @@
                   </div>
                 </div>
 
-                <!-- Ubigeo -->
-                <div class="row mb-20">
+                <!-- Ubigeo: se completa automáticamente al elegir/agregar la dirección de entrega.
+                     Oculto con *ngIf="false" — no se borra por si se necesita revertir. -->
+                <div class="row mb-20" *ngIf="false">
                   <!-- Departamento -->
                   <div class="col-md-4 mb-16 mb-md-0">
                     <label class="form-label text-heading fw-medium">
@@ -724,6 +684,76 @@
   </div>
 </section>
 <!-- ================================ Checkout Section End ================================ -->
+
+<!-- ========================== Modal: Elegir dirección de entrega ============================ -->
+<div *ngIf="mostrarModalDirecciones" class="modal d-block" style="background-color: rgba(0,0,0,0.5);" (click)="cerrarModalDirecciones()">
+  <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header border-bottom border-gray-100">
+        <h5 class="modal-title fw-semibold text-heading">
+          <i class="ph ph-map-pin me-8 text-main-600"></i>
+          Elegir dirección de entrega
+        </h5>
+        <button type="button" class="btn-close" (click)="cerrarModalDirecciones()"></button>
+      </div>
+
+      <div class="modal-body p-24" style="max-height: 60vh; overflow-y: auto;">
+        <div class="row g-2">
+          <div class="col-12" *ngFor="let direccion of direccionesGuardadas">
+            <div
+              class="border border-gray-100 rounded-8 p-12 cursor-pointer hover-bg-main-25 transition-2"
+              [class.border-main-600]="direccionSeleccionada?.id === direccion.id"
+              [class.bg-main-25]="direccionSeleccionada?.id === direccion.id"
+              (click)="seleccionarDireccion(direccion)"
+            >
+              <div class="flex-align gap-8 mb-4">
+                <input
+                  type="radio"
+                  [checked]="direccionSeleccionada?.id === direccion.id"
+                  name="direccionGuardadaModal"
+                />
+                <h6 class="mb-0 text-sm fw-medium">{{ direccion.nombre_destinatario }}</h6>
+                <span
+                  *ngIf="direccion.predeterminada"
+                  class="bg-success-50 text-success-600 px-6 py-1 rounded-pill text-xs"
+                >
+                  Principal
+                </span>
+              </div>
+              <p class="text-sm text-gray-600 mb-2">{{ direccion.direccion_completa }}</p>
+              <p class="text-xs text-gray-500 mb-0" *ngIf="direccion.ubigeo">
+                {{ direccion.ubigeo.distrito_nombre }},
+                {{ direccion.ubigeo.provincia_nombre }},
+                {{ direccion.ubigeo.departamento_nombre }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer border-top border-gray-100">
+        <button
+          type="button"
+          class="btn bg-gray-100 hover-bg-gray-200 text-gray-600 w-100 rounded-8"
+          (click)="abrirModalNuevaDireccion()"
+        >
+          <i class="ph ph-plus me-8"></i>
+          Agregar una dirección nueva
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================== Modal: Agregar dirección nueva (con botón Guardar) ============================ -->
+<app-modal-direccion
+  [show]="mostrarModalNuevaDireccion"
+  mode="create"
+  [direccion]="null"
+  [departamentos]="departamentos"
+  (direccionGuardada)="onNuevaDireccionGuardada()"
+  (cerrar)="cerrarModalNuevaDireccion()"
+></app-modal-direccion>
 
 <!-- ========================== Shipping Section Start ============================ -->
 <app-shipping></app-shipping>
