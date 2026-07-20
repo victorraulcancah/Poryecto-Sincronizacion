@@ -944,6 +944,12 @@
                             <h6 class="mb-24">Instrucciones de uso</h6>
                             <p class="text-gray-700">{{ detalles.instrucciones_uso }}</p>
                         </div>
+
+                        <!-- ✅ Información adicional (CRUD dinámico: título + texto) -->
+                        <div class="mt-32" *ngFor="let item of getInformacionAdicional()">
+                            <h6 class="mb-24">{{ item.titulo }}</h6>
+                            <div [innerHTML]="getSafeHtml(item.texto)"></div>
+                        </div>
                     </div>
                 </div>
 

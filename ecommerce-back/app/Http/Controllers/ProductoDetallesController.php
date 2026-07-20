@@ -56,6 +56,7 @@ class ProductoDetallesController extends Controller
                 'instrucciones_uso' => 'nullable|string',
                 'garantia' => 'nullable|string',
                 'politicas_devolucion' => 'nullable|string',
+                'informacion_adicional' => 'nullable|string', // Recibimos como string JSON
                 'especificaciones' => 'nullable|string', // Recibimos como string JSON
                 'caracteristicas_tecnicas' => 'nullable|string', // Recibimos como string JSON
                 'dimensiones' => 'nullable|string', // Recibimos como string JSON
@@ -74,10 +75,13 @@ class ProductoDetallesController extends Controller
             // Procesar datos JSON
             $especificaciones = $this->processJsonField($request->input('especificaciones'));
             $caracteristicasTecnicas = $this->processJsonField($request->input('caracteristicas_tecnicas'));
+            $informacionAdicional = $this->processJsonField($request->input('informacion_adicional'));
             $dimensiones = $this->processJsonField($request->input('dimensiones'));
             $videos = $this->processJsonField($request->input('videos'));
 
-            // Obtener detalles existentes para manejar imágenes
+            // Obtener detalles existentes para manejar imágenes y preservar los campos
+            // fijos (descripcion_detallada, garantia, etc.) que el formulario ya no envía
+            // desde que pasaron a formar parte de "informacion_adicional".
             $detallesExistentes = ProductoDetalle::where('producto_id', $id)->first();
 
             // Procesar imágenes - AGREGAR a las existentes, no reemplazar
@@ -104,10 +108,19 @@ class ProductoDetallesController extends Controller
             $detalles = ProductoDetalle::updateOrCreate(
                 ['producto_id' => $id],
                 [
-                    'descripcion_detallada' => $request->input('descripcion_detallada'),
-                    'instrucciones_uso' => $request->input('instrucciones_uso'),
-                    'garantia' => $request->input('garantia'),
-                    'politicas_devolucion' => $request->input('politicas_devolucion'),
+                    'descripcion_detallada' => $request->has('descripcion_detallada')
+                        ? $request->input('descripcion_detallada')
+                        : optional($detallesExistentes)->descripcion_detallada,
+                    'instrucciones_uso' => $request->has('instrucciones_uso')
+                        ? $request->input('instrucciones_uso')
+                        : optional($detallesExistentes)->instrucciones_uso,
+                    'garantia' => $request->has('garantia')
+                        ? $request->input('garantia')
+                        : optional($detallesExistentes)->garantia,
+                    'politicas_devolucion' => $request->has('politicas_devolucion')
+                        ? $request->input('politicas_devolucion')
+                        : optional($detallesExistentes)->politicas_devolucion,
+                    'informacion_adicional' => $informacionAdicional,
                     'especificaciones' => $especificaciones,
                     'caracteristicas_tecnicas' => $caracteristicasTecnicas,
                     'dimensiones' => $dimensiones,

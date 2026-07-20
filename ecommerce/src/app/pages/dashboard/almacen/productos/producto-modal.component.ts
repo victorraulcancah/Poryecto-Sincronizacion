@@ -134,10 +134,7 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
     });
 
     this.detallesForm = this.fb.group({
-      descripcion_detallada: [''],
-      instrucciones_uso: [''],
-      garantia: [''],
-      politicas_devolucion: [''],
+      informacion_adicional: this.fb.array([]),
       especificaciones: this.fb.array([]),
       caracteristicas_tecnicas: this.fb.array([]),
       videos: this.fb.array([]),
@@ -243,10 +240,6 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
 
     // Resetear formulario de detalles
     this.detallesForm.reset({
-      descripcion_detallada: '',
-      instrucciones_uso: '',
-      garantia: '',
-      politicas_devolucion: '',
       largo: '',
       ancho: '',
       alto: '',
@@ -254,6 +247,7 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
     });
 
     // Limpiar arrays
+    this.informacionAdicional.clear();
     this.especificaciones.clear();
     this.caracteristicasTecnicas.clear();
     this.videos.clear();
@@ -276,6 +270,7 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
     this.activeTab = 'basico';
 
     // Agregar elementos por defecto
+    this.agregarInformacionAdicional('Descripción Detallada');
     this.agregarEspecificacion();
     this.agregarCaracteristicaTecnica();
   }
@@ -321,13 +316,51 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
         const detalles = response.detalles;
 
         if (detalles) {
-          // Cargar datos básicos
-          this.detallesForm.patchValue({
-            descripcion_detallada: detalles.descripcion_detallada || '',
-            instrucciones_uso: detalles.instrucciones_uso || '',
-            garantia: detalles.garantia || '',
-            politicas_devolucion: detalles.politicas_devolucion || '',
-          });
+          // Cargar información adicional (título + texto enriquecido, CRUD dinámico)
+          let informacionAdicional = detalles.informacion_adicional;
+          if (typeof informacionAdicional === 'string') {
+            try {
+              informacionAdicional = JSON.parse(informacionAdicional);
+            } catch (e) {
+              informacionAdicional = null;
+            }
+          }
+
+          this.informacionAdicional.clear();
+          if (
+            informacionAdicional &&
+            Array.isArray(informacionAdicional) &&
+            informacionAdicional.length > 0
+          ) {
+            informacionAdicional.forEach((item: any) => {
+              this.informacionAdicional.push(
+                this.fb.group({
+                  titulo: [item.titulo || ''],
+                  texto: [item.texto || ''],
+                })
+              );
+            });
+          } else {
+            // ✅ Migración de los campos fijos antiguos (descripcion_detallada, garantia,
+            // instrucciones_uso, politicas_devolucion) a filas iniciales editables.
+            const camposAntiguos = [
+              { titulo: 'Descripción Detallada', texto: detalles.descripcion_detallada },
+              { titulo: 'Garantía', texto: detalles.garantia },
+              { titulo: 'Instrucciones de Uso', texto: detalles.instrucciones_uso },
+              { titulo: 'Políticas de Devolución', texto: detalles.politicas_devolucion },
+            ].filter((campo) => campo.texto && campo.texto.trim() !== '');
+
+            if (camposAntiguos.length > 0) {
+              camposAntiguos.forEach((campo) => {
+                this.informacionAdicional.push(
+                  this.fb.group({ titulo: [campo.titulo], texto: [campo.texto] })
+                );
+              });
+            } else {
+              // Sin nada guardado: dejar la fila "Descripción Detallada" por defecto, como antes.
+              this.agregarInformacionAdicional('Descripción Detallada');
+            }
+          }
 
           // Cargar dimensiones
           let dimensiones = detalles.dimensiones;
@@ -622,6 +655,10 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
 
   // ==================== GETTERS PARA FORM ARRAYS ====================
 
+  get informacionAdicional() {
+    return this.detallesForm.get('informacion_adicional') as FormArray;
+  }
+
   get especificaciones() {
     return this.detallesForm.get('especificaciones') as FormArray;
   }
@@ -632,6 +669,20 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
 
   get videos() {
     return this.detallesForm.get('videos') as FormArray;
+  }
+
+  // ==================== MÉTODOS PARA INFORMACIÓN ADICIONAL ====================
+
+  agregarInformacionAdicional(tituloInicial: string = ''): void {
+    const grupo = this.fb.group({
+      titulo: [tituloInicial],
+      texto: [''],
+    });
+    this.informacionAdicional.push(grupo);
+  }
+
+  eliminarInformacionAdicional(index: number): void {
+    this.informacionAdicional.removeAt(index);
   }
 
   // ==================== MÉTODOS PARA ESPECIFICACIONES ====================
@@ -842,20 +893,11 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
   private guardarDetalles(productoId: number): void {
     const formData = new FormData();
 
-    // Datos básicos
-    formData.append(
-      'descripcion_detallada',
-      this.detallesForm.get('descripcion_detallada')?.value || ''
+    // Información adicional (título + texto, CRUD dinámico)
+    const informacionAdicional = this.informacionAdicional.value.filter(
+      (item: any) => item.titulo && item.titulo.trim() !== ''
     );
-    formData.append(
-      'instrucciones_uso',
-      this.detallesForm.get('instrucciones_uso')?.value || ''
-    );
-    formData.append('garantia', this.detallesForm.get('garantia')?.value || '');
-    formData.append(
-      'politicas_devolucion',
-      this.detallesForm.get('politicas_devolucion')?.value || ''
-    );
+    formData.append('informacion_adicional', JSON.stringify(informacionAdicional));
 
     // Dimensiones
     const dimensiones = {

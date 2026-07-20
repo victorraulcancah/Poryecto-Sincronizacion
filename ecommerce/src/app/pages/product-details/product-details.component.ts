@@ -59,6 +59,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   private isMobileDevice = false
   especificacionesProcesadas: any[] = []
   caracteristicasProcesadas: any[] = []
+  informacionAdicionalProcesada: any[] = []
   safeDescripcionDetallada: SafeHtml = ""
   environment = environment
   nombreEmpresa: string = 'MAGUS' // Valor por defecto
@@ -279,6 +280,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
     this.configurarImagenes()
     this.procesarEspecificaciones()
     this.procesarCaracteristicas()
+    this.procesarInformacionAdicional()
     const rawDescription = this.detalles?.descripcion_detallada || this.producto?.descripcion || ""
     this.safeDescripcionDetallada = this.sanitizer.bypassSecurityTrustHtml(rawDescription)
 
@@ -594,6 +596,18 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
       if (Array.isArray(specs)) { this.especificacionesProcesadas = specs.filter(s => s && s.nombre && s.valor); }
     } catch (error) { console.warn("Error procesando especificaciones:", error); }
   }
+
+  private procesarInformacionAdicional(): void {
+    this.informacionAdicionalProcesada = [];
+    try {
+      if (!this.detalles?.informacion_adicional) return;
+      let items = (typeof this.detalles.informacion_adicional === "string") ? JSON.parse(this.detalles.informacion_adicional) : this.detalles.informacion_adicional;
+      if (Array.isArray(items)) { this.informacionAdicionalProcesada = items.filter(i => i && i.titulo && i.texto); }
+    } catch (error) { console.warn("Error procesando información adicional:", error); }
+  }
+
+  getInformacionAdicional(): any[] { return this.informacionAdicionalProcesada; }
+  getSafeHtml(html: string): SafeHtml { return this.sanitizer.bypassSecurityTrustHtml(html || ''); }
 
   private procesarCaracteristicas(): void {
     this.caracteristicasProcesadas = [];

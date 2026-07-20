@@ -19,6 +19,7 @@ class ProductoDetalle extends Model
         'instrucciones_uso',
         'garantia',
         'politicas_devolucion',
+        'informacion_adicional',
         'dimensiones',
         'imagenes',
         'videos'
@@ -27,6 +28,7 @@ class ProductoDetalle extends Model
     protected $casts = [
         'especificaciones' => 'array',
         'caracteristicas_tecnicas' => 'array',
+        'informacion_adicional' => 'array',
         'dimensiones' => 'array',
         'imagenes' => 'array',
         'videos' => 'array'

@@ -457,49 +457,76 @@
             </form>
           </div>
 
-          <!-- Tab: Descripción Detallada -->
+          <!-- Tab: Descripción de Información (CRUD dinámico: título + texto enriquecido) -->
           <div *ngIf="activeTab === 'descripcion'" class="animate__animated animate__fadeIn animate__faster">
             <form [formGroup]="detallesForm">
-              <div class="row">
-                <div class="col-md-8 mb-16">
-                  <label class="form-label text-heading fw-medium mb-8">Descripción Detallada</label>
+              <div class="d-flex justify-content-between align-items-center mb-16">
+                <h6 class="mb-0">Descripción de Información</h6>
+                <button type="button" class="btn btn-sm bg-main-600 text-white"
+                        (click)="agregarInformacionAdicional()">
+                  <i class="ph ph-plus me-8"></i>Agregar campo
+                </button>
+              </div>
+
+              <div formArrayName="informacion_adicional">
+                <div *ngFor="let item of informacionAdicional.controls; let i = index"
+                     [formGroupName]="i" class="border border-gray-100 rounded-8 p-16 mb-16">
+                  <div class="d-flex align-items-center gap-12 mb-12">
+                    <input type="text" class="form-control"
+                           formControlName="titulo" placeholder="Título (ej: Descripción Detallada, Garantía...)">
+                    <button type="button" class="btn btn-sm btn-danger rounded-circle flex-shrink-0"
+                            style="width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center;"
+                            (click)="eliminarInformacionAdicional(i)"
+                            title="Eliminar campo">
+                      <i class="ph ph-trash text-xs"></i>
+                    </button>
+                  </div>
                   <div class="quill-wrapper">
                     <quill-editor
-                      formControlName="descripcion_detallada"
-                      [style]="{'min-height': '200px'}"
+                      formControlName="texto"
+                      [style]="{'min-height': '150px'}"
                       [modules]="quillConfig"
                       theme="snow"
                       format="html"
-                      placeholder="Escribe una descripción detallada del producto...">
+                      placeholder="Escribe el contenido de este campo...">
                     </quill-editor>
                   </div>
                 </div>
-
-                <div class="col-md-4 mb-16">
-                  <label class="form-label text-heading fw-medium mb-8">Garantía</label>
-                  <textarea class="form-control px-16 py-12 border rounded-8"
-                            rows="10"
-                            formControlName="garantia"
-                            placeholder="Información sobre la garantía..."></textarea>
-                </div>
-
-                <div class="col-md-6 mb-16">
-                  <label class="form-label text-heading fw-medium mb-8">Instrucciones de Uso</label>
-                  <textarea class="form-control px-16 py-12 border rounded-8"
-                            rows="4"
-                            formControlName="instrucciones_uso"
-                            placeholder="Instrucciones de uso del producto..."></textarea>
-                </div>
-
-                <div class="col-md-6 mb-16">
-                  <label class="form-label text-heading fw-medium mb-8">Políticas de Devolución</label>
-                  <textarea class="form-control px-16 py-12 border rounded-8"
-                            rows="4"
-                            formControlName="politicas_devolucion"
-                            placeholder="Políticas de devolución..."></textarea>
-                </div>
               </div>
             </form>
+
+            <!-- Manual del Usuario (PDF) -->
+            <hr class="my-24">
+            <div class="d-flex justify-content-between align-items-center mb-16">
+              <h6 class="mb-0">Manual del Usuario (PDF)</h6>
+              <label class="btn btn-sm bg-main-600 text-white cursor-pointer" *ngIf="!manualPreview">
+                <i class="ph ph-upload me-8"></i>Subir Manual
+                <input type="file" class="d-none" accept="application/pdf"
+                       (change)="onManualSelected($event)">
+              </label>
+            </div>
+
+            <div *ngIf="manualPreview" class="d-flex align-items-center justify-content-between border-2 border-dashed border-gray-200 rounded-8 p-16">
+              <div class="d-flex align-items-center gap-8">
+                <i class="ph ph-file-pdf text-danger" style="font-size: 32px;"></i>
+                <div>
+                  <p class="mb-0 text-gray-700">{{ manualNombre }}</p>
+                  <a [href]="manualPreview" target="_blank" class="text-sm text-main-600">Ver manual</a>
+                </div>
+              </div>
+              <button type="button" class="btn btn-sm btn-danger" (click)="eliminarManual()">
+                <i class="ph ph-trash me-4"></i>Quitar
+              </button>
+            </div>
+
+            <div *ngIf="!manualPreview" class="text-center py-24">
+              <i class="ph ph-file-pdf text-gray-300" style="font-size: 40px;"></i>
+              <p class="text-gray-500 mt-8 mb-0">No hay manual del usuario cargado</p>
+            </div>
+
+            <small class="text-gray-500 text-xs d-block mt-8">
+              <strong>Formato:</strong> PDF (máx. 10MB)
+            </small>
           </div>
 
           <!-- Tab: Especificaciones -->
@@ -715,39 +742,6 @@
               <p class="text-gray-500 mt-16">No hay imágenes en la galería</p>
               <p class="text-gray-400 text-sm">Haz clic en "Subir Imágenes" para agregar fotos del producto</p>
             </div>
-
-            <!-- Manual del Usuario (PDF) -->
-            <hr class="my-24">
-            <div class="d-flex justify-content-between align-items-center mb-16">
-              <h6 class="mb-0">Manual del Usuario (PDF)</h6>
-              <label class="btn btn-sm bg-main-600 text-white cursor-pointer" *ngIf="!manualPreview">
-                <i class="ph ph-upload me-8"></i>Subir Manual
-                <input type="file" class="d-none" accept="application/pdf"
-                       (change)="onManualSelected($event)">
-              </label>
-            </div>
-
-            <div *ngIf="manualPreview" class="d-flex align-items-center justify-content-between border-2 border-dashed border-gray-200 rounded-8 p-16">
-              <div class="d-flex align-items-center gap-8">
-                <i class="ph ph-file-pdf text-danger" style="font-size: 32px;"></i>
-                <div>
-                  <p class="mb-0 text-gray-700">{{ manualNombre }}</p>
-                  <a [href]="manualPreview" target="_blank" class="text-sm text-main-600">Ver manual</a>
-                </div>
-              </div>
-              <button type="button" class="btn btn-sm btn-danger" (click)="eliminarManual()">
-                <i class="ph ph-trash me-4"></i>Quitar
-              </button>
-            </div>
-
-            <div *ngIf="!manualPreview" class="text-center py-24">
-              <i class="ph ph-file-pdf text-gray-300" style="font-size: 40px;"></i>
-              <p class="text-gray-500 mt-8 mb-0">No hay manual del usuario cargado</p>
-            </div>
-
-            <small class="text-gray-500 text-xs d-block mt-8">
-              <strong>Formato:</strong> PDF (máx. 10MB)
-            </small>
           </div>
 
         </div>
