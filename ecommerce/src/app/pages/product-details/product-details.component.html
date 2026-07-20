@@ -193,9 +193,15 @@
                                     <span class="text-sm fw-medium text-gray-500">({{ producto.reviews_count || 0 }})</span>
                                 </div>
                                 <span class="text-sm fw-medium text-gray-500">|</span>
-                                <span class="text-gray-900"> 
-                                  <span class="text-gray-400">SKU:</span>{{ producto.codigo_producto }} 
+                                <span class="text-gray-900">
+                                  <span class="text-gray-400">SKU:</span>{{ producto.codigo_producto }}
                                 </span>
+                                <ng-container *ngIf="producto.marca?.nombre">
+                                  <span class="text-sm fw-medium text-gray-500">|</span>
+                                  <span class="text-gray-900">
+                                    <span class="text-gray-400">Marca:</span> {{ producto.marca.nombre }}
+                                  </span>
+                                </ng-container>
                             </div>
                             <span class="mt-32 pt-32 text-gray-700 border-top border-gray-100 d-block"></span>
                             
