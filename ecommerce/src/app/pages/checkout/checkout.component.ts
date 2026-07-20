@@ -142,17 +142,22 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   private initializeForm(): void {
+    // ✅ Campos ocultos (cliente, departamento, provincia, distrito, formaEnvio, email) ya no se
+    // muestran ni edita el cliente en el checkout — se autocompletan desde su perfil/dirección
+    // guardada, así que no llevan Validators.required: bloqueaban "Continuar" cuando ese
+    // autocompletado fallaba (nombre de departamento sin match, forma de envío sin encontrar, etc.)
+    // aunque el campo fuera invisible para el usuario.
     this.checkoutForm = this.fb.group({
       numeroDocumento: [''],
-      cliente: ['', [Validators.required]],
+      cliente: [''],
       direccion: ['', [Validators.required]],
-      celular: ['', [Validators.required, Validators.pattern('^[9][0-9]{8}$')]],
-      departamento: ['', [Validators.required]],
-      provincia: [{value: '', disabled: true}, [Validators.required]],
-      distrito: [{value: '', disabled: true}, [Validators.required]],
-      formaEnvio: ['', [Validators.required]],
+      celular: ['', [Validators.pattern('^[9][0-9]{8}$')]],
+      departamento: [''],
+      provincia: [{value: '', disabled: true}],
+      distrito: [{value: '', disabled: true}],
+      formaEnvio: [''],
       tipoPago: ['', [Validators.required]],
-      email: ['', [Validators.required, Validators.email]],
+      email: [''],
       aceptaTerminos: [false, [Validators.requiredTrue]],
       observaciones: ['']
     });
@@ -265,6 +270,17 @@ export class CheckoutComponent implements OnInit, OnDestroy {
             celular: user.telefono || '',
             numeroDocumento: user.numero_documento || ''
           });
+
+          // ✅ El celular solo es obligatorio cuando se pide manualmente (el perfil no
+          // tiene uno registrado). Si ya viene del perfil, no se valida el formato para
+          // no bloquear "Continuar" por un número guardado en otro formato.
+          const celularControl = this.checkoutForm.get('celular');
+          if (this.mostrarCelularManual) {
+            celularControl?.setValidators([Validators.required, Validators.pattern('^[9][0-9]{8}$')]);
+          } else {
+            celularControl?.clearValidators();
+          }
+          celularControl?.updateValueAndValidity();
         }
       });
   }

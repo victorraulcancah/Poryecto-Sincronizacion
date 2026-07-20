@@ -519,22 +519,6 @@
               </div>
             </div>
             <div class="card-body p-20">
-              <!-- Miniaturas de productos: visibles solo mientras está colapsado -->
-              <div
-                class="order-thumbs d-flex gap-8 overflow-x-auto pb-4"
-                *ngIf="!resumenPedidoExpandido"
-              >
-                <img
-                  *ngFor="let item of cartItems"
-                  [src]="item.imagen_url"
-                  [alt]="item.nombre"
-                  (error)="onImageError($event)"
-                  [title]="item.nombre + ' x' + item.cantidad"
-                  class="rounded-6 border border-gray-100 object-fit-cover flex-shrink-0"
-                  style="width: 56px; height: 56px;"
-                />
-              </div>
-
               <!-- Productos: tarjetas con imagen, solo mientras está expandido -->
               <div class="order-products" *ngIf="resumenPedidoExpandido">
                 <div class="order-products-carousel d-flex gap-12 overflow-x-auto pb-8">
@@ -555,6 +539,14 @@
                     </div>
                     <span class="order-product-card__qty">{{ item.cantidad }} Un.</span>
                   </div>
+                </div>
+
+                <!-- Solo texto por el momento -->
+                <div class="d-flex justify-content-between align-items-center mt-16 mb-8">
+                  <span class="text-gray-600">Descuento</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-8">
+                  <span class="text-gray-600">Entregas</span>
                 </div>
               </div>
 
