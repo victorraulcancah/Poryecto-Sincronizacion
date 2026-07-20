@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { MonedaPipe } from '../../pipes/moneda.pipe';
 import { BreadcrumbComponent } from '../../component/breadcrumb/breadcrumb.component';
 import { ShippingComponent } from '../../component/shipping/shipping.component';
+import { CheckoutStepsComponent } from '../../component/checkout-steps/checkout-steps.component';
 import { CartService, CartItem, CartSummary } from '../../services/cart.service';
 import { AuthService } from '../../services/auth.service';
 import { OfertasService } from '../../services/ofertas.service';
@@ -15,7 +16,7 @@ import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-cart',
-  imports: [CommonModule, RouterLink, FormsModule, BreadcrumbComponent, ShippingComponent, MonedaPipe],
+  imports: [CommonModule, RouterLink, FormsModule, BreadcrumbComponent, ShippingComponent, CheckoutStepsComponent, MonedaPipe],
   templateUrl: './cart.component.html',
   styleUrl: './cart.component.scss'
 })

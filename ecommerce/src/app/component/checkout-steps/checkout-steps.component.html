@@ -1,0 +1,17 @@
+<div class="checkout-steps">
+  <ng-container *ngFor="let paso of pasos; let last = last">
+    <div class="checkout-steps__item">
+      <span class="checkout-steps__circle"
+            [class.checkout-steps__circle--activo]="paso.numero === pasoActual"
+            [class.checkout-steps__circle--completado]="paso.numero < pasoActual">
+        {{ paso.numero }}
+      </span>
+      <span class="checkout-steps__label"
+            [class.checkout-steps__label--activo]="paso.numero <= pasoActual">
+        {{ paso.etiqueta }}
+      </span>
+    </div>
+    <div class="checkout-steps__line" *ngIf="!last"
+         [class.checkout-steps__line--completado]="paso.numero < pasoActual"></div>
+  </ng-container>
+</div>

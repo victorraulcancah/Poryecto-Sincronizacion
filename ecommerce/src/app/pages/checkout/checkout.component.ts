@@ -5,6 +5,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } 
 import { combineLatest, firstValueFrom } from 'rxjs';
 import { BreadcrumbComponent } from '../../component/breadcrumb/breadcrumb.component';
 import { ShippingComponent } from '../../component/shipping/shipping.component';
+import { CheckoutStepsComponent } from '../../component/checkout-steps/checkout-steps.component';
 import { CartService, CartItem, CartSummary } from '../../services/cart.service';
 import { AuthService } from '../../services/auth.service';
 import { UbigeoService, Departamento, Provincia, Distrito } from '../../services/ubigeo.service';
@@ -30,6 +31,7 @@ import Swal from 'sweetalert2';
     FormsModule,
     BreadcrumbComponent,
     ShippingComponent,
+    CheckoutStepsComponent,
     MonedaPipe
   ],
   templateUrl: './checkout.component.html',

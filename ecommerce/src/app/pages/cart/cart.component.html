@@ -7,7 +7,8 @@
 <!-- ================================ Cart Section Start ================================ -->
 <section class="cart py-80">
   <div class="container container-lg">
-    
+    <app-checkout-steps [pasoActual]="1"></app-checkout-steps>
+
     <!-- Carrito vacío -->
     <div *ngIf="cartItems.length === 0" class="text-center py-80">
       <i class="ph ph-shopping-cart text-gray-300" style="font-size: 6rem;"></i>
@@ -348,7 +349,8 @@
               </div>
 
               <!-- IGV (solo mostrar si hay exactamente 1 producto Y tiene mostrar_igv = true) -->
-              <div *ngIf="productosEnCarrito.length === 1 && productosEnCarrito[0].mostrar_igv === true" class="d-flex justify-content-between align-items-center mb-16">
+              <!-- Oculto con *ngIf="false" — no se borra por si se necesita revertir -->
+              <div *ngIf="false && productosEnCarrito.length === 1 && productosEnCarrito[0].mostrar_igv === true" class="d-flex justify-content-between align-items-center mb-16">
                 <span class="text-gray-600">IGV (18%):</span>
                 <span class="text-heading fw-medium">{{ productosEnCarrito[0]?.moneda | moneda }} {{ formatPrice(cartSummary.igv) }}</span>
               </div>
@@ -382,8 +384,8 @@
               Proceder al pago
             </button>
 
-            <!-- Información adicional -->
-            <div class="cart-info bg-gray-50 rounded-8 p-16">
+            <!-- Información adicional (oculto con *ngIf="false" — no se borra por si se necesita revertir) -->
+            <div *ngIf="false" class="cart-info bg-gray-50 rounded-8 p-16">
               <div class="d-flex align-items-center gap-8 mb-12">
                 <i class="ph ph-shield-check text-success-600"></i>
                 <span class="text-sm text-gray-600">Compra 100% segura</span>
