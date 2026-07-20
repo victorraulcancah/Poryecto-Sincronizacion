@@ -65,6 +65,8 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   mostrarModalDirecciones = false;
   // ✅ Modal para crear una dirección nueva (con su propio botón "Guardar")
   mostrarModalNuevaDireccion = false;
+  // ✅ "Tu Orden" colapsado por defecto: cerrado muestra miniaturas, abierto el detalle línea por línea
+  resumenPedidoExpandido = false;
   private readonly camposEntrega = [
     'cliente', 'direccion', 'celular', 'departamento', 'provincia', 'distrito', 'formaEnvio', 'email'
   ];
@@ -675,6 +677,13 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     const descuento = Number(this.descuentoCupon) || 0;
 
     return subtotal + igv - descuento + envio;
+  }
+
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (img.dataset['fallback']) return;
+    img.dataset['fallback'] = '1';
+    img.src = 'assets/images/placeholder.svg';
   }
 
   formatPrice(price: number | string | null | undefined): string {

@@ -499,37 +499,67 @@
         <div class="checkout-sidebar position-sticky" style="top: 24px">
           <!-- Tu Orden -->
           <div class="card border-0 shadow-sm rounded-12 mb-20">
-            <div class="card-header bg-gray-50 py-16">
-              <h6 class="mb-0 fw-semibold text-heading">Tu Orden</h6>
+            <div
+              class="card-header bg-gray-50 py-16 cursor-pointer"
+              (click)="resumenPedidoExpandido = !resumenPedidoExpandido"
+            >
+              <div class="d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-semibold text-heading">
+                  Productos ({{ cartSummary.cantidad_items }})
+                </h6>
+                <div class="d-flex align-items-center gap-8">
+                  <span class="fw-semibold text-heading"
+                    >{{ cartItems[0]?.moneda | moneda }} {{ formatPrice(getTotalFinal()) }}</span
+                  >
+                  <i
+                    class="ph"
+                    [ngClass]="resumenPedidoExpandido ? 'ph-caret-up' : 'ph-caret-down'"
+                  ></i>
+                </div>
+              </div>
             </div>
             <div class="card-body p-20">
-              <!-- Productos -->
-              <div class="order-products mb-20">
-                <div
-                  class="d-flex justify-content-between align-items-center fw-medium text-sm mb-12 pb-8 border-bottom border-gray-100"
-                >
-                  <span>Producto</span>
-                  <span>Total</span>
-                </div>
-
-                <div
-                  class="product-item d-flex justify-content-between align-items-start mb-12"
+              <!-- Miniaturas de productos: visibles solo mientras está colapsado -->
+              <div
+                class="order-thumbs d-flex gap-8 overflow-x-auto pb-4"
+                *ngIf="!resumenPedidoExpandido"
+              >
+                <img
                   *ngFor="let item of cartItems"
-                >
-                  <div class="flex-grow-1">
-                    <h6 class="text-sm fw-medium mb-4">{{ item.nombre }}</h6>
-                    <span class="text-xs text-gray-500"
-                      >x {{ item.cantidad }}</span
-                    >
+                  [src]="item.imagen_url"
+                  [alt]="item.nombre"
+                  (error)="onImageError($event)"
+                  [title]="item.nombre + ' x' + item.cantidad"
+                  class="rounded-6 border border-gray-100 object-fit-cover flex-shrink-0"
+                  style="width: 56px; height: 56px;"
+                />
+              </div>
+
+              <!-- Productos: tarjetas con imagen, solo mientras está expandido -->
+              <div class="order-products" *ngIf="resumenPedidoExpandido">
+                <div class="order-products-carousel d-flex gap-12 overflow-x-auto pb-8">
+                  <div class="order-product-card flex-shrink-0" *ngFor="let item of cartItems">
+                    <img [src]="item.imagen_url" [alt]="item.nombre" (error)="onImageError($event)">
+                    <h6 class="order-product-card__title" [title]="item.nombre">{{ item.nombre }}</h6>
+                    <div class="order-product-card__price">
+                      <span
+                        *ngIf="item.descuento_porcentaje && item.descuento_porcentaje > 0"
+                        class="text-decoration-line-through text-gray-400 me-4"
+                        style="font-size: 0.7rem;"
+                        >{{ item.moneda | moneda }} {{ formatPrice(item.precio) }}</span
+                      >
+                      <span class="fw-bold"
+                        >{{ item.moneda | moneda }}
+                        {{ formatPrice((item.descuento_porcentaje && item.descuento_porcentaje > 0 && item.precio_con_descuento) ? item.precio_con_descuento : item.precio) }}</span
+                      >
+                    </div>
+                    <span class="order-product-card__qty">{{ item.cantidad }} Un.</span>
                   </div>
-                  <span class="text-sm fw-medium"
-                    >{{ item.moneda | moneda }} {{ formatPrice(getItemSubtotal(item)) }}</span
-                  >
                 </div>
               </div>
 
               <!-- Totales -->
-              <div class="order-totals">
+              <div class="order-totals mt-20">
                 <div
                   class="d-flex justify-content-between align-items-center mb-12"
                 >
