@@ -383,8 +383,128 @@
                 <!-- PASO 3: PAGO -->
                 <!-- ============================================================ -->
                 <ng-container *ngIf="pasoActual === 3">
-                <!-- Tipo de Pago -->
-                <div class="row mb-20">
+                <!-- Datos del Titular -->
+                <div class="datos-titular-card mb-24">
+                  <div class="d-flex align-items-start gap-12">
+                    <div class="datos-titular-card__icon flex-shrink-0">
+                      <i class="ph-fill ph-user-circle"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                      <h6 class="text-heading fw-semibold mb-12">Datos del Titular</h6>
+                      <div class="row gy-12">
+                        <div class="col-sm-6">
+                          <span class="text-gray-500 text-xs d-block">Cliente</span>
+                          <span class="fw-medium">{{ checkoutForm.get('cliente')?.value || '—' }}</span>
+                        </div>
+                        <div class="col-sm-6">
+                          <span class="text-gray-500 text-xs d-block">DNI / RUC</span>
+                          <span class="fw-medium">{{ checkoutForm.get('numeroDocumento')?.value || '—' }}</span>
+                        </div>
+                        <div class="col-sm-6">
+                          <span class="text-gray-500 text-xs d-block">Contacto</span>
+                          <span class="fw-medium">{{ checkoutForm.get('celular')?.value || '—' }}</span>
+                        </div>
+                        <div class="col-sm-6">
+                          <label class="text-gray-500 text-xs d-block mb-4" for="tipoComprobante">Tipo de comprobante</label>
+                          <select
+                            id="tipoComprobante"
+                            class="form-select form-select-sm rounded-6"
+                            [(ngModel)]="tipoComprobante"
+                            [ngModelOptions]="{standalone: true}"
+                          >
+                            <option value="boleta">Boleta</option>
+                            <option value="factura">Factura</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 1. Selecciona moneda de la venta -->
+                <div class="mb-24">
+                  <h6 class="text-heading fw-semibold mb-4">1. Selecciona moneda de la venta</h6>
+                  <p class="text-sm text-gray-500 mb-12">
+                    <ng-container *ngIf="monedasDisponibles.length > 1">La venta incluye productos en Soles y Dólares.</ng-container>
+                    <ng-container *ngIf="monedasDisponibles.length <= 1">La venta se realiza en una sola moneda.</ng-container>
+                  </p>
+                  <div class="row g-12">
+                    <div class="col-sm-6" *ngFor="let moneda of monedasDisponibles">
+                      <div
+                        class="moneda-card"
+                        [class.moneda-card--activa]="monedaPagoSeleccionada === moneda"
+                        (click)="seleccionarMonedaPago(moneda)"
+                      >
+                        <div class="d-flex align-items-center gap-8 mb-4">
+                          <i class="ph-fill ph-currency-circle-dollar"></i>
+                          <span class="fw-semibold">{{ moneda === 'd' ? 'Dólares (USD)' : 'Soles (PEN)' }}</span>
+                          <i class="ph-fill ph-check-circle moneda-card__check ms-auto" *ngIf="monedaPagoSeleccionada === moneda"></i>
+                        </div>
+                        <span class="text-sm text-gray-600 d-block">Total en {{ moneda === 'd' ? 'dólares' : 'soles' }}</span>
+                        <span class="fw-bold text-lg" [class.text-success-600]="monedaPagoSeleccionada === moneda">
+                          {{ moneda | moneda }} {{ formatPrice(getTotalPorMoneda(moneda)) }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 2. Selecciona el método de pago -->
+                <div class="mb-16">
+                  <h6 class="text-heading fw-semibold mb-4">2. Selecciona el método de pago</h6>
+                  <p class="text-sm text-gray-500 mb-12">Puedes combinar varios métodos.</p>
+                  <div class="row g-12">
+                    <div class="col-6 col-md-3" *ngFor="let tipo of tiposPago">
+                      <div
+                        class="metodo-pago-card"
+                        [class.metodo-pago-card--activo]="esMetodoSeleccionado(tipo)"
+                        (click)="toggleMetodoPago(tipo)"
+                      >
+                        <i class="ph-fill ph-check-circle metodo-pago-card__check" *ngIf="esMetodoSeleccionado(tipo)"></i>
+                        <i class="ph metodo-pago-card__icon" [ngClass]="tipo.icono || 'ph-wallet'"></i>
+                        <span class="metodo-pago-card__nombre">{{ tipo.nombre }}</span>
+                        <span class="metodo-pago-card__desc" *ngIf="tipo.descripcion">{{ tipo.descripcion }}</span>
+
+                        <div class="metodo-pago-card__input" (click)="$event.stopPropagation()">
+                          <label class="text-xs text-gray-500 d-block mb-2">{{ monedaPagoSeleccionada | moneda }}</label>
+                          <input
+                            type="number"
+                            class="form-control form-control-sm rounded-6"
+                            min="0"
+                            step="0.01"
+                            [ngModel]="getMontoMetodo(tipo)"
+                            [ngModelOptions]="{standalone: true}"
+                            (ngModelChange)="onMontoMetodoChange(tipo, $event)"
+                            placeholder="0.00"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="alert alert-info d-flex align-items-center gap-8 py-8 px-12 mb-24" style="font-size: 0.85rem;">
+                  <i class="ph ph-info"></i>
+                  <span>Puedes combinar varios métodos de pago. Ingresa el monto que corresponda en cada moneda.</span>
+                </div>
+
+                <!-- Total a pagar -->
+                <div class="total-a-pagar-card mb-24">
+                  <div class="d-flex align-items-center gap-8 mb-12">
+                    <i class="ph-fill ph-check-circle text-success-600"></i>
+                    <span class="fw-semibold text-heading">Total a pagar</span>
+                  </div>
+                  <div class="row g-12">
+                    <div class="col-sm-6" *ngFor="let moneda of monedasDisponibles">
+                      <span class="text-gray-500 text-xs d-block">{{ moneda === 'd' ? 'Dólares (USD)' : 'Soles (PEN)' }}</span>
+                      <span class="fw-bold text-lg text-success-600">{{ moneda | moneda }} {{ formatPrice(getTotalPorMoneda(moneda)) }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tipo de Pago: se sincroniza automáticamente con los métodos seleccionados arriba.
+                     Oculto con *ngIf="false" — no se borra por si se necesita revertir. -->
+                <div class="row mb-20" *ngIf="false">
                   <div class="col-md-12">
                     <label class="form-label text-heading fw-medium">
                       Tipo de Pago <span class="text-danger">*</span>
@@ -402,11 +522,6 @@
                         *ngFor="let tipo of tiposPago"
                         [value]="tipo.codigo"
                       >
-                        <i
-                          *ngIf="tipo.icono"
-                          class="ph"
-                          [ngClass]="tipo.icono"
-                        ></i>
                         {{ tipo.nombre }}
                       </option>
                     </select>

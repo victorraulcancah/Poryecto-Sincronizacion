@@ -85,6 +85,13 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   cuponAplicado: any = null;
   descuentoCupon = 0;
 
+  // ✅ Paso de Pago: selección de moneda + métodos de pago combinables (solo interfaz por ahora,
+  // sin validar que la suma de los montos ingresados coincida con el total, y sin conversión de moneda)
+  monedaPagoSeleccionada = 's';
+  metodosPagoSeleccionados = new Set<number>();
+  montosPorMetodo: { [clave: string]: number } = {};
+  tipoComprobante: 'boleta' | 'factura' = 'boleta';
+
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -173,6 +180,12 @@ export class CheckoutComponent implements OnInit, OnDestroy {
         this.cartItems = items;
         this.cartLoaded = loaded;
         this.redirectIfCartIsEmpty();
+
+        // ✅ Si la moneda seleccionada para pagar ya no está presente en el carrito
+        // (o aún no se eligió ninguna), se autoselecciona la primera disponible.
+        if (!this.monedasDisponibles.includes(this.monedaPagoSeleccionada) && this.monedasDisponibles.length > 0) {
+          this.monedaPagoSeleccionada = this.monedasDisponibles[0];
+        }
       });
 
     this.cartService.cartSummary$
@@ -684,6 +697,59 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     }
 
     return precio * cantidad;
+  }
+
+  // ✅ Monedas presentes en el carrito (sin conversión: cada una se suma por separado)
+  get monedasDisponibles(): string[] {
+    const monedas = new Set(this.cartItems.map(item => item.moneda || 's'));
+    return Array.from(monedas);
+  }
+
+  getTotalPorMoneda(moneda: string): number {
+    return this.cartItems
+      .filter(item => (item.moneda || 's') === moneda)
+      .reduce((sum, item) => sum + this.getItemSubtotal(item), 0);
+  }
+
+  seleccionarMonedaPago(moneda: string): void {
+    this.monedaPagoSeleccionada = moneda;
+  }
+
+  private claveMetodoPago(tipo: TipoPago): string {
+    return `${this.monedaPagoSeleccionada}_${tipo.id}`;
+  }
+
+  esMetodoSeleccionado(tipo: TipoPago): boolean {
+    return !!tipo.id && this.metodosPagoSeleccionados.has(tipo.id);
+  }
+
+  toggleMetodoPago(tipo: TipoPago): void {
+    if (!tipo.id) return;
+
+    if (this.metodosPagoSeleccionados.has(tipo.id)) {
+      this.metodosPagoSeleccionados.delete(tipo.id);
+    } else {
+      this.metodosPagoSeleccionados.add(tipo.id);
+    }
+
+    // ✅ El selector de "Tipo de Pago" (oculto) se sincroniza automáticamente con el
+    // primer método seleccionado, para no romper el flujo de envío del pedido existente.
+    const primerSeleccionado = this.tiposPago.find(t => t.id && this.metodosPagoSeleccionados.has(t.id));
+    this.checkoutForm.patchValue({ tipoPago: primerSeleccionado?.codigo || '' });
+  }
+
+  getMontoMetodo(tipo: TipoPago): number {
+    return this.montosPorMetodo[this.claveMetodoPago(tipo)] || 0;
+  }
+
+  onMontoMetodoChange(tipo: TipoPago, valor: string | number): void {
+    this.montosPorMetodo[this.claveMetodoPago(tipo)] = Number(valor) || 0;
+  }
+
+  getTotalIngresadoPorMoneda(moneda: string): number {
+    return Object.keys(this.montosPorMetodo)
+      .filter(clave => clave.startsWith(`${moneda}_`))
+      .reduce((sum, clave) => sum + (this.montosPorMetodo[clave] || 0), 0);
   }
 
   getTotalFinal(): number {
