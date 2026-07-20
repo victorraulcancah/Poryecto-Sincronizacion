@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 import { PermissionsService } from './permissions.service';
 import { CartService } from './cart.service'; // <-- IMPORTADO
+import { LoaderService } from './loader.service';
 
 @Injectable({
   providedIn: 'root'
@@ -31,6 +32,7 @@ export class AuthService {
     private http: HttpClient,
     private router: Router,
     private injector: Injector,
+    private loaderService: LoaderService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
@@ -171,20 +173,29 @@ export class AuthService {
   }
 
   // Método para redirigir después del login
+  // ✅ Se muestra el splash de carga (mismo diseño del loader inicial) durante 2s
+  // antes de navegar, tanto para clientes como para administradores.
   private redirectAfterLogin(tipoUsuario: string): void {
-    switch(tipoUsuario) {
-      case 'admin':
-        this.router.navigate(['/dashboard']);
-        break;
-      case 'cliente':
-        this.router.navigate(['/']);
-        break;
-      case 'motorizado':
-        this.router.navigate(['/motorizado/dashboard']);
-        break;
-      default:
-        this.router.navigate(['/']);
+    if (this.isBrowser) {
+      this.loaderService.show('Iniciando sesión...');
     }
+
+    setTimeout(() => {
+      switch (tipoUsuario) {
+        case 'admin':
+          this.router.navigate(['/dashboard']);
+          break;
+        case 'cliente':
+          this.router.navigate(['/']);
+          break;
+        case 'motorizado':
+          this.router.navigate(['/motorizado/dashboard']);
+          break;
+        default:
+          this.router.navigate(['/']);
+      }
+      this.loaderService.hide();
+    }, this.isBrowser ? 2000 : 0);
   }
 
   private handleAuthError(error: HttpErrorResponse) {

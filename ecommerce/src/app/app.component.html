@@ -1,5 +1,8 @@
 <router-outlet></router-outlet>
 
+<!-- Splash de carga (se muestra ~2s al iniciar sesión, tanto cliente como administrador) -->
+<app-splash-loader></app-splash-loader>
+
 <!-- Notificación global del carrito -->
 <app-cart-notification
   [isVisible]="cartNotificationData.isVisible"

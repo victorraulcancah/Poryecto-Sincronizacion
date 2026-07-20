@@ -105,25 +105,18 @@ this.route.queryParams.subscribe((params: any) => {
       password: this.loginForm.value.password
     };
 
-    // Usar el login unificado que maneja tanto admin como cliente
+    // Usar el login unificado que maneja tanto admin como cliente.
+    // ✅ La redirección (con el splash de carga de ~2s) la maneja AuthService,
+    // así que aquí no se navega de nuevo para no pisarla.
     this.authService.login(credentials).subscribe({
       next: (response) => {
         this.isLoading = false;
-        
+
         // Guardar "remember me" si está marcado
         if (this.loginForm.value.remember) {
           localStorage.setItem('remember_email', credentials.email);
         } else {
           localStorage.removeItem('remember_email');
-        }
-
-        // Redirigir según el tipo de usuario
-        if (response.tipo_usuario === 'admin') {
-          this.router.navigate(['/dashboard']);
-        } else if (response.tipo_usuario === 'cliente') {
-          this.router.navigate(['/']); // E-commerce home
-        } else if (response.tipo_usuario === 'motorizado') {
-          this.router.navigate(['/motorizado/dashboard']); // Dashboard del motorizado
         }
       },
       error: (error) => {

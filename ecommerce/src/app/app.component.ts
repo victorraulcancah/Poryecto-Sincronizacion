@@ -9,11 +9,12 @@ import { CartNotificationService, CartNotificationData } from './services/cart-n
 import { CartNotificationComponent } from './components/cart-notification/cart-notification.component';
 import { CookieBannerComponent } from './components/cookie-banner/cookie-banner.component';
 import { CookieConsentService } from './services/cookie-consent.service';
+import { SplashLoaderComponent } from './components/splash-loader/splash-loader.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, CartNotificationComponent, CookieBannerComponent],
+  imports: [RouterOutlet, CartNotificationComponent, CookieBannerComponent, SplashLoaderComponent],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
