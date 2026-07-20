@@ -423,6 +423,94 @@
                                 <li class="text-gray-900 text-sm mb-0">Garantía de satisfacción</li>
                             </ul>
 
+                            <!-- ✅ Acordeón: Características / Descripción / Manual -->
+                            <div class="product-accordion mt-40">
+
+                                <div class="product-accordion__item">
+                                    <button type="button" class="product-accordion__header"
+                                        (click)="toggleAccordion('caracteristicas')">
+                                        <span>Características principales</span>
+                                        <i class="ph" [class.ph-plus]="!estaSeccionAbierta('caracteristicas')"
+                                            [class.ph-minus]="estaSeccionAbierta('caracteristicas')"></i>
+                                    </button>
+                                    <div class="product-accordion__body" *ngIf="estaSeccionAbierta('caracteristicas')">
+                                        <div class="mb-32" *ngIf="getEspecificaciones().length > 0">
+                                            <h6 class="mb-24">Especificaciones del producto</h6>
+                                            <ul class="mt-32">
+                                                <li *ngFor="let spec of getEspecificaciones()" class="text-gray-400 mb-14 flex-align gap-14">
+                                                    <span class="w-20 h-20 bg-main-50 text-main-600 text-xs flex-center rounded-circle">
+                                                        <i class="ph ph-check"></i>
+                                                    </span>
+                                                    <span class="text-heading fw-medium">
+                                                        {{ spec.nombre }}:
+                                                        <span class="text-gray-500"> {{ spec.valor }}</span>
+                                                    </span>
+                                                </li>
+                                            </ul>
+                                        </div>
+
+                                        <div class="mb-0" *ngIf="getCaracteristicasTecnicas().length > 0">
+                                            <h6 class="mb-24">Características técnicas</h6>
+                                            <ul class="mt-32">
+                                                <li *ngFor="let caracteristica of getCaracteristicasTecnicas()" class="text-gray-400 mb-14 flex-align gap-14">
+                                                    <span class="w-20 h-20 bg-main-50 text-main-600 text-xs flex-center rounded-circle">
+                                                        <i class="ph ph-check"></i>
+                                                    </span>
+                                                    <span class="text-heading fw-medium">
+                                                        {{ caracteristica.caracteristica }}:
+                                                        <span class="text-gray-500"> {{ caracteristica.detalle }}</span>
+                                                    </span>
+                                                </li>
+                                            </ul>
+                                        </div>
+
+                                        <p class="text-gray-500" *ngIf="!getEspecificaciones().length && !getCaracteristicasTecnicas().length">
+                                            Este producto no tiene características principales registradas.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="product-accordion__item">
+                                    <button type="button" class="product-accordion__header"
+                                        (click)="toggleAccordion('descripcion')">
+                                        <span>Descripción del producto</span>
+                                        <i class="ph" [class.ph-plus]="!estaSeccionAbierta('descripcion')"
+                                            [class.ph-minus]="estaSeccionAbierta('descripcion')"></i>
+                                    </button>
+                                    <div class="product-accordion__body" *ngIf="estaSeccionAbierta('descripcion')">
+                                        <!-- ✅ Descripción de Información (CRUD dinámico: título + texto) -->
+                                        <ng-container *ngIf="getInformacionAdicional().length > 0; else descripcionBasica">
+                                            <div class="mb-32" *ngFor="let item of getInformacionAdicional(); let last = last" [class.mb-0]="last">
+                                                <h6 class="mb-24">{{ item.titulo }}</h6>
+                                                <div [innerHTML]="item.textoSeguro"></div>
+                                            </div>
+                                        </ng-container>
+
+                                        <!-- Fallback: productos sin campos dinámicos cargados aún -->
+                                        <ng-template #descripcionBasica>
+                                            <div [innerHTML]="safeDescripcionDetallada"></div>
+                                        </ng-template>
+                                    </div>
+                                </div>
+
+                                <div class="product-accordion__item" *ngIf="producto?.manual_pdf_url">
+                                    <button type="button" class="product-accordion__header"
+                                        (click)="toggleAccordion('manual')">
+                                        <span>Manual del usuario</span>
+                                        <i class="ph" [class.ph-plus]="!estaSeccionAbierta('manual')"
+                                            [class.ph-minus]="estaSeccionAbierta('manual')"></i>
+                                    </button>
+                                    <div class="product-accordion__body" *ngIf="estaSeccionAbierta('manual')">
+                                        <a [href]="producto.manual_pdf_url" target="_blank" rel="noopener"
+                                            class="btn bg-color-one rounded-16 flex-align gap-8 text-main-600 hover-bg-main-600 hover-text-white">
+                                            <i class="ph ph-file-pdf"></i>
+                                            Ver / Descargar manual (PDF)
+                                        </a>
+                                    </div>
+                                </div>
+
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -880,97 +968,6 @@
         </div>
         </ng-container>
 
-        <!-- ============================================================ -->
-        <!-- NUEVO DISEÑO: acordeón Características / Descripción / Manual -->
-        <!-- ============================================================ -->
-        <div class="pt-80">
-            <div class="product-accordion">
-
-                <div class="product-accordion__item">
-                    <button type="button" class="product-accordion__header"
-                        (click)="toggleAccordion('caracteristicas')">
-                        <span>Características principales</span>
-                        <i class="ph" [class.ph-plus]="!estaSeccionAbierta('caracteristicas')"
-                            [class.ph-minus]="estaSeccionAbierta('caracteristicas')"></i>
-                    </button>
-                    <div class="product-accordion__body" *ngIf="estaSeccionAbierta('caracteristicas')">
-                        <div class="mb-32" *ngIf="getEspecificaciones().length > 0">
-                            <h6 class="mb-24">Especificaciones del producto</h6>
-                            <ul class="mt-32">
-                                <li *ngFor="let spec of getEspecificaciones()" class="text-gray-400 mb-14 flex-align gap-14">
-                                    <span class="w-20 h-20 bg-main-50 text-main-600 text-xs flex-center rounded-circle">
-                                        <i class="ph ph-check"></i>
-                                    </span>
-                                    <span class="text-heading fw-medium">
-                                        {{ spec.nombre }}:
-                                        <span class="text-gray-500"> {{ spec.valor }}</span>
-                                    </span>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <div class="mb-0" *ngIf="getCaracteristicasTecnicas().length > 0">
-                            <h6 class="mb-24">Características técnicas</h6>
-                            <ul class="mt-32">
-                                <li *ngFor="let caracteristica of getCaracteristicasTecnicas()" class="text-gray-400 mb-14 flex-align gap-14">
-                                    <span class="w-20 h-20 bg-main-50 text-main-600 text-xs flex-center rounded-circle">
-                                        <i class="ph ph-check"></i>
-                                    </span>
-                                    <span class="text-heading fw-medium">
-                                        {{ caracteristica.caracteristica }}:
-                                        <span class="text-gray-500"> {{ caracteristica.detalle }}</span>
-                                    </span>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <p class="text-gray-500" *ngIf="!getEspecificaciones().length && !getCaracteristicasTecnicas().length">
-                            Este producto no tiene características principales registradas.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="product-accordion__item">
-                    <button type="button" class="product-accordion__header"
-                        (click)="toggleAccordion('descripcion')">
-                        <span>Descripción del producto</span>
-                        <i class="ph" [class.ph-plus]="!estaSeccionAbierta('descripcion')"
-                            [class.ph-minus]="estaSeccionAbierta('descripcion')"></i>
-                    </button>
-                    <div class="product-accordion__body" *ngIf="estaSeccionAbierta('descripcion')">
-                        <!-- ✅ Descripción de Información (CRUD dinámico: título + texto) -->
-                        <ng-container *ngIf="getInformacionAdicional().length > 0; else descripcionBasica">
-                            <div class="mb-32" *ngFor="let item of getInformacionAdicional(); let last = last" [class.mb-0]="last">
-                                <h6 class="mb-24">{{ item.titulo }}</h6>
-                                <div [innerHTML]="item.textoSeguro"></div>
-                            </div>
-                        </ng-container>
-
-                        <!-- Fallback: productos sin campos dinámicos cargados aún -->
-                        <ng-template #descripcionBasica>
-                            <div [innerHTML]="safeDescripcionDetallada"></div>
-                        </ng-template>
-                    </div>
-                </div>
-
-                <div class="product-accordion__item" *ngIf="producto?.manual_pdf_url">
-                    <button type="button" class="product-accordion__header"
-                        (click)="toggleAccordion('manual')">
-                        <span>Manual del usuario</span>
-                        <i class="ph" [class.ph-plus]="!estaSeccionAbierta('manual')"
-                            [class.ph-minus]="estaSeccionAbierta('manual')"></i>
-                    </button>
-                    <div class="product-accordion__body" *ngIf="estaSeccionAbierta('manual')">
-                        <a [href]="producto.manual_pdf_url" target="_blank" rel="noopener"
-                            class="btn bg-color-one rounded-16 flex-align gap-8 text-main-600 hover-bg-main-600 hover-text-white">
-                            <i class="ph ph-file-pdf"></i>
-                            Ver / Descargar manual (PDF)
-                        </a>
-                    </div>
-                </div>
-
-            </div>
-        </div>
     </div>
 </section>
 
