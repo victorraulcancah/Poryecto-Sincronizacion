@@ -63,8 +63,10 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   mostrarCelularManual = true;
   // ✅ Modal para elegir entre las direcciones guardadas del cliente
   mostrarModalDirecciones = false;
-  // ✅ Modal para crear una dirección nueva (con su propio botón "Guardar")
+  // ✅ Modal para crear/editar una dirección (con su propio botón "Guardar")
   mostrarModalNuevaDireccion = false;
+  modoModalDireccion: 'create' | 'edit' = 'create';
+  direccionEnEdicion: Direccion | null = null;
   // ✅ "Tu Orden" colapsado por defecto: cerrado muestra miniaturas, abierto el detalle línea por línea
   resumenPedidoExpandido = false;
   private readonly camposEntrega = [
@@ -892,7 +894,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     return numPrice.toFixed(2);
   }
 
-  private loadDireccionesGuardadas(seleccionarMasReciente: boolean = false): void {
+  private loadDireccionesGuardadas(seleccionarMasReciente: boolean = false, idParaReseleccionar?: number): void {
     if (this.isLoggedIn) {
       this.direccionesService.obtenerDirecciones()
         .pipe(takeUntil(this.destroy$))
@@ -900,6 +902,16 @@ export class CheckoutComponent implements OnInit, OnDestroy {
           next: (response) => {
             if (response.status === 'success') {
               this.direccionesGuardadas = response.direcciones || [];
+
+              // ✅ Se editó una dirección: si era la que estaba activa, se refrescan sus
+              // datos; si no, solo se actualiza la lista sin cambiar la selección del cliente.
+              if (idParaReseleccionar) {
+                const editada = this.direccionesGuardadas.find(d => d.id === idParaReseleccionar);
+                if (editada && this.direccionSeleccionada?.id === idParaReseleccionar) {
+                  this.seleccionarDireccion(editada);
+                }
+                return;
+              }
 
               if (seleccionarMasReciente && this.direccionesGuardadas.length > 0) {
                 // ✅ Recién agregada desde el modal de nueva dirección: seleccionar la última creada
@@ -930,6 +942,15 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   abrirModalNuevaDireccion(): void {
+    this.modoModalDireccion = 'create';
+    this.direccionEnEdicion = null;
+    this.mostrarModalDirecciones = false;
+    this.mostrarModalNuevaDireccion = true;
+  }
+
+  abrirModalEditarDireccion(direccion: Direccion): void {
+    this.modoModalDireccion = 'edit';
+    this.direccionEnEdicion = direccion;
     this.mostrarModalDirecciones = false;
     this.mostrarModalNuevaDireccion = true;
   }
@@ -939,9 +960,17 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   onNuevaDireccionGuardada(): void {
+    const idEditado = this.direccionEnEdicion?.id;
     this.mostrarModalNuevaDireccion = false;
     this.usarDireccionPersonalizada = false;
-    this.loadDireccionesGuardadas(true);
+    this.modoModalDireccion = 'create';
+    this.direccionEnEdicion = null;
+
+    if (idEditado) {
+      this.loadDireccionesGuardadas(false, idEditado);
+    } else {
+      this.loadDireccionesGuardadas(true);
+    }
   }
 
   seleccionarDireccion(direccion: Direccion): void {

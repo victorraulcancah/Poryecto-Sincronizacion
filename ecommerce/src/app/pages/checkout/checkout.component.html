@@ -963,26 +963,38 @@
               [class.bg-main-25]="direccionSeleccionada?.id === direccion.id"
               (click)="seleccionarDireccion(direccion)"
             >
-              <div class="flex-align gap-8 mb-4">
-                <input
-                  type="radio"
-                  [checked]="direccionSeleccionada?.id === direccion.id"
-                  name="direccionGuardadaModal"
-                />
-                <h6 class="mb-0 text-sm fw-medium">{{ direccion.nombre_destinatario }}</h6>
-                <span
-                  *ngIf="direccion.predeterminada"
-                  class="bg-success-50 text-success-600 px-6 py-1 rounded-pill text-xs"
+              <div class="d-flex justify-content-between align-items-start gap-8">
+                <div class="flex-grow-1">
+                  <div class="flex-align gap-8 mb-4">
+                    <input
+                      type="radio"
+                      [checked]="direccionSeleccionada?.id === direccion.id"
+                      name="direccionGuardadaModal"
+                    />
+                    <h6 class="mb-0 text-sm fw-medium">{{ direccion.nombre_destinatario }}</h6>
+                    <span
+                      *ngIf="direccion.predeterminada"
+                      class="bg-success-50 text-success-600 px-6 py-1 rounded-pill text-xs"
+                    >
+                      Principal
+                    </span>
+                  </div>
+                  <p class="text-sm text-gray-600 mb-2">{{ direccion.direccion_completa }}</p>
+                  <p class="text-xs text-gray-500 mb-0" *ngIf="direccion.ubigeo">
+                    {{ direccion.ubigeo.distrito_nombre }},
+                    {{ direccion.ubigeo.provincia_nombre }},
+                    {{ direccion.ubigeo.departamento_nombre }}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  class="btn btn-sm bg-gray-100 hover-bg-gray-200 text-gray-700 rounded-6 flex-shrink-0"
+                  (click)="abrirModalEditarDireccion(direccion); $event.stopPropagation()"
+                  title="Editar dirección"
                 >
-                  Principal
-                </span>
+                  <i class="ph ph-pencil-simple"></i>
+                </button>
               </div>
-              <p class="text-sm text-gray-600 mb-2">{{ direccion.direccion_completa }}</p>
-              <p class="text-xs text-gray-500 mb-0" *ngIf="direccion.ubigeo">
-                {{ direccion.ubigeo.distrito_nombre }},
-                {{ direccion.ubigeo.provincia_nombre }},
-                {{ direccion.ubigeo.departamento_nombre }}
-              </p>
             </div>
           </div>
         </div>
@@ -1002,11 +1014,11 @@
   </div>
 </div>
 
-<!-- ========================== Modal: Agregar dirección nueva (con botón Guardar) ============================ -->
+<!-- ========================== Modal: Agregar/Editar dirección (con botón Guardar) ============================ -->
 <app-modal-direccion
   [show]="mostrarModalNuevaDireccion"
-  mode="create"
-  [direccion]="null"
+  [mode]="modoModalDireccion"
+  [direccion]="direccionEnEdicion"
   [departamentos]="departamentos"
   (direccionGuardada)="onNuevaDireccionGuardada()"
   (cerrar)="cerrarModalNuevaDireccion()"
