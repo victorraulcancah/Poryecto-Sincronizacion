@@ -495,8 +495,8 @@
                 <div class="mb-24">
                   <h6 class="text-heading fw-semibold mb-4">1. Selecciona moneda de la venta</h6>
                   <p class="text-sm text-gray-500 mb-12">
-                    <ng-container *ngIf="monedasDisponibles.length > 1">La venta incluye productos en Soles y Dólares.</ng-container>
-                    <ng-container *ngIf="monedasDisponibles.length <= 1">La venta se realiza en una sola moneda.</ng-container>
+                    <ng-container *ngIf="monedasEnCarrito.length > 1">La venta incluye productos en Soles y Dólares.</ng-container>
+                    <ng-container *ngIf="monedasEnCarrito.length <= 1">La venta se realiza en una sola moneda.</ng-container>
                   </p>
                   <div class="row g-12">
                     <div class="col-sm-6" *ngFor="let moneda of monedasDisponibles">

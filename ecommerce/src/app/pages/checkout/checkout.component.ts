@@ -754,7 +754,14 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   // ✅ Monedas presentes en el carrito (sin conversión: cada una se suma por separado)
+  // ✅ Siempre se muestran ambas monedas (Soles y Dólares), aunque la venta sea
+  // solo en una de ellas — la que no tenga productos simplemente queda en 0.
   get monedasDisponibles(): string[] {
+    return ['s', 'd'];
+  }
+
+  // Monedas realmente presentes en el carrito (para el mensaje informativo)
+  get monedasEnCarrito(): string[] {
     const monedas = new Set(this.cartItems.map(item => item.moneda || 's'));
     return Array.from(monedas);
   }
