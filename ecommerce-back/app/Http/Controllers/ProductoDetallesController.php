@@ -121,8 +121,15 @@ class ProductoDetallesController extends Controller
                         ? $request->input('politicas_devolucion')
                         : optional($detallesExistentes)->politicas_devolucion,
                     'informacion_adicional' => $informacionAdicional,
-                    'especificaciones' => $especificaciones,
-                    'caracteristicas_tecnicas' => $caracteristicasTecnicas,
+                    // ✅ El formulario ya no envía especificaciones/características técnicas
+                    // (se eliminaron del admin, quedaron reemplazadas por "informacion_adicional"),
+                    // así que se preservan los datos ya guardados para no borrarlos silenciosamente.
+                    'especificaciones' => $request->has('especificaciones')
+                        ? $especificaciones
+                        : optional($detallesExistentes)->especificaciones,
+                    'caracteristicas_tecnicas' => $request->has('caracteristicas_tecnicas')
+                        ? $caracteristicasTecnicas
+                        : optional($detallesExistentes)->caracteristicas_tecnicas,
                     'dimensiones' => $dimensiones,
                     'videos' => $videos,
                     'imagenes' => !empty($imagenesFinales) ? json_encode($imagenesFinales) : null

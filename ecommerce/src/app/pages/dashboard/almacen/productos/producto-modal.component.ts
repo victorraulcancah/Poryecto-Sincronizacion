@@ -907,20 +907,9 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
     };
     formData.append('dimensiones', JSON.stringify(dimensiones));
 
-    // Especificaciones
-    const especificaciones = this.especificaciones.value.filter(
-      (spec: any) => spec.nombre && spec.valor
-    );
-    formData.append('especificaciones', JSON.stringify(especificaciones));
-
-    // Características técnicas
-    const caracteristicasTecnicas = this.caracteristicasTecnicas.value.filter(
-      (carac: any) => carac.caracteristica && carac.detalle
-    );
-    formData.append(
-      'caracteristicas_tecnicas',
-      JSON.stringify(caracteristicasTecnicas)
-    );
+    // ✅ Especificaciones y Características Técnicas: eliminadas del formulario
+    // (reemplazadas por "informacion_adicional"). No se envían para que el backend
+    // preserve los datos ya guardados de productos existentes, en vez de borrarlos.
 
     // Videos
     const videos = this.videos.value.filter((video: string) => video.trim());
