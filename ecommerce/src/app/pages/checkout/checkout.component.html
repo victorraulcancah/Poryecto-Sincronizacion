@@ -396,21 +396,9 @@
                           <span class="text-gray-500 text-xs d-block">Cliente</span>
                           <span class="fw-medium">{{ checkoutForm.get('cliente')?.value || '—' }}</span>
                         </div>
-                        <div class="col-sm-6" *ngIf="tipoComprobante !== 'factura'">
-                          <span class="text-gray-500 text-xs d-block">DNI</span>
-                          <span class="fw-medium">{{ checkoutForm.get('numeroDocumento')?.value || '—' }}</span>
-                        </div>
-                        <div class="col-sm-6" *ngIf="tipoComprobante === 'factura'">
-                          <span class="text-gray-500 text-xs d-block">RUC</span>
-                          <span class="fw-medium">{{ checkoutForm.get('ruc')?.value || '—' }}</span>
-                        </div>
                         <div class="col-sm-6">
                           <span class="text-gray-500 text-xs d-block">Contacto</span>
                           <span class="fw-medium">{{ checkoutForm.get('celular')?.value || '—' }}</span>
-                        </div>
-                        <div class="col-sm-6" *ngIf="tipoComprobante === 'factura'">
-                          <span class="text-gray-500 text-xs d-block">Razón Social</span>
-                          <span class="fw-medium">{{ checkoutForm.get('razonSocial')?.value || '—' }}</span>
                         </div>
                       </div>
 
@@ -437,6 +425,44 @@
                         >
                           Factura
                         </button>
+                      </div>
+
+                      <!-- DNI: solo si eligió Boleta. Algunos clientes se registran solo con
+                           RUC (cuenta empresarial); aquí pueden registrar y guardar su DNI. -->
+                      <div class="row" *ngIf="tipoComprobante === 'boleta'">
+                        <div class="col-sm-6 mb-8">
+                          <label class="text-gray-500 text-xs d-block mb-4">DNI <span class="text-danger">*</span></label>
+                          <input
+                            type="text"
+                            class="form-control form-control-sm rounded-6"
+                            formControlName="numeroDocumento"
+                            maxlength="8"
+                            placeholder="12345678"
+                            [class.is-invalid]="
+                              checkoutForm.get('numeroDocumento')?.invalid &&
+                              checkoutForm.get('numeroDocumento')?.touched
+                            "
+                          />
+                          <div
+                            class="invalid-feedback"
+                            *ngIf="
+                              checkoutForm.get('numeroDocumento')?.invalid &&
+                              checkoutForm.get('numeroDocumento')?.touched
+                            "
+                          >
+                            Ingresa un DNI válido de 8 dígitos
+                          </div>
+                        </div>
+                        <div class="col-sm-6 mb-8 d-flex align-items-end">
+                          <button
+                            type="button"
+                            class="btn btn-main btn-sm rounded-6"
+                            (click)="guardarDni()"
+                          >
+                            <i class="ph ph-floppy-disk me-4"></i>
+                            Guardar
+                          </button>
+                        </div>
                       </div>
 
                       <!-- RUC / Razón Social: solo obligatorios si eligió Factura -->
@@ -486,6 +512,16 @@
                             La razón social es requerida
                           </div>
                         </div>
+                        <div class="col-12">
+                          <button
+                            type="button"
+                            class="btn btn-main btn-sm rounded-6"
+                            (click)="guardarDatosFacturacion()"
+                          >
+                            <i class="ph ph-floppy-disk me-4"></i>
+                            Guardar
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -499,21 +535,35 @@
                     <ng-container *ngIf="monedasEnCarrito.length <= 1">La venta se realiza en una sola moneda.</ng-container>
                   </p>
                   <div class="row g-12">
-                    <div class="col-sm-6" *ngFor="let moneda of monedasDisponibles">
-                      <div
-                        class="moneda-card"
-                        [class.moneda-card--activa]="monedaPagoSeleccionada === moneda"
-                        (click)="seleccionarMonedaPago(moneda)"
-                      >
+                    <div class="col-md-8">
+                      <div class="row g-12">
+                        <div class="col-sm-6" *ngFor="let moneda of monedasDisponibles">
+                          <div
+                            class="moneda-card"
+                            [class.moneda-card--activa]="monedaPagoSeleccionada === moneda"
+                            (click)="seleccionarMonedaPago(moneda)"
+                          >
+                            <div class="d-flex align-items-center gap-8 mb-4">
+                              <i class="ph-fill ph-currency-circle-dollar"></i>
+                              <span class="fw-semibold">{{ moneda === 'd' ? 'Dólares (USD)' : 'Soles (PEN)' }}</span>
+                              <i class="ph-fill ph-check-circle moneda-card__check ms-auto" *ngIf="monedaPagoSeleccionada === moneda"></i>
+                            </div>
+                            <span class="text-sm text-gray-600 d-block">Total en {{ moneda === 'd' ? 'dólares' : 'soles' }}</span>
+                            <span class="fw-bold text-lg" [class.text-success-600]="monedaPagoSeleccionada === moneda">
+                              {{ moneda | moneda }} {{ formatPrice(getTotalPorMoneda(moneda)) }}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="tipo-cambio-card h-100">
                         <div class="d-flex align-items-center gap-8 mb-4">
                           <i class="ph-fill ph-currency-circle-dollar"></i>
-                          <span class="fw-semibold">{{ moneda === 'd' ? 'Dólares (USD)' : 'Soles (PEN)' }}</span>
-                          <i class="ph-fill ph-check-circle moneda-card__check ms-auto" *ngIf="monedaPagoSeleccionada === moneda"></i>
+                          <span class="fw-semibold text-sm">Tipo de cambio referencial</span>
                         </div>
-                        <span class="text-sm text-gray-600 d-block">Total en {{ moneda === 'd' ? 'dólares' : 'soles' }}</span>
-                        <span class="fw-bold text-lg" [class.text-success-600]="monedaPagoSeleccionada === moneda">
-                          {{ moneda | moneda }} {{ formatPrice(getTotalPorMoneda(moneda)) }}
-                        </span>
+                        <span class="fw-bold text-lg d-block mb-4">1 USD = S/ {{ formatPrice(tipoCambioReferencial) }}</span>
+                        <p class="text-xs text-gray-600 mb-0">El tipo de cambio puede variar al momento del pago.</p>
                       </div>
                     </div>
                   </div>

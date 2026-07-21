@@ -336,6 +336,17 @@
   }
 }
 
+.tipo-cambio-card {
+  border: 1px solid var(--bs-warning-200, #ffe69c);
+  background-color: var(--bs-warning-25, rgba(255, 193, 7, 0.08));
+  border-radius: 8px;
+  padding: 12px 16px;
+
+  i {
+    color: var(--bs-warning-600, #b8860b);
+  }
+}
+
 .metodo-pago-card {
   position: relative;
   border: 1px solid var(--bs-gray-200, #dee2e6);

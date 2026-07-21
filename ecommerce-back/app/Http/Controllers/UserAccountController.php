@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
+use App\Models\DocumentType;
 
 class UserAccountController extends Controller
 {
@@ -65,6 +66,42 @@ class UserAccountController extends Controller
             'success' => true,
             'message' => 'Celular actualizado correctamente',
             'telefono' => $user->telefono,
+        ]);
+    }
+
+    /**
+     * Guarda/actualiza el DNI del cliente para poder pedir Boleta.
+     * Algunos clientes se registran solo con RUC (cuenta empresarial); si luego
+     * quieren Boleta, deben poder registrar y guardar su DNI aquí mismo.
+     */
+    public function actualizarDocumentoBoleta(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'numero_documento' => ['required', 'string', 'regex:/^[0-9]{8}$/'],
+        ], [
+            'numero_documento.regex' => 'Ingresa un DNI válido de 8 dígitos.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Errores de validación',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $user = $request->user();
+        $tipoDocumentoDni = DocumentType::where('nombre', 'DNI')->first();
+
+        $user->update([
+            'numero_documento' => $request->numero_documento,
+            'tipo_documento_id' => $tipoDocumentoDni?->id,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'DNI guardado correctamente',
+            'numero_documento' => $user->numero_documento,
         ]);
     }
 

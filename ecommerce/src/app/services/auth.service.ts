@@ -403,6 +403,25 @@ export class AuthService {
   }
 
   /**
+   * Guardar/actualizar el DNI del cliente (para pedir Boleta). Algunos clientes se
+   * registran solo con RUC; si quieren Boleta, pueden registrar y guardar su DNI aquí.
+   */
+  actualizarDni(numeroDocumento: string): Observable<any> {
+    return this.http.patch<any>(`${environment.apiUrl}/user/dni`, {
+      numero_documento: numeroDocumento
+    }).pipe(
+      tap((response: any) => {
+        const currentUser = this.getCurrentUser();
+        if (currentUser) {
+          currentUser.numero_documento = response.numero_documento ?? numeroDocumento;
+          localStorage.setItem(this.userKey, JSON.stringify(currentUser));
+          this.currentUserSubject.next(currentUser);
+        }
+      })
+    );
+  }
+
+  /**
    * Verificar si el usuario tiene un permiso específico
    */
   hasPermission(permission: string): boolean {

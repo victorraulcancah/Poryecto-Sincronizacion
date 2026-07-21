@@ -54,6 +54,7 @@ Route::middleware(['auth:sanctum'])->prefix('user')->group(function () {
     Route::post('/change-password', [\App\Http\Controllers\UserAccountController::class, 'changePassword']);
     Route::patch('/telefono', [\App\Http\Controllers\UserAccountController::class, 'actualizarTelefono']);
     Route::post('/facturacion', [\App\Http\Controllers\UserAccountController::class, 'actualizarFacturacion']);
+    Route::patch('/dni', [\App\Http\Controllers\UserAccountController::class, 'actualizarDocumentoBoleta']);
 });
 
 // Sincronización con 7Power

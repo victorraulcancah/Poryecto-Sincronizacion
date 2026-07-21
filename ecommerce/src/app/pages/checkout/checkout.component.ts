@@ -91,6 +91,8 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   metodosPagoSeleccionados = new Set<number>();
   montosPorMetodo: { [clave: string]: number } = {};
   tipoComprobante: 'boleta' | 'factura' = 'boleta';
+  // ✅ Tipo de cambio referencial (informativo, sin conversión automática de totales)
+  tipoCambioReferencial = 3.70;
 
   private destroy$ = new Subject<void>();
 
@@ -110,6 +112,8 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     private router: Router
   ) {
     this.initializeForm();
+    // ✅ Aplica las validaciones correspondientes al tipo de comprobante por defecto (Boleta)
+    this.seleccionarTipoComprobante(this.tipoComprobante);
   }
 
   ngOnInit(): void {
@@ -457,29 +461,78 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
     const rucControl = this.checkoutForm.get('ruc');
     const razonSocialControl = this.checkoutForm.get('razonSocial');
+    const numeroDocumentoControl = this.checkoutForm.get('numeroDocumento');
 
     if (tipo === 'factura') {
       rucControl?.setValidators([Validators.required, Validators.pattern('^[0-9]{11}$')]);
       razonSocialControl?.setValidators([Validators.required]);
+      numeroDocumentoControl?.clearValidators();
     } else {
       rucControl?.clearValidators();
       razonSocialControl?.clearValidators();
+      // ✅ Algunos clientes se registran solo con RUC (cuenta empresarial); si
+      // quieren Boleta, deben poder registrar y guardar su DNI aquí mismo.
+      numeroDocumentoControl?.setValidators([Validators.required, Validators.pattern('^[0-9]{8}$')]);
     }
 
     rucControl?.updateValueAndValidity();
     razonSocialControl?.updateValueAndValidity();
+    numeroDocumentoControl?.updateValueAndValidity();
   }
 
-  private guardarDatosFacturacion(): void {
-    const ruc = this.checkoutForm.get('ruc')?.value;
-    const razonSocial = this.checkoutForm.get('razonSocial')?.value;
+  guardarDatosFacturacion(): void {
+    const rucControl = this.checkoutForm.get('ruc');
+    const razonSocialControl = this.checkoutForm.get('razonSocial');
+    rucControl?.markAsTouched();
+    razonSocialControl?.markAsTouched();
 
-    if (!ruc || !razonSocial) return;
+    if (rucControl?.invalid || razonSocialControl?.invalid) return;
+
+    const ruc = rucControl?.value;
+    const razonSocial = razonSocialControl?.value;
 
     this.authService.actualizarFacturacion(ruc, razonSocial).subscribe({
+      next: () => {
+        Swal.fire({
+          title: 'Datos de facturación guardados',
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false
+        });
+      },
       error: (error) => {
-        // No se bloquea el flujo de compra si falla el guardado del RUC/Razón Social
-        console.error('Error al guardar datos de facturación:', error);
+        Swal.fire({
+          title: 'Error al guardar',
+          text: error.error?.message || 'No se pudo guardar el RUC/Razón Social. Intenta nuevamente.',
+          icon: 'error',
+          confirmButtonColor: '#dc3545'
+        });
+      }
+    });
+  }
+
+  guardarDni(): void {
+    const control = this.checkoutForm.get('numeroDocumento');
+    control?.markAsTouched();
+
+    if (control?.invalid) return;
+
+    this.authService.actualizarDni(control?.value).subscribe({
+      next: () => {
+        Swal.fire({
+          title: 'DNI guardado',
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false
+        });
+      },
+      error: (error) => {
+        Swal.fire({
+          title: 'Error al guardar',
+          text: error.error?.message || 'No se pudo guardar el DNI. Intenta nuevamente.',
+          icon: 'error',
+          confirmButtonColor: '#dc3545'
+        });
       }
     });
   }
