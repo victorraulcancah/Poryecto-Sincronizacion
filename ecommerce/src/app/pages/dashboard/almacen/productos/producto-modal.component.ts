@@ -213,7 +213,9 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
     this.clearImageValidation();
 
     this.manualPreview = this.producto.manual_pdf_url || null;
-    this.manualNombre = this.producto.manual_pdf_url ? 'Manual del usuario.pdf' : null;
+    this.manualNombre = this.producto.manual_pdf_url
+      ? 'Manual del usuario.' + (this.producto.manual_pdf_url.split('.').pop() || 'pdf')
+      : null;
     this.selectedManual = null;
     this.manualEliminado = false;
 
@@ -270,7 +272,7 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
     this.activeTab = 'basico';
 
     // Agregar elementos por defecto
-    this.agregarInformacionAdicional('Descripción Detallada');
+    this.agregarInformacionAdicional('Descripción del producto');
     this.agregarEspecificacion();
     this.agregarCaracteristicaTecnica();
   }
@@ -344,7 +346,7 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
             // ✅ Migración de los campos fijos antiguos (descripcion_detallada, garantia,
             // instrucciones_uso, politicas_devolucion) a filas iniciales editables.
             const camposAntiguos = [
-              { titulo: 'Descripción Detallada', texto: detalles.descripcion_detallada },
+              { titulo: 'Descripción del producto', texto: detalles.descripcion_detallada },
               { titulo: 'Garantía', texto: detalles.garantia },
               { titulo: 'Instrucciones de Uso', texto: detalles.instrucciones_uso },
               { titulo: 'Políticas de Devolución', texto: detalles.politicas_devolucion },
@@ -357,8 +359,8 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
                 );
               });
             } else {
-              // Sin nada guardado: dejar la fila "Descripción Detallada" por defecto, como antes.
-              this.agregarInformacionAdicional('Descripción Detallada');
+              // Sin nada guardado: dejar la fila "Descripción del producto" por defecto.
+              this.agregarInformacionAdicional('Descripción del producto');
             }
           }
 
@@ -536,18 +538,26 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
+  private readonly tiposManualPermitidos = [
+    'application/pdf',
+    'image/png',
+    'image/jpeg',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  ];
+
   onManualSelected(event: any): void {
     const file = event.target.files[0];
     if (!file) return;
 
-    if (file.type !== 'application/pdf') {
-      alert('El manual debe ser un archivo PDF.');
+    if (!this.tiposManualPermitidos.includes(file.type)) {
+      alert('El manual debe ser un archivo PDF, imagen (PNG/JPG) o Word (DOC/DOCX).');
       event.target.value = '';
       return;
     }
 
     if (file.size > 10 * 1024 * 1024) {
-      alert('El PDF es muy grande. El tamaño máximo permitido es 10MB.');
+      alert('El archivo es muy grande. El tamaño máximo permitido es 10MB.');
       event.target.value = '';
       return;
     }
@@ -561,6 +571,13 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
       this.manualPreview = e.target.result;
     };
     reader.readAsDataURL(file);
+  }
+
+  getManualIcon(): string {
+    const ext = this.manualNombre?.split('.').pop()?.toLowerCase();
+    if (ext === 'png' || ext === 'jpg' || ext === 'jpeg') return 'ph-file-image';
+    if (ext === 'doc' || ext === 'docx') return 'ph-file-doc';
+    return 'ph-file-pdf';
   }
 
   eliminarManual(): void {

@@ -35,7 +35,7 @@
               type="button"
             >
               <i class="ph ph-article me-8"></i>
-              Descripción de Información
+              Características principales
             </button>
           </li>
           <li class="nav-item" role="presentation">
@@ -439,7 +439,7 @@
           <div *ngIf="activeTab === 'descripcion'" class="animate__animated animate__fadeIn animate__faster">
             <form [formGroup]="detallesForm">
               <div class="d-flex justify-content-between align-items-center mb-16">
-                <h6 class="mb-0">Descripción de Información</h6>
+                <h6 class="mb-0">Características principales</h6>
                 <button type="button" class="btn btn-sm bg-main-600 text-white"
                         (click)="agregarInformacionAdicional()">
                   <i class="ph ph-plus me-8"></i>Agregar campo
@@ -473,20 +473,20 @@
               </div>
             </form>
 
-            <!-- Manual del Usuario (PDF) -->
+            <!-- Manual del Usuario -->
             <hr class="my-24">
             <div class="d-flex justify-content-between align-items-center mb-16">
-              <h6 class="mb-0">Manual del Usuario (PDF)</h6>
+              <h6 class="mb-0">Manual del Usuario</h6>
               <label class="btn btn-sm bg-main-600 text-white cursor-pointer" *ngIf="!manualPreview">
                 <i class="ph ph-upload me-8"></i>Subir Manual
-                <input type="file" class="d-none" accept="application/pdf"
+                <input type="file" class="d-none" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
                        (change)="onManualSelected($event)">
               </label>
             </div>
 
             <div *ngIf="manualPreview" class="d-flex align-items-center justify-content-between border-2 border-dashed border-gray-200 rounded-8 p-16">
               <div class="d-flex align-items-center gap-8">
-                <i class="ph ph-file-pdf text-danger" style="font-size: 32px;"></i>
+                <i class="ph text-danger" [ngClass]="getManualIcon()" style="font-size: 32px;"></i>
                 <div>
                   <p class="mb-0 text-gray-700">{{ manualNombre }}</p>
                   <a [href]="manualPreview" target="_blank" class="text-sm text-main-600">Ver manual</a>
@@ -503,7 +503,7 @@
             </div>
 
             <small class="text-gray-500 text-xs d-block mt-8">
-              <strong>Formato:</strong> PDF (máx. 10MB)
+              <strong>Formato:</strong> PDF, imagen (PNG/JPG) o Word (DOC/DOCX) — máx. 10MB
             </small>
           </div>
 

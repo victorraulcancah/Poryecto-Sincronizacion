@@ -60,7 +60,7 @@ class ProductosController extends Controller
             'stock' => 'required|integer|min:0',
             'stock_minimo' => 'required|integer|min:0',
             'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'manual_pdf' => 'nullable|file|mimes:pdf|max:10240',
+            'manual_pdf' => 'nullable|file|mimes:pdf,png,jpg,jpeg,doc,docx|max:10240',
             'activo' => 'boolean',
             'destacado' => 'boolean',
             'mostrar_igv' => 'boolean',
@@ -188,7 +188,7 @@ class ProductosController extends Controller
             'stock' => 'required|integer|min:0',
             'stock_minimo' => 'required|integer|min:0',
             'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'manual_pdf' => 'nullable|file|mimes:pdf|max:10240',
+            'manual_pdf' => 'nullable|file|mimes:pdf,png,jpg,jpeg,doc,docx|max:10240',
             'activo' => 'required|in:true,false,1,0',
             'mostrar_igv' => 'boolean'
         ]);
