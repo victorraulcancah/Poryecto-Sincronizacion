@@ -18,6 +18,11 @@ export interface User {
   numero_documento?: string;
   tipo_documento?: string;
 
+  // Datos de facturación (RUC/razón social), guardados aparte del DNI:
+  // un mismo cliente puede pedir Boleta (con su DNI) o Factura (con su RUC).
+  ruc?: string;
+  razon_social?: string;
+
   // Para clientes - foto de perfil
   foto_url?: string;
   foto?: string;
@@ -60,6 +65,8 @@ export interface AuthResponse {
     telefono?: string;
     numero_documento?: string;
     tipo_documento?: string;
+    ruc?: string;
+    razon_social?: string;
 
     // Para clientes - foto de perfil
     foto_url?: string;

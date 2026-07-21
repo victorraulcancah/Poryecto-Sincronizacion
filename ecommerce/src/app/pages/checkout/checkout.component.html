@@ -391,30 +391,100 @@
                     </div>
                     <div class="flex-grow-1">
                       <h6 class="text-heading fw-semibold mb-12">Datos del Titular</h6>
-                      <div class="row gy-12">
+                      <div class="row gy-12 mb-16">
                         <div class="col-sm-6">
                           <span class="text-gray-500 text-xs d-block">Cliente</span>
                           <span class="fw-medium">{{ checkoutForm.get('cliente')?.value || '—' }}</span>
                         </div>
-                        <div class="col-sm-6">
-                          <span class="text-gray-500 text-xs d-block">DNI / RUC</span>
+                        <div class="col-sm-6" *ngIf="tipoComprobante !== 'factura'">
+                          <span class="text-gray-500 text-xs d-block">DNI</span>
                           <span class="fw-medium">{{ checkoutForm.get('numeroDocumento')?.value || '—' }}</span>
+                        </div>
+                        <div class="col-sm-6" *ngIf="tipoComprobante === 'factura'">
+                          <span class="text-gray-500 text-xs d-block">RUC</span>
+                          <span class="fw-medium">{{ checkoutForm.get('ruc')?.value || '—' }}</span>
                         </div>
                         <div class="col-sm-6">
                           <span class="text-gray-500 text-xs d-block">Contacto</span>
                           <span class="fw-medium">{{ checkoutForm.get('celular')?.value || '—' }}</span>
                         </div>
-                        <div class="col-sm-6">
-                          <label class="text-gray-500 text-xs d-block mb-4" for="tipoComprobante">Tipo de comprobante</label>
-                          <select
-                            id="tipoComprobante"
-                            class="form-select form-select-sm rounded-6"
-                            [(ngModel)]="tipoComprobante"
-                            [ngModelOptions]="{standalone: true}"
+                        <div class="col-sm-6" *ngIf="tipoComprobante === 'factura'">
+                          <span class="text-gray-500 text-xs d-block">Razón Social</span>
+                          <span class="fw-medium">{{ checkoutForm.get('razonSocial')?.value || '—' }}</span>
+                        </div>
+                      </div>
+
+                      <!-- Tipo de comprobante: Boleta (por defecto) o Factura -->
+                      <label class="text-gray-500 text-xs d-block mb-4">Tipo de comprobante <span class="text-danger">*</span></label>
+                      <div class="d-flex gap-8 mb-12">
+                        <button
+                          type="button"
+                          class="btn btn-sm rounded-8 px-16 py-6"
+                          [class.btn-main]="tipoComprobante === 'boleta'"
+                          [class.bg-gray-100]="tipoComprobante !== 'boleta'"
+                          [class.text-gray-700]="tipoComprobante !== 'boleta'"
+                          (click)="seleccionarTipoComprobante('boleta')"
+                        >
+                          Boleta
+                        </button>
+                        <button
+                          type="button"
+                          class="btn btn-sm rounded-8 px-16 py-6"
+                          [class.btn-main]="tipoComprobante === 'factura'"
+                          [class.bg-gray-100]="tipoComprobante !== 'factura'"
+                          [class.text-gray-700]="tipoComprobante !== 'factura'"
+                          (click)="seleccionarTipoComprobante('factura')"
+                        >
+                          Factura
+                        </button>
+                      </div>
+
+                      <!-- RUC / Razón Social: solo obligatorios si eligió Factura -->
+                      <div class="row" *ngIf="tipoComprobante === 'factura'">
+                        <div class="col-sm-6 mb-8">
+                          <label class="text-gray-500 text-xs d-block mb-4">RUC <span class="text-danger">*</span></label>
+                          <input
+                            type="text"
+                            class="form-control form-control-sm rounded-6"
+                            formControlName="ruc"
+                            maxlength="11"
+                            placeholder="20123456789"
+                            [class.is-invalid]="
+                              checkoutForm.get('ruc')?.invalid &&
+                              checkoutForm.get('ruc')?.touched
+                            "
+                          />
+                          <div
+                            class="invalid-feedback"
+                            *ngIf="
+                              checkoutForm.get('ruc')?.invalid &&
+                              checkoutForm.get('ruc')?.touched
+                            "
                           >
-                            <option value="boleta">Boleta</option>
-                            <option value="factura">Factura</option>
-                          </select>
+                            Ingresa un RUC válido de 11 dígitos
+                          </div>
+                        </div>
+                        <div class="col-sm-6 mb-8">
+                          <label class="text-gray-500 text-xs d-block mb-4">Razón Social <span class="text-danger">*</span></label>
+                          <input
+                            type="text"
+                            class="form-control form-control-sm rounded-6"
+                            formControlName="razonSocial"
+                            placeholder="Razón social de la empresa"
+                            [class.is-invalid]="
+                              checkoutForm.get('razonSocial')?.invalid &&
+                              checkoutForm.get('razonSocial')?.touched
+                            "
+                          />
+                          <div
+                            class="invalid-feedback"
+                            *ngIf="
+                              checkoutForm.get('razonSocial')?.invalid &&
+                              checkoutForm.get('razonSocial')?.touched
+                            "
+                          >
+                            La razón social es requerida
+                          </div>
                         </div>
                       </div>
                     </div>

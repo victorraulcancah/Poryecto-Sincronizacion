@@ -165,6 +165,11 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       formaEnvio: [''],
       tipoPago: ['', [Validators.required]],
       email: [''],
+      // ✅ RUC/Razón Social: solo obligatorios cuando el cliente elige "Factura"
+      // (ver seleccionarTipoComprobante). Se guardan aparte del DNI, ya que un mismo
+      // cliente puede pedir Boleta o Factura según lo necesite en cada compra.
+      ruc: [''],
+      razonSocial: [''],
       aceptaTerminos: [false, [Validators.requiredTrue]],
       observaciones: ['']
     });
@@ -281,7 +286,10 @@ export class CheckoutComponent implements OnInit, OnDestroy {
             cliente: user.nombre_completo || user.name,
             email: user.email,
             celular: user.telefono || '',
-            numeroDocumento: user.numero_documento || ''
+            numeroDocumento: user.numero_documento || '',
+            // ✅ Si el cliente ya pidió Factura antes, se precarga su RUC/Razón Social guardados
+            ruc: user.ruc || '',
+            razonSocial: user.razon_social || ''
           });
 
           // ✅ El celular solo es obligatorio cuando se pide manualmente (el perfil no
@@ -442,6 +450,40 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     }
   }
 
+  // ✅ El cliente puede pedir Boleta (con su DNI) o Factura (con su RUC) según lo
+  // necesite en cada compra — el RUC/Razón Social solo son obligatorios con Factura.
+  seleccionarTipoComprobante(tipo: 'boleta' | 'factura'): void {
+    this.tipoComprobante = tipo;
+
+    const rucControl = this.checkoutForm.get('ruc');
+    const razonSocialControl = this.checkoutForm.get('razonSocial');
+
+    if (tipo === 'factura') {
+      rucControl?.setValidators([Validators.required, Validators.pattern('^[0-9]{11}$')]);
+      razonSocialControl?.setValidators([Validators.required]);
+    } else {
+      rucControl?.clearValidators();
+      razonSocialControl?.clearValidators();
+    }
+
+    rucControl?.updateValueAndValidity();
+    razonSocialControl?.updateValueAndValidity();
+  }
+
+  private guardarDatosFacturacion(): void {
+    const ruc = this.checkoutForm.get('ruc')?.value;
+    const razonSocial = this.checkoutForm.get('razonSocial')?.value;
+
+    if (!ruc || !razonSocial) return;
+
+    this.authService.actualizarFacturacion(ruc, razonSocial).subscribe({
+      error: (error) => {
+        // No se bloquea el flujo de compra si falla el guardado del RUC/Razón Social
+        console.error('Error al guardar datos de facturación:', error);
+      }
+    });
+  }
+
   onFormaEnvioChange(): void {
     const formaEnvioId = this.checkoutForm.get('formaEnvio')?.value;
     const formaEnvioSeleccionada = this.formasEnvioFiltradas.find(f => f.id === Number(formaEnvioId));
@@ -483,6 +525,12 @@ export class CheckoutComponent implements OnInit, OnDestroy {
         confirmButtonColor: '#dc3545'
       });
       return;
+    }
+
+    // ✅ Si eligió Factura, se guarda su RUC/Razón Social en su perfil para no
+    // tener que volver a pedirlos en su próxima compra.
+    if (this.tipoComprobante === 'factura') {
+      this.guardarDatosFacturacion();
     }
 
     this.procesandoPedido = true;
@@ -672,6 +720,12 @@ export class CheckoutComponent implements OnInit, OnDestroy {
         confirmButtonColor: '#dc3545'
       });
       return;
+    }
+
+    // ✅ Si eligió Factura, se guarda su RUC/Razón Social en su perfil para no
+    // tener que volver a pedirlos en su próxima compra.
+    if (this.tipoComprobante === 'factura') {
+      this.guardarDatosFacturacion();
     }
 
     this.crearCompraDirecta();

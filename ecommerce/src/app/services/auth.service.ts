@@ -116,7 +116,9 @@ export class AuthService {
       nombre_completo: response.user.nombre_completo,
       telefono: response.user.telefono,
       numero_documento: response.user.numero_documento,
-      tipo_documento: response.user.tipo_documento
+      tipo_documento: response.user.tipo_documento,
+      ruc: response.user.ruc,
+      razon_social: response.user.razon_social
     };
 
     localStorage.setItem(this.userKey, JSON.stringify(user));
@@ -371,6 +373,28 @@ export class AuthService {
         const currentUser = this.getCurrentUser();
         if (currentUser) {
           currentUser.telefono = response.telefono ?? telefono;
+          localStorage.setItem(this.userKey, JSON.stringify(currentUser));
+          this.currentUserSubject.next(currentUser);
+        }
+      })
+    );
+  }
+
+  /**
+   * Guardar/actualizar el RUC y razón social del cliente (para pedir Factura).
+   * Se guarda por separado del DNI: el mismo cliente puede pedir Boleta o Factura
+   * según lo necesite en cada compra.
+   */
+  actualizarFacturacion(ruc: string, razonSocial: string): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/user/facturacion`, {
+      ruc,
+      razon_social: razonSocial
+    }).pipe(
+      tap((response: any) => {
+        const currentUser = this.getCurrentUser();
+        if (currentUser) {
+          currentUser.ruc = response.ruc ?? ruc;
+          currentUser.razon_social = response.razon_social ?? razonSocial;
           localStorage.setItem(this.userKey, JSON.stringify(currentUser));
           this.currentUserSubject.next(currentUser);
         }
