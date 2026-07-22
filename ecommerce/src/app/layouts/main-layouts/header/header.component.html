@@ -610,7 +610,8 @@
                 {{ menu.nombre }}
               </a>
               <a *ngIf="!isExternalUrl(menu.url) && menu.url !== 'javascript:void(0)'"
-                 [routerLink]="menu.url"
+                 [routerLink]="getMenuPath(menu.url)"
+                 [queryParams]="getMenuQueryParams(menu.url)"
                  [target]="menu.target"
                  class="nav-menu__link"
                  [ngClass]="menu.url === '/arma-tu-pc' ? 'text-main-600 fw-semibold' : 'text-gray-700'">
@@ -634,7 +635,8 @@
                     {{ submenu.nombre }}
                   </a>
                   <a *ngIf="!isExternalUrl(submenu.url)"
-                     [routerLink]="submenu.url"
+                     [routerLink]="getMenuPath(submenu.url)"
+                     [queryParams]="getMenuQueryParams(submenu.url)"
                      [target]="submenu.target"
                      class="common-dropdown__link nav-submenu__link text-heading-two hover-bg-neutral-100">
                     {{ submenu.nombre }}

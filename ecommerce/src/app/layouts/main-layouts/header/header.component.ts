@@ -280,13 +280,69 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
     return (menu.hijos && menu.hijos.length > 0) || false;
   }
 
+  // ✅ Dominios propios del sitio: si una URL absoluta apunta a uno de estos, se
+  // trata como interna (routerLink) en vez de externa (href con recarga completa).
+  private readonly dominiosPropios = ['7power.pe', 'www.7power.pe'];
+
   /**
    * Detecta si la URL es externa/absoluta (http://, https://, mailto:, tel:).
    * Cuando es externa NO se debe usar [routerLink] (rompe la URL); usar [href].
+   *
+   * ✅ Las URLs que el admin guardó como absolutas pero apuntan al mismo dominio
+   * (ej. "https://7power.pe/shop?categoria=41") se tratan como INTERNAS: si no,
+   * el navegador hace una recarga completa de página en vez de navegación SPA,
+   * lo que causa un "flash" de contenido sin filtrar antes de aplicar el filtro.
    */
   isExternalUrl(url?: string | null): boolean {
     if (!url) return false;
-    return /^(https?:|mailto:|tel:|\/\/)/i.test(url);
+    if (/^(mailto:|tel:)/i.test(url)) return true;
+    if (!/^(https?:|\/\/)/i.test(url)) return false;
+    return !this.esDominioPropio(url);
+  }
+
+  /**
+   * Ruta (sin query) para usar con [routerLink], separada de los query params.
+   * Igual que el patrón ya usado en "Explorar categorías", para que Angular
+   * navegue por SPA en vez de interpretar el "?" como parte del path.
+   */
+  getMenuPath(url?: string | null): string {
+    if (!url || url === 'javascript:void(0)') return '/';
+    try {
+      return this.parseMenuUrl(url).pathname;
+    } catch {
+      return url;
+    }
+  }
+
+  /** Query params (ej. { categoria: '41' }) extraídos de la URL guardada en el menú. */
+  getMenuQueryParams(url?: string | null): { [clave: string]: string } {
+    if (!url) return {};
+    try {
+      const resultado: { [clave: string]: string } = {};
+      this.parseMenuUrl(url).searchParams.forEach((valor, clave) => {
+        resultado[clave] = valor;
+      });
+      return resultado;
+    } catch {
+      return {};
+    }
+  }
+
+  private parseMenuUrl(url: string): URL {
+    const absoluta = /^(https?:|\/\/)/i.test(url)
+      ? (url.startsWith('//') ? 'https:' + url : url)
+      : url;
+    // Base ficticia para poder parsear rutas relativas con la misma API URL.
+    return new URL(absoluta, 'https://__base-menu__.local');
+  }
+
+  private esDominioPropio(url: string): boolean {
+    try {
+      const parsed = new URL(url.startsWith('//') ? 'https:' + url : url);
+      return this.dominiosPropios.includes(parsed.hostname.toLowerCase());
+    } catch {
+      return false;
+    }
   }
 
   private cargarInformacionEmpresa(): void {
@@ -486,7 +542,13 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   isRouteActive(route: string): boolean {
-    return this.router.url === route;
+    // ✅ Comparar contra la ruta relativa: si "route" viene de un menú guardado
+    // como URL absoluta (ej. "https://7power.pe/shop?categoria=41"), router.url
+    // nunca coincide con el valor absoluto.
+    const path = this.getMenuPath(route);
+    const query = new URLSearchParams(this.getMenuQueryParams(route)).toString();
+    const relativa = query ? `${path}?${query}` : path;
+    return this.router.url === relativa || this.router.url === route;
   }
 
   isParentActive(routes: string[]): boolean {
