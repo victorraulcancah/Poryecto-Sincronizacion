@@ -336,74 +336,79 @@
 
     <!-- Script para remover el loader cuando Angular termine de cargar -->
     <script>
-      let angularReady = false;
-      let minimumTimeReached = false;
+      (function() {
+        var angularReady = false;
+        var minimumTimeReached = false;
 
-      // Detectar si es la primera carga de la sesión
-      const isFirstLoad = !sessionStorage.getItem("hasLoadedBefore");
-      const minimumTime = isFirstLoad ? 3000 : 100; // 3s primera vez, 0.1s después (muy rápido)
+        var loaderSvg = document.getElementById("loader-svg-img");
+        var loaderText = document.getElementById("loader-text");
+        var loader = document.getElementById("initial-loader");
 
-      // Mostrar el loader solo si es primera carga
-      const loaderSvg = document.getElementById("loader-svg-img");
-      const loaderText = document.getElementById("loader-text");
-      const loader = document.getElementById("initial-loader");
+        // Usar localStorage como persistencia principal (más duradero que sessionStorage)
+        // Solo mostrar el loader completo si es la primera vez que se carga la app en este navegador
+        var hasLoadedBefore = localStorage.getItem("hasLoadedBefore");
+        var isFirstLoadEver = !hasLoadedBefore;
 
-      if (isFirstLoad) {
-        // Primera carga: mostrar SVG completo con animaciones
-        loaderSvg.style.display = "block";
-        loaderText.style.display = "block";
-        loaderText.textContent = "Cargando 7 Power...";
-        // Marcar que ya se cargó una vez en esta sesión
-        sessionStorage.setItem("hasLoadedBefore", "true");
-      } else {
-        // Navegación posterior: loader invisible (solo para esperar a Angular)
-        loader.style.background = "transparent";
-        loader.style.pointerEvents = "none";
-      }
+        if (isFirstLoadEver) {
+          // Primera carga EVER: mostrar SVG completo con animaciones
+          localStorage.setItem("hasLoadedBefore", "true");
+          loaderSvg.style.display = "block";
+          loaderText.style.display = "block";
+          loaderText.textContent = "Cargando 7 Power...";
 
-      // Función para remover el loader
-      function removeInitialLoader() {
-        if (loader) {
-          loader.classList.add("fade-out");
-          setTimeout(() => {
-            loader.remove();
-          }, 500);
-        }
-      }
-
-      // Verificar si se puede remover el loader (ambas condiciones cumplidas)
-      function checkRemoveLoader() {
-        if (angularReady && minimumTimeReached) {
-          removeInitialLoader();
-        }
-      }
-
-      // Timer para el tiempo mínimo (3s o 0.1s según sea primera carga)
-      setTimeout(() => {
-        minimumTimeReached = true;
-        checkRemoveLoader();
-      }, minimumTime);
-
-      // Escuchar cuando Angular termine de cargar
-      document.addEventListener("DOMContentLoaded", function () {
-        // Verificar periódicamente si Angular está listo
-        const checkAngularReady = setInterval(() => {
-          const appRoot = document.querySelector("app-root");
-          if (appRoot && appRoot.children.length > 0) {
-            angularReady = true;
+          // Timer para el tiempo mínimo (3s en primera carga)
+          setTimeout(function () {
+            minimumTimeReached = true;
             checkRemoveLoader();
-            clearInterval(checkAngularReady);
+          }, 3000);
+        } else {
+          // Cargas posteriores: ocultar loader completamente e inmediatamente
+          if (loader) {
+            loader.style.display = "none";
           }
-        }, 100);
-
-        // Failsafe: remover el loader después de máximo 15 segundos
-        setTimeout(() => {
+          // Marcar que ya se removió para no ejecutar lógica innecesaria
           angularReady = true;
           minimumTimeReached = true;
-          removeInitialLoader();
-          clearInterval(checkAngularReady);
-        }, 15000);
-      });
+        }
+
+        function removeInitialLoader() {
+          if (loader) {
+            loader.classList.add("fade-out");
+            setTimeout(function () {
+              if (loader && loader.parentNode) {
+                loader.parentNode.removeChild(loader);
+              }
+            }, 500);
+          }
+        }
+
+        function checkRemoveLoader() {
+          if (angularReady && minimumTimeReached) {
+            removeInitialLoader();
+          }
+        }
+
+        // Solo esperar a Angular si es la primera carga
+        if (isFirstLoadEver) {
+          document.addEventListener("DOMContentLoaded", function () {
+            var checkAngularReady = setInterval(function () {
+              var appRoot = document.querySelector("app-root");
+              if (appRoot && appRoot.children.length > 0) {
+                angularReady = true;
+                checkRemoveLoader();
+                clearInterval(checkAngularReady);
+              }
+            }, 100);
+
+            setTimeout(function () {
+              angularReady = true;
+              minimumTimeReached = true;
+              removeInitialLoader();
+              clearInterval(checkAngularReady);
+            }, 15000);
+          });
+        }
+      })();
     </script>
   </body>
 </html>
