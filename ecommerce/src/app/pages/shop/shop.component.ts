@@ -1,5 +1,5 @@
 // src/app/pages/shop/shop.component.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -34,7 +34,7 @@ import Swal from 'sweetalert2';
   templateUrl: './shop.component.html',
   styleUrl: './shop.component.scss',
 })
-export class ShopComponent implements OnInit {
+export class ShopComponent implements OnInit, OnDestroy {
   listview: 'list' | 'grid' = 'grid';
 
   productos: ProductoPublico[] = [];
@@ -45,6 +45,10 @@ export class ShopComponent implements OnInit {
   categoriaSeleccionada?: number;
   marcaSeleccionada?: number; // ✅ NUEVO
   searchTerm: string = '';
+
+  private productosSub?: any;
+  private categoriasSub?: any;
+  private marcasSub?: any;
 
   // ✅ FILTRO POR PRECIO
   minPrice?: number;
@@ -181,8 +185,8 @@ export class ShopComponent implements OnInit {
   }
 
   cargarCategorias(): void {
-    // ✅ El conteo por categoría respeta la marca actualmente seleccionada
-    this.productosService.obtenerCategoriasParaSidebar(this.marcaSeleccionada).subscribe({
+    if (this.categoriasSub) this.categoriasSub.unsubscribe();
+    this.categoriasSub = this.productosService.obtenerCategoriasParaSidebar(this.marcaSeleccionada).subscribe({
       next: (categorias) => {
         this.categorias = categorias;
       },
@@ -191,9 +195,10 @@ export class ShopComponent implements OnInit {
       },
     });
   }
+
   cargarMarcas(): void {
-    // ✅ El conteo por marca respeta la categoría actualmente seleccionada
-    this.almacenService.obtenerMarcasPublicas(this.categoriaSeleccionada).subscribe({
+    if (this.marcasSub) this.marcasSub.unsubscribe();
+    this.marcasSub = this.almacenService.obtenerMarcasPublicas(this.categoriaSeleccionada).subscribe({
       next: (marcas) => {
         this.marcas = marcas;
       },
@@ -218,6 +223,8 @@ export class ShopComponent implements OnInit {
   // Modifica el método existente cargarProductos():
   cargarProductos(): void {
     this.isLoading = true;
+
+    if (this.productosSub) this.productosSub.unsubscribe();
 
     // ✅ Los conteos del sidebar se refrescan con el filtro cruzado (categoría <-> marca) actual
     this.cargarCategorias();
@@ -247,7 +254,7 @@ export class ShopComponent implements OnInit {
       filtros.seccion = +seccion;
     }
 
-    this.productosService.obtenerProductosPublicos(filtros).subscribe({
+    this.productosSub = this.productosService.obtenerProductosPublicos(filtros).subscribe({
       next: (response) => {
         this.productos = response.productos;
         this.currentPage = response.pagination.current_page;
@@ -410,6 +417,12 @@ export class ShopComponent implements OnInit {
     if (img.dataset['fallback']) return;
     img.dataset['fallback'] = '1';
     img.src = 'assets/images/placeholder.svg';
+  }
+
+  ngOnDestroy(): void {
+    this.productosSub?.unsubscribe();
+    this.categoriasSub?.unsubscribe();
+    this.marcasSub?.unsubscribe();
   }
 
   // Method to generate page numbers based on totalPages
