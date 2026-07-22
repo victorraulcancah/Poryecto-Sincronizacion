@@ -101,6 +101,18 @@
       src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"
     ></script>
 
+    <!-- Script blocking: oculta el loader ANTES de que se pinte si ya se mostró antes -->
+    <script>
+      (function() {
+        var hasLoaded = document.cookie.match(/(?:^|;\s*)hasLoadedBefore=([^;]*)/);
+        if (hasLoaded) {
+          var s = document.createElement('style');
+          s.textContent = '#initial-loader{display:none!important}';
+          document.head.appendChild(s);
+        }
+      })();
+    </script>
+
     <!-- Estilos del loader de carga inicial -->
     <style>
           #initial-loader {
@@ -334,17 +346,15 @@
 
     <app-root></app-root>
 
-    <!-- Script para remover el loader cuando Angular termine de cargar -->
+    <!-- Script para gestionar la animación del loader (solo primera vez) -->
     <script>
       (function() {
         var loader = document.getElementById("initial-loader");
         var loaderSvg = document.getElementById("loader-svg-img");
         var loaderText = document.getElementById("loader-text");
 
-        function getCookie(name) {
-          var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-          return match ? match[2] : null;
-        }
+        // Si la cookie ya existe (ya se mostró antes), salir
+        if (document.cookie.match(/(?:^|;\s*)hasLoadedBefore=([^;]*)/)) return;
 
         function setCookie(name, value) {
           document.cookie = name + '=' + value + '; path=/; max-age=86400';
@@ -356,40 +366,27 @@
           }
         }
 
-        function hideLoader() {
-          if (loader) {
-            loader.style.display = "none";
-            removeLoader();
-          }
-        }
-
-        // Si ya existe la cookie, el splash ya se mostró antes → ocultar inmediatamente
-        if (getCookie("hasLoadedBefore")) {
-          hideLoader();
-          return;
-        }
-
-        // Primera vez: mostrar el loader
+        // Mostrar SVG y texto
         loaderSvg.style.display = "block";
         loaderText.style.display = "block";
         loaderText.textContent = "Cargando 7 Power...";
 
-        // Marcar en cookie que ya se mostró (expira en 24h)
+        // Marcar en cookie que ya se mostró
         setCookie("hasLoadedBefore", "true");
 
-        // Esperar a que Angular esté listo o 3s como mínimo
+        // Esperar a que Angular esté listo (mínimo 3s)
         var angularReady = false;
-        var minimumTimeReached = false;
+        var minimumTime = false;
 
         function checkAndRemove() {
-          if (angularReady && minimumTimeReached) {
+          if (angularReady && minimumTime) {
             loader.classList.add("fade-out");
             setTimeout(removeLoader, 500);
           }
         }
 
         setTimeout(function () {
-          minimumTimeReached = true;
+          minimumTime = true;
           checkAndRemove();
         }, 3000);
 
@@ -405,7 +402,7 @@
 
           setTimeout(function () {
             angularReady = true;
-            minimumTimeReached = true;
+            minimumTime = true;
             loader.classList.add("fade-out");
             setTimeout(removeLoader, 500);
             clearInterval(interval);
