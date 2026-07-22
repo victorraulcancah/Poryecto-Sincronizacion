@@ -49,6 +49,8 @@ export class ShopComponent implements OnInit, OnDestroy {
   private productosSub?: any;
   private categoriasSub?: any;
   private marcasSub?: any;
+  // ✅ Descarta respuestas de cargarProductos() obsoletas (de un filtro ya reemplazado)
+  private cargarProductosRequestId = 0;
 
   // ✅ FILTRO POR PRECIO
   minPrice?: number;
@@ -223,6 +225,11 @@ export class ShopComponent implements OnInit, OnDestroy {
   // Modifica el método existente cargarProductos():
   cargarProductos(): void {
     this.isLoading = true;
+    // ✅ Evita mostrar productos de la categoría/filtro anterior mientras carga la nueva
+    // (antes se quedaban visibles hasta que llegaba la respuesta, aunque ya no correspondían).
+    this.productos = [];
+    this.totalProductos = 0;
+    const requestId = ++this.cargarProductosRequestId;
 
     if (this.productosSub) this.productosSub.unsubscribe();
 
@@ -256,6 +263,8 @@ export class ShopComponent implements OnInit, OnDestroy {
 
     this.productosSub = this.productosService.obtenerProductosPublicos(filtros).subscribe({
       next: (response) => {
+        // ✅ Ignorar respuestas obsoletas (de un filtro/categoría ya reemplazado por uno más reciente)
+        if (requestId !== this.cargarProductosRequestId) return;
         this.productos = response.productos;
         this.currentPage = response.pagination.current_page;
         this.totalPages = response.pagination.last_page;
@@ -263,6 +272,7 @@ export class ShopComponent implements OnInit, OnDestroy {
         this.isLoading = false;
       },
       error: (error) => {
+        if (requestId !== this.cargarProductosRequestId) return;
         console.error('Error al cargar productos:', error);
         this.isLoading = false;
       },
