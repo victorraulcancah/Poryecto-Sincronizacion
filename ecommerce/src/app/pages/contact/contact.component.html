@@ -109,7 +109,7 @@
                         <h6 class="mb-48">Contáctanos</h6>
                         
                         <!-- Teléfono -->
-                        <div class="flex-align gap-16 mb-16">
+                        <div *ngIf="getTelefono()" class="flex-align gap-16 mb-16">
                             <span
                                 class="w-40 h-40 flex-center rounded-circle border border-gray-100 text-main-two-600 text-2xl flex-shrink-0">
                                 <i class="ph-fill ph-phone-call"></i>
@@ -121,7 +121,7 @@
                         </div>
 
                         <!-- Email -->
-                        <div class="flex-align gap-16 mb-16">
+                        <div *ngIf="getEmail()" class="flex-align gap-16 mb-16">
                             <span
                                 class="w-40 h-40 flex-center rounded-circle border border-gray-100 text-main-two-600 text-2xl flex-shrink-0">
                                 <i class="ph-fill ph-envelope"></i>
@@ -133,7 +133,7 @@
                         </div>
 
                         <!-- Dirección -->
-                        <div class="flex-align gap-16 mb-0">
+                        <div *ngIf="getDireccion()" class="flex-align gap-16 mb-0">
                             <span
                                 class="w-40 h-40 flex-center rounded-circle border border-gray-100 text-main-two-600 text-2xl flex-shrink-0">
                                 <i class="ph-fill ph-map-pin"></i>

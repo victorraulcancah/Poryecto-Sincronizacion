@@ -92,45 +92,40 @@ export class ContactComponent implements OnInit, OnDestroy {
     };
   }
 
-  // Métodos para obtener información de la empresa con valores por defecto
-  getTelefono(): string {
-    return this.empresaInfo?.telefono || '+00 123 456 789';
+  getTelefono(): string | null {
+    return this.empresaInfo?.telefono || null;
   }
 
-  getEmail(): string {
-    return this.empresaInfo?.email || 'support24@marketpro.com';
+  getEmail(): string | null {
+    return this.empresaInfo?.email || null;
   }
 
-  getDireccion(): string {
-    return this.empresaInfo?.direccion || '789 Inner Lane, California, USA';
+  getDireccion(): string | null {
+    return this.empresaInfo?.direccion || null;
   }
 
-  getWhatsapp(): string {
-    return this.empresaInfo?.whatsapp || this.getTelefono();
+  getWhatsapp(): string | null {
+    return this.empresaInfo?.whatsapp || null;
   }
 
-  // Método para abrir WhatsApp
   abrirWhatsApp(): void {
-    const numero = this.getWhatsappNumero();
+    const whatsapp = this.getWhatsapp();
+    if (!whatsapp) return;
+    const numero = whatsapp.replace(/[^0-9]/g, '');
     const mensaje = encodeURIComponent('Hola, me gustaría obtener más información sobre sus productos.');
     window.open(`https://wa.me/${numero}?text=${mensaje}`, '_blank');
   }
 
-  // Método para obtener número de WhatsApp limpio
-  getWhatsappNumero(): string {
+  getWhatsappUrl(): string | null {
     const whatsapp = this.getWhatsapp();
-    return whatsapp.replace(/[^0-9]/g, '');
-  }
-
-  // Método para obtener URL de WhatsApp
-  getWhatsappUrl(): string {
-    const numero = this.getWhatsappNumero();
+    if (!whatsapp) return null;
+    const numero = whatsapp.replace(/[^0-9]/g, '');
     return `https://wa.me/${numero}`;
   }
 
-  // Método para abrir Google Maps
   abrirMaps(): void {
-    const direccion = encodeURIComponent(this.getDireccion());
-    window.open(`https://www.google.com/maps/search/?api=1&query=${direccion}`, '_blank');
+    const direccion = this.getDireccion();
+    if (!direccion) return;
+    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(direccion)}`, '_blank');
   }
 }
