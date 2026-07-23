@@ -14,6 +14,7 @@ class UserCliente extends Authenticatable
     protected $table = 'user_clientes';
 
     protected $fillable = [
+        'codigo_erp',
         'nombres',
         'apellidos', 
         'email',

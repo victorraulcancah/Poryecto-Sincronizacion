@@ -50,6 +50,7 @@ class ClientesController extends Controller
             $clientesTransformados = $clientes->map(function ($cliente) {
                 return [
                     'id_cliente' => $cliente->id,
+                    'codigo_erp' => $cliente->codigo_erp,
                     'nombres' => $cliente->nombres,
                     'apellidos' => $cliente->apellidos,
                     'nombre_completo' => $cliente->nombre_completo,
@@ -92,6 +93,7 @@ class ClientesController extends Controller
             // Transformar datos del cliente
             $clienteData = [
                 'id_cliente' => $cliente->id,
+                'codigo_erp' => $cliente->codigo_erp,
                 'nombres' => $cliente->nombres,
                 'apellidos' => $cliente->apellidos,
                 'nombre_completo' => $cliente->nombre_completo,
@@ -296,18 +298,48 @@ class ClientesController extends Controller
                 'genero' => 'nullable|in:masculino,femenino,otro',
                 'estado' => 'sometimes|required|boolean',
                 'tipo_precio_id' => 'nullable|exists:tipos_precio,id',
+                // Código de cliente del ERP 7Power (CLI00001...), asignado
+                // manualmente por un administrador para vincular la cuenta.
+                'codigo_erp' => 'nullable|string|max:20|unique:user_clientes,codigo_erp,' . $id,
             ]);
+
+            if ($request->filled('codigo_erp')) {
+                // Validar contra el ERP vía su endpoint público HTTP (no se usa
+                // la conexión directa mysql_7power, reservada para la
+                // sincronización de catálogo).
+                try {
+                    $respuestaErp = \Illuminate\Support\Facades\Http::timeout(5)->get(
+                        rtrim(config('services.erp.url', env('ERP_API_URL', 'http://localhost:8000/api')), '/')
+                            . '/ecommerce/clientes/validar-codigo',
+                        ['codigo' => $request->input('codigo_erp')]
+                    );
+                    $existeEnErp = $respuestaErp->ok() && ($respuestaErp->json('existe') === true);
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'No se pudo validar el código con el ERP 7Power. Intenta nuevamente.',
+                    ], 503);
+                }
+
+                if (!$existeEnErp) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'El código de cliente no existe en el ERP 7Power.',
+                    ], 422);
+                }
+            }
 
             // Solo se actualizan los campos presentes en la petición;
             // el resto del cliente se conserva tal cual.
             $cliente->update($request->only([
                 'nombres', 'apellidos', 'email', 'telefono',
-                'fecha_nacimiento', 'genero', 'estado', 'tipo_precio_id'
+                'fecha_nacimiento', 'genero', 'estado', 'tipo_precio_id', 'codigo_erp'
             ]));
 
             // Transformar respuesta
             $clienteTransformado = [
                 'id_cliente' => $cliente->id,
+                'codigo_erp' => $cliente->codigo_erp,
                 'nombres' => $cliente->nombres,
                 'apellidos' => $cliente->apellidos,
                 'nombre_completo' => $cliente->nombre_completo,

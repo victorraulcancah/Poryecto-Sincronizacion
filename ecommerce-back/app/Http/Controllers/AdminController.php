@@ -101,6 +101,9 @@ class AdminController extends Controller
                     'razon_social' => $cliente->clienteFacturacion?->razon_social,
                     'foto_url' => $cliente->foto_url,
                     'email_verified_at' => $cliente->email_verified_at,
+                    // Código de cliente del ERP 7Power (CLI00001...), asignado
+                    // manualmente por un admin para vincular el Estado de Cuenta.
+                    'codigo_erp' => $cliente->codigo_erp,
                 ],
                 'token' => $token,
             ]);
@@ -440,6 +443,7 @@ class AdminController extends Controller
                     'razon_social' => $user->clienteFacturacion?->razon_social,
                     'foto' => $user->foto,
                     'email_verified_at' => $user->email_verified_at,
+                    'codigo_erp' => $user->codigo_erp,
                 ],
             ]);
         } elseif ($user instanceof UserMotorizado) {
