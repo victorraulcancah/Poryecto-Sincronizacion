@@ -308,8 +308,10 @@ class ClientesController extends Controller
                 // la conexión directa mysql_7power, reservada para la
                 // sincronización de catálogo).
                 try {
+                    // Misma variable que ya usa Productos7PowerController para
+                    // llamar al backend de 7Power.
                     $respuestaErp = \Illuminate\Support\Facades\Http::timeout(5)->get(
-                        rtrim(config('services.erp.url', env('ERP_API_URL', 'http://localhost:8000/api')), '/')
+                        rtrim(env('API_7POWER_URL', 'http://127.0.0.1:8001/api'), '/')
                             . '/ecommerce/clientes/validar-codigo',
                         ['codigo' => $request->input('codigo_erp')]
                     );
