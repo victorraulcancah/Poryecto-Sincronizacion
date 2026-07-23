@@ -689,7 +689,8 @@
       <!-- Header Right start -->
       <div class="header-right flex-align gap-20">
         <a
-          href="tel:+(2)871382023"
+          *ngIf="empresaInfo?.telefono"
+          [href]="'tel:' + empresaInfo?.telefono"
           class="d-sm-flex align-items-center gap-16 d-none"
         >
           <span class="d-flex text-32">
@@ -701,7 +702,7 @@
             >
             <span
               class="d-block fw-bold text-danger-10 hover-text-decoration-underline"
-              >{{ empresaInfo?.telefono || "+ 999 999 999" }}</span
+              >{{ empresaInfo?.telefono }}</span
             >
           </span>
         </a>
