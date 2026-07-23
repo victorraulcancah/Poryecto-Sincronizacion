@@ -84,12 +84,12 @@
       </div>
     </div>
 
-    <!-- Filtro de fechas + buscador, en una sola fila -->
-    <div class="flex-align gap-8 flex-nowrap mb-16">
+    <!-- Filtro de fechas + buscador, en una sola fila (sin fondo de color) -->
+    <div class="flex-align gap-8 flex-nowrap mb-8">
       <i class="ph ph-calendar-blank text-gray-400"></i>
-      <input type="date" class="form-control form-control-sm" style="max-width: 140px;" [(ngModel)]="fechaDesde">
+      <input type="date" class="form-control form-control-sm" style="max-width: 130px;" [(ngModel)]="fechaDesde">
       <span class="text-gray-400">—</span>
-      <input type="date" class="form-control form-control-sm" style="max-width: 140px;" [(ngModel)]="fechaHasta">
+      <input type="date" class="form-control form-control-sm" style="max-width: 130px;" [(ngModel)]="fechaHasta">
       <button type="button" class="btn btn-sm btn-outline-main-600" (click)="aplicarFiltroFechas()">
         <i class="ph ph-funnel"></i>
       </button>
@@ -106,11 +106,11 @@
     </div>
 
     <!-- Deuda Anterior -->
-    <div class="flex-align gap-24 mb-16" *ngIf="hayDeudaAnterior">
-      <span class="text-danger-600 fw-semibold text-sm">
+    <div class="flex-align gap-24 mb-8" *ngIf="hayDeudaAnterior">
+      <span class="text-danger-600 fw-semibold text-xs">
         Deuda Anterior (S/.): S/ {{ formatearMonto(resumen.deuda_anterior_soles) }}
       </span>
-      <span class="text-danger-600 fw-semibold text-sm">
+      <span class="text-danger-600 fw-semibold text-xs">
         Deuda Anterior ($): $ {{ formatearMonto(resumen.deuda_anterior_dolares) }}
       </span>
     </div>
@@ -120,9 +120,9 @@
       No hay movimientos registrados.
     </div>
 
-    <div class="table-responsive" style="max-height: 520px; overflow-y: auto;" *ngIf="movimientosFiltrados.length > 0">
+    <div class="table-responsive" style="max-height: 510px; overflow-y: auto;" *ngIf="movimientosFiltrados.length > 0">
       <table class="table align-middle mb-0">
-        <thead style="position: sticky; top: 0; z-index: 1;" class="bg-white">
+        <thead style="position: sticky; top: 0; z-index: 1;" class="bg-main-50">
           <tr class="text-center">
             <th>FECHA</th>
             <th>DOCUMENTO</th>
