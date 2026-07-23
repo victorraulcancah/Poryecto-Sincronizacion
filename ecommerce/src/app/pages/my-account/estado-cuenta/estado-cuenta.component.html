@@ -7,17 +7,142 @@
       </div>
       <div>
         <h4 class="mb-4 text-heading">Mi estado de cuenta</h4>
-        <p class="text-gray-500 mb-0 text-sm">Resumen de tu cuenta</p>
+        <p class="text-gray-500 mb-0 text-sm">Resumen de tu cuenta con 7Power</p>
       </div>
     </div>
   </div>
 
-  <!-- Contenido -->
-  <div class="p-24 p-md-32 text-center py-60">
-    <div class="w-80 h-80 bg-gray-50 text-gray-400 rounded-circle flex-center mx-auto mb-24">
-      <i class="ph ph-wallet text-3xl"></i>
+  <!-- Loading -->
+  <div *ngIf="cargando" class="text-center py-60">
+    <div class="spinner-border text-main-600" role="status">
+      <span class="visually-hidden">Cargando estado de cuenta...</span>
     </div>
-    <h5 class="text-heading mb-12">Próximamente</h5>
-    <p class="text-gray-500 mb-0">Esta sección estará disponible pronto.</p>
+  </div>
+
+  <!-- Cuenta sin vincular -->
+  <div class="p-24 p-md-32 text-center py-60" *ngIf="!cargando && estado === 'sin_vincular'">
+    <div class="w-80 h-80 bg-gray-50 text-gray-400 rounded-circle flex-center mx-auto mb-24">
+      <i class="ph ph-link-break text-3xl"></i>
+    </div>
+    <h5 class="text-heading mb-12">Tu cuenta aún no está vinculada</h5>
+    <p class="text-gray-500 mb-0">
+      Contacta a servicio al cliente para vincular tu cuenta con tu historial en 7Power
+      y poder ver tu estado de cuenta aquí.
+    </p>
+  </div>
+
+  <!-- Error -->
+  <div class="p-24 p-md-32 text-center py-60" *ngIf="!cargando && estado === 'error'">
+    <div class="w-80 h-80 bg-danger-50 text-danger-600 rounded-circle flex-center mx-auto mb-24">
+      <i class="ph ph-warning-circle text-3xl"></i>
+    </div>
+    <h5 class="text-heading mb-12">No se pudo cargar tu estado de cuenta</h5>
+    <p class="text-gray-500 mb-0">{{ errorMensaje }}</p>
+  </div>
+
+  <!-- Contenido real -->
+  <div class="p-24 p-md-32" *ngIf="!cargando && estado === null && resumen">
+    <!-- Resumen (mismos campos que /estado-de-cuenta del ERP) -->
+    <div class="row g-16 mb-24">
+      <div class="col-6 col-md-3">
+        <div class="border border-gray-100 rounded-16 p-16 text-center h-100">
+          <p class="text-xs text-gray-500 mb-4">Línea de Crédito</p>
+          <h6 class="text-heading mb-0">S/ {{ formatearMonto(resumen.client?.credito) }}</h6>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="border border-gray-100 rounded-16 p-16 text-center h-100">
+          <p class="text-xs text-gray-500 mb-4">Crédito Disponible</p>
+          <h6 class="mb-0" [class.text-danger-600]="(resumen.client?.credito_disponible ?? 0) < 0"
+              [class.text-heading]="(resumen.client?.credito_disponible ?? 0) >= 0">
+            S/ {{ formatearMonto(resumen.client?.credito_disponible) }}
+          </h6>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="border border-gray-100 rounded-16 p-16 text-center h-100">
+          <p class="text-xs text-gray-500 mb-4">Deuda Total Soles</p>
+          <h6 class="text-heading mb-0">S/ {{ formatearMonto(resumen.deudaTotalSoles) }}</h6>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="border border-gray-100 rounded-16 p-16 text-center h-100">
+          <p class="text-xs text-gray-500 mb-4">Deuda Total Dólares</p>
+          <h6 class="text-heading mb-0">$ {{ formatearMonto(resumen.deudaTotalDolares) }}</h6>
+        </div>
+      </div>
+      <div class="col-12 col-md-3">
+        <div class="border border-gray-100 rounded-16 p-16 text-center h-100">
+          <p class="text-xs text-gray-500 mb-4">Línea Utilizada</p>
+          <h6 class="text-heading mb-0">S/ {{ formatearMonto(resumen.client?.linea_utilizada) }}</h6>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filtro de fechas + buscador -->
+    <div class="flex-between align-items-center gap-16 flex-wrap mb-16">
+      <div class="flex-align gap-8 flex-wrap">
+        <input type="date" class="form-control form-control-sm" [(ngModel)]="fechaDesde">
+        <span class="text-gray-400">—</span>
+        <input type="date" class="form-control form-control-sm" [(ngModel)]="fechaHasta">
+        <button type="button" class="btn btn-sm btn-outline-main-600" (click)="aplicarFiltroFechas()">
+          <i class="ph ph-funnel me-4"></i>Filtrar
+        </button>
+      </div>
+      <div class="position-relative">
+        <input
+          type="text"
+          class="form-control form-control-sm ps-32"
+          placeholder="Buscar en descripción..."
+          [(ngModel)]="busqueda"
+          (ngModelChange)="aplicarBusqueda()"
+        >
+        <i class="ph ph-magnifying-glass position-absolute text-gray-400" style="left: 10px; top: 50%; transform: translateY(-50%);"></i>
+      </div>
+    </div>
+
+    <!-- Deuda Anterior -->
+    <div class="flex-align gap-24 mb-16" *ngIf="hayDeudaAnterior">
+      <span class="text-danger-600 fw-semibold text-sm">
+        Deuda Anterior (S/.): S/ {{ formatearMonto(resumen.deuda_anterior_soles) }}
+      </span>
+      <span class="text-danger-600 fw-semibold text-sm">
+        Deuda Anterior ($): $ {{ formatearMonto(resumen.deuda_anterior_dolares) }}
+      </span>
+    </div>
+
+    <!-- Movimientos: mismas columnas que /estado-de-cuenta del ERP (vista detallada) -->
+    <div *ngIf="movimientosFiltrados.length === 0" class="text-center py-40 text-gray-500">
+      No hay movimientos registrados.
+    </div>
+
+    <div class="table-responsive" style="max-height: 480px; overflow-y: auto;" *ngIf="movimientosFiltrados.length > 0">
+      <table class="table align-middle mb-0">
+        <thead style="position: sticky; top: 0; z-index: 1;" class="bg-white">
+          <tr class="text-center">
+            <th>FECHA</th>
+            <th>DOCUMENTO</th>
+            <th>CANTIDAD</th>
+            <th class="text-start">DESCRIPCIÓN</th>
+            <th>SOLES</th>
+            <th>DÓLARES</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let mov of movimientosFiltrados" [class.text-danger-600]="esFilaRoja(mov)">
+            <td class="text-center">{{ formatearFecha(mov.created_at) }}</td>
+            <td class="text-center">{{ documento(mov) }}</td>
+            <td class="text-center">{{ cantidad(mov) }}</td>
+            <td class="text-start">{{ descripcion(mov) }}</td>
+            <td class="text-center">
+              <span class="text-gray-500 fw-bold me-4">S/.</span>{{ formatearMonto(soles(mov)) }}
+            </td>
+            <td class="text-center">
+              <span class="text-gray-500 fw-bold me-4">$.</span>{{ formatearMonto(dolares(mov)) }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>

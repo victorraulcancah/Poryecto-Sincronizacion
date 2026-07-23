@@ -1,9 +1,13 @@
 import { Component, Input, Output, EventEmitter, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { of } from 'rxjs';
 import { ClienteService } from '../../services/cliente.service';
 import { TiposPrecioService, TipoPrecio } from '../../services/tipos-precio.service';
 import { Cliente } from '../../models/cliente.model';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-cliente-edit-modal',
@@ -89,6 +93,30 @@ import { Cliente } from '../../models/cliente.model';
                   </select>
                   <small class="text-muted">Si se deja en predeterminada, usa la lista global configurada.</small>
                 </div>
+
+                <!-- Código de Cliente 7Power (vínculo manual con el ERP) -->
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Código de Cliente 7Power</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    formControlName="codigo_erp"
+                    placeholder="Ej: CLI00001"
+                    style="text-transform: uppercase;"
+                  >
+                  <small class="text-success" *ngIf="codigoErpEstado === 'valido'">
+                    <i class="ph ph-check-circle me-1"></i>Cliente encontrado: {{ codigoErpNombre }}
+                  </small>
+                  <small class="text-danger" *ngIf="codigoErpEstado === 'invalido'">
+                    <i class="ph ph-x-circle me-1"></i>Este código no existe en el ERP 7Power
+                  </small>
+                  <small class="text-muted" *ngIf="codigoErpEstado === 'verificando'">
+                    Verificando código...
+                  </small>
+                  <small class="text-muted" *ngIf="codigoErpEstado === null">
+                    Código del cliente en el ERP (formato CLI00001), para vincular su Estado de Cuenta.
+                  </small>
+                </div>
               </div>
             </div>
             
@@ -118,17 +146,48 @@ export class ClienteEditModalComponent implements OnInit {
   formulario!: FormGroup;
   guardando = false;
   tiposPrecio: TipoPrecio[] = [];
+  codigoErpEstado: 'valido' | 'invalido' | 'verificando' | null = null;
+  codigoErpNombre = '';
 
   constructor(
     private fb: FormBuilder,
     private clienteService: ClienteService,
-    private tiposPrecioService: TiposPrecioService
+    private tiposPrecioService: TiposPrecioService,
+    private http: HttpClient
   ) {}
     ngOnInit(): void {
       this.inicializarFormulario();
       this.tiposPrecioService.listar().subscribe({
         next: (res) => { this.tiposPrecio = (res.tipos_precio || []).filter(t => t.activo); },
         error: () => {}
+      });
+
+      // Validar el código contra el ERP a medida que el admin escribe
+      // (con debounce, sin bloquear el guardado si aún no verificó).
+      this.formulario.get('codigo_erp')?.valueChanges.pipe(
+        debounceTime(400),
+        distinctUntilChanged(),
+        switchMap(valor => {
+          const codigo = (valor || '').trim().toUpperCase();
+          if (!codigo) {
+            this.codigoErpEstado = null;
+            return of(null);
+          }
+          this.codigoErpEstado = 'verificando';
+          return this.http.get<{ existe: boolean; nombre?: string }>(
+            `${environment.erpApiUrl}/ecommerce/clientes/validar-codigo`,
+            { params: { codigo } }
+          );
+        })
+      ).subscribe({
+        next: (res) => {
+          if (!res) return;
+          this.codigoErpEstado = res.existe ? 'valido' : 'invalido';
+          this.codigoErpNombre = res.nombre || '';
+        },
+        error: () => {
+          this.codigoErpEstado = null;
+        }
       });
     }
 
@@ -149,7 +208,8 @@ export class ClienteEditModalComponent implements OnInit {
         direccion: [direccion],
         email: [this.cliente?.email || '', [Validators.email]],
         telefono: [this.cliente?.telefono || ''],
-        tipo_precio_id: [(this.cliente as any)?.tipo_precio_id ?? null]
+        tipo_precio_id: [(this.cliente as any)?.tipo_precio_id ?? null],
+        codigo_erp: [this.cliente?.codigo_erp || '']
       });
     }
 
@@ -157,7 +217,12 @@ export class ClienteEditModalComponent implements OnInit {
     if (this.formulario.invalid) return;
 
     this.guardando = true;
-    const datosFormulario = this.formulario.value;
+    const datosFormulario = { ...this.formulario.value };
+    if (datosFormulario.codigo_erp) {
+      datosFormulario.codigo_erp = String(datosFormulario.codigo_erp).trim().toUpperCase();
+    } else {
+      datosFormulario.codigo_erp = null;
+    }
 
     // Si es un cliente nuevo (sin ID), emitir directamente los datos
     if (!this.cliente || !this.cliente.id_cliente) {

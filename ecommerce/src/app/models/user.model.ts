@@ -27,6 +27,10 @@ export interface User {
   foto_url?: string;
   foto?: string;
 
+  // Código de cliente del ERP 7Power (CLI00001...), asignado manualmente por
+  // un admin para vincular el Estado de Cuenta.
+  codigo_erp?: string | null;
+
   // Para motorizados
   motorizado_id?: number;
   username?: string;
@@ -71,6 +75,9 @@ export interface AuthResponse {
     // Para clientes - foto de perfil
     foto_url?: string;
     foto?: string;
+
+    // Código de cliente del ERP 7Power (CLI00001...), para el Estado de Cuenta.
+    codigo_erp?: string | null;
 
     // Para motorizados
     motorizado_id?: number;

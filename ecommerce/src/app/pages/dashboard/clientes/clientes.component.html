@@ -134,7 +134,12 @@
                 </div>
                 <div>
                   <div class="client-info__name">{{ cliente.nombre_completo || (cliente.nombres + ' ' + cliente.apellidos) }}</div>
-                  <div class="client-info__subtitle">Cliente verificado</div>
+                  <div class="client-info__subtitle" *ngIf="cliente.codigo_erp; else sinVincular">
+                    <i class="ph ph-link me-1"></i>{{ cliente.codigo_erp }}
+                  </div>
+                  <ng-template #sinVincular>
+                    <div class="client-info__subtitle text-muted">Sin vincular a 7Power</div>
+                  </ng-template>
                   <div class="d-block d-md-none client-info__mobile-info mt-1">
                     {{ cliente.tipo_documento?.nombre || 'N/A' }}: {{ cliente.numero_documento }}
                   </div>
