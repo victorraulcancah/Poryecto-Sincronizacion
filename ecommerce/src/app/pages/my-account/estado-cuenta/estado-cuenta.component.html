@@ -133,16 +133,16 @@
             <th class="py-8 text-xs bg-main-50">DÓLARES</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody style="font-size: 11px;">
           <tr *ngFor="let mov of movimientosFiltrados" [class.text-danger-600]="esFilaRoja(mov)">
-            <td class="text-center">{{ formatearFecha(mov.created_at) }}</td>
-            <td class="text-center">{{ documento(mov) }}</td>
-            <td class="text-center">{{ cantidad(mov) }}</td>
-            <td class="text-start">{{ descripcion(mov) }}</td>
-            <td class="text-center">
+            <td class="text-center py-1">{{ formatearFecha(mov.created_at) }}</td>
+            <td class="text-center py-1">{{ documento(mov) }}</td>
+            <td class="text-center py-1">{{ cantidad(mov) }}</td>
+            <td class="text-start py-1">{{ descripcion(mov) }}</td>
+            <td class="text-center py-1">
               <span class="text-gray-500 fw-bold me-4">S/.</span>{{ formatearMonto(soles(mov)) }}
             </td>
-            <td class="text-center">
+            <td class="text-center py-1">
               <span class="text-gray-500 fw-bold me-4">$.</span>{{ formatearMonto(dolares(mov)) }}
             </td>
           </tr>
