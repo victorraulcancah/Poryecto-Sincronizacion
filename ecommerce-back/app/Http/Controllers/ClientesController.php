@@ -51,6 +51,7 @@ class ClientesController extends Controller
                 return [
                     'id_cliente' => $cliente->id,
                     'codigo_erp' => $cliente->codigo_erp,
+                    'credito_disponible' => $cliente->credito_disponible,
                     'nombres' => $cliente->nombres,
                     'apellidos' => $cliente->apellidos,
                     'nombre_completo' => $cliente->nombre_completo,
@@ -94,6 +95,7 @@ class ClientesController extends Controller
             $clienteData = [
                 'id_cliente' => $cliente->id,
                 'codigo_erp' => $cliente->codigo_erp,
+                    'credito_disponible' => $cliente->credito_disponible,
                 'nombres' => $cliente->nombres,
                 'apellidos' => $cliente->apellidos,
                 'nombre_completo' => $cliente->nombre_completo,
@@ -274,6 +276,27 @@ class ClientesController extends Controller
         }
     }
 
+    /**
+     * Crédito disponible del cliente autenticado, para mostrar la opción de
+     * "Crédito" en el paso de pago del checkout. Refresca en vivo desde el
+     * ERP (si el cliente está vinculado con codigo_erp) antes de responder.
+     */
+    public function miCredito(): JsonResponse
+    {
+        $cliente = auth()->user();
+
+        if (!($cliente instanceof UserCliente) || !$cliente->codigo_erp) {
+            return response()->json(['vinculado' => false, 'credito_disponible' => 0]);
+        }
+
+        $creditoDisponible = app(\App\Services\ErpCreditoService::class)->sincronizar($cliente);
+
+        return response()->json([
+            'vinculado' => true,
+            'credito_disponible' => $creditoDisponible ?? ($cliente->credito_disponible ?? 0),
+        ]);
+    }
+
     public function update(Request $request, $id): JsonResponse
     {
         try {
@@ -338,10 +361,15 @@ class ClientesController extends Controller
                 'fecha_nacimiento', 'genero', 'estado', 'tipo_precio_id', 'codigo_erp'
             ]));
 
+            if ($request->filled('codigo_erp')) {
+                app(\App\Services\ErpCreditoService::class)->sincronizar($cliente);
+            }
+
             // Transformar respuesta
             $clienteTransformado = [
                 'id_cliente' => $cliente->id,
                 'codigo_erp' => $cliente->codigo_erp,
+                    'credito_disponible' => $cliente->credito_disponible,
                 'nombres' => $cliente->nombres,
                 'apellidos' => $cliente->apellidos,
                 'nombre_completo' => $cliente->nombre_completo,

@@ -98,7 +98,8 @@ class CotizacionesController extends Controller
                 'estadoCotizacion',
                 'detalles.producto',
                 'tracking.estadoCotizacion.usuario',
-                'compras.estadoCompra'
+                'compras.estadoCompra',
+                'metodosPago'
             ])->findOrFail($id);
 
             return response()->json([
@@ -139,7 +140,13 @@ class CotizacionesController extends Controller
             'departamento_nombre' => 'nullable|string|max:255',
             'provincia_nombre' => 'nullable|string|max:255',
             'distrito_nombre' => 'nullable|string|max:255',
-            'ubicacion_completa' => 'nullable|string'
+            'ubicacion_completa' => 'nullable|string',
+            // Desglose completo de métodos de pago combinados (opcional, para
+            // compatibilidad con clientes que aún envían solo "metodo_pago_preferido").
+            'metodos_pago' => 'nullable|array|min:1',
+            'metodos_pago.*.tipo' => 'required_with:metodos_pago|string|max:50',
+            'metodos_pago.*.moneda' => 'required_with:metodos_pago|string|max:10',
+            'metodos_pago.*.monto' => 'required_with:metodos_pago|numeric|min:0.01',
         ]);
 
         if ($validator->fails()) {
@@ -198,6 +205,38 @@ class CotizacionesController extends Controller
             $total = $subtotal + $igv + $costoEnvio;
             $moneda = optional(TipoPrecio::find($tipoPrecioId))->tipo_moneda ?? 's';
 
+            // Desglose de métodos de pago (si vino del checkout combinando
+            // varios métodos, p.ej. Yape + Crédito). El crédito se descuenta
+            // y registra aquí mismo, ya que el checkout solo genera cotizaciones.
+            $metodosPago = $request->input('metodos_pago', []);
+            $montoCredito = 0;
+
+            if (!empty($metodosPago)) {
+                $sumaMetodos = array_sum(array_column($metodosPago, 'monto'));
+                if (abs($sumaMetodos - $total) > 0.01) {
+                    throw new \Exception('La suma de los métodos de pago no coincide con el total de la cotización.');
+                }
+
+                foreach ($metodosPago as $metodo) {
+                    if (mb_strtoupper($metodo['tipo']) === 'CREDITO' || mb_strtoupper($metodo['tipo']) === 'CRÉDITO') {
+                        $montoCredito += (float) $metodo['monto'];
+                    }
+                }
+
+                if ($montoCredito > 0) {
+                    // Bloquear la fila para evitar condiciones de carrera entre
+                    // cotizaciones simultáneas del mismo cliente.
+                    $clienteLock = UserCliente::where('id', $userCliente->id)->lockForUpdate()->first();
+                    $disponible = $clienteLock->credito_disponible ?? 0;
+
+                    if ($montoCredito > $disponible) {
+                        throw new \Exception('El crédito disponible (S/ ' . number_format($disponible, 2) . ') es menor al monto solicitado a crédito.');
+                    }
+
+                    $clienteLock->decrement('credito_disponible', $montoCredito);
+                }
+            }
+
             // Crear cotización
             $cotizacion = Cotizacion::create([
                 'codigo_cotizacion' => Cotizacion::generarCodigoCotizacion(),
@@ -231,6 +270,16 @@ class CotizacionesController extends Controller
             // Establecer fecha de vencimiento (7 días)
             $cotizacion->establecerFechaVencimiento(7);
 
+            // Guardar el desglose completo de métodos de pago (si vino del checkout).
+            foreach ($metodosPago as $metodo) {
+                \App\Models\CotizacionMetodoPago::create([
+                    'cotizacion_id' => $cotizacion->id,
+                    'tipo' => $metodo['tipo'],
+                    'moneda' => $metodo['moneda'],
+                    'monto' => $metodo['monto'],
+                ]);
+            }
+
             // Crear detalles
             foreach ($productosValidados as $prod) {
                 CotizacionDetalle::create([
@@ -258,7 +307,7 @@ class CotizacionesController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Cotización creada exitosamente',
-                'cotizacion' => $cotizacion->load(['detalles', 'estadoCotizacion']),
+                'cotizacion' => $cotizacion->load(['detalles', 'estadoCotizacion', 'metodosPago']),
                 'codigo_cotizacion' => $cotizacion->codigo_cotizacion
             ], 201);
 
@@ -433,7 +482,8 @@ class CotizacionesController extends Controller
             $cotizaciones = Cotizacion::with([
                 'estadoCotizacion',
                 'detalles.producto',
-                'tracking.estadoCotizacion'
+                'tracking.estadoCotizacion',
+                'metodosPago'
             ])
             ->where('user_cliente_id', $userCliente->id)
             ->orderBy('fecha_cotizacion', 'desc')
@@ -461,6 +511,7 @@ class CotizacionesController extends Controller
                         'telefono_contacto' => $cotizacion->telefono_contacto,
                         'numero_documento' => $cotizacion->numero_documento,
                         'metodo_pago_preferido' => $cotizacion->metodo_pago_preferido,
+                        'metodos_pago' => $cotizacion->metodosPago,
                         'puede_convertir_compra' => $cotizacion->puedeConvertirseACompra(),
                         'esta_vencida' => $cotizacion->estaVencida(),
                         'productos' => $cotizacion->detalles->map(function($detalle) use ($cotizacion) {

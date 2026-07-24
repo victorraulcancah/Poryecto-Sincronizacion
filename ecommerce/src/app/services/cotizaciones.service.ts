@@ -27,6 +27,7 @@ export interface Cotizacion {
   telefono_contacto?: string;
   numero_documento?: string;
   metodo_pago_preferido?: string;
+  metodos_pago?: { id: number; tipo: string; moneda: string; monto: number }[];
 }
 
 export interface ProductoCotizacion {
@@ -69,6 +70,7 @@ export interface CrearCotizacionRequest {
     cantidad: number;
   }[];
   metodo_pago_preferido?: string;
+  metodos_pago?: { tipo: string; moneda: string; monto: number }[];
   direccion_envio: string;
   telefono_contacto: string;
   observaciones?: string;

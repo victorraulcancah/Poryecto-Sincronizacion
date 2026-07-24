@@ -106,7 +106,8 @@ class ComprasController extends Controller
                 'aprobadaPor',
                 'user',
                 'detalles.producto',
-                'tracking.estadoCompra.usuario'
+                'tracking.estadoCompra.usuario',
+                'metodosPago'
             ])->findOrFail($id);
 
             return response()->json([
@@ -141,7 +142,13 @@ class ComprasController extends Controller
             'costo_envio' => 'numeric|min:0',
             'numero_documento' => 'nullable|string|max:11',
             'ubicacion_completa' => 'nullable|string|max:500',
-            'observaciones' => 'nullable|string|max:1000'
+            'observaciones' => 'nullable|string|max:1000',
+            // Desglose completo de métodos de pago combinados (opcional, para
+            // compatibilidad con clientes que aún envían solo "metodo_pago").
+            'metodos_pago' => 'nullable|array|min:1',
+            'metodos_pago.*.tipo' => 'required_with:metodos_pago|string|max:50',
+            'metodos_pago.*.moneda' => 'required_with:metodos_pago|string|max:10',
+            'metodos_pago.*.monto' => 'required_with:metodos_pago|numeric|min:0.01',
         ]);
 
         if ($validator->fails()) {
@@ -199,6 +206,37 @@ class ComprasController extends Controller
             // Total final incluye subtotal + IGV + costo de envío
             $totalFinal = $subtotal + $igv + $costoEnvio;
 
+            // Desglose de métodos de pago (si vino del checkout combinando
+            // varios métodos, p.ej. Yape + Crédito).
+            $metodosPago = $request->input('metodos_pago', []);
+            $montoCredito = 0;
+
+            if (!empty($metodosPago)) {
+                $sumaMetodos = array_sum(array_column($metodosPago, 'monto'));
+                if (abs($sumaMetodos - $totalFinal) > 0.01) {
+                    throw new \Exception('La suma de los métodos de pago no coincide con el total del pedido.');
+                }
+
+                foreach ($metodosPago as $metodo) {
+                    if (mb_strtoupper($metodo['tipo']) === 'CREDITO' || mb_strtoupper($metodo['tipo']) === 'CRÉDITO') {
+                        $montoCredito += (float) $metodo['monto'];
+                    }
+                }
+
+                if ($montoCredito > 0) {
+                    // Bloquear la fila para evitar condiciones de carrera entre
+                    // pedidos simultáneos del mismo cliente.
+                    $clienteLock = UserCliente::where('id', $user->id)->lockForUpdate()->first();
+                    $disponible = $clienteLock->credito_disponible ?? 0;
+
+                    if ($montoCredito > $disponible) {
+                        throw new \Exception('El crédito disponible (S/ ' . number_format($disponible, 2) . ') es menor al monto solicitado a crédito.');
+                    }
+
+                    $clienteLock->decrement('credito_disponible', $montoCredito);
+                }
+            }
+
             // Generar código único para la compra
             $codigoCompra = 'COMP-' . date('Ymd') . '-' . str_pad(Compra::count() + 1, 4, '0', STR_PAD_LEFT);
 
@@ -222,6 +260,16 @@ class ComprasController extends Controller
                 'fecha_compra' => now(),
                 'estado_compra_id' => 1 // Pendiente Aprobación
             ]);
+
+            // Guardar el desglose completo de métodos de pago (si vino del checkout).
+            foreach ($metodosPago as $metodo) {
+                \App\Models\CompraMetodoPago::create([
+                    'compra_id' => $compra->id,
+                    'tipo' => $metodo['tipo'],
+                    'moneda' => $metodo['moneda'],
+                    'monto' => $metodo['monto'],
+                ]);
+            }
 
             // Crear detalles de la compra
             foreach ($productosData as $productoData) {
@@ -247,7 +295,7 @@ class ComprasController extends Controller
             DB::commit();
 
             // Cargar relaciones para la respuesta
-            $compra->load(['estadoCompra', 'detalles.producto']);
+            $compra->load(['estadoCompra', 'detalles.producto', 'metodosPago']);
 
             return response()->json([
                 'status' => 'success',
@@ -259,6 +307,7 @@ class ComprasController extends Controller
                     'total' => $compra->total,
                     'estado_actual' => $compra->estadoCompra,
                     'fecha_compra' => $compra->fecha_compra,
+                    'metodos_pago' => $compra->metodosPago,
                     'productos' => $compra->detalles->map(function($detalle) {
                         return [
                             'nombre' => $detalle->nombre_producto,
@@ -291,7 +340,8 @@ class ComprasController extends Controller
                 'cotizacion',
                 'estadoCompra',
                 'detalles.producto',
-                'tracking.estadoCompra'
+                'tracking.estadoCompra',
+                'metodosPago'
             ])
             ->where('user_cliente_id', $userCliente->id)
             ->orderBy('fecha_compra', 'desc')
@@ -309,6 +359,7 @@ class ComprasController extends Controller
                         'total' => $compra->total,
                         'estado_actual' => $compra->estadoCompra,
                         'metodo_pago' => $compra->metodo_pago,
+                        'metodos_pago' => $compra->metodosPago,
                         'forma_envio' => $compra->forma_envio,
                         'direccion_envio' => $compra->direccion_envio,
                         'esta_aprobada' => $compra->estaAprobada(),

@@ -13,6 +13,7 @@ export interface Compra {
   total: number;
   estado_compra: EstadoCompra;
   metodo_pago?: string;
+  metodos_pago?: MetodoPagoCompra[];
   forma_envio: string;
   direccion_envio: string;
   esta_aprobada: boolean;
@@ -23,6 +24,13 @@ export interface Compra {
   cliente_email?: string;
   telefono_contacto?: string;
   observaciones?: string;
+}
+
+export interface MetodoPagoCompra {
+  id: number;
+  tipo: string;
+  moneda: string;
+  monto: number;
 }
 
 export interface ProductoCompra {
@@ -67,6 +75,7 @@ export interface CrearCompraRequest {
   telefono_contacto: string;
   forma_envio: string;
   metodo_pago: string;
+  metodos_pago?: { tipo: string; moneda: string; monto: number }[];
   costo_envio?: number;
   numero_documento?: string;
   ubicacion_completa?: string;

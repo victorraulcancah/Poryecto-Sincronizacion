@@ -48,10 +48,20 @@ export class ComprasComponent implements OnInit, OnDestroy {
       });
   }
 
+  mostrarModalDetalle = false;
+
   verDetalleCompra(compra: Compra): void {
     this.compraSeleccionada = compra;
-    // Aquí podrías implementar un modal o navegación a detalle
-    console.log('Ver detalle de compra:', compra);
+    this.mostrarModalDetalle = true;
+  }
+
+  cerrarModalDetalle(): void {
+    this.mostrarModalDetalle = false;
+    this.compraSeleccionada = null;
+  }
+
+  formatearMoneda(moneda: string): string {
+    return moneda === 'd' ? 'US$' : 'S/';
   }
 
   formatearFecha(fecha: string): string {

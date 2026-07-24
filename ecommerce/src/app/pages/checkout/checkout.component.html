@@ -873,35 +873,15 @@
               <div class="d-grid gap-12">
                 <button
                   type="button"
-                  class="btn btn-outline-main py-12 rounded-8"
+                  class="btn btn-main py-12 rounded-8"
                   (click)="pedirCotizacion()"
-                  [disabled]="!checkoutForm.valid || procesandoPedido"
+                  [disabled]="procesandoPedido"
                 >
-                  <i class="ph ph-file-pdf me-8"></i>
+                  <i class="ph ph-file-pdf me-8" *ngIf="!procesandoPedido"></i>
+                  <i class="ph ph-spinner ph-spin me-8" *ngIf="procesandoPedido"></i>
                   Generar Cotización
                 </button>
-
-                <button
-                  type="button"
-                  class="btn btn-main py-12 rounded-8"
-                  (click)="pagarConTarjeta()"
-                  [disabled]="!checkoutForm.valid || procesandoPedido"
-                >
-                  <i
-                    class="ph ph-credit-card me-8"
-                    *ngIf="!procesandoPedido"
-                  ></i>
-                  <i
-                    class="ph ph-spinner ph-spin me-8"
-                    *ngIf="procesandoPedido"
-                  ></i>
-                  Pagar Con Tarjeta
-                </button>
               </div>
-
-              <p class="text-xs text-gray-500 mt-12 mb-0">
-                *Pagos con tarjeta se le suma 5%
-              </p>
             </div>
           </div>
 

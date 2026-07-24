@@ -15,6 +15,8 @@ class UserCliente extends Authenticatable
 
     protected $fillable = [
         'codigo_erp',
+        'credito_disponible',
+        'credito_actualizado_at',
         'nombres',
         'apellidos', 
         'email',
@@ -60,7 +62,9 @@ class UserCliente extends Authenticatable
         'estado' => 'boolean',
         'email_verified_at' => 'datetime',
         'created_at' => 'datetime',
-        'updated_at' => 'datetime'
+        'updated_at' => 'datetime',
+        'credito_disponible' => 'float',
+        'credito_actualizado_at' => 'datetime',
     ];
 
     // Relaciones

@@ -130,6 +130,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('cliente')->group(function () {
         Route::post('/upload-foto', [ClientesController::class, 'uploadFoto']);
         Route::delete('/delete-foto', [ClientesController::class, 'deleteFoto']);
+        // Crédito disponible del cliente vinculado al ERP (para el checkout).
+        Route::get('/credito', [ClientesController::class, 'miCredito']);
     });
 
     Route::middleware('permission:clientes.delete')->group(function () {

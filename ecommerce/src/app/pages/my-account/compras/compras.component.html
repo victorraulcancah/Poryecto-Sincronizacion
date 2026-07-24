@@ -79,3 +79,70 @@
     </div>
   </div>
 </div>
+
+<!-- Modal de detalle de compra: desglose completo de métodos de pago -->
+<div class="modal fade show d-block" tabindex="-1" *ngIf="mostrarModalDetalle && compraSeleccionada"
+     style="background: rgba(0,0,0,0.5);" (click)="cerrarModalDetalle()">
+  <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+    <div class="modal-content rounded-16">
+      <div class="modal-header border-bottom border-gray-100">
+        <h5 class="modal-title text-heading">Detalle de {{ compraSeleccionada.codigo_compra }}</h5>
+        <button type="button" class="btn-close" (click)="cerrarModalDetalle()"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-sm text-gray-500 mb-4">Fecha: {{ formatearFecha(compraSeleccionada.fecha_compra) }}</p>
+        <p class="text-sm text-gray-500 mb-16">
+          Estado:
+          <span [class]="'badge px-8 py-4 rounded-pill ' + getEstadoCompraClass(compraSeleccionada.estado_compra)">
+            {{ compraSeleccionada.estado_compra.nombre }}
+          </span>
+        </p>
+
+        <h6 class="text-heading mb-8">Métodos de pago</h6>
+        <table class="table table-sm mb-16" *ngIf="compraSeleccionada.metodos_pago?.length">
+          <thead>
+            <tr class="text-xs text-gray-500">
+              <th>Tipo</th>
+              <th>Moneda</th>
+              <th class="text-end">Monto</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let m of compraSeleccionada.metodos_pago">
+              <td>{{ m.tipo }}</td>
+              <td>{{ formatearMoneda(m.moneda) }}</td>
+              <td class="text-end">{{ formatearMoneda(m.moneda) }} {{ formatearPrecio(m.monto) }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="text-sm text-gray-500 mb-16" *ngIf="!compraSeleccionada.metodos_pago?.length">
+          {{ compraSeleccionada.metodo_pago || 'No especificado' }}
+        </p>
+
+        <h6 class="text-heading mb-8">Productos</h6>
+        <table class="table table-sm mb-0">
+          <thead>
+            <tr class="text-xs text-gray-500">
+              <th>Producto</th>
+              <th class="text-center">Cant.</th>
+              <th class="text-end">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of compraSeleccionada.productos">
+              <td>{{ p.nombre }}</td>
+              <td class="text-center">{{ p.cantidad }}</td>
+              <td class="text-end">S/ {{ formatearPrecio(p.subtotal) }}</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="fw-bold">
+              <td colspan="2">Total</td>
+              <td class="text-end">S/ {{ formatearPrecio(compraSeleccionada.total) }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

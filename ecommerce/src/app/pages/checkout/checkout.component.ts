@@ -11,12 +11,12 @@ import { CartService, CartItem, CartSummary } from '../../services/cart.service'
 import { AuthService } from '../../services/auth.service';
 import { UbigeoService, Departamento, Provincia, Distrito } from '../../services/ubigeo.service';
 import { CotizacionesService, CrearCotizacionRequest } from '../../services/cotizaciones.service';
-import { ComprasService, CrearCompraRequest } from '../../services/compras.service';
 import { DireccionesService, Direccion } from '../../services/direcciones.service';
 import { ReniecService } from '../../services/reniec.service';
 import { ClienteService } from '../../services/cliente.service';
 import { FormaEnvioService, FormaEnvio } from '../../services/forma-envio.service';
 import { TipoPagoService, TipoPago } from '../../services/tipo-pago.service';
+import { ClientePortalService } from '../../services/cliente-portal.service';
 import { OfertasService } from '../../services/ofertas.service';
 import { MonedaPipe } from '../../pipes/moneda.pipe';
 import { Subject, takeUntil } from 'rxjs';
@@ -95,6 +95,11 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   tipoComprobante: 'boleta' | 'factura' = 'boleta';
   // ✅ Tipo de cambio referencial (informativo, sin conversión automática de totales)
   tipoCambioReferencial = 3.70;
+  // ✅ Crédito disponible del cliente (si está vinculado al ERP 7Power). Se muestra
+  // como un método de pago más, reutilizando toggleMetodoPago/montosPorMetodo,
+  // con un id reservado que nunca coincide con un tipo_pago real de la BD.
+  readonly ID_TIPO_CREDITO = -1;
+  creditoDisponible = 0;
 
   private destroy$ = new Subject<void>();
 
@@ -104,12 +109,12 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private ubigeoService: UbigeoService,
     private cotizacionesService: CotizacionesService,
-    private comprasService: ComprasService,
     private direccionesService: DireccionesService,
     private reniecService: ReniecService,
     private clienteService: ClienteService,
     private formaEnvioService: FormaEnvioService,
     private tipoPagoService: TipoPagoService,
+    private clientePortalService: ClientePortalService,
     private ofertasService: OfertasService,
     private router: Router
   ) {
@@ -308,6 +313,41 @@ export class CheckoutComponent implements OnInit, OnDestroy {
             celularControl?.clearValidators();
           }
           celularControl?.updateValueAndValidity();
+
+          this.cargarCredito();
+        }
+      });
+  }
+
+  /**
+   * Consulta el crédito disponible del cliente (si está vinculado al ERP) y,
+   * de haberlo, lo agrega como una opción más de método de pago.
+   */
+  private cargarCredito(): void {
+    this.clientePortalService.getCredito()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.creditoDisponible = res.vinculado ? (res.credito_disponible || 0) : 0;
+
+          this.tiposPago = this.tiposPago.filter(t => t.id !== this.ID_TIPO_CREDITO);
+          if (this.creditoDisponible > 0) {
+            this.tiposPago = [
+              ...this.tiposPago,
+              {
+                id: this.ID_TIPO_CREDITO,
+                nombre: 'Crédito',
+                codigo: 'CREDITO',
+                descripcion: `Disponible: S/ ${this.formatPrice(this.creditoDisponible)}`,
+                icono: 'ph-bold ph-credit-card',
+                activo: true,
+                orden: 999
+              }
+            ];
+          }
+        },
+        error: () => {
+          // Sin crédito visible si falla la consulta; no bloquea el checkout.
         }
       });
   }
@@ -573,9 +613,12 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
     if (!this.checkoutForm.valid) {
       this.markFormGroupTouched();
+      const faltantes = this.getCamposFaltantes();
       Swal.fire({
         title: 'Formulario incompleto',
-        text: 'Por favor complete todos los campos requeridos',
+        html: faltantes.length
+          ? `Por favor completa:<ul class="text-start mb-0">${faltantes.map(f => `<li>${f}</li>`).join('')}</ul>`
+          : 'Por favor complete todos los campos requeridos',
         icon: 'warning',
         confirmButtonColor: '#dc3545'
       });
@@ -591,6 +634,16 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     this.procesandoPedido = true;
     const formData = this.checkoutForm.value;
     const formaEnvioStr = formData.departamento === '15' ? 'delivery' : 'envio_provincia';
+
+    // Desglose completo de métodos de pago combinados (incluye Crédito si se usó).
+    const metodosPago = this.tiposPago
+      .filter(tipo => tipo.id && this.metodosPagoSeleccionados.has(tipo.id))
+      .map(tipo => ({
+        tipo: tipo.codigo,
+        moneda: this.monedaPagoSeleccionada,
+        monto: this.getMontoMetodo(tipo)
+      }))
+      .filter(m => m.monto > 0);
 
     const cotizacionData: CrearCotizacionRequest = {
       productos: this.cartItems.map(item => ({
@@ -614,6 +667,10 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       distrito_nombre: this.distritos.find(d => d.id === formData.distrito)?.nombre || '',
       ubicacion_completa: `${this.distritos.find(d => d.id === formData.distrito)?.nombre || ''}, ${this.provincias.find(p => p.id === formData.provincia)?.nombre || ''}, ${this.departamentos.find(d => d.id === formData.departamento)?.nombre || ''}`
     };
+
+    if (metodosPago.length > 0) {
+      cotizacionData.metodos_pago = metodosPago;
+    }
 
     this.cotizacionesService.crearCotizacionEcommerce(cotizacionData).subscribe({
       next: (response) => {
@@ -649,145 +706,16 @@ export class CheckoutComponent implements OnInit, OnDestroy {
         this.procesandoPedido = false;
         Swal.fire({
           title: 'Error al crear cotización',
-          text: error.error?.message || 'Ocurrió un error al crear tu cotización. Inténtalo de nuevo.',
+          text: error.error?.error || error.error?.message || 'Ocurrió un error al crear tu cotización. Inténtalo de nuevo.',
           icon: 'error',
           confirmButtonColor: '#dc3545'
         });
       }
     });
-  }
-
-  private crearCompraDirecta(): void {
-    this.procesandoPedido = true;
-    const formData = this.checkoutForm.value;
-    const formaEnvioStr = formData.departamento === '15' ? 'delivery' : 'envio_provincia';
-
-    const departamentoNombre = this.departamentos.find(d => d.id === formData.departamento)?.nombre || '';
-    const provinciaNombre = this.provincias.find(p => p.id === formData.provincia)?.nombre || '';
-    const distritoNombre = this.distritos.find(d => d.id === formData.distrito)?.nombre || '';
-
-    const compraData: any = {
-      productos: this.cartItems.map(item => ({
-        producto_id: item.producto_id,
-        cantidad: item.cantidad
-      })),
-      cliente_nombre: formData.cliente,
-      cliente_email: formData.email,
-      direccion_envio: formData.direccion,
-      telefono_contacto: formData.celular,
-      forma_envio: formaEnvioStr,
-      metodo_pago: formData.tipoPago,
-      costo_envio: this.costoEnvioCalculado,
-      numero_documento: formData.numeroDocumento,
-      ubicacion_completa: `${distritoNombre}, ${provinciaNombre}, ${departamentoNombre}`,
-      observaciones: formData.observaciones || ''
-    };
-
-    if (this.cuponAplicado) {
-      compraData.cupon_id = this.cuponAplicado.id;
-      compraData.descuento_cupon = this.descuentoCupon;
-    }
-
-    this.comprasService.crearCompra(compraData).subscribe({
-      next: (response) => {
-        this.procesandoPedido = false;
-
-        if (response.status === 'success') {
-          if (this.cuponAplicado) {
-            this.ofertasService.registrarUsoCupon(
-              this.cuponAplicado.id,
-              this.descuentoCupon,
-              this.cartSummary.total,
-              response.compra?.id || undefined
-            ).subscribe({
-              next: () => {
-                sessionStorage.removeItem('cupon_aplicado');
-              },
-              error: () => {}
-            });
-          }
-
-          this.cartService.clearCart();
-
-          const totalFinal = this.getTotalConDescuento();
-
-          Swal.fire({
-            title: '¡Compra creada exitosamente!',
-            html: `
-              <div class="text-center">
-                <i class="ph ph-check-circle text-success mb-3" style="font-size: 4rem;"></i>
-                <h5>Compra ${response.codigo_compra}</h5>
-                <p class="text-muted">Tu compra ha sido registrada exitosamente.</p>
-                ${this.cuponAplicado ? `<p class="text-success">Descuento aplicado: -${(this.cartItems[0]?.moneda || 's') === 'd' ? 'US$' : 'S/'} ${this.formatPrice(this.descuentoCupon)}</p>` : ''}
-                <p><strong>Total: ${(this.cartItems[0]?.moneda || 's') === 'd' ? 'US$' : 'S/'} ${this.formatPrice(totalFinal)}</strong></p>
-                <p class="text-sm text-gray-600">Puedes ver el estado de tu compra en "Mi Cuenta"</p>
-              </div>
-            `,
-            icon: 'success',
-            confirmButtonColor: '#198754',
-            confirmButtonText: 'Ver mis compras'
-          }).then((result) => {
-            if (result.isConfirmed) {
-              this.router.navigate(['/my-account/compras']);
-            } else {
-              this.router.navigate(['/shop']);
-            }
-          });
-        }
-      },
-      error: (error) => {
-        this.procesandoPedido = false;
-        Swal.fire({
-          title: 'Error al crear compra',
-          text: error.error?.message || 'Ocurrió un error al crear tu compra. Inténtalo de nuevo.',
-          icon: 'error',
-          confirmButtonColor: '#dc3545'
-        });
-      }
-    });
-  }
-
-  pagarConTarjeta(): void {
-    if (!this.isLoggedIn) {
-      Swal.fire({
-        title: 'Inicio de sesión requerido',
-        text: 'Debe iniciar sesión para proceder con el pago',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#198754',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Iniciar sesión',
-        cancelButtonText: 'Cancelar'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          this.router.navigate(['/account'], { queryParams: { returnUrl: '/checkout' } });
-        }
-      });
-      return;
-    }
-
-    if (!this.checkoutForm.valid) {
-      this.markFormGroupTouched();
-      Swal.fire({
-        title: 'Formulario incompleto',
-        text: 'Por favor complete todos los campos requeridos',
-        icon: 'warning',
-        confirmButtonColor: '#dc3545'
-      });
-      return;
-    }
-
-    // ✅ Si eligió Factura, se guarda su RUC/Razón Social en su perfil para no
-    // tener que volver a pedirlos en su próxima compra.
-    if (this.tipoComprobante === 'factura') {
-      this.guardarDatosFacturacion();
-    }
-
-    this.crearCompraDirecta();
   }
 
   onSubmit(): void {
-    this.pagarConTarjeta();
+    this.pedirCotizacion();
   }
 
   private markFormGroupTouched(): void {
@@ -795,6 +723,27 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       const control = this.checkoutForm.get(key);
       control?.markAsTouched();
     });
+  }
+
+  /**
+   * Nombres amigables de los campos inválidos, para decirle al cliente
+   * exactamente qué le falta (el botón ya no se deshabilita en silencio).
+   */
+  private getCamposFaltantes(): string[] {
+    const etiquetas: { [campo: string]: string } = {
+      direccion: 'Dirección de envío',
+      celular: this.checkoutForm.get('celular')?.errors?.['pattern']
+        ? 'Celular (debe ser un número válido de 9 dígitos que empiece con 9)'
+        : 'Celular',
+      tipoPago: 'Selecciona al menos un método de pago',
+      ruc: 'RUC (11 dígitos)',
+      razonSocial: 'Razón Social',
+      aceptaTerminos: 'Debes aceptar los términos y condiciones'
+    };
+
+    return Object.keys(this.checkoutForm.controls)
+      .filter(campo => this.checkoutForm.get(campo)?.invalid && etiquetas[campo])
+      .map(campo => etiquetas[campo]);
   }
 
   getItemSubtotal(item: CartItem): number {
@@ -859,7 +808,25 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   onMontoMetodoChange(tipo: TipoPago, valor: string | number): void {
-    this.montosPorMetodo[this.claveMetodoPago(tipo)] = Number(valor) || 0;
+    let monto = Number(valor) || 0;
+    if (tipo.id === this.ID_TIPO_CREDITO) {
+      monto = Math.min(monto, this.creditoDisponible);
+    }
+    this.montosPorMetodo[this.claveMetodoPago(tipo)] = monto;
+
+    // ✅ Ingresar un monto también selecciona la tarjeta del método (el input
+    // detiene la propagación del click, así que escribir el monto sin haber
+    // tocado la tarjeta antes no la marcaba como seleccionada).
+    if (tipo.id) {
+      if (monto > 0) {
+        this.metodosPagoSeleccionados.add(tipo.id);
+      } else {
+        this.metodosPagoSeleccionados.delete(tipo.id);
+      }
+
+      const primerSeleccionado = this.tiposPago.find(t => t.id && this.metodosPagoSeleccionados.has(t.id));
+      this.checkoutForm.patchValue({ tipoPago: primerSeleccionado?.codigo || '' });
+    }
   }
 
   getTotalIngresadoPorMoneda(moneda: string): number {

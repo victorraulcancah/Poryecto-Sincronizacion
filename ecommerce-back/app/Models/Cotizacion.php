@@ -84,6 +84,12 @@ class Cotizacion extends Model
         return $this->hasMany(CotizacionDetalle::class, 'cotizacion_id');
     }
 
+    // Desglose completo de métodos de pago usados (efectivo, yape, crédito, etc.)
+    public function metodosPago()
+    {
+        return $this->hasMany(CotizacionMetodoPago::class, 'cotizacion_id');
+    }
+
     // Relación con Tracking de la Cotización
     public function tracking()
     {

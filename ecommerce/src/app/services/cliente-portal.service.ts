@@ -84,4 +84,12 @@ export class ClientePortalService {
       responseType: 'blob'
     });
   }
+
+  /**
+   * Crédito disponible del cliente (vinculado al ERP), refrescado en vivo.
+   * Usado en el paso de pago del checkout.
+   */
+  getCredito(): Observable<{ vinculado: boolean; credito_disponible: number }> {
+    return this.http.get<{ vinculado: boolean; credito_disponible: number }>(`${this.apiUrl}/credito`);
+  }
 }

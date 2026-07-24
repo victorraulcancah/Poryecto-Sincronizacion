@@ -91,6 +91,12 @@ class Compra extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    // Desglose completo de métodos de pago usados (efectivo, yape, crédito, etc.)
+    public function metodosPago()
+    {
+        return $this->hasMany(CompraMetodoPago::class, 'compra_id');
+    }
+
     // Relación con Usuario que aprobó la compra
     public function aprobadaPor()
     {
