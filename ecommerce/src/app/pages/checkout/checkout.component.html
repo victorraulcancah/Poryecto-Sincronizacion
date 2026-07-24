@@ -757,7 +757,7 @@
               <!-- Productos: tarjetas con imagen, solo mientras está expandido -->
               <div class="order-products" *ngIf="resumenPedidoExpandido">
                 <div class="order-products-carousel d-flex gap-12 overflow-x-auto pb-8">
-                  <div class="order-product-card flex-shrink-0" *ngFor="let item of cartItems">
+                  <div class="order-product-card flex-shrink-0" *ngFor="let item of cartItems" [hidden]="item.guardado_para_despues">
                     <img [src]="item.imagen_url" [alt]="item.nombre" (error)="onImageError($event)">
                     <h6 class="order-product-card__title" [title]="item.nombre">{{ item.nombre }}</h6>
                     <div class="order-product-card__price">

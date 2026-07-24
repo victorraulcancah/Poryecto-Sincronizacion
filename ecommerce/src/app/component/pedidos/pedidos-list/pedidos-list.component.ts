@@ -8,6 +8,7 @@ import { ProductosService } from '../../../services/productos.service';
 import { ReniecService } from '../../../services/reniec.service';
 import { MonedaPipe } from '../../../pipes/moneda.pipe';
 import Swal from 'sweetalert2';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-pedidos-list',
@@ -64,7 +65,7 @@ export class PedidosListComponent implements OnInit {
   totalNuevoPedido = 0;
   buscandoDocumento = false;
   activeTabCrear: 'cliente' | 'envio' | 'productos' = 'cliente';
-  activeTabDetalle: 'general' | 'productos' | 'envio' = 'general';
+  activeTabDetalle: 'general' | 'productos' | 'envio' | 'pago' = 'general';
   pdfPreviewUrl: SafeResourceUrl | null = null;
   loadingPdf: boolean = false;
 
@@ -77,6 +78,38 @@ export class PedidosListComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarPedidos();
+  }
+
+  /**
+   * Abre "Nueva Venta" en el ERP 7Power con el cliente y los productos de
+   * este pedido precargados (por código), para que el vendedor solo revise
+   * y complete la venta manualmente — no crea ni guarda nada automáticamente.
+   */
+  puedeEnviarAErp(pedido: any): boolean {
+    return !!pedido?.user_cliente?.codigo_erp;
+  }
+
+  enviarAErp(pedido: any): void {
+    const codigoCliente = pedido?.user_cliente?.codigo_erp;
+    if (!codigoCliente) {
+      Swal.fire({
+        title: 'Cliente no vinculado al ERP',
+        text: 'Este cliente no tiene un código de cliente 7Power (codigo_erp) asignado.',
+        icon: 'warning',
+        confirmButtonColor: '#dc3545'
+      });
+      return;
+    }
+
+    const codigosProductos = (pedido.detalles || [])
+      .map((d: any) => d.codigo_producto)
+      .filter(Boolean)
+      .join(',');
+
+    const params = new URLSearchParams({ codigo_cliente: codigoCliente });
+    if (codigosProductos) params.set('productos', codigosProductos);
+
+    window.open(`${environment.erpFrontUrl}?${params.toString()}`, '_blank');
   }
 
   cargarPedidos(): void {

@@ -197,10 +197,12 @@ export class CheckoutComponent implements OnInit, OnDestroy {
         this.cartLoaded = loaded;
         this.redirectIfCartIsEmpty();
 
-        // ✅ Si la moneda seleccionada para pagar ya no está presente en el carrito
-        // (o aún no se eligió ninguna), se autoselecciona la primera disponible.
-        if (!this.monedasDisponibles.includes(this.monedaPagoSeleccionada) && this.monedasDisponibles.length > 0) {
-          this.monedaPagoSeleccionada = this.monedasDisponibles[0];
+        // ✅ Si la moneda seleccionada para pagar no es una de las que realmente
+        // tiene el carrito, se autoselecciona la que sí corresponde — antes
+        // siempre quedaba en Soles por defecto aunque el carrito fuera en dólares,
+        // mostrando "seleccionado" un total de S/ 0.00.
+        if (!this.monedasEnCarrito.includes(this.monedaPagoSeleccionada) && this.monedasEnCarrito.length > 0) {
+          this.monedaPagoSeleccionada = this.monedasEnCarrito[0];
         }
       });
 
@@ -580,16 +582,8 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   onFormaEnvioChange(): void {
-    const formaEnvioId = this.checkoutForm.get('formaEnvio')?.value;
-    const formaEnvioSeleccionada = this.formasEnvioFiltradas.find(f => f.id === Number(formaEnvioId));
-
-    if (formaEnvioSeleccionada) {
-      // Coerción explícita: el costo viene del backend como decimal (string) y
-      // sin esto se concatena al sumar con otros precios.
-      this.costoEnvioCalculado = Number(formaEnvioSeleccionada.costo) || 0;
-    } else {
-      this.costoEnvioCalculado = 0;
-    }
+    // ⚠️ Costo de envío deshabilitado temporalmente — siempre 0.
+    this.costoEnvioCalculado = 0;
   }
 
   pedirCotizacion(): void {
@@ -646,10 +640,13 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       .filter(m => m.monto > 0);
 
     const cotizacionData: CrearCotizacionRequest = {
-      productos: this.cartItems.map(item => ({
-        producto_id: item.producto_id,
-        cantidad: item.cantidad
-      })),
+      // ✅ Excluye "guardados para después": no forman parte de este pedido.
+      productos: this.cartItems
+        .filter(item => !item.guardado_para_despues)
+        .map(item => ({
+          producto_id: item.producto_id,
+          cantidad: item.cantidad
+        })),
       cliente_nombre: formData.cliente,
       cliente_email: formData.email,
       direccion_envio: formData.direccion,
@@ -747,7 +744,11 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   getItemSubtotal(item: CartItem): number {
-    const precio = typeof item.precio === 'number' ? item.precio : parseFloat(String(item.precio || 0));
+    // ✅ Usa el precio con descuento cuando existe, igual que CartService.updateCartSummary
+    // — si no, el total por moneda del checkout mostraba el precio original (sin descuento).
+    const tieneDescuento = !!item.descuento_porcentaje && item.descuento_porcentaje > 0 && !!item.precio_con_descuento;
+    const precioBase = tieneDescuento ? item.precio_con_descuento : item.precio;
+    const precio = typeof precioBase === 'number' ? precioBase : parseFloat(String(precioBase || 0));
     const cantidad = typeof item.cantidad === 'number' ? item.cantidad : parseInt(String(item.cantidad || 0));
 
     if (isNaN(precio) || isNaN(cantidad)) {
@@ -764,15 +765,19 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     return ['s', 'd'];
   }
 
-  // Monedas realmente presentes en el carrito (para el mensaje informativo)
+  // Monedas realmente presentes en el carrito (para el mensaje informativo).
+  // Excluye los productos "guardados para después": no forman parte de la venta.
   get monedasEnCarrito(): string[] {
-    const monedas = new Set(this.cartItems.map(item => item.moneda || 's'));
+    const monedas = new Set(
+      this.cartItems.filter(item => !item.guardado_para_despues).map(item => item.moneda || 's')
+    );
     return Array.from(monedas);
   }
 
   getTotalPorMoneda(moneda: string): number {
+    // ✅ Excluye "guardados para después": no forman parte de la venta ni de su total.
     return this.cartItems
-      .filter(item => (item.moneda || 's') === moneda)
+      .filter(item => !item.guardado_para_despues && (item.moneda || 's') === moneda)
       .reduce((sum, item) => sum + this.getItemSubtotal(item), 0);
   }
 
@@ -1061,7 +1066,8 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       // ✅ El selector de "Forma de Envío" ya no se muestra al cliente, así que
       // siempre se autoselecciona la primera opción disponible para la zona.
       this.checkoutForm.patchValue({ formaEnvio: this.formasEnvioFiltradas[0].id });
-      this.costoEnvioCalculado = Number(this.formasEnvioFiltradas[0].costo) || 0;
+      // ⚠️ Costo de envío deshabilitado temporalmente — siempre 0.
+      this.costoEnvioCalculado = 0;
     }
   }
 

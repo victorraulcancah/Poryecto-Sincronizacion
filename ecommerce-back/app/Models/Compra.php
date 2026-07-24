@@ -251,6 +251,16 @@ class Compra extends Model
             ]);
         }
 
+        // Copiar el desglose de métodos de pago combinados (Efectivo, Yape, Crédito, etc.)
+        foreach ($cotizacion->metodosPago as $metodoPago) {
+            CompraMetodoPago::create([
+                'compra_id' => $compra->id,
+                'tipo'      => $metodoPago->tipo,
+                'moneda'    => $metodoPago->moneda,
+                'monto'     => $metodoPago->monto,
+            ]);
+        }
+
         // Crear registro inicial de tracking
         CompraTracking::crearRegistro(
             $compra->id,

@@ -951,6 +951,16 @@ class CotizacionesController extends Controller
                 ]);
             }
 
+            // Copiar el desglose de métodos de pago combinados (Efectivo, Yape, Crédito, etc.)
+            foreach ($cotizacion->metodosPago as $metodoPago) {
+                \App\Models\PedidoMetodoPago::create([
+                    'pedido_id' => $pedido->id,
+                    'tipo'      => $metodoPago->tipo,
+                    'moneda'    => $metodoPago->moneda,
+                    'monto'     => $metodoPago->monto,
+                ]);
+            }
+
             DB::commit();
 
             return response()->json([

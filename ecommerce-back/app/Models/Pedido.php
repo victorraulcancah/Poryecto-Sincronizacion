@@ -106,6 +106,12 @@ class Pedido extends Model
         return $this->hasMany(PedidoTracking::class)->orderBy('fecha_cambio', 'asc');
     }
 
+    // Desglose completo de métodos de pago (copiado de la cotización de origen)
+    public function metodosPago()
+    {
+        return $this->hasMany(PedidoMetodoPago::class, 'pedido_id');
+    }
+
     // Verificar si es un pedido a provincia
     public function esEnvioAProvincia(): bool
     {

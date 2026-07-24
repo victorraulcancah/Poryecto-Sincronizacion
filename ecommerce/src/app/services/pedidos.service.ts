@@ -15,6 +15,7 @@ export interface Pedido {
   total: string;
   estado_pedido_id: number;
   metodo_pago: string;
+  metodos_pago?: { id: number; tipo: string; moneda: string; monto: number }[];
   observaciones: string | null;
   direccion_envio: string;
   telefono_contacto: string;
@@ -45,6 +46,7 @@ export interface Pedido {
     email: string;
     telefono: string;
     numero_documento: string;
+    codigo_erp?: string | null;
   };
   estado_pedido?: {
     id: number;

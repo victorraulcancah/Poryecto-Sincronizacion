@@ -211,12 +211,10 @@ export const routes: Routes = [
           import('./pages/shop/shop.component').then((m) => m.ShopComponent),
         title: 'Shop',
       },
-      // ✅ NUEVO: Página de Ofertas
+      // ⚠️ Ofertas deshabilitada temporalmente (inconsistencia de precios pendiente de revisar)
       {
         path: 'ofertas',
-        loadComponent: () =>
-          import('./pages/ofertas/ofertas.component').then((m) => m.OfertasComponent),
-        title: 'Ofertas Especiales',
+        redirectTo: 'shop',
       },
       // ✅ NUEVO: Ruta SEO-friendly para categorías con slug
       {

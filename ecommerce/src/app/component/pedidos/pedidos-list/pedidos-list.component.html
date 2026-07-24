@@ -736,10 +736,17 @@
             </button>
           </li>
           <li class="nav-item">
-            <button class="nav-link custom-tab-link" 
+            <button class="nav-link custom-tab-link"
                     [class.active]="activeTabDetalle === 'envio'"
                     (click)="activeTabDetalle = 'envio'">
-              <i class="ph ph-truck me-8"></i>Envío y Pago
+              <i class="ph ph-truck me-8"></i>Envío
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link custom-tab-link"
+                    [class.active]="activeTabDetalle === 'pago'"
+                    (click)="activeTabDetalle = 'pago'">
+              <i class="ph ph-credit-card me-8"></i>Detalle de Pago
             </button>
           </li>
         </ul>
@@ -925,7 +932,7 @@
           </div>
         </div>
 
-        <!-- ═══════════ TAB 3: ENVÍO Y PAGO ═══════════ -->
+        <!-- ═══════════ TAB 3: ENVÍO ═══════════ -->
         <div *ngIf="activeTabDetalle === 'envio'" class="animate__animated animate__fadeIn">
           <div class="row g-24">
             <div class="col-md-6">
@@ -975,20 +982,37 @@
                 </div>
               </div>
             </div>
+          </div>
+        </div>
 
+        <!-- ═══════════ TAB 4: DETALLE DE PAGO ═══════════ -->
+        <div *ngIf="activeTabDetalle === 'pago'" class="animate__animated animate__fadeIn">
+          <div class="row g-24">
             <div class="col-md-6">
               <div class="detail-card h-100">
                 <div class="detail-card__header">
                   <h6 class="mb-0 fw-bold"><i class="ph ph-credit-card me-8 text-main-600"></i>Método de Pago</h6>
                 </div>
                 <div class="detail-card__body">
-                  <div class="payment-method-box bg-main-50 p-24 rounded-16 border border-main-100 text-center">
-                    <div class="w-64 h-64 bg-white rounded-circle flex-center mx-auto mb-16 shadow-sm">
-                      <i class="ph-bold ph-wallet text-2xl text-main-600"></i>
+                  <!-- Si el pedido viene de una cotización con métodos combinados, se muestra el desglose -->
+                  <div *ngIf="pedidoSeleccionado?.metodos_pago?.length; else metodoPagoUnico">
+                    <div *ngFor="let m of pedidoSeleccionado?.metodos_pago"
+                         class="d-flex justify-content-between align-items-center p-12 mb-8 rounded-12 border border-gray-100 bg-main-50">
+                      <span class="fw-semibold text-dark">
+                        <i class="ph-bold ph-wallet me-8 text-main-600"></i>{{ formatMetodoPago(m.tipo) }}
+                      </span>
+                      <span class="fw-bold text-main-600">{{ (m.moneda || 's') | moneda }} {{ m.monto | number:'1.2-2' }}</span>
                     </div>
-                    <h5 class="fw-bold mb-4">{{ formatMetodoPago(pedidoSeleccionado?.metodo_pago) }}</h5>
-                    <p class="text-gray-500 mb-0">Pago confirmado por el sistema</p>
                   </div>
+                  <ng-template #metodoPagoUnico>
+                    <div class="payment-method-box bg-main-50 p-24 rounded-16 border border-main-100 text-center">
+                      <div class="w-64 h-64 bg-white rounded-circle flex-center mx-auto mb-16 shadow-sm">
+                        <i class="ph-bold ph-wallet text-2xl text-main-600"></i>
+                      </div>
+                      <h5 class="fw-bold mb-4">{{ formatMetodoPago(pedidoSeleccionado?.metodo_pago) }}</h5>
+                      <p class="text-gray-500 mb-0">Pago confirmado por el sistema</p>
+                    </div>
+                  </ng-template>
 
                   <div class="mt-24">
                     <div class="info-item">
@@ -1001,6 +1025,34 @@
                 </div>
               </div>
             </div>
+
+            <div class="col-md-6">
+              <div class="detail-card h-100">
+                <div class="detail-card__header">
+                  <h6 class="mb-0 fw-bold"><i class="ph ph-receipt me-8 text-main-600"></i>Desglose del Total</h6>
+                </div>
+                <div class="detail-card__body">
+                  <div class="total-summary-box">
+                    <div class="d-flex justify-content-between mb-8">
+                      <span class="text-gray-500">Subtotal</span>
+                      <span class="fw-semibold">{{ (pedidoSeleccionado?.moneda || 's') | moneda }} {{ pedidoSeleccionado?.subtotal | number:'1.2-2' }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-8">
+                      <span class="text-gray-500">IGV (18%)</span>
+                      <span class="fw-semibold">{{ (pedidoSeleccionado?.moneda || 's') | moneda }} {{ pedidoSeleccionado?.igv | number:'1.2-2' }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-12">
+                      <span class="text-gray-500">Envío</span>
+                      <span class="fw-semibold">{{ (pedidoSeleccionado?.moneda || 's') | moneda }} {{ pedidoSeleccionado?.costo_envio | number:'1.2-2' }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between pt-12 border-top">
+                      <span class="fw-bold text-heading">TOTAL</span>
+                      <span class="fw-bold text-success-600 fs-5">{{ (pedidoSeleccionado?.moneda || 's') | moneda }} {{ pedidoSeleccionado?.total | number:'1.2-2' }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1008,6 +1060,12 @@
       <!-- Footer con acciones mejoradas -->
       <div class="modal-footer bg-gray-50 border-top-0 p-24">
         <div class="ms-auto d-flex gap-12">
+          <button type="button" class="btn btn-outline-success rounded-pill px-24 py-10"
+                  *ngIf="puedeEnviarAErp(pedidoSeleccionado)"
+                  (click)="enviarAErp(pedidoSeleccionado)"
+                  title="Abre 'Nueva Venta' en el ERP con el cliente y los productos precargados">
+            <i class="ph ph-arrow-square-out me-8"></i>Enviar a ERP
+          </button>
           <button type="button" class="btn btn-outline-main rounded-pill px-24 py-10" (click)="imprimirPedido()">
             <i class="ph ph-printer me-8"></i>Imprimir
           </button>

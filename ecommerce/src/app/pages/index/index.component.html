@@ -434,7 +434,7 @@
   </div>
 </section>
 <!-- ========================= OFERTAS ESPECIALES (CON BANNER OFERTAS) ================================ -->
-<section class="hot-deals pt-80" *ngIf="bannerOfertaActivo">
+<section class="hot-deals pt-80" *ngIf="ofertasHabilitadas && bannerOfertaActivo">
   <div class="container container-lg">
     <div class="section-heading">
       <div class="flex-between flex-wrap gap-8">
@@ -679,7 +679,7 @@
 </section>
 
 <!-- ========================= flash sales Start (DINÁMICO) ================================ -->
-<section class="flash-sales pt-80 overflow-hidden">
+<section class="flash-sales pt-80 overflow-hidden" *ngIf="ofertasHabilitadas">
   <div class="container container-lg">
     <div class="section-heading mb-40">
       <h5 class="mb-0">Ventas Flash</h5>
@@ -1224,7 +1224,7 @@
           </div>
           <div class="short-product-list arrow-style-two max-h-unset">
             <!-- ✅ PRODUCTOS EN OFERTA DINÁMICOS (Ahora usando bannerOfertaActivo.productos) -->
-            <div *ngIf="(bannerOfertaActivo?.productos?.length || 0) > 0" class="d-flex flex-column gap-44">
+            <div *ngIf="ofertasHabilitadas && (bannerOfertaActivo?.productos?.length || 0) > 0" class="d-flex flex-column gap-44">
               <div *ngFor="
                   let producto of bannerOfertaActivo?.productos?.slice(0, 4)
                 " class="flex-align gap-16">
@@ -1265,7 +1265,7 @@
             </div>
 
             <!-- ✅ MENSAJE CUANDO NO HAY PRODUCTOS EN OFERTA -->
-            <div *ngIf="!bannerOfertaActivo?.productos?.length" class="text-center py-40">
+            <div *ngIf="!ofertasHabilitadas || !bannerOfertaActivo?.productos?.length" class="text-center py-40">
               <div class="bg-gray-50 rounded-12 py-30 px-20">
                 <i class="ph ph-tag text-4xl text-gray-300 mb-16"></i>
                 <h6 class="text-gray-500 mb-8 fw-semibold">
@@ -1293,7 +1293,7 @@
         </div>
 
         <!-- ✅ BANNER OFERTA DE LA SEMANA -->
-        <div *ngIf="!isLoadingOfertaSemana && bannerOfertaSemana" class="product-card h-100 p-0 border-0">
+        <div *ngIf="ofertasHabilitadas && !isLoadingOfertaSemana && bannerOfertaSemana" class="product-card h-100 p-0 border-0">
           <a class="d-block h-100" style="cursor: default;">
             <img [src]="bannerOfertaSemana.imagen_url" alt="Oferta de la Semana"
               class="w-100 h-100 object-fit-cover rounded-16" (error)="onImageError($event)"
@@ -1302,7 +1302,7 @@
         </div>
 
         <!-- ✅ FALLBACK CUANDO NO HAY BANNER OFERTA DE LA SEMANA -->
-        <div *ngIf="!isLoadingOfertaSemana && !bannerOfertaSemana"
+        <div *ngIf="!ofertasHabilitadas || (!isLoadingOfertaSemana && !bannerOfertaSemana)"
           class="product-card h-100 p-24 pt-32 border border-gray-100 hover-border-main-600 rounded-16 position-relative transition-2 group-item pt-32">
           <div class="text-center py-40">
             <div class="bg-gray-50 rounded-12 py-30 px-20">

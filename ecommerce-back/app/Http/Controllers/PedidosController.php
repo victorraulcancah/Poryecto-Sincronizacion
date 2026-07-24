@@ -22,10 +22,11 @@ class PedidosController extends Controller
     {
         try {
             $query = Pedido::with([
-                'cliente', 
-                'userCliente', 
+                'cliente',
+                'userCliente',
                 'estadoPedido',
-                'detalles.producto'
+                'detalles.producto',
+                'metodosPago'
             ]);
 
             // Filtros
@@ -78,6 +79,7 @@ class PedidosController extends Controller
                     'moneda' => $pedido->moneda ?? 's',
                     'estado_pedido_id' => $pedido->estado_pedido_id,
                     'metodo_pago' => $pedido->metodo_pago,
+                    'metodos_pago' => $pedido->metodosPago,
                     'observaciones' => $pedido->observaciones,
                     'direccion_envio' => $pedido->direccion_envio,
                     'telefono_contacto' => $pedido->telefono_contacto,
@@ -137,10 +139,11 @@ class PedidosController extends Controller
     {
         try {
             $pedido = Pedido::with([
-                'cliente', 
+                'cliente',
                 'userCliente',
-                'detalles.producto', 
-                'estadoPedido'
+                'detalles.producto',
+                'estadoPedido',
+                'metodosPago'
             ])->findOrFail($id);
 
             return response()->json($pedido);

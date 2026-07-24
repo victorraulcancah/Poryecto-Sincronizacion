@@ -303,6 +303,9 @@ export class IndexComponent implements OnInit, OnDestroy, AfterViewInit {
   promotionalBanners: BannerPromocional[] = [];
   isLoadingPromotionalBanners = false;
 
+  // ⚠️ Ofertas deshabilitadas temporalmente (inconsistencia de precios pendiente de revisar)
+  readonly ofertasHabilitadas = false;
+
   // ✅ PROPIEDADES PARA OFERTAS DINÁMICAS
   ofertasActivas: Oferta[] = [];
   flashSalesActivas: BannerFlashSale[] = [];

@@ -7,6 +7,8 @@ use App\Models\TipoOferta;
 use App\Models\Cupon;
 use App\Models\OfertaProducto;
 use App\Models\Producto;
+use App\Models\TipoPrecio;
+use App\Models\UserCliente;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
@@ -14,6 +16,32 @@ use Carbon\Carbon;
 class OfertasController extends Controller
 {
     // ==================== MÉTODOS PÚBLICOS ====================
+
+    /**
+     * Tipo de precio a aplicar: el asignado al cliente logueado, o el de
+     * invitados si no hay sesión — mismo criterio que ProductosController,
+     * para que el precio mostrado en Ofertas coincida con el que se cobra
+     * al generar la cotización.
+     */
+    private function resolverTipoPrecioIdOferta(): ?int
+    {
+        $user = auth('sanctum')->user();
+        if ($user instanceof UserCliente) {
+            return $user->tipoPrecioEfectivoId();
+        }
+        return optional(TipoPrecio::paraInvitados())->id;
+    }
+
+    /**
+     * Precio base real del producto para el tipo de precio resuelto (el mismo
+     * fallback que usa ProductosController: precio_venta si no hay lista).
+     */
+    private function precioBaseOferta(Producto $producto, ?int $tipoPrecioId): float
+    {
+        return $tipoPrecioId
+            ? ($producto->precioPara($tipoPrecioId) ?? $producto->precio_venta)
+            : $producto->precio_venta;
+    }
 
     public function ofertasPublicas()
     {
@@ -69,16 +97,21 @@ class OfertasController extends Controller
             ]);
         }
 
-        $productos = $ofertaPrincipal->productos->map(function ($productoOferta) use ($ofertaPrincipal) {
+        $tipoPrecioId = $this->resolverTipoPrecioIdOferta();
+        $moneda = $tipoPrecioId ? optional(TipoPrecio::find($tipoPrecioId))->tipo_moneda : null;
+
+        $productos = $ofertaPrincipal->productos->map(function ($productoOferta) use ($ofertaPrincipal, $tipoPrecioId, $moneda) {
             $producto = $productoOferta->producto;
-            $precioOferta = $productoOferta->precio_oferta ?? $ofertaPrincipal->calcularPrecioOferta($producto->precio_venta);
-            $descuentoPorcentaje = round((($producto->precio_venta - $precioOferta) / $producto->precio_venta) * 100);
+            $precioBase = $this->precioBaseOferta($producto, $tipoPrecioId);
+            $precioOferta = $productoOferta->precio_oferta ?? $ofertaPrincipal->calcularPrecioOferta($precioBase);
+            $descuentoPorcentaje = $precioBase > 0 ? round((($precioBase - $precioOferta) / $precioBase) * 100) : 0;
 
             return [
                 'id' => $producto->id,
                 'nombre' => $producto->nombre,
-                'precio_original' => $producto->precio_venta,
+                'precio_original' => $precioBase,
                 'precio_oferta' => $precioOferta,
+                'moneda' => $moneda,
                 'descuento_porcentaje' => $descuentoPorcentaje,
                 'stock_oferta' => $productoOferta->stock_oferta,
                 'vendidos_oferta' => $productoOferta->vendidos_oferta,
@@ -121,16 +154,21 @@ class OfertasController extends Controller
             ]);
         }
 
-        $productos = $ofertaSemana->productos->map(function ($productoOferta) use ($ofertaSemana) {
+        $tipoPrecioId = $this->resolverTipoPrecioIdOferta();
+        $moneda = $tipoPrecioId ? optional(TipoPrecio::find($tipoPrecioId))->tipo_moneda : null;
+
+        $productos = $ofertaSemana->productos->map(function ($productoOferta) use ($ofertaSemana, $tipoPrecioId, $moneda) {
             $producto = $productoOferta->producto;
-            $precioOferta = $productoOferta->precio_oferta ?? $ofertaSemana->calcularPrecioOferta($producto->precio_venta);
-            $descuentoPorcentaje = round((($producto->precio_venta - $precioOferta) / $producto->precio_venta) * 100);
+            $precioBase = $this->precioBaseOferta($producto, $tipoPrecioId);
+            $precioOferta = $productoOferta->precio_oferta ?? $ofertaSemana->calcularPrecioOferta($precioBase);
+            $descuentoPorcentaje = $precioBase > 0 ? round((($precioBase - $precioOferta) / $precioBase) * 100) : 0;
 
             return [
                 'id' => $producto->id,
                 'nombre' => $producto->nombre,
-                'precio_original' => $producto->precio_venta,
+                'precio_original' => $precioBase,
                 'precio_oferta' => $precioOferta,
+                'moneda' => $moneda,
                 'descuento_porcentaje' => $descuentoPorcentaje,
                 'stock_oferta' => $productoOferta->stock_oferta,
                 'vendidos_oferta' => $productoOferta->vendidos_oferta,
@@ -163,23 +201,28 @@ class OfertasController extends Controller
 
     public function productosEnOferta()
     {
+        $tipoPrecioId = $this->resolverTipoPrecioIdOferta();
+        $moneda = $tipoPrecioId ? optional(TipoPrecio::find($tipoPrecioId))->tipo_moneda : null;
+
         $productos = OfertaProducto::with(['producto.categoria', 'producto.marca', 'oferta'])
             ->whereHas('oferta', function ($query) {
                 $query->activas();
             })
             ->get()
-            ->map(function ($productoOferta) {
+            ->map(function ($productoOferta) use ($tipoPrecioId, $moneda) {
                 $producto = $productoOferta->producto;
                 $oferta = $productoOferta->oferta;
 
-                $precioOferta = $productoOferta->precio_oferta ?? $oferta->calcularPrecioOferta($producto->precio_venta);
-                $descuentoPorcentaje = round((($producto->precio_venta - $precioOferta) / $producto->precio_venta) * 100);
+                $precioBase = $this->precioBaseOferta($producto, $tipoPrecioId);
+                $precioOferta = $productoOferta->precio_oferta ?? $oferta->calcularPrecioOferta($precioBase);
+                $descuentoPorcentaje = $precioBase > 0 ? round((($precioBase - $precioOferta) / $precioBase) * 100) : 0;
 
                 return [
                     'id' => $producto->id,
                     'nombre' => $producto->nombre,
-                    'precio_original' => $producto->precio_venta,
+                    'precio_original' => $precioBase,
                     'precio_oferta' => $precioOferta,
+                    'moneda' => $moneda,
                     'descuento_porcentaje' => $descuentoPorcentaje,
                     'stock_oferta' => $productoOferta->stock_oferta,
                     'vendidos_oferta' => $productoOferta->vendidos_oferta,
