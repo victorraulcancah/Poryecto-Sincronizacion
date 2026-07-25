@@ -568,7 +568,7 @@ export class IndexComponent implements OnInit, OnDestroy, AfterViewInit {
       next: (categorias) => {
         this.featureItems = categorias.map((cat) => ({
           ...cat,
-          img: cat.imagen_url || 'assets/images/thumbs/feature-img10.png',
+          img: cat.imagen_url || 'assets/images/placeholder.svg',
           title: cat.nombre,
         })) as CategoriaConImagen[];
         this.isLoadingCategorias = false;
