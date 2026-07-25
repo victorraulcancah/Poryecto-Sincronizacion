@@ -436,8 +436,29 @@ export class ShopComponent implements OnInit, OnDestroy {
   }
 
   // Method to generate page numbers based on totalPages
-  getPages() {
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  // ✅ Máximo de números de página visibles a la vez; con más páginas que esto,
+  // se muestra una ventana deslizante centrada en la página actual (las flechas
+  // la desplazan de a una), en vez de listar todas y que se corten en otra fila.
+  private readonly maxPaginasVisibles = 13;
+
+  getPages(): number[] {
+    if (this.totalPages <= this.maxPaginasVisibles) {
+      return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+    }
+
+    let inicio = this.currentPage - Math.floor(this.maxPaginasVisibles / 2);
+    let fin = inicio + this.maxPaginasVisibles - 1;
+
+    if (inicio < 1) {
+      inicio = 1;
+      fin = this.maxPaginasVisibles;
+    }
+    if (fin > this.totalPages) {
+      fin = this.totalPages;
+      inicio = this.totalPages - this.maxPaginasVisibles + 1;
+    }
+
+    return Array.from({ length: fin - inicio + 1 }, (_, i) => inicio + i);
   }
 
   onPageChange(page: number) {
