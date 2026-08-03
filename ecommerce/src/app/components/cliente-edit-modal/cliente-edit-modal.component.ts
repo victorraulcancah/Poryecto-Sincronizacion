@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { of, Subject } from 'rxjs';
@@ -150,7 +150,11 @@ type Tab = 'informacion' | 'direccion' | 'avanzado';
                   placeholder="Contraseña"
                   (keydown.enter)="ejecutarVinculacion()"
                 >
-                <div *ngIf="errorVinculacion" class="text-danger small mt-1">{{ errorVinculacion }}</div>
+              </div>
+
+              <div *ngIf="errorVinculacion" class="alert alert-danger d-flex align-items-start gap-8 mt-3 mb-0" style="font-size:15px;">
+                <i class="ph ph-warning-circle mt-1"></i>
+                <div>{{ errorVinculacion }}</div>
               </div>
             </div>
             <div class="modal-footer" style="flex-shrink:0;">
@@ -268,55 +272,118 @@ type Tab = 'informacion' | 'direccion' | 'avanzado';
               </div>
 
               <!-- ===================== TAB: DIRECCIÓN ===================== -->
-              <div class="row" *ngIf="tab === 'direccion'">
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Departamento</label>
-                  <select class="form-select" formControlName="departamento_id" (change)="onDepartamentoChange()">
-                    <option [ngValue]="null">Selecciona el Departamento</option>
-                    <option *ngFor="let d of departamentos" [ngValue]="d.id">{{ d.nombre }}</option>
-                  </select>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Provincia</label>
-                  <select class="form-select" formControlName="provincia_id" (change)="onProvinciaChange()"
-                    [disabled]="!formulario.get('departamento_id')?.value">
-                    <option [ngValue]="null">Selecciona la Provincia</option>
-                    <option *ngFor="let p of provincias" [ngValue]="p.id">{{ p.nombre }}</option>
-                  </select>
+              <div *ngIf="tab === 'direccion'" formArrayName="direcciones">
+                <div *ngFor="let dirGroup of direcciones.controls; let i = index" [formGroupName]="i"
+                  class="border rounded-12 p-3 mb-3">
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="fw-semibold">Dirección {{ i + 1 }}</div>
+                    <div class="d-flex align-items-center gap-12">
+                      <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" role="switch"
+                          [id]="'predeterminada' + i" formControlName="predeterminada"
+                          (change)="onPredeterminadaChange(i)">
+                        <label class="form-check-label small" [for]="'predeterminada' + i">Predeterminada</label>
+                      </div>
+                      <i class="ph ph-trash text-danger" style="cursor:pointer;" (click)="eliminarDireccion(i)"></i>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label">Departamento <span class="text-danger">*</span></label>
+                      <select class="form-select" formControlName="departamento_id" (change)="onDepartamentoChangeDireccion(i)">
+                        <option [ngValue]="null">Selecciona el Departamento</option>
+                        <option *ngFor="let d of departamentos" [ngValue]="d.id">{{ d.nombre }}</option>
+                      </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label">Provincia <span class="text-danger">*</span></label>
+                      <select class="form-select" formControlName="provincia_id" (change)="onProvinciaChangeDireccion(i)"
+                        [disabled]="!dirGroup.get('departamento_id')?.value">
+                        <option [ngValue]="null">Selecciona la Provincia</option>
+                        <option *ngFor="let p of (provinciasPorDireccion[i] || [])" [ngValue]="p.id">{{ p.nombre }}</option>
+                      </select>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label">Distrito <span class="text-danger">*</span></label>
+                      <select class="form-select" formControlName="distrito_id" (change)="onDistritoChangeDireccion(i)"
+                        [disabled]="!dirGroup.get('provincia_id')?.value">
+                        <option [ngValue]="null">Selecciona el Distrito</option>
+                        <option *ngFor="let d of (distritosPorDireccion[i] || [])" [ngValue]="d.id">{{ d.nombre }}</option>
+                      </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label">Urbanización</label>
+                      <input type="text" class="form-control" formControlName="urbanizacion" placeholder="Urbanización">
+                    </div>
+
+                    <div class="col-12 mb-3">
+                      <label class="form-label">Calle y Número <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control" formControlName="calle_numero" placeholder="Calle y Número">
+                    </div>
+
+                    <div class="col-12 mb-1">
+                      <label class="form-label">Indicaciones</label>
+                      <textarea class="form-control" formControlName="indicaciones" rows="2" placeholder="Indicaciones para la dirección"></textarea>
+                    </div>
+                  </div>
                 </div>
 
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Distrito</label>
-                  <select class="form-select" formControlName="distrito_id" (change)="onDistritoChange()"
-                    [disabled]="!formulario.get('provincia_id')?.value">
-                    <option [ngValue]="null">Selecciona el Distrito</option>
-                    <option *ngFor="let d of distritos" [ngValue]="d.id">{{ d.nombre }}</option>
-                  </select>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Urbanización</label>
-                  <input type="text" class="form-control" formControlName="urbanizacion" placeholder="Urbanización">
-                </div>
-
-                <div class="col-12 mb-3">
-                  <label class="form-label">Calle y Número</label>
-                  <input type="text" class="form-control" formControlName="calle_numero" placeholder="Calle y Número">
-                </div>
-
-                <div class="col-12 mb-3">
-                  <label class="form-label">Indicaciones</label>
-                  <textarea class="form-control" formControlName="indicaciones" rows="2" placeholder="Indicaciones para la dirección"></textarea>
-                </div>
+                <button type="button" class="btn btn-outline-secondary w-100" (click)="agregarDireccion()">
+                  <i class="ph ph-plus me-1"></i>
+                  Agregar Dirección
+                </button>
               </div>
 
               <!-- ===================== TAB: AVANZADO ===================== -->
-              <!-- Por ahora solo el botón "Vincular"; el resto (buscar cliente
-                   en Novik, confirmación con contraseña, selectores PEN/USD,
-                   menú de modificar/eliminar) se agrega en el siguiente paso. -->
               <div class="row" *ngIf="tab === 'avanzado'">
                 <div class="col-12 mb-3">
-                  <button type="button" class="btn btn-primary w-100 py-2" (click)="abrirBusqueda()">
-                    Vincular
+                  <label class="form-label">Tipo de Precio (Lista)</label>
+                  <select class="form-select" formControlName="tipo_precio_id">
+                    <option [ngValue]="null">Sin lista de precio asignada</option>
+                    <option *ngFor="let tp of tiposPrecio" [ngValue]="tp.id">{{ tp.nombre }}</option>
+                  </select>
+                </div>
+
+                <div class="col-12 mb-3">
+                  <label class="form-label">Cliente Novik vinculado</label>
+
+                  <div *ngIf="cargandoClienteVinculado" class="text-muted small">
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    Cargando datos del cliente en Novik...
+                  </div>
+
+                  <div *ngIf="!cargandoClienteVinculado && clienteErpVinculado"
+                    class="border rounded-12 p-3 d-flex align-items-center gap-12">
+                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle"
+                      style="width: 48px; height: 48px; background: rgba(111,66,193,0.12); flex-shrink:0;">
+                      <i class="ph ph-buildings" style="color:#6f42c1; font-size:22px;"></i>
+                    </span>
+                    <div class="flex-grow-1">
+                      <div class="fw-semibold" style="font-size:16px;">{{ clienteErpVinculado.nombre }}</div>
+                      <div class="text-muted small">
+                        {{ clienteErpVinculado.tipo === 'e' ? 'RUC' : 'DNI' }}: {{ clienteErpVinculado.dni_ruc }}
+                        · Código: {{ clienteErpVinculado.codigo }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div *ngIf="!cargandoClienteVinculado && !clienteErpVinculado"
+                    class="border rounded-12 p-3 d-flex align-items-center gap-12">
+                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle"
+                      style="width: 48px; height: 48px; background: rgba(108,117,125,0.12); flex-shrink:0;">
+                      <i class="ph ph-buildings" style="color:#6c757d; font-size:22px;"></i>
+                    </span>
+                    <div class="text-muted small">
+                      Este cliente aún no está vinculado a ningún cliente de Novik.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 mb-3 d-flex justify-content-center">
+                  <button type="button" class="btn btn-primary py-2 px-5" (click)="abrirBusqueda()">
+                    {{ clienteErpVinculado ? 'Cambiar vinculación' : 'Vincular' }}
                   </button>
                 </div>
               </div>
@@ -355,10 +422,15 @@ export class ClienteEditModalComponent implements OnInit {
   codigoErpNombre = '';
 
   departamentos: Departamento[] = [];
-  provincias: Provincia[] = [];
-  distritos: Distrito[] = [];
-  /** id_ubigeo (código de 6 dígitos) del distrito elegido; es lo que se envía al guardar. */
-  private idUbigeoSeleccionado: string | null = null;
+  // Opciones de provincia/distrito y el id_ubigeo final elegido, uno por
+  // cada tarjeta de dirección (mismo índice que el FormArray "direcciones").
+  provinciasPorDireccion: Provincia[][] = [];
+  distritosPorDireccion: Distrito[][] = [];
+  private idUbigeoPorDireccion: (string | null)[] = [];
+
+  get direcciones(): FormArray {
+    return this.formulario.get('direcciones') as FormArray;
+  }
 
   // ============================================
   // "Vincular" — paso "Buscar cliente en Novik"
@@ -379,6 +451,10 @@ export class ClienteEditModalComponent implements OnInit {
   passwordVinculacion = '';
   errorVinculacion = '';
   vinculando = false;
+
+  // Datos del cliente Novik ya vinculado (pestaña Avanzado)
+  clienteErpVinculado: { codigo: string; nombre: string; dni_ruc: string; tipo: string } | null = null;
+  cargandoClienteVinculado = false;
 
   constructor(
     private fb: FormBuilder,
@@ -467,64 +543,131 @@ export class ClienteEditModalComponent implements OnInit {
             tipo_documento_id: detalle.tipo_documento?.id ?? null,
           });
 
-          const direccionPredeterminada = (detalle.direcciones || []).find((d: any) => d.predeterminada);
-          if (direccionPredeterminada?.id_ubigeo) {
-            this.precargarDireccion(direccionPredeterminada);
+          const direccionesExistentes = detalle.direcciones || [];
+          if (direccionesExistentes.length > 0) {
+            direccionesExistentes.forEach((d: any) => this.agregarDireccion(d));
+          } else {
+            this.agregarDireccion();
           }
+        },
+        error: () => {},
+      });
+    } else {
+      // Cliente nuevo: arrancar con una tarjeta de dirección vacía.
+      this.agregarDireccion();
+    }
+
+    this.cargarClienteVinculado();
+  }
+
+  /** Trae del ERP Novik los datos (nombre, dni/ruc, tipo) del cliente ya
+   * vinculado a este cliente e-commerce, para mostrarlos en Avanzado. */
+  private cargarClienteVinculado(): void {
+    const codigo = (this.cliente?.codigo_erp || '').trim();
+    if (!codigo) {
+      this.clienteErpVinculado = null;
+      return;
+    }
+    this.cargandoClienteVinculado = true;
+    this.clienteService.buscarEnErp(codigo, 0).subscribe({
+      next: (res) => {
+        this.cargandoClienteVinculado = false;
+        this.clienteErpVinculado = (res.clientes || []).find(c => c.codigo === codigo) || null;
+      },
+      error: () => {
+        this.cargandoClienteVinculado = false;
+        this.clienteErpVinculado = null;
+      },
+    });
+  }
+
+  /** Agrega una tarjeta de dirección al FormArray; si viene `existente`
+   * (de un cliente ya guardado), precarga y resuelve su departamento/
+   * provincia/distrito a partir del id_ubigeo guardado. */
+  agregarDireccion(existente?: any): void {
+    const grupo = this.fb.group({
+      id: [existente?.id ?? null],
+      departamento_id: [null, Validators.required],
+      provincia_id: [null, Validators.required],
+      distrito_id: [null, Validators.required],
+      urbanizacion: [''],
+      calle_numero: ['', Validators.required],
+      indicaciones: [existente?.referencia ?? ''],
+      predeterminada: [!!existente?.predeterminada],
+    });
+
+    this.direcciones.push(grupo);
+    const index = this.direcciones.length - 1;
+    this.provinciasPorDireccion[index] = [];
+    this.distritosPorDireccion[index] = [];
+    this.idUbigeoPorDireccion[index] = existente?.id_ubigeo != null ? String(existente.id_ubigeo) : null;
+
+    if (existente?.id_ubigeo) {
+      this.ubigeoService.getUbigeoChain(existente.id_ubigeo).subscribe({
+        next: (res) => {
+          const chain = res?.data;
+          if (!chain) return;
+
+          grupo.patchValue({ departamento_id: chain.departamento.id }, { emitEvent: false });
+          this.ubigeoService.getProvincias(chain.departamento.id).subscribe(provincias => {
+            this.provinciasPorDireccion[index] = provincias;
+            grupo.patchValue({ provincia_id: chain.provincia.id }, { emitEvent: false });
+
+            this.ubigeoService.getDistritos(chain.departamento.id, chain.provincia.id).subscribe(distritos => {
+              this.distritosPorDireccion[index] = distritos;
+              grupo.patchValue({ distrito_id: chain.distrito.id }, { emitEvent: false });
+            });
+          });
         },
         error: () => {},
       });
     }
   }
 
-  private precargarDireccion(direccion: any): void {
-    this.ubigeoService.getUbigeoChain(direccion.id_ubigeo).subscribe({
-      next: (res) => {
-        const chain = res?.data;
-        if (!chain) return;
+  eliminarDireccion(i: number): void {
+    this.direcciones.removeAt(i);
+    this.provinciasPorDireccion.splice(i, 1);
+    this.distritosPorDireccion.splice(i, 1);
+    this.idUbigeoPorDireccion.splice(i, 1);
+  }
 
-        this.formulario.patchValue({ departamento_id: chain.departamento.id });
-        this.ubigeoService.getProvincias(chain.departamento.id).subscribe(provincias => {
-          this.provincias = provincias;
-          this.formulario.patchValue({ provincia_id: chain.provincia.id });
-
-          this.ubigeoService.getDistritos(chain.departamento.id, chain.provincia.id).subscribe(distritos => {
-            this.distritos = distritos;
-            this.formulario.patchValue({ distrito_id: chain.distrito.id });
-            this.idUbigeoSeleccionado = direccion.id_ubigeo;
-          });
-        });
-      },
-      error: () => {},
+  /** Solo una dirección puede quedar marcada como predeterminada a la vez. */
+  onPredeterminadaChange(i: number): void {
+    if (!this.direcciones.at(i).get('predeterminada')?.value) return;
+    this.direcciones.controls.forEach((grupo, idx) => {
+      if (idx !== i) grupo.get('predeterminada')?.setValue(false, { emitEvent: false });
     });
   }
 
-  onDepartamentoChange(): void {
-    this.provincias = [];
-    this.distritos = [];
-    this.idUbigeoSeleccionado = null;
-    this.formulario.patchValue({ provincia_id: null, distrito_id: null });
+  onDepartamentoChangeDireccion(i: number): void {
+    const grupo = this.direcciones.at(i);
+    this.provinciasPorDireccion[i] = [];
+    this.distritosPorDireccion[i] = [];
+    this.idUbigeoPorDireccion[i] = null;
+    grupo.patchValue({ provincia_id: null, distrito_id: null });
 
-    const departamentoId = this.formulario.get('departamento_id')?.value;
+    const departamentoId = grupo.get('departamento_id')?.value;
     if (!departamentoId) return;
-    this.ubigeoService.getProvincias(departamentoId).subscribe(res => this.provincias = res);
+    this.ubigeoService.getProvincias(departamentoId).subscribe(res => this.provinciasPorDireccion[i] = res);
   }
 
-  onProvinciaChange(): void {
-    this.distritos = [];
-    this.idUbigeoSeleccionado = null;
-    this.formulario.patchValue({ distrito_id: null });
+  onProvinciaChangeDireccion(i: number): void {
+    const grupo = this.direcciones.at(i);
+    this.distritosPorDireccion[i] = [];
+    this.idUbigeoPorDireccion[i] = null;
+    grupo.patchValue({ distrito_id: null });
 
-    const departamentoId = this.formulario.get('departamento_id')?.value;
-    const provinciaId = this.formulario.get('provincia_id')?.value;
+    const departamentoId = grupo.get('departamento_id')?.value;
+    const provinciaId = grupo.get('provincia_id')?.value;
     if (!departamentoId || !provinciaId) return;
-    this.ubigeoService.getDistritos(departamentoId, provinciaId).subscribe(res => this.distritos = res);
+    this.ubigeoService.getDistritos(departamentoId, provinciaId).subscribe(res => this.distritosPorDireccion[i] = res);
   }
 
-  onDistritoChange(): void {
-    const distritoId = this.formulario.get('distrito_id')?.value;
-    const distrito = this.distritos.find(d => d.id === distritoId);
-    this.idUbigeoSeleccionado = distrito?.id_ubigeo ?? null;
+  onDistritoChangeDireccion(i: number): void {
+    const grupo = this.direcciones.at(i);
+    const distritoId = grupo.get('distrito_id')?.value;
+    const distrito = (this.distritosPorDireccion[i] || []).find(d => d.id === distritoId);
+    this.idUbigeoPorDireccion[i] = distrito?.id_ubigeo != null ? String(distrito.id_ubigeo) : null;
   }
 
   // ============================================
@@ -613,6 +756,7 @@ export class ClienteEditModalComponent implements OnInit {
         this.vinculando = false;
         if (res.status === 'success') {
           this.formulario.patchValue({ codigo_erp: res.data?.codigo_erp || this.clienteErpSeleccionado?.codigo });
+          this.clienteErpVinculado = this.clienteErpSeleccionado;
           this.pasoVinculacion = 'exito';
         } else {
           this.errorVinculacion = res.message || 'No se pudo completar la vinculación.';
@@ -650,12 +794,7 @@ export class ClienteEditModalComponent implements OnInit {
       email: [this.cliente?.email || '', [Validators.email]],
       telefono: [this.cliente?.telefono || ''],
 
-      departamento_id: [null],
-      provincia_id: [null],
-      distrito_id: [null],
-      urbanizacion: [''],
-      calle_numero: [''],
-      indicaciones: [''],
+      direcciones: this.fb.array([]),
 
       tipo_precio_id: [(this.cliente as any)?.tipo_precio_id ?? null],
       codigo_erp: [this.cliente?.codigo_erp || '']
@@ -676,10 +815,14 @@ export class ClienteEditModalComponent implements OnInit {
       telefono: valores.telefono,
       tipo_precio_id: valores.tipo_precio_id,
       codigo_erp: valores.codigo_erp,
-      id_ubigeo: this.idUbigeoSeleccionado,
-      calle_numero: valores.calle_numero,
-      urbanizacion: valores.urbanizacion,
-      indicaciones: valores.indicaciones,
+      direcciones: (valores.direcciones || []).map((d: any, i: number) => ({
+        id: d.id,
+        id_ubigeo: this.idUbigeoPorDireccion[i],
+        calle_numero: d.calle_numero,
+        urbanizacion: d.urbanizacion,
+        indicaciones: d.indicaciones,
+        predeterminada: d.predeterminada,
+      })),
     };
 
     if (datosFormulario.codigo_erp) {

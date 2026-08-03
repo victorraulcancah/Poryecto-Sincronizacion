@@ -327,12 +327,16 @@ class ClientesController extends Controller
                 'codigo_erp' => 'nullable|string|max:20|unique:user_clientes,codigo_erp,' . $id,
                 'tipo_documento_id' => 'nullable|exists:document_types,id',
                 'numero_documento' => 'sometimes|required|string|max:20|unique:user_clientes,numero_documento,' . $id,
-                // Dirección (pestaña "Dirección" del modal): se guarda como la
-                // dirección predeterminada del cliente (user_cliente_direcciones).
-                'id_ubigeo' => 'nullable|string|exists:ubigeo_inei,id_ubigeo',
-                'calle_numero' => 'nullable|string|max:255',
-                'urbanizacion' => 'nullable|string|max:255',
-                'indicaciones' => 'nullable|string|max:500',
+                // Pestaña "Dirección": lista de direcciones del cliente
+                // (user_cliente_direcciones). Se sincroniza completa en
+                // cada guardado (se crean/actualizan/borran según venga).
+                'direcciones' => 'nullable|array',
+                'direcciones.*.id' => 'nullable|integer',
+                'direcciones.*.id_ubigeo' => 'required|string|exists:ubigeo_inei,id_ubigeo',
+                'direcciones.*.calle_numero' => 'required|string|max:255',
+                'direcciones.*.urbanizacion' => 'nullable|string|max:255',
+                'direcciones.*.indicaciones' => 'nullable|string|max:500',
+                'direcciones.*.predeterminada' => 'nullable|boolean',
             ]);
 
             if ($request->filled('codigo_erp')) {
@@ -343,7 +347,7 @@ class ClientesController extends Controller
                     // Misma variable que ya usa Productos7PowerController para
                     // llamar al backend de 7Power.
                     $respuestaErp = \Illuminate\Support\Facades\Http::timeout(5)->get(
-                        rtrim(env('API_7POWER_URL', 'http://127.0.0.1:8001/api'), '/')
+                        rtrim(env('API_7POWER_URL', 'http://127.0.0.1:8000/api'), '/')
                             . '/ecommerce/clientes/validar-codigo',
                         ['codigo' => $request->input('codigo_erp')]
                     );
@@ -375,26 +379,46 @@ class ClientesController extends Controller
                 app(\App\Services\ErpCreditoService::class)->sincronizar($cliente);
             }
 
-            // Pestaña "Dirección": si viene alguno de estos campos, se guarda
-            // como la dirección predeterminada del cliente (se crea si no
-            // tenía ninguna todavía).
-            if ($request->filled('id_ubigeo') || $request->filled('calle_numero') || $request->filled('urbanizacion')) {
-                $direccionCompleta = trim(implode(', ', array_filter([
-                    $request->input('calle_numero'),
-                    $request->input('urbanizacion'),
-                ])));
+            // Pestaña "Dirección": sincroniza la lista completa que mandó el
+            // formulario (permite varias direcciones, con "+ Agregar Dirección").
+            if ($request->has('direcciones')) {
+                $existentes = $cliente->direcciones->pluck('id')->toArray();
+                $enviadas = collect($request->input('direcciones', []));
 
-                $cliente->direcciones()->updateOrCreate(
-                    ['predeterminada' => true],
-                    [
+                $enviadas->each(function ($d) use ($cliente) {
+                    $direccionCompleta = trim(implode(', ', array_filter([
+                        $d['calle_numero'] ?? null,
+                        $d['urbanizacion'] ?? null,
+                    ])));
+
+                    $datos = [
                         'nombre_destinatario' => $cliente->nombre_completo,
                         'direccion_completa' => $direccionCompleta ?: 'Sin dirección',
-                        'referencia' => $request->input('indicaciones'),
-                        'id_ubigeo' => $request->input('id_ubigeo'),
-                        'predeterminada' => true,
+                        'referencia' => $d['indicaciones'] ?? null,
+                        'id_ubigeo' => $d['id_ubigeo'] ?? null,
+                        'predeterminada' => !empty($d['predeterminada']),
                         'activa' => true,
-                    ]
-                );
+                    ];
+
+                    if (!empty($d['id'])) {
+                        $cliente->direcciones()->where('id', $d['id'])->update($datos);
+                    } else {
+                        $cliente->direcciones()->create($datos);
+                    }
+                });
+
+                // Borrar las que ya no vinieron en la lista (se quitaron con el trash).
+                $idsEnviados = $enviadas->pluck('id')->filter()->all();
+                $cliente->direcciones()->whereNotIn('id', $idsEnviados)->delete();
+
+                // Si ninguna quedó marcada predeterminada, la primera lo es
+                // (para que credito/estado de cuenta sigan teniendo una base).
+                if (!$cliente->direcciones()->where('predeterminada', true)->exists()) {
+                    $primera = $cliente->direcciones()->first();
+                    if ($primera) {
+                        $primera->update(['predeterminada' => true]);
+                    }
+                }
             }
 
             // Transformar respuesta
