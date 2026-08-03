@@ -330,7 +330,7 @@ type Tab = 'informacion' | 'direccion' | 'avanzado';
                   </div>
                 </div>
 
-                <button type="button" class="btn btn-outline-secondary w-100" (click)="agregarDireccion()">
+                <button type="button" class="btn btn-secondary w-100" (click)="agregarDireccion()">
                   <i class="ph ph-plus me-1"></i>
                   Agregar Dirección
                 </button>
