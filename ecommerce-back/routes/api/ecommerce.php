@@ -117,6 +117,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/clientes/buscar-por-documento', [ClientesController::class, 'buscarPorDocumento']);
     });
 
+    // Debe ir ANTES de /clientes/{id}: si no, Laravel interpreta
+    // "buscar-en-erp" como el {id} del show() y nunca llega acá.
+    Route::middleware('permission:clientes.edit')->group(function () {
+        Route::get('/clientes/buscar-en-erp', [ClientesController::class, 'buscarEnErp']);
+    });
+
     Route::middleware('permission:clientes.show')->group(function () {
         Route::get('/clientes/{id}', [ClientesController::class, 'show']);
     });
@@ -125,6 +131,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/clientes', [ClientesController::class, 'store']);
         Route::put('/clientes/{id}', [ClientesController::class, 'update']);
         Route::patch('/clientes/{id}/toggle-estado', [ClientesController::class, 'toggleEstado']);
+        // Paso "Confirmar vinculación" (pide contraseña del admin logueado).
+        Route::post('/clientes/{id}/vincular', [ClientesController::class, 'vincular']);
     });
 
     Route::prefix('cliente')->group(function () {

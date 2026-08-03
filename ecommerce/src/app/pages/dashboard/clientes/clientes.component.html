@@ -23,6 +23,8 @@
           <i class="ph ph-magnifying-glass position-absolute start-0 top-50 translate-middle-y ms-12 text-gray-400"></i>
           <input
             type="text"
+            name="clientes_search"
+            autocomplete="off"
             [(ngModel)]="filtros.search"
             (input)="buscar()"
             class="form-control ps-40"

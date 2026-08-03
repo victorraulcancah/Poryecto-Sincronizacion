@@ -52,6 +52,26 @@ export class ClienteService {
     return this.http.get<{status: string, data: EstadisticasGenerales}>(`${this.apiUrl}/estadisticas`);
   }
 
+  // Paso "Buscar cliente en Novik" del wizard de vinculación.
+  buscarEnErp(q: string, offset: number = 0): Observable<{
+    status: string;
+    total: number;
+    offset: number;
+    hay_mas: boolean;
+    clientes: Array<{ codigo: string; nombre: string; dni_ruc: string; tipo: string }>;
+  }> {
+    return this.http.get<any>(`${this.apiUrl}/buscar-en-erp`, { params: { q, offset } });
+  }
+
+  // Paso "Confirmar vinculación": exige la contraseña del admin logueado.
+  vincular(id: number, codigoErp: string, password: string): Observable<{
+    status: string;
+    message: string;
+    data?: { codigo_erp: string; nombre_erp: string };
+  }> {
+    return this.http.post<any>(`${this.apiUrl}/${id}/vincular`, { codigo_erp: codigoErp, password });
+  }
+
   // Buscar cliente por número de documento (DNI o RUC)
   // Usa el endpoint GET /api/clientes/buscar-por-documento?numero_documento={doc}
   // Devuelve: { success: true, data: [cliente] } o { success: false, data: [] }

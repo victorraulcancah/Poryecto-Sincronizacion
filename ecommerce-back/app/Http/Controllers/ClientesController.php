@@ -118,6 +118,7 @@ class ClientesController extends Controller
                         'nombre_destinatario' => $direccion->nombre_destinatario,
                         'direccion_completa' => $direccion->direccion_completa,
                         'referencia' => $direccion->referencia,
+                        'id_ubigeo' => $direccion->id_ubigeo,
                         'predeterminada' => $direccion->predeterminada,
                         'activa' => $direccion->activa,
                     ];
@@ -324,6 +325,14 @@ class ClientesController extends Controller
                 // Código de cliente del ERP 7Power (CLI00001...), asignado
                 // manualmente por un administrador para vincular la cuenta.
                 'codigo_erp' => 'nullable|string|max:20|unique:user_clientes,codigo_erp,' . $id,
+                'tipo_documento_id' => 'nullable|exists:document_types,id',
+                'numero_documento' => 'sometimes|required|string|max:20|unique:user_clientes,numero_documento,' . $id,
+                // Dirección (pestaña "Dirección" del modal): se guarda como la
+                // dirección predeterminada del cliente (user_cliente_direcciones).
+                'id_ubigeo' => 'nullable|string|exists:ubigeo_inei,id_ubigeo',
+                'calle_numero' => 'nullable|string|max:255',
+                'urbanizacion' => 'nullable|string|max:255',
+                'indicaciones' => 'nullable|string|max:500',
             ]);
 
             if ($request->filled('codigo_erp')) {
@@ -358,11 +367,34 @@ class ClientesController extends Controller
             // el resto del cliente se conserva tal cual.
             $cliente->update($request->only([
                 'nombres', 'apellidos', 'email', 'telefono',
-                'fecha_nacimiento', 'genero', 'estado', 'tipo_precio_id', 'codigo_erp'
+                'fecha_nacimiento', 'genero', 'estado', 'tipo_precio_id', 'codigo_erp',
+                'tipo_documento_id', 'numero_documento',
             ]));
 
             if ($request->filled('codigo_erp')) {
                 app(\App\Services\ErpCreditoService::class)->sincronizar($cliente);
+            }
+
+            // Pestaña "Dirección": si viene alguno de estos campos, se guarda
+            // como la dirección predeterminada del cliente (se crea si no
+            // tenía ninguna todavía).
+            if ($request->filled('id_ubigeo') || $request->filled('calle_numero') || $request->filled('urbanizacion')) {
+                $direccionCompleta = trim(implode(', ', array_filter([
+                    $request->input('calle_numero'),
+                    $request->input('urbanizacion'),
+                ])));
+
+                $cliente->direcciones()->updateOrCreate(
+                    ['predeterminada' => true],
+                    [
+                        'nombre_destinatario' => $cliente->nombre_completo,
+                        'direccion_completa' => $direccionCompleta ?: 'Sin dirección',
+                        'referencia' => $request->input('indicaciones'),
+                        'id_ubigeo' => $request->input('id_ubigeo'),
+                        'predeterminada' => true,
+                        'activa' => true,
+                    ]
+                );
             }
 
             // Transformar respuesta
@@ -406,7 +438,7 @@ class ClientesController extends Controller
     {
         try {
             $cliente = UserCliente::findOrFail($id);
-            
+
             // Soft delete - cambiar estado a inactivo
             $cliente->update(['estado' => false]);
 
@@ -421,6 +453,109 @@ class ClientesController extends Controller
                 'message' => 'Error al desactivar cliente: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Paso "Buscar cliente en Novik" del wizard de vinculación: reenvía la
+     * búsqueda al endpoint público del ERP 7Power (mismo mecanismo que ya
+     * usa la validación de codigo_erp).
+     */
+    public function buscarEnErp(Request $request): JsonResponse
+    {
+        $q = trim((string) $request->query('q', ''));
+        $offset = max(0, (int) $request->query('offset', 0));
+
+        try {
+            $respuesta = \Illuminate\Support\Facades\Http::timeout(5)->get(
+                rtrim(env('API_7POWER_URL', 'http://127.0.0.1:8000/api'), '/')
+                    . '/ecommerce/clientes/buscar',
+                ['q' => $q, 'offset' => $offset]
+            );
+
+            if (!$respuesta->ok()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No se pudo buscar en el ERP 7Power.',
+                ], 503);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'total' => $respuesta->json('total') ?? 0,
+                'offset' => $respuesta->json('offset') ?? $offset,
+                'hay_mas' => $respuesta->json('hay_mas') ?? false,
+                'clientes' => $respuesta->json('clientes') ?? [],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No se pudo conectar con el ERP 7Power.',
+            ], 503);
+        }
+    }
+
+    /**
+     * Paso "Confirmar vinculación": exige la contraseña del admin logueado
+     * (no la del cliente) antes de asociar el codigo_erp elegido en la
+     * búsqueda.
+     */
+    public function vincular(Request $request, $id): JsonResponse
+    {
+        $request->validate([
+            'codigo_erp' => 'required|string|max:20',
+            'password' => 'required|string',
+        ]);
+
+        if (!\Illuminate\Support\Facades\Hash::check($request->password, $request->user()->password)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'La contraseña no es correcta.',
+            ], 422);
+        }
+
+        $cliente = UserCliente::findOrFail($id);
+        $codigo = strtoupper(trim($request->codigo_erp));
+
+        $yaUsado = UserCliente::where('codigo_erp', $codigo)->where('id', '!=', $id)->exists();
+        if ($yaUsado) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Ese código de cliente ya está vinculado a otra cuenta.',
+            ], 422);
+        }
+
+        try {
+            $respuestaErp = \Illuminate\Support\Facades\Http::timeout(5)->get(
+                rtrim(env('API_7POWER_URL', 'http://127.0.0.1:8000/api'), '/')
+                    . '/ecommerce/clientes/validar-codigo',
+                ['codigo' => $codigo]
+            );
+            $existeEnErp = $respuestaErp->ok() && ($respuestaErp->json('existe') === true);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No se pudo validar el código con el ERP 7Power. Intenta nuevamente.',
+            ], 503);
+        }
+
+        if (!$existeEnErp) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'El código de cliente no existe en el ERP 7Power.',
+            ], 422);
+        }
+
+        $cliente->update(['codigo_erp' => $codigo]);
+        app(\App\Services\ErpCreditoService::class)->sincronizar($cliente);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Vinculación realizada correctamente',
+            'data' => [
+                'codigo_erp' => $cliente->codigo_erp,
+                'nombre_erp' => $respuestaErp->json('nombre'),
+            ],
+        ]);
     }
 
     public function toggleEstado($id): JsonResponse
