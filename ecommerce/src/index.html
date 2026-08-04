@@ -101,21 +101,6 @@
       src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"
     ></script>
 
-    <!-- Script blocking: oculta el loader ANTES de que se pinte si ya se mostró antes -->
-    <script>
-      (function() {
-        var forzarSplash = /[?&]splash=1\b/.test(window.location.search);
-        if (forzarSplash) return;
-
-        var hasLoaded = document.cookie.match(/(?:^|;\s*)hasLoadedBefore=([^;]*)/);
-        if (hasLoaded) {
-          var s = document.createElement('style');
-          s.textContent = '#initial-loader{display:none!important}';
-          document.head.appendChild(s);
-        }
-      })();
-    </script>
-
     <!-- Estilos del loader de carga inicial -->
     <style>
           #initial-loader {
@@ -356,33 +341,20 @@
         var loaderSvg = document.getElementById("loader-svg-img");
         var loaderText = document.getElementById("loader-text");
 
-        // Si la cookie ya existe (ya se mostró antes), salir.
-        // Excepto en modo de prueba (?splash=1 en la URL), útil para ver
-        // cambios de texto/logo/color sin tener que borrar cookies.
-        var forzarSplash = /[?&]splash=1\b/.test(window.location.search);
-        if (!forzarSplash && document.cookie.match(/(?:^|;\s*)hasLoadedBefore=([^;]*)/)) return;
-
-        function setCookie(name, value) {
-          document.cookie = name + '=' + value + '; path=/; max-age=86400';
-        }
-
         function removeLoader() {
           if (loader && loader.parentNode) {
             loader.parentNode.removeChild(loader);
           }
         }
 
-        // Mostrar SVG y texto
+        // Mostrar SVG y texto (valores por defecto mientras responde la DB)
         loaderSvg.style.display = "block";
         loaderText.style.display = "block";
         loaderText.textContent = "Cargando 7 Power...";
 
-        // Marcar en cookie que ya se mostró
-        setCookie("hasLoadedBefore", "true");
-
         // Personalización desde /dashboard/empresa-info (texto, logo, color
-        // de fondo). Se aplica encima de los valores por defecto de arriba;
-        // si la petición falla o tarda, el splash por defecto ya se ve bien.
+        // de fondo). Se consulta SIEMPRE a la DB, en cada carga de página,
+        // sin caché ni cookie que la salte.
         try {
           var apiHost = window.location.hostname;
           var apiBase = (apiHost === "localhost" || apiHost === "127.0.0.1")
