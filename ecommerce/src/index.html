@@ -322,14 +322,11 @@
       <img
         id="loader-svg-img"
         class="loader-svg"
-        src="assets/images/logo/logo.svg"
         alt="7 Power"
         style="display: none"
       />
 
-      <div class="loader-text" id="loader-text" style="display: none">
-        Cargando 7 Power...
-      </div>
+      <div class="loader-text" id="loader-text" style="display: none"></div>
     </div>
 
     <app-root></app-root>
@@ -347,14 +344,9 @@
           }
         }
 
-        // Mostrar SVG y texto (valores por defecto mientras responde la DB)
-        loaderSvg.style.display = "block";
-        loaderText.style.display = "block";
-        loaderText.textContent = "Cargando 7 Power...";
-
-        // Personalización desde /dashboard/empresa-info (texto, logo, color
-        // de fondo). Se consulta SIEMPRE a la DB, en cada carga de página,
-        // sin caché ni cookie que la salte.
+        // Sin valores por defecto: texto y logo solo se muestran si vienen
+        // de la DB. Personalización desde /dashboard/empresa-info, se
+        // consulta SIEMPRE (en cada carga de página, sin caché ni cookie).
         try {
           var apiHost = window.location.hostname;
           var apiBase = (apiHost === "localhost" || apiHost === "127.0.0.1")
@@ -372,12 +364,14 @@
 
               if (data.splash_texto) {
                 loaderText.textContent = data.splash_texto;
+                loaderText.style.display = "block";
               }
               if (data.splash_color_fondo) {
                 loader.style.background = data.splash_color_fondo;
               }
               if (data.logo_url) {
                 loaderSvg.src = data.logo_url;
+                loaderSvg.style.display = "block";
               }
             } catch (e) {}
           };

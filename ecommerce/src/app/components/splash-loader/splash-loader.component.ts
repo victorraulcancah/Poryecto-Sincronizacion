@@ -15,7 +15,7 @@ import { EmpresaInfoService } from '../../services/empresa-info.service';
 export class SplashLoaderComponent implements OnDestroy {
   visible = false;
   mensaje = 'Cargando...';
-  logoUrl = 'assets/images/logo/logo.svg';
+  logoUrl: string | null = null;
   colorFondo: string | null = null;
   private subs = new Subscription();
 
