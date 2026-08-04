@@ -90,8 +90,11 @@
       <input type="date" class="form-control form-control-sm py-2" style="max-width: 130px; height: 28px;" [(ngModel)]="fechaDesde">
       <span class="text-gray-400">—</span>
       <input type="date" class="form-control form-control-sm py-2" style="max-width: 130px; height: 28px;" [(ngModel)]="fechaHasta">
-      <button type="button" class="btn btn-sm btn-outline-main-600 py-2" style="height: 28px;" (click)="aplicarFiltroFechas()">
-        <i class="ph ph-funnel"></i>
+      <button type="button" class="btn btn-sm py-2 d-flex align-items-center gap-4 text-white"
+        style="height: 28px; background-color: #9B1C1C; border-color: #9B1C1C;"
+        (click)="aplicarFiltroFechas()">
+        <i class="ph ph-magnifying-glass"></i>
+        Buscar
       </button>
       <div class="position-relative flex-grow-1">
         <input
