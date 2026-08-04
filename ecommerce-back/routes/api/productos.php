@@ -163,6 +163,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/{id}/toggle-vinculado', [\App\Http\Controllers\TiposPrecioController::class, 'toggleVinculado']);
         Route::patch('/{id}/categoria', [\App\Http\Controllers\TiposPrecioController::class, 'cambiarCategoria']);
         Route::post('/resincronizar', [\App\Http\Controllers\TiposPrecioController::class, 'resincronizar']);
+        // Modal "Agregar Lista de Precio"
+        Route::post('/asignar-visitantes', [\App\Http\Controllers\TiposPrecioController::class, 'asignarVisitantes']);
+        Route::post('/asignar-vinculados', [\App\Http\Controllers\TiposPrecioController::class, 'asignarVinculados']);
     });
 
     // ============================================

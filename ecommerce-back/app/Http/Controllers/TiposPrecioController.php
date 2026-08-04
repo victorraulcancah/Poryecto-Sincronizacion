@@ -215,6 +215,88 @@ class TiposPrecioController extends Controller
     }
 
     /**
+     * Modal "Agregar Lista de Precio" (pestaña Clientes visitantes): elige,
+     * de entre TODAS las listas sincronizadas, una en soles y una en
+     * dólares (o ninguna) como LA lista para visitantes de esa moneda.
+     */
+    public function asignarVisitantes(Request $request)
+    {
+        $request->validate([
+            'soles_id' => 'nullable|exists:tipos_precio,id',
+            'dolares_id' => 'nullable|exists:tipos_precio,id',
+        ]);
+
+        if ($request->filled('soles_id') && optional(TipoPrecio::find($request->soles_id))->tipo_moneda !== 's') {
+            return response()->json(['status' => 'error', 'message' => 'La lista elegida para soles no es de esa moneda.'], 422);
+        }
+        if ($request->filled('dolares_id') && optional(TipoPrecio::find($request->dolares_id))->tipo_moneda !== 'd') {
+            return response()->json(['status' => 'error', 'message' => 'La lista elegida para dólares no es de esa moneda.'], 422);
+        }
+
+        DB::transaction(function () use ($request) {
+            // Libera lo que antes era la lista de visitantes en cada moneda.
+            TipoPrecio::where('categoria', 'visitante')->where('tipo_moneda', 's')
+                ->update(['categoria' => 'vinculado', 'es_predeterminado' => false, 'es_para_invitados' => false]);
+            TipoPrecio::where('categoria', 'visitante')->where('tipo_moneda', 'd')
+                ->update(['categoria' => 'vinculado', 'es_predeterminado' => false, 'es_para_invitados' => false]);
+
+            if ($request->filled('soles_id')) {
+                TipoPrecio::where('id', $request->soles_id)->update([
+                    'categoria' => 'visitante', 'activo' => true,
+                    'es_predeterminado' => true, 'es_para_invitados' => true,
+                ]);
+            }
+            if ($request->filled('dolares_id')) {
+                TipoPrecio::where('id', $request->dolares_id)->update([
+                    'categoria' => 'visitante', 'activo' => true,
+                    'es_predeterminado' => true, 'es_para_invitados' => true,
+                ]);
+            }
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Listas de clientes visitantes actualizadas',
+        ]);
+    }
+
+    /**
+     * Modal "Agregar Lista de Precio" (pestaña Clientes vinculados): elige,
+     * de entre TODAS las listas sincronizadas, cualquier cantidad como
+     * opciones disponibles para los clientes vinculados.
+     */
+    public function asignarVinculados(Request $request)
+    {
+        $request->validate([
+            'ids' => 'present|array',
+            'ids.*' => 'integer|exists:tipos_precio,id',
+        ]);
+
+        DB::transaction(function () use ($request) {
+            $ids = $request->input('ids', []);
+
+            // Lo que estaba activo como vinculado y ya no viene seleccionado, se desactiva.
+            TipoPrecio::where('categoria', 'vinculado')->where('activo', true)
+                ->whereNotIn('id', $ids)
+                ->update(['activo' => false]);
+
+            if (!empty($ids)) {
+                TipoPrecio::whereIn('id', $ids)->update([
+                    'categoria' => 'vinculado',
+                    'activo' => true,
+                    'es_predeterminado' => false,
+                    'es_para_invitados' => false,
+                ]);
+            }
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Listas de clientes vinculados actualizadas',
+        ]);
+    }
+
+    /**
      * Botón "Lista +": trae de inmediato las listas de precio nuevas desde
      * Novik (sin esperar al cron), sin resincronizar productos/stock.
      */

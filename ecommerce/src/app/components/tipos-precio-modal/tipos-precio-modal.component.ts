@@ -1,6 +1,7 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TiposPrecioService, TipoPrecio } from '../../services/tipos-precio.service';
+import { AgregarListaPrecioModalComponent } from '../agregar-lista-precio-modal/agregar-lista-precio-modal.component';
 import Swal from 'sweetalert2';
 
 type Categoria = 'visitante' | 'vinculado';
@@ -8,7 +9,7 @@ type Categoria = 'visitante' | 'vinculado';
 @Component({
   selector: 'app-tipos-precio-modal',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, AgregarListaPrecioModalComponent],
   template: `
     <div class="modal show d-block" tabindex="-1"
       style="position: fixed; inset: 0; width: 100vw; height: 100vh; display: flex;
@@ -50,9 +51,8 @@ type Categoria = 'visitante' | 'vinculado';
                 Clientes vinculados
               </button>
             </div>
-            <button type="button" class="tp-lista-btn mb-8" [disabled]="sincronizando" (click)="resincronizar()">
-              <span *ngIf="sincronizando" class="spinner-border spinner-border-sm me-6"></span>
-              <i *ngIf="!sincronizando" class="ph-bold ph-plus me-4"></i>
+            <button type="button" class="tp-lista-btn mb-8" (click)="mostrandoAgregarLista = true">
+              <i class="ph-bold ph-plus me-4"></i>
               Lista
             </button>
           </div>
@@ -85,11 +85,6 @@ type Categoria = 'visitante' | 'vinculado';
 
                 <!-- Acciones -->
                 <div class="tp-card__actions">
-                  <button type="button" class="tp-mover" title="Mover a la otra pestaña"
-                    (click)="moverDeCategoria(t)">
-                    <i class="ph ph-arrows-left-right"></i>
-                  </button>
-
                   <button class="tp-switch" [class.tp-switch--on]="estaActiva(t)"
                           (click)="toggle(t)"
                           [title]="estaActiva(t) ? 'Desactivar lista' : 'Activar lista'">
@@ -114,6 +109,13 @@ type Categoria = 'visitante' | 'vinculado';
         </div>
       </div>
     </div>
+
+    <app-agregar-lista-precio-modal
+      *ngIf="mostrandoAgregarLista"
+      [tab]="tabActiva"
+      (cerrar)="mostrandoAgregarLista = false"
+      (guardado)="mostrandoAgregarLista = false; cargar()">
+    </app-agregar-lista-precio-modal>
   `,
   styles: [`
     :host { --rojo: #c22026; --rojo-dark: #a01a1f; --info: #0d6efd; }
@@ -168,14 +170,6 @@ type Categoria = 'visitante' | 'vinculado';
       display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
     }
 
-    .tp-mover {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 30px; height: 30px; border-radius: 50%;
-      border: 1px solid #ececef; background: #fff; color: #8a8f98;
-      cursor: pointer; flex-shrink: 0;
-    }
-    .tp-mover:hover { background: #f1f1f3; color: #1f2329; }
-
     /* Switch activo */
     .tp-switch {
       position: relative; width: 42px; height: 24px; border-radius: 999px;
@@ -203,8 +197,8 @@ export class TiposPrecioModalComponent implements OnInit {
 
   tipos: TipoPrecio[] = [];
   loading = false;
-  sincronizando = false;
   tabActiva: Categoria = 'visitante';
+  mostrandoAgregarLista = false;
 
   constructor(private service: TiposPrecioService) {}
 
@@ -241,34 +235,11 @@ export class TiposPrecioModalComponent implements OnInit {
     });
   }
 
-  moverDeCategoria(t: TipoPrecio): void {
-    const destino: Categoria = t.categoria === 'visitante' ? 'vinculado' : 'visitante';
-    this.service.cambiarCategoria(t.id, destino).subscribe({
-      next: () => this.cargar(),
-      error: () => this.swal.fire('Error', 'No se pudo mover la lista', 'error'),
-    });
-  }
-
   cargar(): void {
     this.loading = true;
     this.service.listar().subscribe({
       next: (res) => { this.tipos = res.tipos_precio || []; this.loading = false; },
       error: () => { this.loading = false; this.swal.fire('Error', 'No se pudieron cargar los tipos de precio', 'error'); },
-    });
-  }
-
-  resincronizar(): void {
-    this.sincronizando = true;
-    this.service.resincronizar().subscribe({
-      next: () => {
-        this.sincronizando = false;
-        this.cargar();
-        this.swal.fire({ icon: 'success', title: 'Listas sincronizadas con Novik', timer: 1400, showConfirmButton: false });
-      },
-      error: () => {
-        this.sincronizando = false;
-        this.swal.fire('Error', 'No se pudo sincronizar con Novik', 'error');
-      },
     });
   }
 }

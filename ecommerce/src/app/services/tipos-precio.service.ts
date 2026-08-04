@@ -55,12 +55,18 @@ export class TiposPrecioService {
     return this.http.patch(`${this.apiUrl}/${id}/toggle-vinculado`, {});
   }
 
-  cambiarCategoria(id: number, categoria: 'visitante' | 'vinculado'): Observable<any> {
-    return this.http.patch(`${this.apiUrl}/${id}/categoria`, { categoria });
-  }
-
-  // Botón "Lista +": trae listas nuevas desde Novik sin esperar al cron.
+  // Botón "Actualizar listas desde Novik" (dentro del modal Agregar Lista).
   resincronizar(): Observable<any> {
     return this.http.post(`${this.apiUrl}/resincronizar`, {});
+  }
+
+  // Modal "Agregar Lista de Precio" — pestaña Clientes visitantes (máx. 1 soles + 1 dólares).
+  asignarVisitantes(solesId: number | null, dolaresId: number | null): Observable<any> {
+    return this.http.post(`${this.apiUrl}/asignar-visitantes`, { soles_id: solesId, dolares_id: dolaresId });
+  }
+
+  // Modal "Agregar Lista de Precio" — pestaña Clientes vinculados (cualquier cantidad).
+  asignarVinculados(ids: number[]): Observable<any> {
+    return this.http.post(`${this.apiUrl}/asignar-vinculados`, { ids });
   }
 }
