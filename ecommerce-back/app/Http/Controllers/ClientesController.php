@@ -64,6 +64,7 @@ class ClientesController extends Controller
                     ] : null,
                     'estado' => $cliente->estado,
                     'tipo_precio_id' => $cliente->tipo_precio_id,
+                    'tipo_precio_id_usd' => $cliente->tipo_precio_id_usd,
                     'fecha_registro' => $cliente->created_at->toISOString(),
                     'foto' => $cliente->foto_url,
                     'tipo_login' => 'manual',
@@ -108,6 +109,7 @@ class ClientesController extends Controller
                 ] : null,
                 'estado' => $cliente->estado,
                 'tipo_precio_id' => $cliente->tipo_precio_id,
+                'tipo_precio_id_usd' => $cliente->tipo_precio_id_usd,
                 'fecha_registro' => $cliente->created_at->toISOString(),
                 'foto' => $cliente->foto_url,
                 'genero' => $cliente->genero,
@@ -322,6 +324,7 @@ class ClientesController extends Controller
                 'genero' => 'nullable|in:masculino,femenino,otro',
                 'estado' => 'sometimes|required|boolean',
                 'tipo_precio_id' => 'nullable|exists:tipos_precio,id',
+                'tipo_precio_id_usd' => 'nullable|exists:tipos_precio,id',
                 // Código de cliente del ERP 7Power (CLI00001...), asignado
                 // manualmente por un administrador para vincular la cuenta.
                 'codigo_erp' => 'nullable|string|max:20|unique:user_clientes,codigo_erp,' . $id,
@@ -371,7 +374,7 @@ class ClientesController extends Controller
             // el resto del cliente se conserva tal cual.
             $cliente->update($request->only([
                 'nombres', 'apellidos', 'email', 'telefono',
-                'fecha_nacimiento', 'genero', 'estado', 'tipo_precio_id', 'codigo_erp',
+                'fecha_nacimiento', 'genero', 'estado', 'tipo_precio_id', 'tipo_precio_id_usd', 'codigo_erp',
                 'tipo_documento_id', 'numero_documento',
             ]));
 
@@ -438,6 +441,7 @@ class ClientesController extends Controller
                 ] : null,
                 'estado' => $cliente->estado,
                 'tipo_precio_id' => $cliente->tipo_precio_id,
+                'tipo_precio_id_usd' => $cliente->tipo_precio_id_usd,
                 'fecha_registro' => $cliente->created_at->toISOString(),
                 'foto' => $cliente->foto_url,
                 'genero' => $cliente->genero,
@@ -579,6 +583,32 @@ class ClientesController extends Controller
                 'codigo_erp' => $cliente->codigo_erp,
                 'nombre_erp' => $respuestaErp->json('nombre'),
             ],
+        ]);
+    }
+
+    /**
+     * Quita el vínculo con el cliente Novik (limpia codigo_erp). Exige la
+     * contraseña del admin logueado, igual que vincular().
+     */
+    public function desvincular(Request $request, $id): JsonResponse
+    {
+        $request->validate([
+            'password' => 'required|string',
+        ]);
+
+        if (!\Illuminate\Support\Facades\Hash::check($request->password, $request->user()->password)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'La contraseña no es correcta.',
+            ], 422);
+        }
+
+        $cliente = UserCliente::findOrFail($id);
+        $cliente->update(['codigo_erp' => null]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Vinculación eliminada correctamente',
         ]);
     }
 

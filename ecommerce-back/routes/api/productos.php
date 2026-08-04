@@ -158,6 +158,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/{id}/predeterminado', [\App\Http\Controllers\TiposPrecioController::class, 'marcarPredeterminado']);
         Route::patch('/{id}/invitados', [\App\Http\Controllers\TiposPrecioController::class, 'marcarInvitados']);
         Route::patch('/quitar-invitados', [\App\Http\Controllers\TiposPrecioController::class, 'quitarInvitados']);
+        // Pestañas "Clientes visitantes" / "Clientes vinculados"
+        Route::patch('/{id}/toggle-visitante', [\App\Http\Controllers\TiposPrecioController::class, 'toggleVisitante']);
+        Route::patch('/{id}/toggle-vinculado', [\App\Http\Controllers\TiposPrecioController::class, 'toggleVinculado']);
+        Route::patch('/{id}/categoria', [\App\Http\Controllers\TiposPrecioController::class, 'cambiarCategoria']);
+        Route::post('/resincronizar', [\App\Http\Controllers\TiposPrecioController::class, 'resincronizar']);
     });
 
     // ============================================

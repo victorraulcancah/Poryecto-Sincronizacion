@@ -72,6 +72,11 @@ export class ClienteService {
     return this.http.post<any>(`${this.apiUrl}/${id}/vincular`, { codigo_erp: codigoErp, password });
   }
 
+  // Menú de 3 puntos: quitar la vinculación (también exige contraseña de admin).
+  desvincular(id: number, password: string): Observable<{ status: string; message: string }> {
+    return this.http.post<any>(`${this.apiUrl}/${id}/desvincular`, { password });
+  }
+
   // Buscar cliente por número de documento (DNI o RUC)
   // Usa el endpoint GET /api/clientes/buscar-por-documento?numero_documento={doc}
   // Devuelve: { success: true, data: [cliente] } o { success: false, data: [] }

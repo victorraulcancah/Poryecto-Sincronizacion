@@ -10,6 +10,7 @@ export interface TipoPrecio {
   activo: boolean;
   es_predeterminado: boolean;
   es_para_invitados: boolean;
+  categoria: 'visitante' | 'vinculado';
   productos_count: number;
 }
 
@@ -42,5 +43,24 @@ export class TiposPrecioService {
 
   quitarInvitados(): Observable<any> {
     return this.http.patch(`${this.apiUrl}/quitar-invitados`, {});
+  }
+
+  // Pestaña "Clientes visitantes": activa/desactiva como LA lista elegida para su moneda.
+  toggleVisitante(id: number): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${id}/toggle-visitante`, {});
+  }
+
+  // Pestaña "Clientes vinculados": activa/desactiva como opción disponible.
+  toggleVinculado(id: number): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${id}/toggle-vinculado`, {});
+  }
+
+  cambiarCategoria(id: number, categoria: 'visitante' | 'vinculado'): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${id}/categoria`, { categoria });
+  }
+
+  // Botón "Lista +": trae listas nuevas desde Novik sin esperar al cron.
+  resincronizar(): Observable<any> {
+    return this.http.post(`${this.apiUrl}/resincronizar`, {});
   }
 }

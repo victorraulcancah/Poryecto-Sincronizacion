@@ -339,14 +339,6 @@ type Tab = 'informacion' | 'direccion' | 'avanzado';
               <!-- ===================== TAB: AVANZADO ===================== -->
               <div class="row" *ngIf="tab === 'avanzado'">
                 <div class="col-12 mb-3">
-                  <label class="form-label">Tipo de Precio (Lista)</label>
-                  <select class="form-select" formControlName="tipo_precio_id">
-                    <option [ngValue]="null">Sin lista de precio asignada</option>
-                    <option *ngFor="let tp of tiposPrecio" [ngValue]="tp.id">{{ tp.nombre }}</option>
-                  </select>
-                </div>
-
-                <div class="col-12 mb-3">
                   <label class="form-label">Cliente Novik vinculado</label>
 
                   <div *ngIf="cargandoClienteVinculado" class="text-muted small">
@@ -367,6 +359,32 @@ type Tab = 'informacion' | 'direccion' | 'avanzado';
                         · Código: {{ clienteErpVinculado.codigo }}
                       </div>
                     </div>
+
+                    <!-- Menú de 3 puntos: modificar / eliminar vinculación -->
+                    <div class="position-relative" (click)="$event.stopPropagation()">
+                      <button type="button" class="btn btn-light btn-sm rounded-circle"
+                        style="width:32px; height:32px; padding:0;"
+                        (click)="toggleMenuVinculacion($event)">
+                        <i class="ph ph-dots-three-vertical"></i>
+                      </button>
+
+                      <div *ngIf="mostrarMenuVinculacion"
+                        class="border rounded-8 bg-white shadow-sm position-absolute"
+                        style="right:0; top:calc(100% + 4px); z-index:10; min-width:200px; overflow:hidden;">
+                        <button type="button"
+                          class="btn btn-light w-100 text-start rounded-0 py-2 px-3"
+                          (click)="abrirBusqueda(); mostrarMenuVinculacion = false">
+                          <i class="ph ph-pencil-simple me-2"></i>
+                          Modificar vinculación
+                        </button>
+                        <button type="button"
+                          class="btn btn-light w-100 text-start rounded-0 py-2 px-3 text-danger"
+                          (click)="abrirEliminarVinculacion()">
+                          <i class="ph ph-link-break me-2"></i>
+                          Eliminar vinculación
+                        </button>
+                      </div>
+                    </div>
                   </div>
 
                   <div *ngIf="!cargandoClienteVinculado && !clienteErpVinculado"
@@ -381,11 +399,60 @@ type Tab = 'informacion' | 'direccion' | 'avanzado';
                   </div>
                 </div>
 
-                <div class="col-12 mb-3 d-flex justify-content-center">
+                <!-- Confirmar eliminación de vinculación (pide contraseña de admin) -->
+                <div class="col-12 mb-3" *ngIf="mostrandoEliminarVinculacion">
+                  <div class="alert alert-warning mb-0">
+                    <div class="mb-2">
+                      Ingresa tu contraseña de administrador para quitar la vinculación con
+                      <strong>{{ clienteErpVinculado?.nombre }}</strong>.
+                    </div>
+                    <input
+                      type="password"
+                      name="password_eliminar_vinculacion"
+                      autocomplete="new-password"
+                      class="form-control mb-2"
+                      [(ngModel)]="passwordEliminarVinculacion"
+                      [ngModelOptions]="{standalone: true}"
+                      placeholder="Contraseña"
+                      (keydown.enter)="confirmarEliminarVinculacion()"
+                    >
+                    <div *ngIf="errorEliminarVinculacion" class="text-danger small mb-2">{{ errorEliminarVinculacion }}</div>
+                    <div class="d-flex gap-8">
+                      <button type="button" class="btn btn-secondary btn-sm" (click)="cancelarEliminarVinculacion()" [disabled]="eliminandoVinculacion">
+                        Cancelar
+                      </button>
+                      <button type="button" class="btn btn-danger btn-sm" (click)="confirmarEliminarVinculacion()" [disabled]="eliminandoVinculacion || !passwordEliminarVinculacion">
+                        <span *ngIf="eliminandoVinculacion" class="spinner-border spinner-border-sm me-1"></span>
+                        Confirmar eliminación
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Sin vincular: solo el botón "Vincular" -->
+                <div class="col-12 mb-3 d-flex justify-content-center" *ngIf="!cargandoClienteVinculado && !clienteErpVinculado">
                   <button type="button" class="btn btn-primary py-2 px-5" (click)="abrirBusqueda()">
-                    {{ clienteErpVinculado ? 'Cambiar vinculación' : 'Vincular' }}
+                    Vincular
                   </button>
                 </div>
+
+                <!-- Ya vinculado: listas de precio por moneda -->
+                <ng-container *ngIf="clienteErpVinculado">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Tipo de precio (PEN)</label>
+                    <select class="form-select" formControlName="tipo_precio_id">
+                      <option [ngValue]="null">— Usar predeterminada —</option>
+                      <option *ngFor="let tp of tiposPrecioPen" [ngValue]="tp.id">{{ tp.nombre }}</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Tipo de precio (USD)</label>
+                    <select class="form-select" formControlName="tipo_precio_id_usd">
+                      <option [ngValue]="null">— Usar predeterminada —</option>
+                      <option *ngFor="let tp of tiposPrecioUsd" [ngValue]="tp.id">{{ tp.nombre }}</option>
+                    </select>
+                  </div>
+                </ng-container>
               </div>
             </div>
 
@@ -455,6 +522,21 @@ export class ClienteEditModalComponent implements OnInit {
   // Datos del cliente Novik ya vinculado (pestaña Avanzado)
   clienteErpVinculado: { codigo: string; nombre: string; dni_ruc: string; tipo: string } | null = null;
   cargandoClienteVinculado = false;
+
+  // Menú de 3 puntos: modificar / eliminar vinculación
+  mostrarMenuVinculacion = false;
+  mostrandoEliminarVinculacion = false;
+  passwordEliminarVinculacion = '';
+  errorEliminarVinculacion = '';
+  eliminandoVinculacion = false;
+
+  get tiposPrecioPen(): TipoPrecio[] {
+    return this.tiposPrecio.filter(tp => tp.tipo_moneda === 's');
+  }
+
+  get tiposPrecioUsd(): TipoPrecio[] {
+    return this.tiposPrecio.filter(tp => tp.tipo_moneda === 'd');
+  }
 
   constructor(
     private fb: FormBuilder,
@@ -541,6 +623,8 @@ export class ClienteEditModalComponent implements OnInit {
 
           this.formulario.patchValue({
             tipo_documento_id: detalle.tipo_documento?.id ?? null,
+            tipo_precio_id: detalle.tipo_precio_id ?? null,
+            tipo_precio_id_usd: detalle.tipo_precio_id_usd ?? null,
           });
 
           const direccionesExistentes = detalle.direcciones || [];
@@ -797,6 +881,7 @@ export class ClienteEditModalComponent implements OnInit {
       direcciones: this.fb.array([]),
 
       tipo_precio_id: [(this.cliente as any)?.tipo_precio_id ?? null],
+      tipo_precio_id_usd: [(this.cliente as any)?.tipo_precio_id_usd ?? null],
       codigo_erp: [this.cliente?.codigo_erp || '']
     });
   }
@@ -814,6 +899,7 @@ export class ClienteEditModalComponent implements OnInit {
       email: valores.email,
       telefono: valores.telefono,
       tipo_precio_id: valores.tipo_precio_id,
+      tipo_precio_id_usd: valores.tipo_precio_id_usd,
       codigo_erp: valores.codigo_erp,
       direcciones: (valores.direcciones || []).map((d: any, i: number) => ({
         id: d.id,
@@ -883,6 +969,55 @@ export class ClienteEditModalComponent implements OnInit {
     if (!this.formulario.invalid && !this.guardando) {
       this.guardar();
     }
+  }
+
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    this.mostrarMenuVinculacion = false;
+  }
+
+  // ============================================
+  // Menú de 3 puntos: modificar / eliminar vinculación
+  // ============================================
+  toggleMenuVinculacion(event: MouseEvent): void {
+    event.stopPropagation();
+    this.mostrarMenuVinculacion = !this.mostrarMenuVinculacion;
+  }
+
+  abrirEliminarVinculacion(): void {
+    this.mostrarMenuVinculacion = false;
+    this.mostrandoEliminarVinculacion = true;
+    this.passwordEliminarVinculacion = '';
+    this.errorEliminarVinculacion = '';
+  }
+
+  cancelarEliminarVinculacion(): void {
+    this.mostrandoEliminarVinculacion = false;
+    this.passwordEliminarVinculacion = '';
+    this.errorEliminarVinculacion = '';
+  }
+
+  confirmarEliminarVinculacion(): void {
+    if (!this.cliente?.id_cliente || !this.passwordEliminarVinculacion) return;
+
+    this.eliminandoVinculacion = true;
+    this.errorEliminarVinculacion = '';
+    this.clienteService.desvincular(this.cliente.id_cliente, this.passwordEliminarVinculacion).subscribe({
+      next: (res) => {
+        this.eliminandoVinculacion = false;
+        if (res.status === 'success') {
+          this.formulario.patchValue({ codigo_erp: '' });
+          this.clienteErpVinculado = null;
+          this.cancelarEliminarVinculacion();
+        } else {
+          this.errorEliminarVinculacion = res.message || 'No se pudo quitar la vinculación.';
+        }
+      },
+      error: (err) => {
+        this.eliminandoVinculacion = false;
+        this.errorEliminarVinculacion = err?.error?.message || 'No se pudo quitar la vinculación.';
+      },
+    });
   }
 
 }

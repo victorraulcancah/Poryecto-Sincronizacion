@@ -133,6 +133,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/clientes/{id}/toggle-estado', [ClientesController::class, 'toggleEstado']);
         // Paso "Confirmar vinculación" (pide contraseña del admin logueado).
         Route::post('/clientes/{id}/vincular', [ClientesController::class, 'vincular']);
+        // Menú de 3 puntos: quitar la vinculación (también pide contraseña).
+        Route::post('/clientes/{id}/desvincular', [ClientesController::class, 'desvincular']);
     });
 
     Route::prefix('cliente')->group(function () {

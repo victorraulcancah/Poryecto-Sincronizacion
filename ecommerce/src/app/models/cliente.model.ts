@@ -3,6 +3,8 @@ export class Cliente {
   /** Código de cliente del ERP 7Power (CLI00001...), asignado manualmente
    * por un administrador para vincular la cuenta con el ERP. */
   codigo_erp?: string | null;
+  tipo_precio_id?: number | null;
+  tipo_precio_id_usd?: number | null;
   tipo_documento_id: number = 0;
   numero_documento: string = '';
   nombres: string = '';

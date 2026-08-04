@@ -30,6 +30,7 @@ class UserCliente extends Authenticatable
         'estado',
         'cliente_facturacion_id',
         'tipo_precio_id',
+        'tipo_precio_id_usd',
         'email_verified_at',        // NUEVO
         'verification_token',       // NUEVO
         'verification_code',
@@ -39,6 +40,11 @@ class UserCliente extends Authenticatable
     public function tipoPrecio()
     {
         return $this->belongsTo(TipoPrecio::class, 'tipo_precio_id');
+    }
+
+    public function tipoPrecioUsd()
+    {
+        return $this->belongsTo(TipoPrecio::class, 'tipo_precio_id_usd');
     }
 
     /**

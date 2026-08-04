@@ -14,6 +14,7 @@ class TipoPrecio extends Model
         'activo',
         'es_predeterminado',
         'es_para_invitados',
+        'categoria',
         'tipo_precio_7power_id',
         'company_id',
     ];
@@ -37,18 +38,20 @@ class TipoPrecio extends Model
     }
 
     /**
-     * Tipo de precio predeterminado para clientes registrados.
+     * Tipo de precio predeterminado para clientes registrados (sin vincular),
+     * uno por moneda. $moneda por defecto 's' (soles) para no romper a los
+     * llamadores existentes que aún no piden una moneda específica.
      */
-    public static function predeterminado()
+    public static function predeterminado(string $moneda = 's')
     {
-        return static::where('es_predeterminado', true)->where('activo', true)->first();
+        return static::where('es_predeterminado', true)->where('tipo_moneda', $moneda)->where('activo', true)->first();
     }
 
     /**
-     * Tipo de precio para visitantes no logueados.
+     * Tipo de precio para visitantes no logueados, uno por moneda.
      */
-    public static function paraInvitados()
+    public static function paraInvitados(string $moneda = 's')
     {
-        return static::where('es_para_invitados', true)->where('activo', true)->first();
+        return static::where('es_para_invitados', true)->where('tipo_moneda', $moneda)->where('activo', true)->first();
     }
 }

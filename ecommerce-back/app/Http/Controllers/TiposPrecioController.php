@@ -21,6 +21,7 @@ class TiposPrecioController extends Controller
                 'activo' => $t->activo,
                 'es_predeterminado' => $t->es_predeterminado,
                 'es_para_invitados' => $t->es_para_invitados,
+                'categoria' => $t->categoria,
                 'productos_count' => $t->precios()->count(),
             ];
         });
@@ -66,10 +67,14 @@ class TiposPrecioController extends Controller
             ], 422);
         }
 
+        // Update directo por query builder (no Eloquent ->save()) para evitar
+        // que el tracking de "sucio" ignore un campo que ya era true antes
+        // del update masivo de abajo y no lo reescriba.
         DB::transaction(function () use ($tipo) {
-            TipoPrecio::where('es_predeterminado', true)->update(['es_predeterminado' => false]);
-            $tipo->es_predeterminado = true;
-            $tipo->save();
+            TipoPrecio::where('es_predeterminado', true)
+                ->where('tipo_moneda', $tipo->tipo_moneda)
+                ->update(['es_predeterminado' => false]);
+            TipoPrecio::where('id', $tipo->id)->update(['es_predeterminado' => true]);
         });
 
         return response()->json([
@@ -92,9 +97,10 @@ class TiposPrecioController extends Controller
         }
 
         DB::transaction(function () use ($tipo) {
-            TipoPrecio::where('es_para_invitados', true)->update(['es_para_invitados' => false]);
-            $tipo->es_para_invitados = true;
-            $tipo->save();
+            TipoPrecio::where('es_para_invitados', true)
+                ->where('tipo_moneda', $tipo->tipo_moneda)
+                ->update(['es_para_invitados' => false]);
+            TipoPrecio::where('id', $tipo->id)->update(['es_para_invitados' => true]);
         });
 
         return response()->json([
@@ -113,6 +119,121 @@ class TiposPrecioController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Se quitó la lista de invitados',
+        ]);
+    }
+
+    /**
+     * Pestaña "Clientes visitantes": activa/desactiva una lista como LA
+     * elegida (predeterminada + invitados a la vez) para su moneda. Solo
+     * puede haber una activa por moneda dentro de esta categoría.
+     */
+    public function toggleVisitante($id)
+    {
+        $tipo = TipoPrecio::findOrFail($id);
+        if ($tipo->categoria !== 'visitante') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Esta lista no pertenece a la categoría de clientes visitantes.',
+            ], 422);
+        }
+
+        $activar = !($tipo->es_predeterminado && $tipo->es_para_invitados);
+
+        // Updates directos por query builder (no Eloquent ->save()) para
+        // evitar que el tracking de "sucio" ignore un campo que ya era true
+        // antes del update masivo y no lo reescriba.
+        DB::transaction(function () use ($tipo, $activar) {
+            if ($activar) {
+                TipoPrecio::where('categoria', 'visitante')
+                    ->where('tipo_moneda', $tipo->tipo_moneda)
+                    ->update(['es_predeterminado' => false, 'es_para_invitados' => false]);
+
+                TipoPrecio::where('id', $tipo->id)->update([
+                    'activo' => true,
+                    'es_predeterminado' => true,
+                    'es_para_invitados' => true,
+                ]);
+            } else {
+                TipoPrecio::where('id', $tipo->id)->update([
+                    'es_predeterminado' => false,
+                    'es_para_invitados' => false,
+                ]);
+            }
+        });
+
+        $tipo->refresh();
+
+        return response()->json([
+            'status' => 'success',
+            'tipo_precio' => $tipo,
+        ]);
+    }
+
+    /**
+     * Pestaña "Clientes vinculados": activa/desactiva una lista como opción
+     * disponible en el selector del cliente. Varias pueden estar activas.
+     */
+    public function toggleVinculado($id)
+    {
+        $tipo = TipoPrecio::findOrFail($id);
+        if ($tipo->categoria !== 'vinculado') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Esta lista no pertenece a la categoría de clientes vinculados.',
+            ], 422);
+        }
+
+        $tipo->activo = !$tipo->activo;
+        $tipo->save();
+
+        return response()->json([
+            'status' => 'success',
+            'tipo_precio' => $tipo,
+        ]);
+    }
+
+    /**
+     * Mueve una lista entre pestañas (categoría "visitante" / "vinculado").
+     */
+    public function cambiarCategoria(Request $request, $id)
+    {
+        $request->validate([
+            'categoria' => 'required|in:visitante,vinculado',
+        ]);
+
+        $tipo = TipoPrecio::findOrFail($id);
+        $tipo->categoria = $request->categoria;
+        // Al cambiar de categoría, los flags de la otra pestaña ya no aplican.
+        $tipo->es_predeterminado = false;
+        $tipo->es_para_invitados = false;
+        $tipo->save();
+
+        return response()->json([
+            'status' => 'success',
+            'tipo_precio' => $tipo,
+        ]);
+    }
+
+    /**
+     * Botón "Lista +": trae de inmediato las listas de precio nuevas desde
+     * Novik (sin esperar al cron), sin resincronizar productos/stock.
+     */
+    public function resincronizar()
+    {
+        $exitCode = \Illuminate\Support\Facades\Artisan::call('sync:7power', [
+            '--only-tipos-precio' => true,
+        ]);
+
+        if ($exitCode !== 0) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No se pudo sincronizar con Novik.',
+            ], 503);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Listas de precio sincronizadas con Novik',
         ]);
     }
 }

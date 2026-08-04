@@ -13,7 +13,7 @@ class SincronizarDesde7Power extends Command
      *
      * @var string
      */
-    protected $signature = 'sync:7power {--force : Forzar sincronización completa} {--update-stock : Actualizar stock de productos existentes} {--company=1 : ID de la empresa en 7Power} {--warehouse=1 : ID del almacén en 7Power}';
+    protected $signature = 'sync:7power {--force : Forzar sincronización completa} {--update-stock : Actualizar stock de productos existentes} {--only-tipos-precio : Solo sincronizar tipos de precio (listas) y sus precios} {--company=1 : ID de la empresa en 7Power} {--warehouse=1 : ID del almacén en 7Power}';
 
     /**
      * The description of the console command.
@@ -42,6 +42,15 @@ class SincronizarDesde7Power extends Command
             if ($this->option('update-stock')) {
                 $this->actualizarStockProductos($companyId, $warehouseId);
                 $this->info(' Actualización de stock completada exitosamente');
+                return 0;
+            }
+
+            // Botón "Lista +" del modal Tipos de Precio: solo traer listas
+            // nuevas desde Novik, sin tocar marcas/categorías/productos/stock.
+            if ($this->option('only-tipos-precio')) {
+                $this->sincronizarTiposPrecio($companyId);
+                $this->sincronizarPreciosProductos();
+                $this->info(' Tipos de precio sincronizados exitosamente');
                 return 0;
             }
 

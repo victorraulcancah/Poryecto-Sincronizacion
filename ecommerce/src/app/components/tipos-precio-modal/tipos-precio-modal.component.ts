@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { TiposPrecioService, TipoPrecio } from '../../services/tipos-precio.service';
 import Swal from 'sweetalert2';
 
+type Categoria = 'visitante' | 'vinculado';
+
 @Component({
   selector: 'app-tipos-precio-modal',
   standalone: true,
@@ -34,17 +36,36 @@ import Swal from 'sweetalert2';
             <button type="button" class="btn-close btn-close-white" (click)="cerrar.emit()"></button>
           </div>
 
-          <div class="modal-body p-24" style="background:#f7f7f8; max-height:72vh; overflow-y:auto;">
-            <!-- Leyenda -->
-            <div class="d-flex flex-wrap gap-12 mb-20">
-              <span class="leyenda-chip">
+          <!-- Pestañas + botón Lista + -->
+          <div class="d-flex align-items-center justify-content-between px-32 pt-16 bg-white border-bottom">
+            <div class="d-flex gap-24">
+              <button type="button" class="tp-tab" [class.tp-tab--active-visitante]="tabActiva === 'visitante'"
+                (click)="tabActiva = 'visitante'">
                 <span class="dot dot--main"></span>
-                <strong>Predeterminada</strong>: clientes registrados sin lista propia
-              </span>
-              <span class="leyenda-chip">
+                Clientes visitantes
+              </button>
+              <button type="button" class="tp-tab" [class.tp-tab--active-vinculado]="tabActiva === 'vinculado'"
+                (click)="tabActiva = 'vinculado'">
                 <span class="dot dot--info"></span>
-                <strong>Invitados</strong>: visitantes sin iniciar sesión
-              </span>
+                Clientes vinculados
+              </button>
+            </div>
+            <button type="button" class="tp-lista-btn mb-8" [disabled]="sincronizando" (click)="resincronizar()">
+              <span *ngIf="sincronizando" class="spinner-border spinner-border-sm me-6"></span>
+              <i *ngIf="!sincronizando" class="ph-bold ph-plus me-4"></i>
+              Lista
+            </button>
+          </div>
+
+          <div class="modal-body p-24" style="background:#f7f7f8; max-height:65vh; overflow-y:auto;">
+            <!-- Explicación de la pestaña activa -->
+            <div class="tp-hint mb-20" *ngIf="tabActiva === 'visitante'">
+              Permite agregar listas de precio, pero solo se puede activar 1 en soles y 1 en dólares.
+              Es la lista que ven los clientes registrados sin vincular y los visitantes no logueados.
+            </div>
+            <div class="tp-hint mb-20" *ngIf="tabActiva === 'vinculado'">
+              Permite agregar varias listas y activar las que se requieran. Estas listas aparecerán
+              en Avanzado del cliente después de vincular su cuenta a Novik.
             </div>
 
             <div *ngIf="loading" class="text-center py-40">
@@ -52,65 +73,38 @@ import Swal from 'sweetalert2';
             </div>
 
             <div *ngIf="!loading" class="d-flex flex-column gap-12">
-              <div *ngFor="let t of tipos" class="tp-card" [class.tp-card--off]="!t.activo">
+              <div *ngFor="let t of tiposDeTabActiva" class="tp-card" [class.tp-card--off]="!estaActiva(t)">
                 <!-- Info -->
                 <div class="tp-card__info">
                   <div class="d-flex align-items-center gap-8 flex-wrap">
                     <span class="tp-card__nombre">{{ t.nombre }}</span>
                     <span class="tp-moneda">{{ t.tipo_moneda === 'd' ? 'US$' : 'S/' }}</span>
-                    <span *ngIf="t.es_predeterminado" class="tp-tag tp-tag--main">
-                      <i class="ph-fill ph-star"></i> Predeterminada
-                    </span>
-                    <span *ngIf="t.es_para_invitados" class="tp-tag tp-tag--info">
-                      <i class="ph-fill ph-user"></i> Invitados
-                    </span>
                   </div>
                   <div class="tp-card__sub">{{ t.productos_count }} productos con precio</div>
                 </div>
 
                 <!-- Acciones -->
                 <div class="tp-card__actions">
-                  <!-- Switch activo -->
-                  <button class="tp-switch" [class.tp-switch--on]="t.activo"
-                          (click)="toggleActivo(t)"
-                          [title]="t.activo ? 'Desactivar lista' : 'Activar lista'">
+                  <button type="button" class="tp-mover" title="Mover a la otra pestaña"
+                    (click)="moverDeCategoria(t)">
+                    <i class="ph ph-arrows-left-right"></i>
+                  </button>
+
+                  <button class="tp-switch" [class.tp-switch--on]="estaActiva(t)"
+                          (click)="toggle(t)"
+                          [title]="estaActiva(t) ? 'Desactivar lista' : 'Activar lista'">
                     <span class="tp-switch__knob"></span>
                   </button>
-                  <span class="tp-estado" [class.tp-estado--on]="t.activo">
-                    {{ t.activo ? 'Activa' : 'Inactiva' }}
+                  <span class="tp-estado" [class.tp-estado--on]="estaActiva(t)">
+                    {{ estaActiva(t) ? 'Activa' : 'Inactiva' }}
                   </span>
-
-                  <button class="tp-btn"
-                    [disabled]="!t.activo"
-                    [class.tp-btn--main]="t.es_predeterminado"
-                    [class.tp-btn--main-out]="!t.es_predeterminado"
-                    (click)="marcarPredeterminado(t)">
-                    <i class="ph" [ngClass]="t.es_predeterminado ? 'ph-check-circle' : 'ph-circle'"></i>
-                    Predeterminada
-                  </button>
-
-                  <button class="tp-btn"
-                    [disabled]="!t.activo"
-                    [class.tp-btn--info]="t.es_para_invitados"
-                    [class.tp-btn--info-out]="!t.es_para_invitados"
-                    (click)="marcarInvitados(t)">
-                    <i class="ph" [ngClass]="t.es_para_invitados ? 'ph-check-circle' : 'ph-circle'"></i>
-                    Invitados
-                  </button>
                 </div>
               </div>
 
-              <div *ngIf="tipos.length === 0" class="text-center text-gray-500 py-40">
+              <div *ngIf="tiposDeTabActiva.length === 0" class="text-center text-gray-500 py-40">
                 <i class="ph ph-tag d-block mb-8" style="font-size:36px;"></i>
-                No hay tipos de precio. Ejecuta la sincronización con 7Power.
+                No hay listas en esta pestaña. Usa "Lista +" para traerlas desde Novik.
               </div>
-            </div>
-
-            <div class="mt-16" *ngIf="!loading && tipos.length > 0">
-              <button class="btn btn-outline-secondary btn-sm rounded-8" (click)="quitarInvitados()">
-                <i class="ph ph-eye-slash me-6"></i>
-                Quitar lista de invitados (no mostrar precio a visitantes)
-              </button>
             </div>
           </div>
 
@@ -124,17 +118,24 @@ import Swal from 'sweetalert2';
   styles: [`
     :host { --rojo: #c22026; --rojo-dark: #a01a1f; --info: #0d6efd; }
 
-    .leyenda-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: #fff;
-      border: 1px solid #ececef;
-      border-radius: 999px;
-      padding: 7px 14px;
-      font-size: 12.5px;
-      color: #555;
+    .tp-tab {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: none; background: none; padding: 4px 0 12px 0;
+      font-weight: 700; font-size: 14.5px; color: #8a8f98;
+      border-bottom: 2px solid transparent; cursor: pointer;
     }
+    .tp-tab--active-visitante { color: var(--rojo); border-bottom-color: var(--rojo); }
+    .tp-tab--active-vinculado { color: var(--info); border-bottom-color: var(--info); }
+
+    .tp-lista-btn {
+      display: inline-flex; align-items: center;
+      border: none; background: none; color: #1f2329;
+      font-weight: 700; font-size: 15px; cursor: pointer; padding: 4px 0;
+    }
+    .tp-lista-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    .tp-hint { font-size: 12.5px; color: #6b7280; }
+
     .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .dot--main { background: var(--rojo); }
     .dot--info { background: var(--info); }
@@ -163,16 +164,17 @@ import Swal from 'sweetalert2';
       background: #f1f1f3; border-radius: 6px; padding: 2px 8px;
     }
 
-    .tp-tag {
-      display: inline-flex; align-items: center; gap: 4px;
-      font-size: 11px; font-weight: 700; border-radius: 999px; padding: 3px 10px;
-    }
-    .tp-tag--main { background: rgba(194,32,38,.12); color: var(--rojo); }
-    .tp-tag--info { background: rgba(13,110,253,.12); color: var(--info); }
-
     .tp-card__actions {
       display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
     }
+
+    .tp-mover {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px; border-radius: 50%;
+      border: 1px solid #ececef; background: #fff; color: #8a8f98;
+      cursor: pointer; flex-shrink: 0;
+    }
+    .tp-mover:hover { background: #f1f1f3; color: #1f2329; }
 
     /* Switch activo */
     .tp-switch {
@@ -190,22 +192,6 @@ import Swal from 'sweetalert2';
     .tp-estado { font-size: 12px; font-weight: 600; color: #9ca3af; min-width: 52px; }
     .tp-estado--on { color: #16a34a; }
 
-    .tp-btn {
-      display: inline-flex; align-items: center; gap: 6px;
-      font-size: 12.5px; font-weight: 600; border-radius: 999px;
-      padding: 7px 16px; cursor: pointer; transition: all .15s;
-      border: 1.5px solid transparent; white-space: nowrap;
-    }
-    .tp-btn:disabled { opacity: .4; cursor: not-allowed; }
-    .tp-btn--main { background: var(--rojo); color: #fff; border-color: var(--rojo); }
-    .tp-btn--main:hover:not(:disabled) { background: var(--rojo-dark); }
-    .tp-btn--main-out { background: #fff; color: var(--rojo); border-color: rgba(194,32,38,.4); }
-    .tp-btn--main-out:hover:not(:disabled) { background: rgba(194,32,38,.06); }
-    .tp-btn--info { background: var(--info); color: #fff; border-color: var(--info); }
-    .tp-btn--info:hover:not(:disabled) { background: #0b5ed7; }
-    .tp-btn--info-out { background: #fff; color: var(--info); border-color: rgba(13,110,253,.4); }
-    .tp-btn--info-out:hover:not(:disabled) { background: rgba(13,110,253,.06); }
-
     @media (max-width: 640px) {
       .tp-card { flex-direction: column; align-items: stretch; }
       .tp-card__actions { justify-content: space-between; }
@@ -217,6 +203,8 @@ export class TiposPrecioModalComponent implements OnInit {
 
   tipos: TipoPrecio[] = [];
   loading = false;
+  sincronizando = false;
+  tabActiva: Categoria = 'visitante';
 
   constructor(private service: TiposPrecioService) {}
 
@@ -232,6 +220,35 @@ export class TiposPrecioModalComponent implements OnInit {
     this.cargar();
   }
 
+  get tiposDeTabActiva(): TipoPrecio[] {
+    return this.tipos.filter(t => t.categoria === this.tabActiva);
+  }
+
+  /** "Activa" significa cosas distintas según la pestaña: en visitantes es
+   * la lista elegida (predeterminada + invitados); en vinculados es `activo`. */
+  estaActiva(t: TipoPrecio): boolean {
+    return t.categoria === 'visitante' ? (t.es_predeterminado && t.es_para_invitados) : t.activo;
+  }
+
+  toggle(t: TipoPrecio): void {
+    const accion = t.categoria === 'visitante'
+      ? this.service.toggleVisitante(t.id)
+      : this.service.toggleVinculado(t.id);
+
+    accion.subscribe({
+      next: () => this.cargar(),
+      error: (e) => this.swal.fire('Error', e.error?.message || 'No se pudo cambiar el estado', 'error'),
+    });
+  }
+
+  moverDeCategoria(t: TipoPrecio): void {
+    const destino: Categoria = t.categoria === 'visitante' ? 'vinculado' : 'visitante';
+    this.service.cambiarCategoria(t.id, destino).subscribe({
+      next: () => this.cargar(),
+      error: () => this.swal.fire('Error', 'No se pudo mover la lista', 'error'),
+    });
+  }
+
   cargar(): void {
     this.loading = true;
     this.service.listar().subscribe({
@@ -240,33 +257,18 @@ export class TiposPrecioModalComponent implements OnInit {
     });
   }
 
-  toggleActivo(t: TipoPrecio): void {
-    this.service.toggleActivo(t.id).subscribe({
-      next: () => this.cargar(),
-      error: () => this.swal.fire('Error', 'No se pudo cambiar el estado', 'error'),
-    });
-  }
-
-  marcarPredeterminado(t: TipoPrecio): void {
-    if (!t.activo) return;
-    this.service.marcarPredeterminado(t.id).subscribe({
-      next: () => { this.cargar(); this.swal.fire({ icon: 'success', title: 'Predeterminada actualizada', timer: 1400, showConfirmButton: false }); },
-      error: (e) => this.swal.fire('Error', e.error?.message || 'No se pudo actualizar', 'error'),
-    });
-  }
-
-  marcarInvitados(t: TipoPrecio): void {
-    if (!t.activo) return;
-    this.service.marcarInvitados(t.id).subscribe({
-      next: () => { this.cargar(); this.swal.fire({ icon: 'success', title: 'Lista de invitados actualizada', timer: 1400, showConfirmButton: false }); },
-      error: (e) => this.swal.fire('Error', e.error?.message || 'No se pudo actualizar', 'error'),
-    });
-  }
-
-  quitarInvitados(): void {
-    this.service.quitarInvitados().subscribe({
-      next: () => this.cargar(),
-      error: () => this.swal.fire('Error', 'No se pudo actualizar', 'error'),
+  resincronizar(): void {
+    this.sincronizando = true;
+    this.service.resincronizar().subscribe({
+      next: () => {
+        this.sincronizando = false;
+        this.cargar();
+        this.swal.fire({ icon: 'success', title: 'Listas sincronizadas con Novik', timer: 1400, showConfirmButton: false });
+      },
+      error: () => {
+        this.sincronizando = false;
+        this.swal.fire('Error', 'No se pudo sincronizar con Novik', 'error');
+      },
     });
   }
 }
