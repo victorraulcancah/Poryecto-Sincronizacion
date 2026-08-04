@@ -353,8 +353,11 @@
         var loaderSvg = document.getElementById("loader-svg-img");
         var loaderText = document.getElementById("loader-text");
 
-        // Si la cookie ya existe (ya se mostró antes), salir
-        if (document.cookie.match(/(?:^|;\s*)hasLoadedBefore=([^;]*)/)) return;
+        // Si la cookie ya existe (ya se mostró antes), salir.
+        // Excepto en modo de prueba (?splash=1 en la URL), útil para ver
+        // cambios de texto/logo/color sin tener que borrar cookies.
+        var forzarSplash = /[?&]splash=1\b/.test(window.location.search);
+        if (!forzarSplash && document.cookie.match(/(?:^|;\s*)hasLoadedBefore=([^;]*)/)) return;
 
         function setCookie(name, value) {
           document.cookie = name + '=' + value + '; path=/; max-age=86400';
