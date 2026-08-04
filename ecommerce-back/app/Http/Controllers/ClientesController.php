@@ -119,6 +119,8 @@ class ClientesController extends Controller
                         'id' => $direccion->id,
                         'nombre_destinatario' => $direccion->nombre_destinatario,
                         'direccion_completa' => $direccion->direccion_completa,
+                        'calle_numero' => $direccion->calle_numero,
+                        'urbanizacion' => $direccion->urbanizacion,
                         'referencia' => $direccion->referencia,
                         'id_ubigeo' => $direccion->id_ubigeo,
                         'predeterminada' => $direccion->predeterminada,
@@ -385,10 +387,14 @@ class ClientesController extends Controller
             // Pestaña "Dirección": sincroniza la lista completa que mandó el
             // formulario (permite varias direcciones, con "+ Agregar Dirección").
             if ($request->has('direcciones')) {
-                $existentes = $cliente->direcciones->pluck('id')->toArray();
                 $enviadas = collect($request->input('direcciones', []));
 
-                $enviadas->each(function ($d) use ($cliente) {
+                // IDs que deben sobrevivir al borrado de abajo: los que ya
+                // existían (actualizados) MÁS los recién creados. Antes solo
+                // se consideraban los IDs que ya venían en el payload, así
+                // que una dirección nueva (sin id) se creaba y se borraba en
+                // el mismo request.
+                $idsASobrevivir = $enviadas->map(function ($d) use ($cliente) {
                     $direccionCompleta = trim(implode(', ', array_filter([
                         $d['calle_numero'] ?? null,
                         $d['urbanizacion'] ?? null,
@@ -397,6 +403,8 @@ class ClientesController extends Controller
                     $datos = [
                         'nombre_destinatario' => $cliente->nombre_completo,
                         'direccion_completa' => $direccionCompleta ?: 'Sin dirección',
+                        'calle_numero' => $d['calle_numero'] ?? null,
+                        'urbanizacion' => $d['urbanizacion'] ?? null,
                         'referencia' => $d['indicaciones'] ?? null,
                         'id_ubigeo' => $d['id_ubigeo'] ?? null,
                         'predeterminada' => !empty($d['predeterminada']),
@@ -405,14 +413,14 @@ class ClientesController extends Controller
 
                     if (!empty($d['id'])) {
                         $cliente->direcciones()->where('id', $d['id'])->update($datos);
-                    } else {
-                        $cliente->direcciones()->create($datos);
+                        return $d['id'];
                     }
+
+                    return $cliente->direcciones()->create($datos)->id;
                 });
 
                 // Borrar las que ya no vinieron en la lista (se quitaron con el trash).
-                $idsEnviados = $enviadas->pluck('id')->filter()->all();
-                $cliente->direcciones()->whereNotIn('id', $idsEnviados)->delete();
+                $cliente->direcciones()->whereNotIn('id', $idsASobrevivir)->delete();
 
                 // Si ninguna quedó marcada predeterminada, la primera lo es
                 // (para que credito/estado de cuenta sigan teniendo una base).

@@ -674,8 +674,8 @@ export class ClienteEditModalComponent implements OnInit {
       departamento_id: [null, Validators.required],
       provincia_id: [null, Validators.required],
       distrito_id: [null, Validators.required],
-      urbanizacion: [''],
-      calle_numero: ['', Validators.required],
+      urbanizacion: [existente?.urbanizacion ?? ''],
+      calle_numero: [existente?.calle_numero ?? '', Validators.required],
       indicaciones: [existente?.referencia ?? ''],
       predeterminada: [!!existente?.predeterminada],
     });

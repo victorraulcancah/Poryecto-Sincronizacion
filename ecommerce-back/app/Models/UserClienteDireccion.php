@@ -15,6 +15,8 @@ class UserClienteDireccion extends Model
         'user_cliente_id',
         'nombre_destinatario',
         'direccion_completa',
+        'calle_numero',
+        'urbanizacion',
         'referencia',
         'id_ubigeo',
         'telefono',
