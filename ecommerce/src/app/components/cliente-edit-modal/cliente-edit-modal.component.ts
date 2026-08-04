@@ -259,7 +259,7 @@ type Tab = 'informacion' | 'direccion' | 'avanzado';
 
                 <div class="col-md-6 mb-3">
                   <label class="form-label">Correo Electrónico</label>
-                  <input type="email" class="form-control" formControlName="email" placeholder="correo@ejemplo.com">
+                  <input type="email" class="form-control" formControlName="email" placeholder="correo@ejemplo.com" readonly>
                   <div *ngIf="formulario.get('email')?.invalid && formulario.get('email')?.touched" class="text-danger small">
                     <div *ngIf="formulario.get('email')?.errors?.['email']">Ingrese un email válido</div>
                   </div>
@@ -290,14 +290,14 @@ type Tab = 'informacion' | 'direccion' | 'avanzado';
 
                   <div class="row">
                     <div class="col-md-6 mb-3">
-                      <label class="form-label">Departamento <span class="text-danger">*</span></label>
+                      <label class="form-label">Departamento</label>
                       <select class="form-select" formControlName="departamento_id" (change)="onDepartamentoChangeDireccion(i)">
                         <option [ngValue]="null">Selecciona el Departamento</option>
                         <option *ngFor="let d of departamentos" [ngValue]="d.id">{{ d.nombre }}</option>
                       </select>
                     </div>
                     <div class="col-md-6 mb-3">
-                      <label class="form-label">Provincia <span class="text-danger">*</span></label>
+                      <label class="form-label">Provincia</label>
                       <select class="form-select" formControlName="provincia_id" (change)="onProvinciaChangeDireccion(i)"
                         [disabled]="!dirGroup.get('departamento_id')?.value">
                         <option [ngValue]="null">Selecciona la Provincia</option>
@@ -306,7 +306,7 @@ type Tab = 'informacion' | 'direccion' | 'avanzado';
                     </div>
 
                     <div class="col-md-6 mb-3">
-                      <label class="form-label">Distrito <span class="text-danger">*</span></label>
+                      <label class="form-label">Distrito</label>
                       <select class="form-select" formControlName="distrito_id" (change)="onDistritoChangeDireccion(i)"
                         [disabled]="!dirGroup.get('provincia_id')?.value">
                         <option [ngValue]="null">Selecciona el Distrito</option>
@@ -319,7 +319,7 @@ type Tab = 'informacion' | 'direccion' | 'avanzado';
                     </div>
 
                     <div class="col-12 mb-3">
-                      <label class="form-label">Calle y Número <span class="text-danger">*</span></label>
+                      <label class="form-label">Calle y Número</label>
                       <input type="text" class="form-control" formControlName="calle_numero" placeholder="Calle y Número">
                     </div>
 
@@ -461,7 +461,7 @@ type Tab = 'informacion' | 'direccion' | 'avanzado';
                 <i class="ph ph-x me-1"></i>
                 Cancelar
               </button>
-              <button type="submit" class="btn btn-primary" [disabled]="formulario.invalid || guardando">
+              <button type="submit" class="btn btn-primary" [disabled]="formulario.invalid || formulario.pristine || guardando">
                 <i *ngIf="!guardando" class="ph ph-check me-1"></i>
                 <span *ngIf="guardando" class="spinner-border spinner-border-sm me-2"></span>
                 {{ guardando ? 'Guardando...' : 'Guardar' }}
@@ -671,11 +671,11 @@ export class ClienteEditModalComponent implements OnInit {
   agregarDireccion(existente?: any): void {
     const grupo = this.fb.group({
       id: [existente?.id ?? null],
-      departamento_id: [null, Validators.required],
-      provincia_id: [null, Validators.required],
-      distrito_id: [null, Validators.required],
+      departamento_id: [null],
+      provincia_id: [null],
+      distrito_id: [null],
       urbanizacion: [existente?.urbanizacion ?? ''],
-      calle_numero: [existente?.calle_numero ?? '', Validators.required],
+      calle_numero: [existente?.calle_numero ?? ''],
       indicaciones: [existente?.referencia ?? ''],
       predeterminada: [!!existente?.predeterminada],
     });

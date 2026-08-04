@@ -337,8 +337,8 @@ class ClientesController extends Controller
                 // cada guardado (se crean/actualizan/borran según venga).
                 'direcciones' => 'nullable|array',
                 'direcciones.*.id' => 'nullable|integer',
-                'direcciones.*.id_ubigeo' => 'required|string|exists:ubigeo_inei,id_ubigeo',
-                'direcciones.*.calle_numero' => 'required|string|max:255',
+                'direcciones.*.id_ubigeo' => 'nullable|string|exists:ubigeo_inei,id_ubigeo',
+                'direcciones.*.calle_numero' => 'nullable|string|max:255',
                 'direcciones.*.urbanizacion' => 'nullable|string|max:255',
                 'direcciones.*.indicaciones' => 'nullable|string|max:500',
                 'direcciones.*.predeterminada' => 'nullable|boolean',
