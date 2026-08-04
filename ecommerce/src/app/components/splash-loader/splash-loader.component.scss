@@ -35,10 +35,10 @@
   }
 
   &__logo {
-    width: 140px;
-    height: 140px;
-    max-width: 30vw;
-    max-height: 30vw;
+    width: 200px;
+    height: 100px;
+    max-width: 50vw;
+    max-height: 25vw;
     object-fit: contain;
     position: relative;
     z-index: 1;
@@ -104,8 +104,8 @@
 
 @media (max-width: 480px) {
   .splash-loader__logo {
-    width: 100px;
-    height: 100px;
+    width: 150px;
+    height: 75px;
   }
 
   .splash-loader__text {

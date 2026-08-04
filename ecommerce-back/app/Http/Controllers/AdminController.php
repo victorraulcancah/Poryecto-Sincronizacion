@@ -72,15 +72,6 @@ class AdminController extends Controller
                 ], 401);
             }
 
-            // NUEVO: Verificar si el email está verificado
-            if (! $cliente->email_verified_at) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Debes verificar tu correo electrónico antes de iniciar sesión.',
-                    'requires_verification' => true,
-                ], 403);
-            }
-
             $token = $cliente->createToken('cliente_token')->plainTextToken;
 
             return response()->json([
@@ -275,11 +266,11 @@ class AdminController extends Controller
                 'fecha_nacimiento' => $request->fecha_nacimiento,
                 'genero' => $request->genero,
                 'has_password' => ! empty($request->password),
-                'estado' => false,
+                'estado' => true,
             ]);
 
-            // Crear cliente (INACTIVO hasta verificar email)
-            // Crear cliente (INACTIVO hasta verificar email)
+            // Crear cliente (activo de inmediato; el correo de verificación
+            // se sigue enviando pero ya no bloquea el acceso a la cuenta)
             $cliente = UserCliente::create([
                 'nombres' => $request->nombres,
                 'apellidos' => $request->apellidos,
@@ -290,7 +281,7 @@ class AdminController extends Controller
                 'numero_documento' => $request->numero_documento,
                 'fecha_nacimiento' => $request->fecha_nacimiento,
                 'genero' => $request->genero,
-                'estado' => false, // INACTIVO hasta verificar
+                'estado' => true,
                 'verification_token' => $verificationToken,
                 'verification_code' => $verificationCode, // NUEVO
             ]);
@@ -359,14 +350,23 @@ class AdminController extends Controller
                 ]);
             }
 
-            Mail::to($cliente->email)->send(new EmailVerificationMail($cliente, $verificationUrl, $verificationCode, $template));
-
-            Log::info('AuthController@register - Correo de verificación enviado exitosamente');
+            // El correo de verificación ya no bloquea el acceso a la cuenta
+            // (ver login), así que si el envío falla (SMTP caído, etc.) no
+            // debe tumbar el registro: el cliente ya quedó creado y activo.
+            try {
+                Mail::to($cliente->email)->send(new EmailVerificationMail($cliente, $verificationUrl, $verificationCode, $template));
+                Log::info('AuthController@register - Correo de verificación enviado exitosamente');
+            } catch (\Exception $mailException) {
+                Log::error('AuthController@register - No se pudo enviar el correo de verificación (registro continúa)', [
+                    'cliente_id' => $cliente->id,
+                    'error' => $mailException->getMessage(),
+                ]);
+            }
 
             $responseData = [
                 'status' => 'success',
-                'message' => 'Cliente registrado exitosamente. Revisa tu correo para verificar tu cuenta.',
-                'requires_verification' => true,
+                'message' => 'Cliente registrado exitosamente. Ya puedes iniciar sesión.',
+                'requires_verification' => false,
                 'user' => [
                     'id' => $cliente->id,
                     'nombre_completo' => $cliente->nombre_completo,
