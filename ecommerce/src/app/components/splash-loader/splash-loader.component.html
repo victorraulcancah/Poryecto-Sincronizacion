@@ -1,7 +1,7 @@
-<div class="splash-loader" *ngIf="visible">
+<div class="splash-loader" *ngIf="visible" [style.background]="colorFondo">
   <img
     class="splash-loader__logo"
-    src="assets/images/logo/logo.svg"
+    [src]="logoUrl"
     alt="7 Power"
   />
   <div class="splash-loader__text">{{ mensaje }}</div>
