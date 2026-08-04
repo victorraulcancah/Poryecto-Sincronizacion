@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
-import { of, Subject } from 'rxjs';
+import { forkJoin, of, Subject } from 'rxjs';
 import { ClienteService } from '../../services/cliente.service';
 import { TiposPrecioService, TipoPrecio } from '../../services/tipos-precio.service';
 import { UbigeoService, Departamento, Provincia, Distrito } from '../../services/ubigeo.service';
@@ -531,11 +531,11 @@ export class ClienteEditModalComponent implements OnInit {
   eliminandoVinculacion = false;
 
   get tiposPrecioPen(): TipoPrecio[] {
-    return this.tiposPrecio.filter(tp => tp.tipo_moneda === 's');
+    return this.tiposPrecio.filter(tp => tp.tipo_moneda === 's' && tp.categoria === 'vinculado');
   }
 
   get tiposPrecioUsd(): TipoPrecio[] {
-    return this.tiposPrecio.filter(tp => tp.tipo_moneda === 'd');
+    return this.tiposPrecio.filter(tp => tp.tipo_moneda === 'd' && tp.categoria === 'vinculado');
   }
 
   constructor(
@@ -693,14 +693,20 @@ export class ClienteEditModalComponent implements OnInit {
           if (!chain) return;
 
           grupo.patchValue({ departamento_id: chain.departamento.id }, { emitEvent: false });
-          this.ubigeoService.getProvincias(chain.departamento.id).subscribe(provincias => {
-            this.provinciasPorDireccion[index] = provincias;
-            grupo.patchValue({ provincia_id: chain.provincia.id }, { emitEvent: false });
 
-            this.ubigeoService.getDistritos(chain.departamento.id, chain.provincia.id).subscribe(distritos => {
-              this.distritosPorDireccion[index] = distritos;
-              grupo.patchValue({ distrito_id: chain.distrito.id }, { emitEvent: false });
-            });
+          // Provincias y distritos solo dependen de los IDs que ya trajo la
+          // cadena de arriba, así que van en paralelo en vez de uno esperando
+          // al otro (evita 2 round-trips secuenciales innecesarios).
+          forkJoin({
+            provincias: this.ubigeoService.getProvincias(chain.departamento.id),
+            distritos: this.ubigeoService.getDistritos(chain.departamento.id, chain.provincia.id),
+          }).subscribe(({ provincias, distritos }) => {
+            this.provinciasPorDireccion[index] = provincias;
+            this.distritosPorDireccion[index] = distritos;
+            grupo.patchValue({
+              provincia_id: chain.provincia.id,
+              distrito_id: chain.distrito.id,
+            }, { emitEvent: false });
           });
         },
         error: () => {},
