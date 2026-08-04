@@ -14,6 +14,8 @@ export interface EmpresaInfo {
   logo_url?: string;
   color_navbar?: string;
   color_sidebar?: string;
+  splash_texto?: string;
+  splash_color_fondo?: string;
   descripcion?: string;
   imagen_descripcion?: string;
   imagen_descripcion_url?: string;
@@ -44,6 +46,8 @@ export interface EmpresaInfoCreate {
   logo?: File;
   color_navbar?: string;
   color_sidebar?: string;
+  splash_texto?: string;
+  splash_color_fondo?: string;
   descripcion?: string;
   imagen_descripcion?: File;
   eliminar_imagen_descripcion?: boolean;

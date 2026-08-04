@@ -141,6 +141,14 @@ export class EmpresaInfoService {
       formData.append('color_sidebar', empresaInfo.color_sidebar);
     }
 
+    if (empresaInfo.splash_texto) {
+      formData.append('splash_texto', empresaInfo.splash_texto);
+    }
+
+    if (empresaInfo.splash_color_fondo) {
+      formData.append('splash_color_fondo', empresaInfo.splash_color_fondo);
+    }
+
     if (empresaInfo.logo) {
       formData.append('logo', empresaInfo.logo);
     }

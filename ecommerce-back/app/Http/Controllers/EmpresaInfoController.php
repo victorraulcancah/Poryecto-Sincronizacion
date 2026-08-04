@@ -56,6 +56,8 @@ class EmpresaInfoController extends Controller
                 'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'color_navbar' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
                 'color_sidebar' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+                'splash_texto' => 'nullable|string|max:255',
+                'splash_color_fondo' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
                 'descripcion' => 'nullable|string',
                 'imagen_descripcion' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
                 'sobre_nosotros' => 'nullable|string',
@@ -122,6 +124,8 @@ class EmpresaInfoController extends Controller
                 'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'color_navbar' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
                 'color_sidebar' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+                'splash_texto' => 'nullable|string|max:255',
+                'splash_color_fondo' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
                 'descripcion' => 'nullable|string',
                 'imagen_descripcion' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
                 'sobre_nosotros' => 'nullable|string',
@@ -363,6 +367,8 @@ class EmpresaInfoController extends Controller
                 : null,
             'color_navbar' => $empresaInfo->getAttribute('color_navbar'),
             'color_sidebar' => $empresaInfo->getAttribute('color_sidebar'),
+            'splash_texto' => $empresaInfo->getAttribute('splash_texto'),
+            'splash_color_fondo' => $empresaInfo->getAttribute('splash_color_fondo'),
             'sobre_nosotros' => $empresaInfo->getAttribute('sobre_nosotros'),
             'metodos_pago' => EmpresaMetodoPago::where('activo', true)
                 ->orderBy('orden')->orderBy('id')->get()

@@ -486,6 +486,55 @@ import Swal from 'sweetalert2';
                   Restaurar color original
                 </button>
               </div>
+
+              <!-- Pantalla de carga inicial (Splash) -->
+              <div class="mt-24">
+                <label class="form-label text-heading fw-medium mb-8"
+                  >Texto de la pantalla de carga</label
+                >
+                <input
+                  type="text"
+                  class="form-control px-16 py-12 border rounded-8"
+                  formControlName="splash_texto"
+                  placeholder="Cargando 7 Power..."
+                  maxlength="255"
+                />
+
+                <label class="form-label text-heading fw-medium mb-8 mt-16"
+                  >Color de fondo de la pantalla de carga</label
+                >
+                <div class="d-flex align-items-center gap-12">
+                  <input
+                    type="color"
+                    class="form-control form-control-color border rounded-8"
+                    style="width: 56px; height: 42px; padding: 4px;"
+                    formControlName="splash_color_fondo"
+                  />
+                  <input
+                    type="text"
+                    class="form-control px-16 py-12 border rounded-8"
+                    formControlName="splash_color_fondo"
+                    placeholder="#c22026"
+                    maxlength="7"
+                  />
+                </div>
+                <div
+                  class="rounded-8 mt-12 px-16 py-24 text-white text-sm fw-medium text-center"
+                  [style.background-color]="empresaForm.get('splash_color_fondo')?.value || SPLASH_COLOR_DEFAULT"
+                >
+                  {{ empresaForm.get('splash_texto')?.value || SPLASH_TEXTO_DEFAULT }}
+                </div>
+                <small class="text-gray-500 text-xs mt-8 d-block">
+                  El logo de la pantalla de carga es el mismo "Logo de la Empresa" de arriba.
+                </small>
+                <button
+                  type="button"
+                  class="btn btn-link text-main-600 text-sm px-0 mt-8"
+                  (click)="restaurarColorSplash()"
+                >
+                  Restaurar color original
+                </button>
+              </div>
             </div>
           </div>
 
@@ -567,6 +616,9 @@ export class EmpresaInfoComponent implements OnInit {
   readonly COLOR_NAVBAR_DEFAULT = '#9B1C1C';
   // Color por defecto del sidebar admin (equivale al main-600 actual del tema)
   readonly COLOR_SIDEBAR_DEFAULT = '#9B1C1C';
+  // Valores por defecto de la pantalla de carga inicial (splash)
+  readonly SPLASH_TEXTO_DEFAULT = 'Cargando 7 Power...';
+  readonly SPLASH_COLOR_DEFAULT = '#c22026';
 
   empresaForm: FormGroup;
   empresaInfo: EmpresaInfo | null = null;
@@ -599,6 +651,8 @@ export class EmpresaInfoComponent implements OnInit {
       horario_atencion: [''],
       color_navbar: [this.COLOR_NAVBAR_DEFAULT, [Validators.pattern(/^#[0-9A-Fa-f]{6}$/)]],
       color_sidebar: [this.COLOR_SIDEBAR_DEFAULT, [Validators.pattern(/^#[0-9A-Fa-f]{6}$/)]],
+      splash_texto: [this.SPLASH_TEXTO_DEFAULT],
+      splash_color_fondo: [this.SPLASH_COLOR_DEFAULT, [Validators.pattern(/^#[0-9A-Fa-f]{6}$/)]],
     });
   }
 
@@ -631,6 +685,8 @@ export class EmpresaInfoComponent implements OnInit {
           horario_atencion: empresaInfo.horario_atencion || '',
           color_navbar: empresaInfo.color_navbar || this.COLOR_NAVBAR_DEFAULT,
           color_sidebar: empresaInfo.color_sidebar || this.COLOR_SIDEBAR_DEFAULT,
+          splash_texto: empresaInfo.splash_texto || this.SPLASH_TEXTO_DEFAULT,
+          splash_color_fondo: empresaInfo.splash_color_fondo || this.SPLASH_COLOR_DEFAULT,
         });
         this.logoPreview = empresaInfo.logo_url || null;
         this.isLoading = false;
@@ -654,6 +710,10 @@ export class EmpresaInfoComponent implements OnInit {
 
   restaurarColorSidebar(): void {
     this.empresaForm.get('color_sidebar')?.setValue(this.COLOR_SIDEBAR_DEFAULT);
+  }
+
+  restaurarColorSplash(): void {
+    this.empresaForm.get('splash_color_fondo')?.setValue(this.SPLASH_COLOR_DEFAULT);
   }
 
   onLogoSelected(event: any): void {

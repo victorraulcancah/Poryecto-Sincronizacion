@@ -374,6 +374,38 @@
         // Marcar en cookie que ya se mostró
         setCookie("hasLoadedBefore", "true");
 
+        // Personalización desde /dashboard/empresa-info (texto, logo, color
+        // de fondo). Se aplica encima de los valores por defecto de arriba;
+        // si la petición falla o tarda, el splash por defecto ya se ve bien.
+        try {
+          var apiHost = window.location.hostname;
+          var apiBase = (apiHost === "localhost" || apiHost === "127.0.0.1")
+            ? "http://localhost:8001/api"
+            : "https://api." + apiHost.replace(/^www\./, "") + "/api";
+
+          var xhr = new XMLHttpRequest();
+          xhr.open("GET", apiBase + "/empresa-info/publica", true);
+          xhr.onload = function () {
+            if (xhr.status !== 200) return;
+            try {
+              var res = JSON.parse(xhr.responseText);
+              var data = res && res.data;
+              if (!data) return;
+
+              if (data.splash_texto) {
+                loaderText.textContent = data.splash_texto;
+              }
+              if (data.splash_color_fondo) {
+                loader.style.background = data.splash_color_fondo;
+              }
+              if (data.logo_url) {
+                loaderSvg.src = data.logo_url;
+              }
+            } catch (e) {}
+          };
+          xhr.send();
+        } catch (e) {}
+
         // Esperar a que Angular esté listo (mínimo 3s)
         var angularReady = false;
         var minimumTime = false;
