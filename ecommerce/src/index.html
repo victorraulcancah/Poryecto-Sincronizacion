@@ -104,6 +104,9 @@
     <!-- Script blocking: oculta el loader ANTES de que se pinte si ya se mostró antes -->
     <script>
       (function() {
+        var forzarSplash = /[?&]splash=1\b/.test(window.location.search);
+        if (forzarSplash) return;
+
         var hasLoaded = document.cookie.match(/(?:^|;\s*)hasLoadedBefore=([^;]*)/);
         if (hasLoaded) {
           var s = document.createElement('style');
