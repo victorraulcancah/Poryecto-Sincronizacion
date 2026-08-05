@@ -1,0 +1,13 @@
+/* Tabla de movimientos del estado de cuenta.
+ *
+ * El tamaño de letra se fija acá (y no con utilidades en el HTML) porque el
+ * `.table` global impone `font-size: 0.875rem` en los `th`, lo que dejaba el
+ * encabezado más grande que el cuerpo. Con esta regla, encabezado y filas
+ * quedan iguales y compactos.
+ */
+.tabla-movimientos {
+  th,
+  td {
+    font-size: 11px;
+  }
+}

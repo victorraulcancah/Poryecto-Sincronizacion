@@ -6,6 +6,7 @@ import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { forkJoin, of, Subject } from 'rxjs';
 import { ClienteService } from '../../services/cliente.service';
 import { TiposPrecioService, TipoPrecio } from '../../services/tipos-precio.service';
+import { RegistrationService, DocumentType } from '../../services/registration.service';
 import { UbigeoService, Departamento, Provincia, Distrito } from '../../services/ubigeo.service';
 import { Cliente } from '../../models/cliente.model';
 import { environment } from '../../../environments/environment';
@@ -229,12 +230,15 @@ type Tab = 'informacion' | 'direccion' | 'avanzado';
               <div class="row" *ngIf="tab === 'informacion'">
                 <div class="col-md-4 mb-3">
                   <label class="form-label">Tipo Documento <span class="text-danger">*</span></label>
+                  <!-- Se cargan de la tabla document_types. Antes estaban
+                       escritos a mano con ids que no existían (RUC=6 sin dar
+                       de alta, Pasaporte=7 inexistente) o que apuntaban a otro
+                       tipo (4 es Cédula, no Carnet), así que guardar con esos
+                       valores fallaba la validación o grababa el tipo
+                       equivocado. -->
                   <select class="form-select" formControlName="tipo_documento_id">
                     <option [ngValue]="null">Sin Documento</option>
-                    <option value="1">DNI</option>
-                    <option value="6">RUC</option>
-                    <option value="4">Carnet Ext.</option>
-                    <option value="7">Pasaporte</option>
+                    <option *ngFor="let td of tiposDocumento" [ngValue]="td.id">{{ td.nombre }}</option>
                   </select>
                 </div>
 
@@ -491,6 +495,7 @@ export class ClienteEditModalComponent implements OnInit {
   formulario!: FormGroup;
   guardando = false;
   tiposPrecio: TipoPrecio[] = [];
+  tiposDocumento: DocumentType[] = [];
   codigoErpEstado: 'valido' | 'invalido' | 'verificando' | null = null;
   codigoErpNombre = '';
 
@@ -548,6 +553,7 @@ export class ClienteEditModalComponent implements OnInit {
     private fb: FormBuilder,
     private clienteService: ClienteService,
     private tiposPrecioService: TiposPrecioService,
+    private registrationService: RegistrationService,
     private ubigeoService: UbigeoService,
     private http: HttpClient
   ) {}
@@ -562,6 +568,12 @@ export class ClienteEditModalComponent implements OnInit {
 
     this.tiposPrecioService.listar().subscribe({
       next: (res) => { this.tiposPrecio = (res.tipos_precio || []).filter(t => t.activo); },
+      error: () => {}
+    });
+
+    // Mismos tipos de documento que usa el registro (tabla document_types).
+    this.registrationService.getDocumentTypes().subscribe({
+      next: (res) => { this.tiposDocumento = res || []; },
       error: () => {}
     });
 

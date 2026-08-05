@@ -125,21 +125,20 @@
     </div>
 
     <div class="table-responsive" style="max-height: 560px; overflow-y: auto;" *ngIf="movimientosFiltrados.length > 0">
-      <table class="table align-middle mb-0">
+      <!-- El tamaño de letra se fija en el SCSS del componente (clase
+           .tabla-movimientos), igual para encabezado y cuerpo. -->
+      <table class="table align-middle mb-0 tabla-movimientos">
         <thead style="position: sticky; top: 0; z-index: 1;">
           <tr class="text-center">
-            <th class="py-8 text-xs bg-main-50">FECHA</th>
-            <th class="py-8 text-xs bg-main-50">DOCUMENTO</th>
-            <th class="py-8 text-xs bg-main-50">CANTIDAD</th>
-            <th class="py-8 text-xs text-start bg-main-50">DESCRIPCIÓN</th>
-            <th class="py-8 text-xs bg-main-50">SOLES</th>
-            <th class="py-8 text-xs bg-main-50">DÓLARES</th>
+            <th class="py-8 bg-main-50">FECHA</th>
+            <th class="py-8 bg-main-50">DOCUMENTO</th>
+            <th class="py-8 bg-main-50">CANTIDAD</th>
+            <th class="py-8 text-start bg-main-50">DESCRIPCIÓN</th>
+            <th class="py-8 bg-main-50">SOLES</th>
+            <th class="py-8 bg-main-50">DÓLARES</th>
           </tr>
         </thead>
-        <!-- text-xs (12px): misma escala tipográfica que los encabezados de
-             esta tabla y que las tarjetas del resumen. Antes tenía un
-             font-size: 11px suelto que no coincidía con nada de la página. -->
-        <tbody class="text-xs">
+        <tbody>
           <tr *ngFor="let mov of movimientosFiltrados" [class.text-danger-600]="esFilaRoja(mov)">
             <td class="text-center py-1">{{ formatearFecha(mov.created_at) }}</td>
             <td class="text-center py-1">{{ documento(mov) }}</td>

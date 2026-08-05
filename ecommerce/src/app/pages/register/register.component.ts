@@ -67,12 +67,15 @@ export class RegisterComponent implements OnInit {
   puzzleError = false;
   
 
-  // Tipos de documento
+  // Tipos de documento. Lista de respaldo por si falla la llamada a
+  // /document-types; los ids DEBEN coincidir con la tabla `document_types`
+  // (antes decía 4 = RUC, pero el 4 es Cédula y el RUC es el 6).
   tiposDocumento: any[] = [
     { id: 1, nombre: 'DNI' },
     { id: 2, nombre: 'Pasaporte' },
     { id: 3, nombre: 'Carnet de Extranjería' },
-    { id: 4, nombre: 'RUC' },
+    { id: 4, nombre: 'Cédula' },
+    { id: 6, nombre: 'RUC' },
   ];
 
   constructor(
