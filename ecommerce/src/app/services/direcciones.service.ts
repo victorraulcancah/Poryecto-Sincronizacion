@@ -9,6 +9,9 @@ export interface Direccion {
   direccion_completa: string;
   id_ubigeo: string; // Cambiado de ubigeo_id a id_ubigeo
   telefono?: string;
+  // Indicaciones de la dirección. Es el mismo dato que el panel de
+  // administración muestra como "Indicaciones".
+  referencia?: string;
   predeterminada: boolean;
   activa: boolean;
   ubigeo?: {

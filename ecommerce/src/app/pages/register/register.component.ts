@@ -209,8 +209,10 @@ export class RegisterComponent implements OnInit {
       password: ['', [Validators.required, Validators.minLength(8)]],
       password_confirmation: ['', Validators.required],
 
-      // Datos de dirección (opcionales)
+      // Datos de dirección (opcionales). Mismos campos que el modal de
+      // "Mis direcciones" y el del panel de administración.
       direccion_completa: [''],
+      referencia: [''],
       departamento_id: [''],
       provincia_id: [''],
       distrito_id: [''],

@@ -219,6 +219,7 @@ class AdminController extends Controller
 
             // Datos de dirección (opcional)
             'direccion_completa' => 'nullable|string',
+            'referencia' => 'nullable|string|max:500',
             'ubigeo' => 'nullable|string|exists:ubigeo_inei,id_ubigeo',
         ], [
             // Mensajes personalizados
@@ -306,6 +307,12 @@ class AdminController extends Controller
                 $direccion = $cliente->direcciones()->create([
                     'nombre_destinatario' => $cliente->nombre_completo,
                     'direccion_completa' => $request->direccion_completa,
+                    // Mismo dato que las otras pantallas muestran como
+                    // "Indicaciones".
+                    'referencia' => $request->referencia,
+                    // Se sincroniza con el campo único, igual que en el resto
+                    // de los flujos de dirección.
+                    'calle_numero' => $request->direccion_completa,
                     'id_ubigeo' => $ubigeo,
                     'predeterminada' => true,
                     'activa' => true,

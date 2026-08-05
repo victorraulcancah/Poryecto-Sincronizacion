@@ -55,31 +55,8 @@ import {
             </div>
 
             <form [formGroup]="direccionForm" (ngSubmit)="onSubmit()">
-              <!-- Nombre del destinatario -->
-              <div class="mb-16">
-                <label class="form-label text-heading fw-medium mb-8"
-                  >Nombre del destinatario *</label
-                >
-                <input
-                  type="text"
-                  class="form-control px-16 py-12 border rounded-8"
-                  [class.is-invalid]="
-                    direccionForm.get('nombre_destinatario')?.invalid &&
-                    direccionForm.get('nombre_destinatario')?.touched
-                  "
-                  formControlName="nombre_destinatario"
-                  placeholder="¿A nombre de quién?"
-                />
-                <div
-                  class="invalid-feedback"
-                  *ngIf="
-                    direccionForm.get('nombre_destinatario')?.invalid &&
-                    direccionForm.get('nombre_destinatario')?.touched
-                  "
-                >
-                  El nombre del destinatario es requerido
-                </div>
-              </div>
+              <!-- El destinatario no se pide acá: lo completa el backend con
+                   el nombre del propio cliente, igual que al registrarse. -->
 
               <!-- Ubicación -->
               <div class="row">
@@ -183,10 +160,10 @@ import {
                 </div>
               </div>
 
-              <!-- Dirección completa -->
+              <!-- Dirección (mismo nombre que en el panel de administración) -->
               <div class="mb-16">
                 <label class="form-label text-heading fw-medium mb-8"
-                  >Dirección completa *</label
+                  >Dirección *</label
                 >
                 <textarea
                   class="form-control px-16 py-12 border rounded-8"
@@ -196,7 +173,7 @@ import {
                     direccionForm.get('direccion_completa')?.touched
                   "
                   formControlName="direccion_completa"
-                  placeholder="Av/Jr/Calle, número, manzana, lote, interior, referencias..."
+                  placeholder="Dirección"
                 ></textarea>
                 <div
                   class="invalid-feedback"
@@ -209,17 +186,22 @@ import {
                 </div>
               </div>
 
-              <!-- Teléfono -->
+              <!-- El teléfono no se pide acá: es un dato de la persona, no de
+                   la dirección, y se edita en "Datos personales". -->
+
+              <!-- Indicaciones: mismo campo que el panel de administración
+                   guarda como "referencia", para que ambas pantallas
+                   muestren la misma información de la dirección. -->
               <div class="mb-16">
                 <label class="form-label text-heading fw-medium mb-8"
-                  >Teléfono (opcional)</label
+                  >Indicaciones</label
                 >
-                <input
-                  type="tel"
+                <textarea
                   class="form-control px-16 py-12 border rounded-8"
-                  formControlName="telefono"
-                  placeholder="999 999 999"
-                />
+                  formControlName="referencia"
+                  rows="2"
+                  placeholder="Indicaciones para la dirección"
+                ></textarea>
               </div>
 
               <!-- Dirección predeterminada -->
@@ -234,7 +216,7 @@ import {
                   class="form-check-label text-heading fw-medium"
                   for="predeterminada"
                 >
-                  Establecer como dirección principal
+                  Predeterminada
                 </label>
               </div>
 
@@ -304,12 +286,8 @@ export class ModalDireccionComponent implements OnInit, OnChanges, OnDestroy {
     private cdr: ChangeDetectorRef
   ) {
     this.direccionForm = this.fb.group({
-      nombre_destinatario: [
-        '',
-        [Validators.required, Validators.maxLength(255)],
-      ],
       direccion_completa: ['', [Validators.required]],
-      telefono: ['', [Validators.maxLength(20)]],
+      referencia: ['', [Validators.maxLength(500)]],
       departamento_id: [''],
       provincia_id: [{ value: '', disabled: true }], // Inicialmente disabled
       distrito_id: [{ value: '', disabled: true }], // Inicialmente disabled
@@ -437,9 +415,8 @@ export class ModalDireccionComponent implements OnInit, OnChanges, OnDestroy {
       
       // Modo edición
       this.direccionForm.patchValue({
-        nombre_destinatario: this.direccion.nombre_destinatario,
         direccion_completa: this.direccion.direccion_completa,
-        telefono: this.direccion.telefono || '',
+        referencia: this.direccion.referencia || '',
         predeterminada: this.direccion.predeterminada,
         id_ubigeo: ubigeoId, // Usar el ubigeo_id extraído
       });
@@ -478,9 +455,8 @@ export class ModalDireccionComponent implements OnInit, OnChanges, OnDestroy {
     } else {
       // Modo creación
       this.direccionForm.reset({
-        nombre_destinatario: '',
         direccion_completa: '',
-        telefono: '',
+        referencia: '',
         departamento_id: '',
         provincia_id: '',
         distrito_id: '',
@@ -727,7 +703,6 @@ forceUpdate(): void {
   // Método para verificar el estado del formulario en tiempo real
   checkFormStatus(): void {
     const status = {
-      nombre_destinatario: this.direccionForm.get('nombre_destinatario')?.value,
       direccion_completa: this.direccionForm.get('direccion_completa')?.value,
       id_ubigeo: this.direccionForm.get('id_ubigeo')?.value,
       isFormValid: this.isFormValid(),

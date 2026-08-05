@@ -313,15 +313,21 @@ type Tab = 'informacion' | 'direccion' | 'avanzado';
                         <option *ngFor="let d of (distritosPorDireccion[i] || [])" [ngValue]="d.id">{{ d.nombre }}</option>
                       </select>
                     </div>
+                    <!-- Un solo campo de dirección, igual que el formulario de
+                         registro y el de "Mis direcciones" del cliente. Antes
+                         estaba partido en Calle y Número + Urbanización, y por
+                         eso las direcciones creadas por el cliente se veían
+                         vacías acá. -->
                     <div class="col-md-6 mb-3">
-                      <label class="form-label">Urbanización</label>
-                      <input type="text" class="form-control" formControlName="urbanizacion" placeholder="Urbanización">
+                      <label class="form-label">Dirección</label>
+                      <input type="text" class="form-control" formControlName="direccion_completa" placeholder="Dirección">
                     </div>
 
-                    <div class="col-12 mb-3">
-                      <label class="form-label">Calle y Número</label>
-                      <input type="text" class="form-control" formControlName="calle_numero" placeholder="Calle y Número">
-                    </div>
+                    <!-- Mismos campos que ve el cliente en "Mis direcciones".
+                         Ni el teléfono ni el destinatario se editan acá: el
+                         teléfono se administra en "Datos personales" y el
+                         destinatario lo completa el backend con el nombre
+                         del cliente. -->
 
                     <div class="col-12 mb-1">
                       <label class="form-label">Indicaciones</label>
@@ -674,8 +680,7 @@ export class ClienteEditModalComponent implements OnInit {
       departamento_id: [null],
       provincia_id: [null],
       distrito_id: [null],
-      urbanizacion: [existente?.urbanizacion ?? ''],
-      calle_numero: [existente?.calle_numero ?? ''],
+      direccion_completa: [existente?.direccion_completa ?? ''],
       indicaciones: [existente?.referencia ?? ''],
       predeterminada: [!!existente?.predeterminada],
     });
@@ -910,8 +915,7 @@ export class ClienteEditModalComponent implements OnInit {
       direcciones: (valores.direcciones || []).map((d: any, i: number) => ({
         id: d.id,
         id_ubigeo: this.idUbigeoPorDireccion[i],
-        calle_numero: d.calle_numero,
-        urbanizacion: d.urbanizacion,
+        direccion_completa: d.direccion_completa,
         indicaciones: d.indicaciones,
         predeterminada: d.predeterminada,
       })),

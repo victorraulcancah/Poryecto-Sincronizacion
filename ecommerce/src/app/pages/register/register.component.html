@@ -340,23 +340,6 @@
               </div>
             </div>
 
-            <!-- Dirección (Opcional) -->
-            <div class="mb-24">
-              <label
-                for="direccion"
-                class="text-neutral-900 text-lg mb-8 fw-medium"
-              >
-                Dirección (Opcional)
-              </label>
-              <textarea
-                class="common-input"
-                id="direccion"
-                formControlName="direccion_completa"
-                placeholder="Dirección completa"
-                rows="2"
-              ></textarea>
-            </div>
-
             <!-- Ubicación (Opcional) -->
             <div class="row mb-24">
               <div class="col-4">
@@ -426,6 +409,41 @@
                   <small>Cargando distritos...</small>
                 </div>
               </div>
+            </div>
+
+            <!-- Dirección e Indicaciones: mismos campos, nombres y orden que
+                 el modal de "Mis direcciones" y el del panel de administración
+                 (ubigeo primero, luego la dirección y las indicaciones). -->
+            <div class="mb-24">
+              <label
+                for="direccion"
+                class="text-neutral-900 text-lg mb-8 fw-medium"
+              >
+                Dirección
+              </label>
+              <textarea
+                class="common-input"
+                id="direccion"
+                formControlName="direccion_completa"
+                placeholder="Dirección"
+                rows="2"
+              ></textarea>
+            </div>
+
+            <div class="mb-24">
+              <label
+                for="indicaciones"
+                class="text-neutral-900 text-lg mb-8 fw-medium"
+              >
+                Indicaciones
+              </label>
+              <textarea
+                class="common-input"
+                id="indicaciones"
+                formControlName="referencia"
+                placeholder="Indicaciones para la dirección"
+                rows="2"
+              ></textarea>
             </div>
 
             <!-- Campo oculto para ubigeo -->

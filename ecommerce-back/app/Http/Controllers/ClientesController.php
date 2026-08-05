@@ -118,8 +118,13 @@ class ClientesController extends Controller
                     return [
                         'id' => $direccion->id,
                         'nombre_destinatario' => $direccion->nombre_destinatario,
+                        'telefono' => $direccion->telefono,
                         'direccion_completa' => $direccion->direccion_completa,
-                        'calle_numero' => $direccion->calle_numero,
+                        // Las direcciones que crea el propio cliente desde "Mi
+                        // cuenta" solo llenan `direccion_completa` (es un campo
+                        // de texto libre). Si no hay desglose guardado, se
+                        // muestra ahí para que el modal no salga en blanco.
+                        'calle_numero' => $direccion->calle_numero ?: $direccion->direccion_completa,
                         'urbanizacion' => $direccion->urbanizacion,
                         'referencia' => $direccion->referencia,
                         'id_ubigeo' => $direccion->id_ubigeo,
@@ -338,8 +343,12 @@ class ClientesController extends Controller
                 'direcciones' => 'nullable|array',
                 'direcciones.*.id' => 'nullable|integer',
                 'direcciones.*.id_ubigeo' => 'nullable|string|exists:ubigeo_inei,id_ubigeo',
-                'direcciones.*.calle_numero' => 'nullable|string|max:255',
-                'direcciones.*.urbanizacion' => 'nullable|string|max:255',
+                // Un solo campo de dirección, igual que el formulario de
+                // registro y el de "Mis direcciones" del cliente.
+                'direcciones.*.direccion_completa' => 'nullable|string|max:255',
+                // El teléfono y el destinatario no se editan desde la
+                // dirección: el teléfono se administra en "Datos personales"
+                // y el destinatario se completa con el nombre del cliente.
                 'direcciones.*.indicaciones' => 'nullable|string|max:500',
                 'direcciones.*.predeterminada' => 'nullable|boolean',
             ]);
@@ -395,16 +404,18 @@ class ClientesController extends Controller
                 // que una dirección nueva (sin id) se creaba y se borraba en
                 // el mismo request.
                 $idsASobrevivir = $enviadas->map(function ($d) use ($cliente) {
-                    $direccionCompleta = trim(implode(', ', array_filter([
-                        $d['calle_numero'] ?? null,
-                        $d['urbanizacion'] ?? null,
-                    ])));
+                    $direccionCompleta = trim((string) ($d['direccion_completa'] ?? ''));
 
                     $datos = [
+                        // Se completa con el nombre del cliente, igual que al
+                        // registrarse (no es un campo del formulario).
                         'nombre_destinatario' => $cliente->nombre_completo,
                         'direccion_completa' => $direccionCompleta ?: 'Sin dirección',
-                        'calle_numero' => $d['calle_numero'] ?? null,
-                        'urbanizacion' => $d['urbanizacion'] ?? null,
+                        // Se mantiene sincronizado con el campo único (igual
+                        // que hace el lado del cliente) para que no queden
+                        // restos del desglose antiguo.
+                        'calle_numero' => $direccionCompleta ?: null,
+                        'urbanizacion' => null,
                         'referencia' => $d['indicaciones'] ?? null,
                         'id_ubigeo' => $d['id_ubigeo'] ?? null,
                         'predeterminada' => !empty($d['predeterminada']),
@@ -743,10 +754,11 @@ public function misDirecciones(Request $request)
 public function crearDireccion(Request $request)
 {
     $request->validate([
-        'nombre_destinatario' => 'required|string|max:255',
+        'nombre_destinatario' => 'nullable|string|max:255',
         'direccion_completa' => 'required|string',
         'id_ubigeo' => 'required|string|exists:ubigeo_inei,id_ubigeo',
         'telefono' => 'nullable|string|max:20',
+        'referencia' => 'nullable|string|max:500',
         'predeterminada' => 'boolean'
     ]);
 
@@ -758,10 +770,13 @@ public function crearDireccion(Request $request)
     }
     
     $direccion = $cliente->direcciones()->create([
-        'nombre_destinatario' => $request->nombre_destinatario,
+        'nombre_destinatario' => $cliente->nombre_completo,
         'direccion_completa' => $request->direccion_completa,
+        // Se guarda también en `calle_numero` para que el panel de admin
+        // (que edita la dirección desglosada) no vea el campo vacío.
+        'calle_numero' => $request->direccion_completa,
         'id_ubigeo' => $request->id_ubigeo,
-        'telefono' => $request->telefono,
+        'referencia' => $request->referencia,
         'predeterminada' => $request->predeterminada ?? false,
         'activa' => true
     ]);
@@ -781,10 +796,11 @@ public function crearDireccion(Request $request)
 public function actualizarDireccion(Request $request, $id)
 {
     $request->validate([
-        'nombre_destinatario' => 'required|string|max:255',
+        'nombre_destinatario' => 'nullable|string|max:255',
         'direccion_completa' => 'required|string',
         'id_ubigeo' => 'required|string|exists:ubigeo_inei,id_ubigeo',
         'telefono' => 'nullable|string|max:20',
+        'referencia' => 'nullable|string|max:500',
         'predeterminada' => 'boolean'
     ]);
 
@@ -799,10 +815,15 @@ public function actualizarDireccion(Request $request, $id)
     }
     
     $direccion->update([
-        'nombre_destinatario' => $request->nombre_destinatario,
+        'nombre_destinatario' => $cliente->nombre_completo,
         'direccion_completa' => $request->direccion_completa,
+        // Igual que al crear: se mantiene sincronizado el desglose que usa
+        // el panel de admin, y se limpia la urbanización para que no quede
+        // pegada una parte vieja que ya no corresponde.
+        'calle_numero' => $request->direccion_completa,
+        'urbanizacion' => null,
         'id_ubigeo' => $request->id_ubigeo,
-        'telefono' => $request->telefono,
+        'referencia' => $request->referencia,
         'predeterminada' => $request->predeterminada ?? false
     ]);
     

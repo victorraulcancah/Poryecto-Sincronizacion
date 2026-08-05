@@ -136,7 +136,10 @@
             <th class="py-8 text-xs bg-main-50">DÓLARES</th>
           </tr>
         </thead>
-        <tbody style="font-size: 11px;">
+        <!-- text-xs (12px): misma escala tipográfica que los encabezados de
+             esta tabla y que las tarjetas del resumen. Antes tenía un
+             font-size: 11px suelto que no coincidía con nada de la página. -->
+        <tbody class="text-xs">
           <tr *ngFor="let mov of movimientosFiltrados" [class.text-danger-600]="esFilaRoja(mov)">
             <td class="text-center py-1">{{ formatearFecha(mov.created_at) }}</td>
             <td class="text-center py-1">{{ documento(mov) }}</td>
