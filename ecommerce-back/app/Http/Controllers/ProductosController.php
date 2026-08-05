@@ -668,14 +668,22 @@ class ProductosController extends Controller
                 $query->orderBy('nombre', 'asc');
             }
 
-            $productos = $query->limit(10)
+            $tipoPrecioId = $this->resolverTipoPrecioId($request);
+            $precioVisible = $tipoPrecioId !== null;
+            $moneda = $tipoPrecioId
+                ? optional(\App\Models\TipoPrecio::find($tipoPrecioId))->tipo_moneda
+                : null;
+
+            $productos = $query->with('precios')->limit(10)
                 ->get()
-                ->map(function ($producto) {
+                ->map(function ($producto) use ($tipoPrecioId, $precioVisible, $moneda) {
                     return [
                         'id' => $producto->id,
                         'nombre' => $producto->nombre,
                         'descripcion' => $producto->descripcion,
-                        'precio' => $producto->precio_venta,
+                        'precio' => $precioVisible ? ($producto->precioPara($tipoPrecioId) ?? 0) : 0,
+                        'precio_visible' => $precioVisible,
+                        'moneda' => $moneda,
                         'categoria' => $producto->categoria?->nombre,
                         'categoria_id' => $producto->categoria_id,
                         'imagen_url' => $producto->imagen ? asset('storage/productos/' . $producto->imagen) : null,
