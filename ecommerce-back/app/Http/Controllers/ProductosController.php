@@ -393,19 +393,42 @@ class ProductosController extends Controller
     }
 
     /**
-     * Resuelve el tipo de precio del cliente logueado.
-     * Devuelve null si es invitado (los invitados NO ven precio: login requerido).
+     * Resuelve el tipo de precio del cliente logueado, o para un invitado la
+     * lista configurada en "Tipos de Precio (global)" → pestaña "Clientes
+     * visitantes". Devuelve null solo si no hay nada configurado para
+     * invitados (ahí sí aplica el "inicia sesión para ver el precio").
      */
     private function resolverTipoPrecioId(Request $request): ?int
     {
         $cliente = $this->clienteAutenticado();
-        return $cliente ? $cliente->tipoPrecioEfectivoId() : null;
+        if ($cliente) {
+            return $cliente->tipoPrecioEfectivoId();
+        }
+
+        $opciones = $this->opcionesPrecioInvitado();
+        return $opciones[0]['tipo_precio_id'] ?? null;
+    }
+
+    /**
+     * Listas activas para invitados, una por moneda como máximo, en orden
+     * soles primero (para que sea la opción por defecto en el selector).
+     */
+    private function opcionesPrecioInvitado(): array
+    {
+        $opciones = [];
+        foreach (['s', 'd'] as $moneda) {
+            $tp = \App\Models\TipoPrecio::paraInvitados($moneda);
+            if ($tp) {
+                $opciones[] = ['moneda' => $moneda, 'tipo_precio_id' => $tp->id];
+            }
+        }
+        return $opciones;
     }
 
     public function productosPublicos(Request $request)
     {
         $tipoPrecioId = $this->resolverTipoPrecioId($request);
-        $precioVisible = $this->clienteAutenticado() !== null;
+        $precioVisible = $tipoPrecioId !== null;
         // Moneda resuelta del tipo de precio aplicable (s = soles, d = dólares).
         $moneda = $tipoPrecioId
             ? optional(\App\Models\TipoPrecio::find($tipoPrecioId))->tipo_moneda
@@ -712,7 +735,7 @@ class ProductosController extends Controller
 {
     try {
         $tipoPrecioId = $this->resolverTipoPrecioId($request);
-        $precioVisible = $this->clienteAutenticado() !== null;
+        $precioVisible = $tipoPrecioId !== null;
         $moneda = $tipoPrecioId
             ? optional(\App\Models\TipoPrecio::find($tipoPrecioId))->tipo_moneda
             : null;
@@ -721,12 +744,28 @@ class ProductosController extends Controller
             ->where('activo', true)
             ->findOrFail($id);
 
-        // Invitado: no ve precio (login requerido). Cliente: precio resuelto.
+        // Invitado sin ninguna lista de "Clientes visitantes" configurada:
+        // no ve precio (login requerido). Si hay al menos una configurada
+        // (o está logueado), se resuelve el precio normalmente.
         $producto->precio_venta = $precioVisible
             ? ($producto->precioPara($tipoPrecioId) ?? $producto->precio_venta)
             : 0;
         $producto->precio_visible = $precioVisible;
         $producto->moneda = $moneda;
+
+        // Solo para invitados: si hay más de una moneda configurada como
+        // "Clientes visitantes", se mandan ambas para el selector S/ / US$
+        // del detalle de producto (sin volver a pedir al backend).
+        $monedaOpciones = [];
+        if (!$this->clienteAutenticado()) {
+            $monedaOpciones = collect($this->opcionesPrecioInvitado())->map(function ($op) use ($producto) {
+                return [
+                    'moneda' => $op['moneda'],
+                    'tipo_precio_id' => $op['tipo_precio_id'],
+                    'precio_venta' => $producto->precioPara($op['tipo_precio_id']),
+                ];
+            })->filter(fn ($op) => $op['precio_venta'] !== null)->values()->all();
+        }
 
         $detalles = ProductoDetalle::where('producto_id', $id)->first();
 
@@ -748,7 +787,8 @@ class ProductosController extends Controller
             'detalles' => $detalles,
             'productos_relacionados' => $productosRelacionados,
             'precio_visible' => $precioVisible,
-            'moneda' => $moneda
+            'moneda' => $moneda,
+            'moneda_opciones' => $monedaOpciones,
         ]);
     } catch (\Exception $e) {
         return response()->json(['error' => 'Producto no encontrado'], 404);

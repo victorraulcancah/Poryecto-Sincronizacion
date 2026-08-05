@@ -453,11 +453,13 @@ export class AlmacenService {
     producto: any;
     detalles: any;
     productos_relacionados: any[];
+    moneda_opciones?: { moneda: string; tipo_precio_id: number; precio_venta: number }[];
   }> {
     return this.http.get<{
       producto: any;
       detalles: any;
       productos_relacionados: any[];
+      moneda_opciones?: { moneda: string; tipo_precio_id: number; precio_venta: number }[];
     }>(`${this.apiUrl}/productos-publicos/${id}`);
   }
 

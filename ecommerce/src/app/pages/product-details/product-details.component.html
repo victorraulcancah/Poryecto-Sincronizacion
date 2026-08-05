@@ -296,6 +296,18 @@
                             <!-- ✅ DESCRIPCIÓN DINÁMICA (USANDO HTML SANITIZADO) -->
                             <!-- <div [innerHTML]="safeDescripcionDetallada"></div> -->
                             
+                            <!-- Selector de moneda: solo invitados con soles Y dólares activos en "Clientes visitantes" -->
+                            <div class="mt-24" *ngIf="monedaOpciones.length > 1">
+                              <label class="form-label text-sm text-gray-600 mb-4 d-block">Moneda</label>
+                              <select class="form-select form-select-sm" style="max-width: 160px;"
+                                [ngModel]="producto.moneda"
+                                (ngModelChange)="onCambiarMoneda($event)">
+                                <option *ngFor="let op of monedaOpciones" [value]="op.moneda">
+                                  {{ op.moneda === 'd' ? 'Dólares (US$)' : 'Soles (S/)' }}
+                                </option>
+                              </select>
+                            </div>
+
                             <div class="mt-32 flex-align flex-wrap gap-32">
                                 <!-- Cliente logueado: precio -->
                                 <ng-container *ngIf="producto.precio_visible !== false">

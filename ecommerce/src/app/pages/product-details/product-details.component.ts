@@ -45,6 +45,8 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   producto: any = null
   detalles: any = null
   productosRelacionados: any[] = []
+  // Solo para invitados con más de 1 moneda activa en "Clientes visitantes".
+  monedaOpciones: { moneda: string; tipo_precio_id: number; precio_venta: number }[] = []
   isLoading = true
   error: string | null = null
   cantidad = 1
@@ -268,6 +270,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
           this.producto = response.producto
           this.detalles = response.detalles
           this.productosRelacionados = response.productos_relacionados || []
+          this.monedaOpciones = response.moneda_opciones || []
           this.procesarDatosProducto()
           this.isLoading = false
         } catch (processingError) {
@@ -712,6 +715,13 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   getEspecificaciones(): any[] { return this.especificacionesProcesadas; }
   getCaracteristicasTecnicas(): any[] { return this.caracteristicasProcesadas; }
   getPrecioActual(): number { if (!this.producto) return 0; return this.producto.precio_oferta || this.producto.precio_venta; }
+  onCambiarMoneda(moneda: string): void {
+    const op = this.monedaOpciones.find(o => o.moneda === moneda);
+    if (!this.producto || !op) return;
+    this.producto.moneda = op.moneda;
+    this.producto.precio_venta = op.precio_venta;
+    this.producto.precio_oferta = null;
+  }
   getPrecioOriginal(): number { if (!this.producto) return 0; return this.producto.precio_venta; }
   tieneOferta(): boolean { return !!this.producto?.precio_oferta && this.producto.precio_oferta < this.producto.precio_venta; }
   getDescripcion(): string { return this.producto?.descripcion || this.detalles?.descripcion_detallada || "Descripción no disponible"; }
