@@ -22,7 +22,10 @@ class TiposPrecioController extends Controller
                 'es_predeterminado' => $t->es_predeterminado,
                 'es_para_invitados' => $t->es_para_invitados,
                 'categoria' => $t->categoria,
-                'productos_count' => $t->precios()->count(),
+                // Solo cuentan los productos que realmente tienen precio: hay
+                // filas cargadas en 0 (por importaciones o precios sin
+                // definir) que no deben sumar al "N productos con precio".
+                'productos_count' => $t->precios()->where('precio', '>', 0)->count(),
             ];
         });
 
