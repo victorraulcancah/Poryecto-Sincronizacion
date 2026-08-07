@@ -46,7 +46,8 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     subtotal: 0,
     igv: 0,
     total: 0,
-    cantidad_items: 0
+    cantidad_items: 0,
+    porMoneda: []
   };
 
   departamentos: Departamento[] = [];
@@ -847,6 +848,20 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     const descuento = Number(this.descuentoCupon) || 0;
 
     return subtotal + igv - descuento + envio;
+  }
+
+  /**
+   * Total a pagar de una moneda. El envío y el cupón se cobran en soles, así
+   * que solo entran en ese bloque; los productos en dólares se muestran
+   * aparte, sin convertir.
+   */
+  getTotalFinalPorMoneda(moneda: string): number {
+    const productos = this.getTotalPorMoneda(moneda);
+    if (moneda !== 's') return productos;
+
+    const envio = Number(this.costoEnvioCalculado) || 0;
+    const descuento = Number(this.descuentoCupon) || 0;
+    return Math.max(0, productos + envio - descuento);
   }
 
   onImageError(event: Event): void {

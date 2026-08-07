@@ -26,11 +26,29 @@ export interface CartItem {
   guardado_para_despues?: boolean;
 }
 
-export interface CartSummary {
+/** Totales de una sola moneda del carrito. */
+export interface CartSummaryMoneda {
+  moneda: string; // 's' = soles, 'd' = dólares
   subtotal: number;
   igv: number;
   total: number;
   cantidad_items: number;
+}
+
+export interface CartSummary {
+  /**
+   * Totales en soles. Antes eran la suma de todo el carrito sin mirar la
+   * moneda, así que un producto en dólares se sumaba como si fueran soles.
+   */
+  subtotal: number;
+  igv: number;
+  total: number;
+  cantidad_items: number;
+  /**
+   * Un bloque por cada moneda presente en el carrito, soles primero. Se puede
+   * comprar en soles y en dólares a la vez, y los montos no se mezclan.
+   */
+  porMoneda: CartSummaryMoneda[];
 }
 
 @Injectable({
@@ -42,7 +60,7 @@ export class CartService {
 
   private cartItemsSubject = new BehaviorSubject<CartItem[]>([]);
   private cartSummarySubject = new BehaviorSubject<CartSummary>({
-    subtotal: 0, igv: 0, total: 0, cantidad_items: 0
+    subtotal: 0, igv: 0, total: 0, cantidad_items: 0, porMoneda: []
   });
   private cartLoadedSubject = new BehaviorSubject<boolean>(false);
 
@@ -433,37 +451,64 @@ export class CartService {
     // ✅ Los productos "guardados para después" no cuentan en el resumen/total del carrito
     const itemsActivos = items.filter(item => !item.guardado_para_despues);
 
-    // Calcular el total usando precio con descuento si existe
-    const total = itemsActivos.reduce((sum, item) => {
-      let precioFinal = item.precio || 0;
+    // Los totales se calculan por moneda: el carrito puede tener productos en
+    // soles y en dólares a la vez, y sumarlos juntos daría un número que no
+    // significa nada.
+    const monedas = ['s', 'd']
+      .filter(moneda => itemsActivos.some(item => this.monedaDe(item) === moneda));
 
-      // Si tiene descuento, usar precio_con_descuento
-      if (item.descuento_porcentaje && item.descuento_porcentaje > 0 && item.precio_con_descuento) {
-        precioFinal = item.precio_con_descuento;
+    const porMoneda: CartSummaryMoneda[] = monedas.map(moneda => {
+      const deEstaMoneda = itemsActivos.filter(item => this.monedaDe(item) === moneda);
+
+      const total = deEstaMoneda.reduce(
+        (sum, item) => sum + this.precioFinalDe(item) * (item.cantidad || 0),
+        0
+      );
+
+      let subtotal = total;
+      let igv = 0;
+
+      // Solo calcular IGV si hay exactamente 1 producto Y ese producto tiene mostrar_igv = true
+      if (deEstaMoneda.length === 1 && deEstaMoneda[0].mostrar_igv === true) {
+        // El precio ya incluye IGV, así que calculamos el subtotal sin IGV
+        subtotal = total / 1.18;
+        igv = total - subtotal;
       }
 
-      const cantidad = item.cantidad || 0;
-      return sum + (precioFinal * cantidad);
-    }, 0);
+      return {
+        moneda,
+        subtotal,
+        igv,
+        total,
+        cantidad_items: deEstaMoneda.reduce((sum, item) => sum + (item.cantidad || 0), 0),
+      };
+    });
 
-    let subtotal = total;
-    let igv = 0;
-
-    // Solo calcular IGV si hay exactamente 1 producto Y ese producto tiene mostrar_igv = true
-    if (itemsActivos.length === 1 && itemsActivos[0].mostrar_igv === true) {
-      // El precio ya incluye IGV, así que calculamos el subtotal sin IGV
-      subtotal = total / 1.18;
-      igv = total - subtotal;
-    }
-
-    const cantidad_items = itemsActivos.reduce((sum, item) => sum + (item.cantidad || 0), 0);
+    // Los campos sueltos quedan como los totales en soles, que es lo que
+    // esperan el cupón y el checkout.
+    const soles = porMoneda.find(m => m.moneda === 's');
 
     this.cartSummarySubject.next({
-      subtotal: subtotal,
-      igv: igv,
-      total: total,
-      cantidad_items: cantidad_items
+      subtotal: soles?.subtotal ?? 0,
+      igv: soles?.igv ?? 0,
+      total: soles?.total ?? 0,
+      cantidad_items: itemsActivos.reduce((sum, item) => sum + (item.cantidad || 0), 0),
+      porMoneda,
     });
+  }
+
+  /** Moneda del ítem; los que no la traen se asumen en soles (default histórico). */
+  private monedaDe(item: CartItem): string {
+    const moneda = (item.moneda || 's').toLowerCase().trim();
+    return moneda === 'd' || moneda === 'usd' ? 'd' : 's';
+  }
+
+  /** Precio unitario a cobrar: el de descuento si lo tiene, si no el normal. */
+  private precioFinalDe(item: CartItem): number {
+    if (item.descuento_porcentaje && item.descuento_porcentaje > 0 && item.precio_con_descuento) {
+      return item.precio_con_descuento;
+    }
+    return item.precio || 0;
   }
 
   private normalizeProduct(producto: any): any {

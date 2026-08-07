@@ -342,10 +342,11 @@
             </div>
 
             <ng-container *ngIf="isLoggedIn">
-              <!-- Subtotal -->
-              <div class="d-flex justify-content-between align-items-center mb-16">
-                <span class="text-gray-600">Subtotal ({{ cartSummary.cantidad_items }} items):</span>
-                <span class="text-heading fw-medium">{{ productosEnCarrito[0]?.moneda | moneda }} {{ formatPrice(cartSummary.subtotal) }}</span>
+              <!-- Un subtotal por moneda: el carrito admite productos en soles
+                   y en dólares a la vez, y los montos no se pueden sumar. -->
+              <div *ngFor="let resumen of cartSummary.porMoneda" class="d-flex justify-content-between align-items-center mb-16">
+                <span class="text-gray-600">Subtotal ({{ resumen.cantidad_items }} items):</span>
+                <span class="text-heading fw-medium">{{ resumen.moneda | moneda }} {{ formatPrice(resumen.subtotal) }}</span>
               </div>
 
               <!-- IGV (solo mostrar si hay exactamente 1 producto Y tiene mostrar_igv = true) -->
@@ -355,10 +356,10 @@
                 <span class="text-heading fw-medium">{{ productosEnCarrito[0]?.moneda | moneda }} {{ formatPrice(cartSummary.igv) }}</span>
               </div>
 
-              <!-- Descuento por cupón -->
+              <!-- Descuento por cupón (los cupones son en soles) -->
               <div *ngIf="descuentoCupon > 0" class="d-flex justify-content-between align-items-center mb-16">
                 <span class="text-success-600">Descuento cupón:</span>
-                <span class="text-success-600 fw-medium">-{{ productosEnCarrito[0]?.moneda | moneda }} {{ formatPrice(descuentoCupon) }}</span>
+                <span class="text-success-600 fw-medium">-S/ {{ formatPrice(descuentoCupon) }}</span>
               </div>
 
               <!-- Envío -->
@@ -369,11 +370,12 @@
 
               <hr class="border-gray-200 my-16">
 
-              <!-- Total -->
-              <div class="d-flex justify-content-between align-items-center mb-32">
-                <span class="text-heading text-xl fw-bold">Total:</span>
-                <span class="text-heading text-xl fw-bold">{{ productosEnCarrito[0]?.moneda | moneda }} {{ formatPrice(getTotalFinal()) }}</span>
+              <!-- Total, también separado por moneda -->
+              <div *ngFor="let resumen of cartSummary.porMoneda" class="d-flex justify-content-between align-items-center mb-8">
+                <span class="text-heading text-xl fw-bold">Total{{ cartSummary.porMoneda.length > 1 ? ' ' + (resumen.moneda | moneda) : '' }}:</span>
+                <span class="text-heading text-xl fw-bold">{{ resumen.moneda | moneda }} {{ formatPrice(getTotalFinal(resumen)) }}</span>
               </div>
+              <div class="mb-24"></div>
             </ng-container>
 
             <!-- Botón de checkout (solo cliente logueado) -->

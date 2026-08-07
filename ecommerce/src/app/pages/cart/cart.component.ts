@@ -7,7 +7,7 @@ import { MonedaPipe } from '../../pipes/moneda.pipe';
 import { BreadcrumbComponent } from '../../component/breadcrumb/breadcrumb.component';
 import { ShippingComponent } from '../../component/shipping/shipping.component';
 import { CheckoutStepsComponent } from '../../component/checkout-steps/checkout-steps.component';
-import { CartService, CartItem, CartSummary } from '../../services/cart.service';
+import { CartService, CartItem, CartSummary, CartSummaryMoneda } from '../../services/cart.service';
 import { AuthService } from '../../services/auth.service';
 import { OfertasService } from '../../services/ofertas.service';
 import { Subject } from 'rxjs';
@@ -22,7 +22,7 @@ import Swal from 'sweetalert2';
 })
 export class CartComponent implements OnInit, OnDestroy {
   cartItems: CartItem[] = [];
-  cartSummary: CartSummary = { subtotal: 0, igv: 0, total: 0, cantidad_items: 0 };
+  cartSummary: CartSummary = { subtotal: 0, igv: 0, total: 0, cantidad_items: 0, porMoneda: [] };
   codigoCupon = '';
   descuentoCupon = 0;
   cuponAplicado: any = null; // Guarda la info del cupón aplicado
@@ -56,7 +56,7 @@ export class CartComponent implements OnInit, OnDestroy {
     });
     this.cartService.cartSummary$.pipe(takeUntil(this.destroy$)).subscribe(summary => { 
       console.log('Resumen del carrito recibido:', summary);
-      this.cartSummary = summary || { subtotal: 0, igv: 0, total: 0, cantidad_items: 0 }; 
+      this.cartSummary = summary || { subtotal: 0, igv: 0, total: 0, cantidad_items: 0, porMoneda: [] }; 
     });
     this.authService.currentUser.pipe(takeUntil(this.destroy$)).subscribe(user => { 
       this.isLoggedIn = !!user;
@@ -331,10 +331,16 @@ export class CartComponent implements OnInit, OnDestroy {
     return precioFinal * cantidad;
   }
   
-  getTotalFinal(): number { 
-    const total = this.ensureNumber(this.cartSummary.total);
+  /**
+   * Total a pagar de una moneda. El descuento del cupón solo se resta de los
+   * soles, que es la moneda en la que se validan los cupones.
+   */
+  getTotalFinal(resumen: CartSummaryMoneda): number {
+    const total = this.ensureNumber(resumen?.total);
+    if (resumen?.moneda !== 's') return total;
+
     const descuento = this.ensureNumber(this.descuentoCupon);
-    return total - descuento; 
+    return Math.max(0, total - descuento);
   }
   
   formatPrice(price: number | undefined | null): string { 

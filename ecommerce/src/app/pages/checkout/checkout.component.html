@@ -743,8 +743,10 @@
                   Productos ({{ cartSummary.cantidad_items }})
                 </h6>
                 <div class="d-flex align-items-center gap-8">
-                  <span class="fw-semibold text-heading"
-                    >{{ cartItems[0]?.moneda | moneda }} {{ formatPrice(getTotalFinal()) }}</span
+                  <!-- Un monto por moneda: el carrito puede tener productos en
+                       soles y en dólares, y no se convierten entre sí. -->
+                  <span class="fw-semibold text-heading" *ngFor="let m of monedasEnCarrito"
+                    >{{ m | moneda }} {{ formatPrice(getTotalFinalPorMoneda(m)) }}</span
                   >
                   <i
                     class="ph"
@@ -848,10 +850,13 @@
 
                 <hr class="border-gray-200 my-12" />
 
-                <div class="d-flex justify-content-between align-items-center">
-                  <span class="text-heading fw-bold">Total</span>
+                <div class="d-flex justify-content-between align-items-center"
+                  *ngFor="let m of monedasEnCarrito">
                   <span class="text-heading fw-bold"
-                    >{{ cartItems[0]?.moneda | moneda }} {{ formatPrice(getTotalFinal()) }}</span
+                    >Total{{ monedasEnCarrito.length > 1 ? ' ' + (m | moneda) : '' }}</span
+                  >
+                  <span class="text-heading fw-bold"
+                    >{{ m | moneda }} {{ formatPrice(getTotalFinalPorMoneda(m)) }}</span
                   >
                 </div>
               </div>
