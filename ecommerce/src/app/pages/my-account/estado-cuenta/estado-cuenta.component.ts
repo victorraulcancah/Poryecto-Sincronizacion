@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../services/auth.service';
 import { RangoFechasComponent } from '../../../components/rango-fechas/rango-fechas.component';
 import {
+  AplicacionPago,
   EstadoCuentaService,
   EstadoCuentaResponse,
   MovimientoEstadoCuenta,
@@ -31,10 +32,11 @@ export class EstadoCuentaComponent implements OnInit {
   busqueda = '';
 
   /**
-   * Documentos de venta de cada pago, por id de PaymentSeller. No viene en la
-   * respuesta del ERP: se pide aparte a nuestro backend y se cruza acá.
+   * Cómo se repartió cada pago entre las ventas que cubrió, por id de
+   * PaymentSeller. No viene en la respuesta del ERP: se pide aparte a nuestro
+   * backend y se cruza acá.
    */
-  private documentosPorPago: Record<string, string[]> = {};
+  private aplicacionesPorPago: Record<string, AplicacionPago[]> = {};
 
   // Filtro de fechas (por defecto, el mes en curso, igual que el ERP).
   fechaDesde = '';
@@ -60,15 +62,26 @@ export class EstadoCuentaComponent implements OnInit {
     this.fechaDesde = this.aInputDate(inicioMes);
     this.fechaHasta = this.aInputDate(hoy);
 
-    // El mapa cubre todo el historial, así que se pide una sola vez y sirve
-    // para cualquier rango de fechas. Si falla, los pagos quedan sin documento
-    // pero el estado de cuenta se muestra igual.
-    this.estadoCuentaService.obtenerDocumentosDePagos().subscribe({
-      next: (mapa) => (this.documentosPorPago = mapa || {}),
-      error: () => (this.documentosPorPago = {}),
-    });
+    this.recargar();
+  }
 
-    this.cargar();
+  /**
+   * Vuelve a consultar la API con el rango actual. El mapa de pagos se pide
+   * antes que los movimientos porque de él depende cómo se separan las filas
+   * de pago; si falla, los pagos salen sin documento pero el estado de cuenta
+   * se muestra igual.
+   */
+  recargar(): void {
+    this.estadoCuentaService.obtenerDocumentosDePagos().subscribe({
+      next: (mapa) => {
+        this.aplicacionesPorPago = mapa || {};
+        this.cargar();
+      },
+      error: () => {
+        this.aplicacionesPorPago = {};
+        this.cargar();
+      },
+    });
   }
 
   private aInputDate(d: Date): string {
@@ -77,7 +90,7 @@ export class EstadoCuentaComponent implements OnInit {
 
   aplicarFiltroFechas(): void {
     if (!this.fechaDesde || !this.fechaHasta) return;
-    this.cargar();
+    this.recargar();
   }
 
   /** Rango elegido en el calendario (se dispara recién al presionar "Aplicar"). */
@@ -95,7 +108,7 @@ export class EstadoCuentaComponent implements OnInit {
         next: (res) => {
           this.resumen = res;
           // Más reciente primero, igual que la vista del ERP.
-          this.movimientos = [...(res.data || [])].sort(
+          this.movimientos = this.separarPagosPorVenta(res.data || []).sort(
             (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
           );
           this.aplicarBusqueda();
@@ -108,6 +121,57 @@ export class EstadoCuentaComponent implements OnInit {
             err?.error?.error || 'No se pudo cargar el estado de cuenta. Intenta nuevamente más tarde.';
         }
       });
+  }
+
+  /**
+   * Un pago puede cubrir cuotas de varias ventas. En ese caso se parte en una
+   * fila por venta, cada una con su documento y el monto que le tocó, en vez
+   * de una sola fila con dos documentos juntos.
+   *
+   * Los pagos que cubren una sola venta (o ninguna, como el saldo a favor) se
+   * dejan tal cual; solo se les anota el documento.
+   */
+  private separarPagosPorVenta(movimientos: MovimientoEstadoCuenta[]): MovimientoEstadoCuenta[] {
+    const resultado: MovimientoEstadoCuenta[] = [];
+
+    for (const mov of movimientos) {
+      const aplicaciones =
+        mov.type === 'payment_seller_aggregated' ? this.aplicacionesPorPago[this.idDePago(mov)] ?? [] : [];
+
+      if (aplicaciones.length === 0) {
+        resultado.push(mov);
+        continue;
+      }
+
+      if (aplicaciones.length === 1) {
+        resultado.push({ ...mov, documento_venta: aplicaciones[0].documento });
+        continue;
+      }
+
+      const total = Number(mov.total_sumado ?? 0);
+      const aplicado = aplicaciones.reduce((suma, a) => suma + Number(a.monto ?? 0), 0);
+      // Lo que el pago no aplicó a ninguna venta (saldo a favor) va en una
+      // fila aparte, para que la suma de la columna siga dando el total.
+      const resto = Math.round((total - aplicado) * 100) / 100;
+
+      aplicaciones.forEach((aplicacion, i) => {
+        // Si se aplicó de más (diferencias de redondeo del ERP), el sobrante
+        // se descuenta de la última fila en vez de mostrar un monto negativo.
+        const ajuste = resto < 0 && i === aplicaciones.length - 1 ? resto : 0;
+        resultado.push({
+          ...mov,
+          id: `${mov.id}-${aplicacion.documento}`,
+          documento_venta: aplicacion.documento,
+          total_sumado: Number(aplicacion.monto ?? 0) + ajuste,
+        });
+      });
+
+      if (resto > 0) {
+        resultado.push({ ...mov, id: `${mov.id}-resto`, total_sumado: resto });
+      }
+    }
+
+    return resultado;
   }
 
   aplicarBusqueda(): void {
@@ -132,11 +196,10 @@ export class EstadoCuentaComponent implements OnInit {
    * vista detallada por producto (columnsEstadoDeCuentaPrincipal).
    */
   documento(mov: MovimientoEstadoCuenta): string {
-    // El pago no tiene documento propio: se muestra el de la(s) venta(s) a las
-    // que se aplicó, para saber de qué venta fue el pago.
+    // El pago no tiene documento propio: lleva el de la venta a la que se
+    // aplicó, que anota separarPagosPorVenta().
     if (mov.type === 'payment_seller_aggregated') {
-      const docs = this.documentosPorPago[this.idDePago(mov)] ?? [];
-      return docs.length ? docs.join(' / ') : '-';
+      return mov.documento_venta ?? '-';
     }
     if (!mov.sale) return '-';
     if (mov.sale.boleta) {

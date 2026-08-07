@@ -3,6 +3,12 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
+/** Parte de un pago aplicada a una venta concreta. */
+export interface AplicacionPago {
+  documento: string;
+  monto: number;
+}
+
 export interface MovimientoEstadoCuenta {
   id: string;
   created_at: string;
@@ -10,6 +16,11 @@ export interface MovimientoEstadoCuenta {
   type?: string;
   cantidad?: number | null;
   nro_documento?: number | string;
+  /**
+   * Solo en las filas de pago: documento de la venta a la que corresponde esa
+   * fila. Lo pone el front al separar un pago en sus aplicaciones.
+   */
+  documento_venta?: string;
   boleta?: { tipo?: string; serie?: number | string; numero?: number | string } | null;
   product?: { codigo?: string; name?: string; brand?: { name?: string } } | null;
   payment_method?: { name?: string } | null;
@@ -75,15 +86,15 @@ export class EstadoCuentaService {
   }
 
   /**
-   * Documentos de venta a los que se aplicó cada pago, indexados por el id del
-   * PaymentSeller: { "132": ["V001-3929", "V001-3930"] }.
+   * Cómo se repartió cada pago entre las ventas que cubrió, indexado por el id
+   * del PaymentSeller:
+   *   { "2133": [{documento: "V001-5875", monto: 1800}, ...] }
    *
    * El endpoint del ERP no trae este dato en las filas de pago, así que lo
-   * arma nuestro backend leyendo la base de 7Power. Un pago puede repartirse
-   * entre cuotas de varias ventas, por eso es una lista.
+   * arma nuestro backend leyendo la base de 7Power.
    */
-  obtenerDocumentosDePagos(): Observable<Record<string, string[]>> {
-    return this.http.get<Record<string, string[]>>(
+  obtenerDocumentosDePagos(): Observable<Record<string, AplicacionPago[]>> {
+    return this.http.get<Record<string, AplicacionPago[]>>(
       `${environment.apiUrl}/estado-cuenta/documentos-pagos`
     );
   }

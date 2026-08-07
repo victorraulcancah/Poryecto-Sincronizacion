@@ -16,13 +16,15 @@ use Illuminate\Support\Facades\DB;
 class EstadoCuentaController extends Controller
 {
     /**
-     * Documentos de venta a los que se aplicó cada pago del cliente.
+     * Cómo se repartió cada pago del cliente entre las ventas que cubrió.
      *
-     * Respuesta: { "132": ["V001-3929", "V001-3930"], "160": ["V001-3997"] }
-     * donde la clave es el id del PaymentSeller en el ERP.
+     * Respuesta, indexada por el id del PaymentSeller en el ERP:
+     *   { "2133": [ {"documento":"V001-5875","monto":1800},
+     *               {"documento":"V001-5876","monto":700} ] }
      *
      * Un pago puede repartirse entre cuotas de varias ventas, por eso es una
-     * lista; un pago que solo dejó saldo a favor no aparece en el mapa.
+     * lista con el monto aplicado a cada una; un pago que solo dejó saldo a
+     * favor no aparece en el mapa.
      */
     public function documentosDePagos(): JsonResponse
     {
@@ -57,21 +59,28 @@ class EstadoCuentaController extends Controller
             ->orderBy('s.id')
             ->get([
                 'fps.payment_seller_id as pago_id',
+                'fps.monto',
                 's.nro_documento',
                 'b.tipo as boleta_tipo',
                 'b.serie as boleta_serie',
                 'b.numero as boleta_numero',
             ]);
 
-        $mapa = [];
+        // Varias cuotas de una misma venta se suman en un solo documento.
+        $porPago = [];
         foreach ($filas as $fila) {
             $documento = $this->formatearDocumento($fila);
             if (! $documento) {
                 continue;
             }
             $pagoId = (string) $fila->pago_id;
-            if (! in_array($documento, $mapa[$pagoId] ?? [], true)) {
-                $mapa[$pagoId][] = $documento;
+            $porPago[$pagoId][$documento] = ($porPago[$pagoId][$documento] ?? 0) + (float) $fila->monto;
+        }
+
+        $mapa = [];
+        foreach ($porPago as $pagoId => $documentos) {
+            foreach ($documentos as $documento => $monto) {
+                $mapa[$pagoId][] = ['documento' => $documento, 'monto' => round($monto, 2)];
             }
         }
 

@@ -56,6 +56,12 @@ export class RangoFechasComponent implements OnInit {
   /** Ancho aproximado del panel, para no dejarlo salir de la pantalla. */
   private readonly anchoPanel = 546;
 
+  /** La fecha inicial no puede ser futura: no hay movimientos por venir. */
+  private readonly hoy = this.soloFecha(new Date());
+
+  /** La fecha final sí puede adelantarse, como mucho hasta fin de año. */
+  private readonly finDeAnio = new Date(new Date().getFullYear(), 11, 31);
+
   ngOnInit(): void {
     this.seleccionInicio = this.aFecha(this.desde);
     this.seleccionFin = this.aFecha(this.hasta);
@@ -155,8 +161,23 @@ export class RangoFechasComponent implements OnInit {
 
   // --------------------------------------------------------------- selección
 
+  /**
+   * Un día que no se puede elegir: los de relleno de otro mes, los posteriores
+   * a hoy mientras se elige la fecha inicial, y los de más allá de fin de año.
+   */
+  noSeleccionable(dia: Dia): boolean {
+    if (!dia.delMes) return true;
+    const limite = this.eligiendoInicio ? this.hoy : this.finDeAnio;
+    return dia.fecha > limite;
+  }
+
+  /** El próximo clic define la fecha inicial (no hay rango a medias). */
+  private get eligiendoInicio(): boolean {
+    return !this.seleccionInicio || !!this.seleccionFin;
+  }
+
   elegir(dia: Dia): void {
-    if (!dia.delMes) return;
+    if (this.noSeleccionable(dia)) return;
     const f = this.soloFecha(dia.fecha);
 
     // Sin inicio, o ya había un rango completo: se empieza de nuevo.
