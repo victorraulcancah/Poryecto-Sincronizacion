@@ -393,23 +393,6 @@ class ProductosController extends Controller
     }
 
     /**
-     * Resuelve el tipo de precio del cliente logueado, o para un invitado la
-     * lista configurada en "Tipos de Precio (global)" → pestaña "Clientes
-     * visitantes". Devuelve null solo si no hay nada configurado para
-     * invitados (ahí sí aplica el "inicia sesión para ver el precio").
-     */
-    private function resolverTipoPrecioId(Request $request): ?int
-    {
-        $cliente = $this->clienteAutenticado();
-        if ($cliente) {
-            return $cliente->tipoPrecioEfectivoId();
-        }
-
-        $opciones = $this->opcionesPrecioInvitado();
-        return $opciones[0]['tipo_precio_id'] ?? null;
-    }
-
-    /**
      * Listas activas para invitados, una por moneda como máximo, en orden
      * soles primero (para que sea la opción por defecto en el selector).
      */
@@ -425,14 +408,82 @@ class ProductosController extends Controller
         return $opciones;
     }
 
+    /**
+     * TODAS las listas de precio aplicables (soles primero), no solo la
+     * primera. Es lo que permite que un producto cotizado únicamente en una
+     * moneda muestre su precio en vez de 0.
+     *
+     * - Cliente logueado: sus listas asignadas (PEN y USD); si no tiene
+     *   ninguna, cae en la predeterminada por moneda.
+     * - Invitado: las configuradas en "Clientes visitantes".
+     */
+    private function listasPrecioAplicables(): array
+    {
+        $cliente = $this->clienteAutenticado();
+
+        if ($cliente) {
+            $ids = array_values(array_filter([
+                $cliente->tipo_precio_id,
+                $cliente->tipo_precio_id_usd,
+            ]));
+
+            if (!empty($ids)) {
+                return \App\Models\TipoPrecio::whereIn('id', $ids)
+                    ->where('activo', true)
+                    ->get()
+                    // Soles primero: es la moneda por defecto del catálogo.
+                    ->sortBy(fn($t) => $t->tipo_moneda === 's' ? 0 : 1)
+                    ->map(fn($t) => ['moneda' => $t->tipo_moneda, 'tipo_precio_id' => $t->id])
+                    ->values()
+                    ->all();
+            }
+
+            // Sin listas propias: la predeterminada de cada moneda.
+            $opciones = [];
+            foreach (['s', 'd'] as $moneda) {
+                $tp = \App\Models\TipoPrecio::predeterminado($moneda);
+                if ($tp) {
+                    $opciones[] = ['moneda' => $moneda, 'tipo_precio_id' => $tp->id];
+                }
+            }
+            return $opciones;
+        }
+
+        return $this->opcionesPrecioInvitado();
+    }
+
+    /**
+     * Precio y moneda de un producto recorriendo las listas aplicables.
+     *
+     * Antes se usaba una sola lista (siempre soles) y, si el producto no
+     * tenía precio ahí, caía al campo `precio_venta` de la tabla productos
+     * —que está en 0— así que los productos cotizados solo en dólares se
+     * mostraban en "S/ 0.00". Ahora se prueba lista por lista y se devuelve
+     * la moneda de la que realmente tuvo precio.
+     */
+    private function precioYMonedaProducto($producto, array $listas): array
+    {
+        foreach ($listas as $op) {
+            $precio = $producto->precioPara($op['tipo_precio_id']);
+            if ($precio !== null && $precio > 0) {
+                return ['precio' => $precio, 'moneda' => $op['moneda']];
+            }
+        }
+
+        // Sin precio en ninguna lista: se muestra 0 en la moneda por defecto.
+        return ['precio' => 0, 'moneda' => $listas[0]['moneda'] ?? null];
+    }
+
     public function productosPublicos(Request $request)
     {
-        $tipoPrecioId = $this->resolverTipoPrecioId($request);
-        $precioVisible = $tipoPrecioId !== null;
-        // Moneda resuelta del tipo de precio aplicable (s = soles, d = dólares).
-        $moneda = $tipoPrecioId
-            ? optional(\App\Models\TipoPrecio::find($tipoPrecioId))->tipo_moneda
-            : null;
+        // Todas las listas aplicables (soles primero). El precio y la moneda
+        // se resuelven por producto, porque uno cotizado solo en dólares debe
+        // mostrar su precio en dólares y no "S/ 0.00".
+        $listas = $this->listasPrecioAplicables();
+        // Hay precio si existe AL MENOS una lista, sea soles o dólares. Antes
+        // dependía solo de la de soles, así que un cliente con lista únicamente
+        // en dólares veía el aviso de "inicia sesión para ver el precio".
+        $precioVisible = !empty($listas);
 
         // Se muestran todos los productos activos, incluidos los que no
         // tienen stock (se marcan como "Agotado" en el catálogo en vez de
@@ -508,14 +559,15 @@ class ProductosController extends Controller
             $productos = $query->get();
 
             // Agregar campos calculados para el frontend
-            $productosTransformados = $productos->map(function ($producto) use ($tipoPrecioId, $precioVisible, $moneda) {
+            $productosTransformados = $productos->map(function ($producto) use ($listas, $precioVisible) {
+                $pm = $this->precioYMonedaProducto($producto, $listas);
                 return [
                     'id' => $producto->id,
                     'nombre' => $producto->nombre,
                     'descripcion' => $producto->descripcion,
-                    'precio' => $precioVisible ? ($producto->precioPara($tipoPrecioId) ?? $producto->precio_venta) : null,
+                    'precio' => $precioVisible ? $pm['precio'] : null,
                     'precio_visible' => $precioVisible,
-                    'moneda' => $moneda,
+                    'moneda' => $pm['moneda'],
                     'precio_oferta' => null,
                     'stock' => $producto->stock,
                     'imagen_principal' => $producto->imagen ? asset('storage/productos/' . $producto->imagen) : '/placeholder-product.jpg',
@@ -547,14 +599,15 @@ class ProductosController extends Controller
         $productos = $query->paginate(20);
 
         // Agregar campos calculados para el frontend
-        $productos->getCollection()->transform(function ($producto) use ($tipoPrecioId, $precioVisible, $moneda) {
+        $productos->getCollection()->transform(function ($producto) use ($listas, $precioVisible) {
+            $pm = $this->precioYMonedaProducto($producto, $listas);
             return [
                 'id' => $producto->id,
                 'nombre' => $producto->nombre,
                 'descripcion' => $producto->descripcion,
-                'precio' => $precioVisible ? ($producto->precioPara($tipoPrecioId) ?? $producto->precio_venta) : null,
+                'precio' => $precioVisible ? $pm['precio'] : null,
                 'precio_visible' => $precioVisible,
-                'moneda' => $moneda,
+                'moneda' => $pm['moneda'],
                 'precio_oferta' => null, // Por ahora null, luego puedes agregar este campo
                 'stock' => $producto->stock,
                 'imagen_principal' => $producto->imagen ? asset('storage/productos/' . $producto->imagen) : '/placeholder-product.jpg', // ✅ CORREGIR
@@ -668,22 +721,21 @@ class ProductosController extends Controller
                 $query->orderBy('nombre', 'asc');
             }
 
-            $tipoPrecioId = $this->resolverTipoPrecioId($request);
-            $precioVisible = $tipoPrecioId !== null;
-            $moneda = $tipoPrecioId
-                ? optional(\App\Models\TipoPrecio::find($tipoPrecioId))->tipo_moneda
-                : null;
+            // Precio y moneda por producto (ver listasPrecioAplicables).
+            $listas = $this->listasPrecioAplicables();
+            $precioVisible = !empty($listas);
 
             $productos = $query->with('precios')->limit(10)
                 ->get()
-                ->map(function ($producto) use ($tipoPrecioId, $precioVisible, $moneda) {
+                ->map(function ($producto) use ($listas, $precioVisible) {
+                    $pm = $this->precioYMonedaProducto($producto, $listas);
                     return [
                         'id' => $producto->id,
                         'nombre' => $producto->nombre,
                         'descripcion' => $producto->descripcion,
-                        'precio' => $precioVisible ? ($producto->precioPara($tipoPrecioId) ?? 0) : 0,
+                        'precio' => $precioVisible ? $pm['precio'] : 0,
                         'precio_visible' => $precioVisible,
-                        'moneda' => $moneda,
+                        'moneda' => $pm['moneda'],
                         'categoria' => $producto->categoria?->nombre,
                         'categoria_id' => $producto->categoria_id,
                         'imagen_url' => $producto->imagen ? asset('storage/productos/' . $producto->imagen) : null,
@@ -742,11 +794,9 @@ class ProductosController extends Controller
     public function showPublico(Request $request, $id)
 {
     try {
-        $tipoPrecioId = $this->resolverTipoPrecioId($request);
-        $precioVisible = $tipoPrecioId !== null;
-        $moneda = $tipoPrecioId
-            ? optional(\App\Models\TipoPrecio::find($tipoPrecioId))->tipo_moneda
-            : null;
+        // Precio y moneda por producto (ver listasPrecioAplicables).
+        $listas = $this->listasPrecioAplicables();
+        $precioVisible = !empty($listas);
 
         $producto = Producto::with(['categoria', 'marca', 'precios'])
             ->where('activo', true)
@@ -755,25 +805,25 @@ class ProductosController extends Controller
         // Invitado sin ninguna lista de "Clientes visitantes" configurada:
         // no ve precio (login requerido). Si hay al menos una configurada
         // (o está logueado), se resuelve el precio normalmente.
-        $producto->precio_venta = $precioVisible
-            ? ($producto->precioPara($tipoPrecioId) ?? $producto->precio_venta)
-            : 0;
+        $pm = $this->precioYMonedaProducto($producto, $listas);
+        $producto->precio_venta = $precioVisible ? $pm['precio'] : 0;
         $producto->precio_visible = $precioVisible;
-        $producto->moneda = $moneda;
+        $producto->moneda = $pm['moneda'];
+        $moneda = $pm['moneda'];
 
-        // Solo para invitados: si hay más de una moneda configurada como
-        // "Clientes visitantes", se mandan ambas para el selector S/ / US$
-        // del detalle de producto (sin volver a pedir al backend).
-        $monedaOpciones = [];
-        if (!$this->clienteAutenticado()) {
-            $monedaOpciones = collect($this->opcionesPrecioInvitado())->map(function ($op) use ($producto) {
-                return [
-                    'moneda' => $op['moneda'],
-                    'tipo_precio_id' => $op['tipo_precio_id'],
-                    'precio_venta' => $producto->precioPara($op['tipo_precio_id']),
-                ];
-            })->filter(fn ($op) => $op['precio_venta'] !== null)->values()->all();
-        }
+        // Si el producto tiene precio en más de una moneda, se mandan todas
+        // para el selector S/ / US$ del detalle (sin volver a pedir al
+        // backend). Aplica tanto a invitados como a clientes logueados: antes
+        // solo se enviaba a invitados, así que un cliente con lista en soles y
+        // en dólares no podía elegir la moneda.
+        $monedaOpciones = collect($listas)->map(function ($op) use ($producto) {
+            return [
+                'moneda' => $op['moneda'],
+                'tipo_precio_id' => $op['tipo_precio_id'],
+                'precio_venta' => $producto->precioPara($op['tipo_precio_id']),
+            ];
+        })->filter(fn ($op) => $op['precio_venta'] !== null && $op['precio_venta'] > 0)
+          ->values()->all();
 
         $detalles = ProductoDetalle::where('producto_id', $id)->first();
 
@@ -783,10 +833,11 @@ class ProductosController extends Controller
             ->where('activo', true)
             ->limit(6)
             ->get()
-            ->map(function ($p) use ($tipoPrecioId, $precioVisible, $moneda) {
-                $p->precio_venta = $precioVisible ? ($p->precioPara($tipoPrecioId) ?? $p->precio_venta) : 0;
+            ->map(function ($p) use ($listas, $precioVisible) {
+                $pmRel = $this->precioYMonedaProducto($p, $listas);
+                $p->precio_venta = $precioVisible ? $pmRel['precio'] : 0;
                 $p->precio_visible = $precioVisible;
-                $p->moneda = $moneda;
+                $p->moneda = $pmRel['moneda'];
                 return $p;
             });
 

@@ -624,6 +624,11 @@ class SincronizarDesde7Power extends Command
         $actualizados = 0;
         $saltados = 0;
 
+        // Precios que SÍ existen hoy en Novik, para poder borrar después los
+        // que sobran. Sin esto, un precio borrado en Novik quedaba para
+        // siempre en la tienda y se seguía mostrando (precio "fantasma").
+        $vigentes = [];
+
         foreach ($precios7Power as $fila) {
             $productoId   = $mapeoProductos[$fila->product_id] ?? null;
             $tipoPrecioId = $mapeoTipos[$fila->list_price_id] ?? null;
@@ -632,6 +637,8 @@ class SincronizarDesde7Power extends Command
                 $saltados++;
                 continue;
             }
+
+            $vigentes[] = $productoId . '-' . $tipoPrecioId;
 
             $existente = DB::table('producto_precios')
                 ->where('producto_id', $productoId)
@@ -658,6 +665,31 @@ class SincronizarDesde7Power extends Command
             }
         }
 
-        $this->info(" Precios sincronizados: {$insertados} nuevos, {$actualizados} actualizados, {$saltados} saltados (sin mapeo)");
+        // Borrar de la tienda los precios que ya no existen en Novik. Solo se
+        // tocan las listas que están mapeadas a Novik: si alguna lista se
+        // administra únicamente en la tienda, no se le borra nada.
+        $eliminados = 0;
+        $vigentes = array_flip($vigentes);
+        $listasMapeadas = $mapeoTipos->values()->all();
+
+        if (!empty($listasMapeadas)) {
+            DB::table('producto_precios')
+                ->whereIn('tipo_precio_id', $listasMapeadas)
+                ->select('id', 'producto_id', 'tipo_precio_id')
+                ->orderBy('id')
+                ->chunk(500, function ($filas) use ($vigentes, &$eliminados) {
+                    $sobran = [];
+                    foreach ($filas as $f) {
+                        if (!isset($vigentes[$f->producto_id . '-' . $f->tipo_precio_id])) {
+                            $sobran[] = $f->id;
+                        }
+                    }
+                    if (!empty($sobran)) {
+                        $eliminados += DB::table('producto_precios')->whereIn('id', $sobran)->delete();
+                    }
+                });
+        }
+
+        $this->info(" Precios sincronizados: {$insertados} nuevos, {$actualizados} actualizados, {$eliminados} eliminados (ya no están en Novik), {$saltados} saltados (sin mapeo)");
     }
 }
