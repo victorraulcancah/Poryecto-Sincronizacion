@@ -614,9 +614,11 @@
                             class="form-control form-control-sm rounded-6"
                             min="0"
                             step="0.01"
+                            [max]="montoMaximoMetodo(tipo)"
                             [ngModel]="getMontoMetodo(tipo)"
                             [ngModelOptions]="{standalone: true}"
                             (ngModelChange)="onMontoMetodoChange(tipo, $event)"
+                            (input)="corregirTope(tipo, $event)"
                             placeholder="0.00"
                           />
                         </div>
@@ -625,9 +627,28 @@
                   </div>
                 </div>
 
-                <div class="alert alert-info d-flex align-items-center gap-8 py-8 px-12 mb-24" style="font-size: 0.85rem;">
-                  <i class="ph ph-info"></i>
-                  <span>Puedes combinar varios métodos de pago. Ingresa el monto que corresponda en cada moneda.</span>
+                <!-- Cuadre de los pagos: la suma de los montos tiene que ser
+                     exactamente el total de cada moneda. -->
+                <div *ngIf="pagosCuadran" class="alert alert-success d-flex align-items-center gap-8 py-8 px-12 mb-24" style="font-size: 0.85rem;">
+                  <i class="ph-fill ph-check-circle"></i>
+                  <span>Los montos ingresados cubren el total de la compra.</span>
+                </div>
+
+                <div *ngIf="!pagosCuadran" class="alert alert-warning py-8 px-12 mb-24" style="font-size: 0.85rem;">
+                  <div class="d-flex align-items-center gap-8 mb-4">
+                    <i class="ph ph-warning-circle"></i>
+                    <span>Los montos deben sumar exactamente el total de la compra.</span>
+                  </div>
+                  <div *ngFor="let m of monedasDescuadradas" class="ms-24">
+                    <ng-container *ngIf="saldoPorPagar(m) > 0">
+                      Falta <strong>{{ m | moneda }} {{ formatPrice(saldoPorPagar(m)) }}</strong>
+                      en {{ m === 'd' ? 'dólares' : 'soles' }}.
+                    </ng-container>
+                    <ng-container *ngIf="saldoPorPagar(m) < 0">
+                      Sobra <strong>{{ m | moneda }} {{ formatPrice(-saldoPorPagar(m)) }}</strong>
+                      en {{ m === 'd' ? 'dólares' : 'soles' }}.
+                    </ng-container>
+                  </div>
                 </div>
 
                 <!-- Total a pagar -->
@@ -902,7 +923,7 @@
                   type="button"
                   class="btn btn-main py-12 rounded-8"
                   (click)="pedirCotizacion()"
-                  [disabled]="procesandoPedido"
+                  [disabled]="procesandoPedido || !pagosCuadran"
                 >
                   <i class="ph ph-file-pdf me-8" *ngIf="!procesandoPedido"></i>
                   <i class="ph ph-spinner ph-spin me-8" *ngIf="procesandoPedido"></i>

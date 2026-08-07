@@ -368,6 +368,69 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     return (tipo?.codigo || '').toLowerCase() === this.CODIGO_CREDITO;
   }
 
+  // ------------------------------------------------------- cuadre de los pagos
+
+  /** Total que hay que cubrir en una moneda. */
+  totalAPagar(moneda: string): number {
+    return this.redondear(this.getTotalFinalPorMoneda(moneda));
+  }
+
+  /**
+   * Lo que falta por pagar en una moneda: positivo si falta, negativo si se
+   * ingresó de más.
+   */
+  saldoPorPagar(moneda: string): number {
+    return this.redondear(this.totalAPagar(moneda) - this.getTotalIngresadoPorMoneda(moneda));
+  }
+
+  /** Los montos ingresados cubren exactamente el total de cada moneda. */
+  get pagosCuadran(): boolean {
+    return this.monedasDisponibles.every(m => Math.abs(this.saldoPorPagar(m)) < 0.01);
+  }
+
+  /** Monedas donde todavía falta o sobra dinero, para el aviso del paso 3. */
+  get monedasDescuadradas(): string[] {
+    return this.monedasDisponibles.filter(m => Math.abs(this.saldoPorPagar(m)) >= 0.01);
+  }
+
+  /**
+   * Máximo que se puede poner en un método: lo que falta por cubrir en su
+   * moneda (y, si es crédito, sin pasar del cupo aprobado).
+   */
+  montoMaximoMetodo(tipo: TipoPago): number {
+    const moneda = this.monedaPagoSeleccionada;
+    const otros = this.getTotalIngresadoPorMoneda(moneda) - this.getMontoMetodo(tipo);
+    let maximo = Math.max(0, this.redondear(this.totalAPagar(moneda) - otros));
+
+    if (this.esMetodoCredito(tipo)) {
+      maximo = Math.min(maximo, this.creditoDisponible);
+    }
+    return maximo;
+  }
+
+  /**
+   * Recorta en el propio input lo que se escribió de más.
+   *
+   * `onMontoMetodoChange` ya topa el valor del modelo, pero `ngModel` no
+   * reescribe el campo cuando el modelo no cambió: escribir 1000 sobre un tope
+   * de 100 dejaba el modelo en 100 y "1000" a la vista.
+   */
+  corregirTope(tipo: TipoPago, evento: Event): void {
+    const input = evento.target as HTMLInputElement;
+    const escrito = Number(input.value);
+
+    if (!input.value || isNaN(escrito)) return;
+
+    const tope = this.montoMaximoMetodo(tipo);
+    if (escrito > tope) {
+      input.value = String(tope);
+    }
+  }
+
+  private redondear(valor: number): number {
+    return Math.round((Number(valor) || 0) * 100) / 100;
+  }
+
   buscarDocumento(): void {
     const numeroDocumento = this.checkoutForm.get('numeroDocumento')?.value;
 
@@ -633,6 +696,29 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // La suma de los métodos de pago tiene que dar exactamente el total de
+    // cada moneda: el backend rechaza la cotización si no cuadra, así que se
+    // avisa acá con el detalle en vez de dejar que falle al enviar.
+    if (!this.pagosCuadran) {
+      const detalle = this.monedasDescuadradas.map(m => {
+        const saldo = this.saldoPorPagar(m);
+        const simbolo = m === 'd' ? 'US$' : 'S/';
+        const nombre = m === 'd' ? 'dólares' : 'soles';
+        return saldo > 0
+          ? `<li>Falta ${simbolo} ${this.formatPrice(saldo)} en ${nombre}</li>`
+          : `<li>Sobra ${simbolo} ${this.formatPrice(-saldo)} en ${nombre}</li>`;
+      });
+
+      Swal.fire({
+        title: 'Los montos no cuadran',
+        html: `Los métodos de pago deben sumar exactamente el total de la compra:
+               <ul class="text-start mb-0">${detalle.join('')}</ul>`,
+        icon: 'warning',
+        confirmButtonColor: '#dc3545'
+      });
+      return;
+    }
+
     // ✅ Si eligió Factura, se guarda su RUC/Razón Social en su perfil para no
     // tener que volver a pedirlos en su próxima compra.
     if (this.tipoComprobante === 'factura') {
@@ -827,12 +913,13 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   onMontoMetodoChange(tipo: TipoPago, valor: string | number): void {
-    let monto = Number(valor) || 0;
-    // A crédito no se puede poner más de lo aprobado; el backend igual lo
-    // vuelve a validar antes de descontarlo.
-    if (this.esMetodoCredito(tipo)) {
-      monto = Math.min(monto, this.creditoDisponible);
-    }
+    // No se puede ingresar más de lo que falta por cubrir en esa moneda, ni
+    // más crédito del aprobado. El backend vuelve a validar el cuadre antes de
+    // crear la cotización.
+    const monto = Math.min(
+      Math.max(0, this.redondear(Number(valor) || 0)),
+      this.montoMaximoMetodo(tipo)
+    );
     this.montosPorMetodo[this.claveMetodoPago(tipo)] = monto;
 
     // ✅ Ingresar un monto también selecciona la tarjeta del método (el input
