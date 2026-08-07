@@ -15,6 +15,11 @@ export interface Cotizacion {
   moneda?: string;
   total: number;
   estado_actual: EstadoCotizacion;
+  /**
+   * El cliente todavía puede editarla: su pedido sigue "En espera", o sea que
+   * ningún vendedor entró a atenderlo.
+   */
+  editable: boolean;
   forma_envio: string;
   direccion_envio: string;
   observaciones?: string;

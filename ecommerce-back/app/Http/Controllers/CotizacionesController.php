@@ -175,6 +175,7 @@ class CotizacionesController extends Controller
             // Calcular totales
             $subtotal = 0;
             $igv = 0;
+            $totalPorMoneda = [];
             $productosValidados = [];
 
             foreach ($request->productos as $prod) {
@@ -199,17 +200,24 @@ class CotizacionesController extends Controller
                 $subtotal += $subtotalLineaBase;
                 $igv += $igvLinea;
 
+                $monedaLinea = $pm['moneda'] ?? 's';
+                // Total cobrable de cada moneda: es contra esto que se validan
+                // los metodos de pago, porque soles y dolares no se suman.
+                $totalPorMoneda[$monedaLinea] = ($totalPorMoneda[$monedaLinea] ?? 0) + $subtotalLineaBruto;
+
                 $productosValidados[] = [
                     'producto' => $producto,
                     'cantidad' => $cantidad,
                     'precio_unitario' => $precioUnitario,
                     'subtotal_linea' => $subtotalLineaBase,
-                    'moneda' => $pm['moneda'] ?? 's',
+                    'moneda' => $monedaLinea,
                 ];
             }
 
             $costoEnvio = $request->costo_envio ?? 0;
             $total = $subtotal + $igv + $costoEnvio;
+            // El envio se cobra en soles.
+            $totalPorMoneda['s'] = ($totalPorMoneda['s'] ?? 0) + $costoEnvio;
             // Moneda de la cotizacion: la de sus lineas. Si se mezclan soles y
             // dolares se deja soles, porque la cabecera guarda un solo total;
             // cada linea si conserva su moneda real.
@@ -223,9 +231,27 @@ class CotizacionesController extends Controller
             $montoCredito = 0;
 
             if (!empty($metodosPago)) {
-                $sumaMetodos = array_sum(array_column($metodosPago, 'monto'));
-                if (abs($sumaMetodos - $total) > 0.01) {
-                    throw new \Exception('La suma de los métodos de pago no coincide con el total de la cotización.');
+                // El cuadre se valida por moneda. Antes se comparaba la suma de
+                // todos los metodos contra un unico total que mezclaba soles y
+                // dolares, asi que una compra mixta nunca cuadraba.
+                $pagadoPorMoneda = [];
+                foreach ($metodosPago as $metodo) {
+                    $m = $metodo['moneda'] ?? 's';
+                    $pagadoPorMoneda[$m] = ($pagadoPorMoneda[$m] ?? 0) + (float) $metodo['monto'];
+                }
+
+                foreach (['s', 'd'] as $m) {
+                    $esperado = round($totalPorMoneda[$m] ?? 0, 2);
+                    $pagado = round($pagadoPorMoneda[$m] ?? 0, 2);
+
+                    if (abs($esperado - $pagado) > 0.01) {
+                        $simbolo = $m === 'd' ? 'US$' : 'S/';
+                        throw new \Exception(
+                            'Los métodos de pago en ' . ($m === 'd' ? 'dólares' : 'soles')
+                            . ' suman ' . $simbolo . ' ' . number_format($pagado, 2)
+                            . ' y el total es ' . $simbolo . ' ' . number_format($esperado, 2) . '.'
+                        );
+                    }
                 }
 
                 // Códigos que identifican un pago a crédito. 'credito_autorizado'
@@ -321,13 +347,19 @@ class CotizacionesController extends Controller
                 1 // Sistema
             );
 
+            // El pedido se genera en el acto, en estado "En espera": el cliente
+            // ya no tiene que pulsar "Pedir" en un segundo paso. Mientras siga
+            // en ese estado puede seguir editando la cotización.
+            $pedido = $this->crearPedidoDesdeCotizacion($cotizacion);
+
             DB::commit();
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Cotización creada exitosamente',
                 'cotizacion' => $cotizacion->load(['detalles', 'estadoCotizacion', 'metodosPago']),
-                'codigo_cotizacion' => $cotizacion->codigo_cotizacion
+                'codigo_cotizacion' => $cotizacion->codigo_cotizacion,
+                'pedido_codigo' => $pedido->codigo_pedido,
             ], 201);
 
         } catch (\Exception $e) {
@@ -384,11 +416,15 @@ class CotizacionesController extends Controller
                 ], 403);
             }
 
-            // Solo se puede editar en estado Pendiente (1)
-            if ($cotizacion->estado_cotizacion_id !== 1) {
+            // El candado no es el estado de la cotización sino el del pedido:
+            // el cliente puede editar mientras el vendedor no haya entrado a
+            // atenderlo, o sea mientras el pedido siga "En espera".
+            $pedido = $this->pedidoDeCotizacion($cotizacion);
+
+            if ($pedido && !$pedido->esEditablePorCliente()) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Solo se pueden editar cotizaciones en estado Pendiente'
+                    'message' => 'Esta cotización ya está siendo atendida y no se puede editar.'
                 ], 422);
             }
 
@@ -473,6 +509,16 @@ class CotizacionesController extends Controller
                 1
             );
 
+            // El pedido ya existe desde que se creó la cotización, así que hay
+            // que rehacerlo con los cambios; si no, el vendedor vería en el
+            // dashboard los productos y totales viejos.
+            if ($pedido) {
+                $pedido->detalles()->delete();
+                $pedido->metodosPago()->delete();
+                $pedido->delete();
+            }
+            $this->crearPedidoDesdeCotizacion($cotizacion->fresh());
+
             DB::commit();
 
             return response()->json([
@@ -515,9 +561,14 @@ class CotizacionesController extends Controller
             ->orderBy('fecha_cotizacion', 'desc')
             ->get();
 
+            // Estado del pedido de cada cotizacion, en una sola consulta: de él
+            // depende si el cliente todavía puede editarla.
+            $estadoPedidoPorCotizacion = Pedido::whereIn('cotizacion_id', $cotizaciones->pluck('id'))
+                ->pluck('estado_pedido_id', 'cotizacion_id');
+
             return response()->json([
                 'status' => 'success',
-                'cotizaciones' => $cotizaciones->map(function($cotizacion) {
+                'cotizaciones' => $cotizaciones->map(function($cotizacion) use ($estadoPedidoPorCotizacion) {
                     return [
                         'id' => $cotizacion->id,
                         'codigo_cotizacion' => $cotizacion->codigo_cotizacion,
@@ -529,6 +580,10 @@ class CotizacionesController extends Controller
                         'total' => $cotizacion->total,
                         'moneda' => $cotizacion->moneda ?? 's',
                         'estado_actual' => $cotizacion->estadoCotizacion,
+                        // El cliente puede editar mientras el vendedor no haya
+                        // entrado a atender el pedido (sigue "En espera").
+                        'editable' => ($estadoPedidoPorCotizacion[$cotizacion->id] ?? Pedido::ESTADO_EN_ESPERA)
+                            === Pedido::ESTADO_EN_ESPERA,
                         'forma_envio' => $cotizacion->forma_envio,
                         'direccion_envio' => $cotizacion->direccion_envio,
                         'observaciones' => $cotizacion->observaciones,
@@ -864,6 +919,88 @@ class CotizacionesController extends Controller
     /**
      * Solicitar procesamiento de cotización (cliente pide cotización)
      */
+    /**
+     * Pedido generado por una cotización, si ya existe.
+     *
+     * Se busca por `cotizacion_id`; los pedidos viejos no lo tienen, así que se
+     * cae al código de cotización dentro de las observaciones, que era como se
+     * relacionaban antes.
+     */
+    private function pedidoDeCotizacion(Cotizacion $cotizacion): ?Pedido
+    {
+        return Pedido::where('cotizacion_id', $cotizacion->id)
+            ->orWhere('observaciones', 'like', '%' . $cotizacion->codigo_cotizacion . '%')
+            ->first();
+    }
+
+    /**
+     * Crea el pedido correspondiente a una cotización.
+     *
+     * Nace "En espera": es el estado en el que el cliente todavía puede editar
+     * su cotización, hasta que un vendedor o administrador lo pase a
+     * "En preparación" o lo cancele.
+     */
+    private function crearPedidoDesdeCotizacion(Cotizacion $cotizacion): Pedido
+    {
+        $cotizacion->load('detalles.producto', 'metodosPago');
+        $referencia = 'Generado desde cotización ' . $cotizacion->codigo_cotizacion;
+
+        $pedido = Pedido::create([
+            'codigo_pedido'      => 'PED-' . date('Ymd') . '-' . str_pad(Pedido::count() + 1, 4, '0', STR_PAD_LEFT),
+            'cotizacion_id'      => $cotizacion->id,
+            'user_cliente_id'    => $cotizacion->user_cliente_id,
+            'cliente_id'         => $cotizacion->cliente_id,
+            'fecha_pedido'       => now(),
+            'subtotal'           => $cotizacion->subtotal,
+            'igv'                => $cotizacion->igv,
+            'descuento_total'    => $cotizacion->descuento_total ?? 0,
+            'total'              => $cotizacion->total,
+            'estado_pedido_id'   => Pedido::ESTADO_EN_ESPERA,
+            'metodo_pago'        => $cotizacion->metodo_pago_preferido ?? 'Por confirmar',
+            'forma_envio'        => $cotizacion->forma_envio,
+            'costo_envio'        => $cotizacion->costo_envio ?? 0,
+            'moneda'             => $cotizacion->moneda ?? 's',
+            'direccion_envio'    => $cotizacion->direccion_envio,
+            'telefono_contacto'  => $cotizacion->telefono_contacto,
+            'cliente_nombre'     => $cotizacion->cliente_nombre,
+            'cliente_email'      => $cotizacion->cliente_email,
+            'numero_documento'   => $cotizacion->numero_documento,
+            'departamento_id'    => $cotizacion->departamento_id,
+            'provincia_id'       => $cotizacion->provincia_id,
+            'distrito_id'        => $cotizacion->distrito_id,
+            'departamento_nombre' => $cotizacion->departamento_nombre,
+            'provincia_nombre'   => $cotizacion->provincia_nombre,
+            'distrito_nombre'    => $cotizacion->distrito_nombre,
+            'ubicacion_completa' => $cotizacion->ubicacion_completa,
+            'observaciones'      => trim(($cotizacion->observaciones ? $cotizacion->observaciones . ' | ' : '') . $referencia),
+        ]);
+
+        foreach ($cotizacion->detalles as $detalle) {
+            PedidoDetalle::create([
+                'pedido_id'       => $pedido->id,
+                'producto_id'     => $detalle->producto_id,
+                'codigo_producto' => $detalle->producto->codigo_producto ?? '',
+                'nombre_producto' => $detalle->nombre_producto,
+                'cantidad'        => $detalle->cantidad,
+                'precio_unitario' => $detalle->precio_unitario,
+                'subtotal_linea'  => $detalle->subtotal_linea,
+                'moneda'          => $detalle->moneda ?? $cotizacion->moneda ?? 's',
+            ]);
+        }
+
+        // Copiar el desglose de métodos de pago combinados (Efectivo, Yape, Crédito, etc.)
+        foreach ($cotizacion->metodosPago as $metodoPago) {
+            \App\Models\PedidoMetodoPago::create([
+                'pedido_id' => $pedido->id,
+                'tipo'      => $metodoPago->tipo,
+                'moneda'    => $metodoPago->moneda,
+                'monto'     => $metodoPago->monto,
+            ]);
+        }
+
+        return $pedido;
+    }
+
     public function pedirCotizacion($id)
     {
         try {
@@ -906,8 +1043,7 @@ class CotizacionesController extends Controller
             }
 
             // Evitar crear pedido duplicado si ya existe uno para esta cotización
-            $referencia = 'Generado desde cotización ' . $cotizacion->codigo_cotizacion;
-            $pedidoExistente = Pedido::where('observaciones', 'like', '%' . $cotizacion->codigo_cotizacion . '%')->first();
+            $pedidoExistente = $this->pedidoDeCotizacion($cotizacion);
 
             if ($pedidoExistente) {
                 return response()->json([
@@ -932,60 +1068,7 @@ class CotizacionesController extends Controller
                 );
             }
 
-            // Crear pedido a partir de la cotización
-            $cotizacion->load('detalles.producto');
-
-            $pedido = Pedido::create([
-                'codigo_pedido'      => 'PED-' . date('Ymd') . '-' . str_pad(Pedido::count() + 1, 4, '0', STR_PAD_LEFT),
-                'user_cliente_id'    => $cotizacion->user_cliente_id,
-                'cliente_id'         => $cotizacion->cliente_id,
-                'fecha_pedido'       => now(),
-                'subtotal'           => $cotizacion->subtotal,
-                'igv'                => $cotizacion->igv,
-                'descuento_total'    => $cotizacion->descuento_total ?? 0,
-                'total'              => $cotizacion->total,
-                'estado_pedido_id'   => 1, // Pendiente
-                'metodo_pago'        => $cotizacion->metodo_pago_preferido ?? 'Por confirmar',
-                'forma_envio'        => $cotizacion->forma_envio,
-                'costo_envio'        => $cotizacion->costo_envio ?? 0,
-                'moneda'             => $cotizacion->moneda ?? 's',
-                'direccion_envio'    => $cotizacion->direccion_envio,
-                'telefono_contacto'  => $cotizacion->telefono_contacto,
-                'cliente_nombre'     => $cotizacion->cliente_nombre,
-                'cliente_email'      => $cotizacion->cliente_email,
-                'numero_documento'   => $cotizacion->numero_documento,
-                'departamento_id'    => $cotizacion->departamento_id,
-                'provincia_id'       => $cotizacion->provincia_id,
-                'distrito_id'        => $cotizacion->distrito_id,
-                'departamento_nombre' => $cotizacion->departamento_nombre,
-                'provincia_nombre'   => $cotizacion->provincia_nombre,
-                'distrito_nombre'    => $cotizacion->distrito_nombre,
-                'ubicacion_completa' => $cotizacion->ubicacion_completa,
-                'observaciones'      => trim(($cotizacion->observaciones ? $cotizacion->observaciones . ' | ' : '') . $referencia),
-            ]);
-
-            foreach ($cotizacion->detalles as $detalle) {
-                PedidoDetalle::create([
-                    'pedido_id'       => $pedido->id,
-                    'producto_id'     => $detalle->producto_id,
-                    'codigo_producto' => $detalle->producto->codigo_producto ?? '',
-                    'nombre_producto' => $detalle->nombre_producto,
-                    'cantidad'        => $detalle->cantidad,
-                    'precio_unitario' => $detalle->precio_unitario,
-                    'subtotal_linea'  => $detalle->subtotal_linea,
-                    'moneda'          => $detalle->moneda ?? $cotizacion->moneda ?? 's',
-                ]);
-            }
-
-            // Copiar el desglose de métodos de pago combinados (Efectivo, Yape, Crédito, etc.)
-            foreach ($cotizacion->metodosPago as $metodoPago) {
-                \App\Models\PedidoMetodoPago::create([
-                    'pedido_id' => $pedido->id,
-                    'tipo'      => $metodoPago->tipo,
-                    'moneda'    => $metodoPago->moneda,
-                    'monto'     => $metodoPago->monto,
-                ]);
-            }
+            $pedido = $this->crearPedidoDesdeCotizacion($cotizacion);
 
             DB::commit();
 

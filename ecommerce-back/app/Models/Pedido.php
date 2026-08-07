@@ -9,16 +9,33 @@ class Pedido extends Model
 {
     use HasFactory;
 
+    /**
+     * Estados del flujo del e-commerce (tabla estados_pedido).
+     *
+     * El pedido del cliente nace "En espera": es el único estado en el que
+     * puede seguir editando su cotización. Un vendedor o administrador lo pasa
+     * a "En preparación" —y ahí queda cerrado— o lo cancela.
+     */
+    public const ESTADO_EN_ESPERA = 10;
+    public const ESTADO_EN_PREPARACION = 4;
+    public const ESTADO_CANCELADO = 8;
+
     protected $fillable = [
         'codigo_pedido',
         'cliente_id',
         'user_cliente_id',
+        // Cotización que originó el pedido; es la que el cliente puede editar
+        // mientras el pedido siga "En espera".
+        'cotizacion_id',
         'fecha_pedido',
         'subtotal',
         'igv',
         'descuento_total',
         'total',
         'estado_pedido_id',
+        // Cuándo dejó de estar "En espera"; con esto la bandeja lo saca del
+        // listado al cierre del día.
+        'atendido_at',
         'metodo_pago',
         'observaciones',
         'direccion_envio',
@@ -118,17 +135,47 @@ class Pedido extends Model
         return $this->forma_envio === 'envio_provincia';
     }
 
-    // Obtener estados disponibles según el tipo de envío
+    /**
+     * Estados que se pueden elegir en el dashboard.
+     *
+     * El flujo del e-commerce tiene tres: el pedido nace "En espera" y de ahí
+     * el vendedor solo puede pasarlo a "En preparación" o "Cancelado". La lista
+     * ya no depende del tipo de envío; los estados viejos siguen en la tabla
+     * porque hay pedidos antiguos que los referencian, pero no se ofrecen.
+     */
     public function getEstadosDisponibles()
     {
-        if ($this->esEnvioAProvincia()) {
-            // Estados específicos para envío a provincia
-            return EstadoPedido::whereIn('id', [1, 2, 7, 8, 5, 6])->orderBy('orden')->get();
-            // 1: Pendiente, 2: Confirmado, 7: En Recepción, 8: Enviado a Provincia, 5: Entregado, 6: Cancelado
-        } else {
-            // Estados normales para delivery y recojo en tienda
-            return EstadoPedido::whereIn('id', [1, 2, 3, 4, 5, 6])->orderBy('orden')->get();
-            // 1: Pendiente, 2: Confirmado, 3: En Preparación, 4: Enviado, 5: Entregado, 6: Cancelado
-        }
+        return EstadoPedido::whereIn('id', [
+            self::ESTADO_EN_ESPERA,
+            self::ESTADO_EN_PREPARACION,
+            self::ESTADO_CANCELADO,
+        ])->orderBy('orden')->get();
+    }
+
+    /**
+     * Mientras está "En espera", el cliente todavía puede editar la cotización
+     * que originó el pedido. Cualquier otro estado lo cierra.
+     */
+    public function esEditablePorCliente(): bool
+    {
+        return (int) $this->estado_pedido_id === self::ESTADO_EN_ESPERA;
+    }
+
+    /**
+     * Bandeja de trabajo: lo que falta atender, más lo que se atendió hoy.
+     *
+     * Al pasar de medianoche los ya atendidos salen del listado, para que la
+     * pantalla muestre solo pedidos que esperan una acción. No se borra nada:
+     * siguen consultables pidiendo el historial.
+     */
+    public function scopePendientesDeAccion($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('estado_pedido_id', self::ESTADO_EN_ESPERA)
+                ->orWhere(function ($q) {
+                    $q->whereNotNull('atendido_at')
+                        ->whereDate('atendido_at', now()->toDateString());
+                });
+        });
     }
 }

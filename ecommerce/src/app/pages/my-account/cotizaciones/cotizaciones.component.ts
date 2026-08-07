@@ -173,80 +173,8 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
     });
   }
 
-  pedirCotizacion(cotizacion: Cotizacion): void {
-    if (cotizacion.estado_actual.id !== 1) {
-      Swal.fire({
-        title: 'Solicitud ya enviada',
-        text: 'Ya hemos recibido tu solicitud para procesar esta cotización. Un administrador te contactará pronto.',
-        icon: 'info',
-        confirmButtonColor: '#0dcaf0'
-      });
-      return;
-    }
-
-    Swal.fire({
-      title: '¿Solicitar procesamiento?',
-      html: `
-        <div class="text-start">
-          <p><strong>Cotización:</strong> ${cotizacion.codigo_cotizacion}</p>
-          <p><strong>Total:</strong> S/ ${cotizacion.total}</p>
-          <p class="text-info mt-3">
-            <i class="ph ph-info-circle"></i>
-            Se notificará al administrador para que procese tu cotización y te contacte pronto.
-          </p>
-        </div>
-      `,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#0dcaf0',
-      cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Sí, solicitar',
-      cancelButtonText: 'Cancelar'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        console.log('Solicitando procesamiento de cotización:', cotizacion);
-
-        // Mostrar loading
-        Swal.fire({
-          title: 'Enviando solicitud...',
-          text: 'Por favor espera mientras notificamos al administrador',
-          allowOutsideClick: false,
-          allowEscapeKey: false,
-          showConfirmButton: false,
-          didOpen: () => {
-            Swal.showLoading();
-          }
-        });
-
-        this.cotizacionesService.pedirCotizacion(cotizacion.id).subscribe({
-          next: (response) => {
-            if (response.status === 'success') {
-              const codigoPedido = (response as any).pedido_codigo;
-              Swal.fire({
-                title: '¡Solicitud enviada!',
-                html: `
-                  <p>${response.message || 'Hemos notificado al administrador. Te contactaremos pronto.'}</p>
-                  ${codigoPedido ? `<p class="text-sm text-muted mt-2">N° de pedido: <strong>${codigoPedido}</strong></p>` : ''}
-                `,
-                icon: 'success',
-                confirmButtonColor: '#198754'
-              });
-              this.cargarCotizaciones(); // Recargar la lista
-            }
-          },
-          error: (error) => {
-            console.error('Error solicitando cotización:', error);
-            Swal.fire({
-              title: 'Error',
-              text: 'Error al enviar la solicitud. Inténtalo de nuevo.',
-              icon: 'error',
-              confirmButtonColor: '#dc3545'
-            });
-          }
-        });
-      }
-    });
-  }
+  // El boton "Pedir" desaparecio: la cotizacion genera su pedido al crearse
+  // desde el checkout, asi que ya no hay un segundo paso que solicitar.
 
   eliminarCotizacion(cotizacion: Cotizacion): void {
     Swal.fire({
@@ -310,6 +238,7 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
     });
   }
 
+
   formatearFecha(fecha: string | undefined): string {
     if (!fecha) return '-';
     return this.cotizacionesService.formatearFecha(fecha);
@@ -333,6 +262,18 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
   // ── Edición de cotización ─────────────────────────────────
 
   abrirEdicion(cotizacion: Cotizacion): void {
+    // La ventana de edición se cierra cuando un vendedor toma el pedido; el
+    // backend también lo rechaza, pero así se avisa antes de abrir el modal.
+    if (!cotizacion.editable) {
+      Swal.fire({
+        title: 'Ya no se puede editar',
+        text: 'Un vendedor ya está atendiendo tu pedido, así que la cotización quedó cerrada.',
+        icon: 'info',
+        confirmButtonColor: '#0dcaf0'
+      });
+      return;
+    }
+
     this.cotizacionEnEdicion = cotizacion;
     this.activeTabEdicion = 'datos';
     this.formEdicion = {

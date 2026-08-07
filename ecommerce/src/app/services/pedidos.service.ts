@@ -103,8 +103,15 @@ export class PedidosService {
   /**
    * Obtener lista de pedidos
    */
-  getPedidos(): Observable<PedidosResponse> {
-    return this.http.get<PedidosResponse>(`${environment.apiUrl}/pedidos`);
+  /**
+   * Bandeja de pedidos: lo que espera una acción, más lo atendido hoy.
+   *
+   * Con `historial = true` se piden todos, incluidos los ya atendidos en días
+   * anteriores (nada se borra, solo sale de la bandeja al cierre del día).
+   */
+  getPedidos(historial = false): Observable<PedidosResponse> {
+    const params: Record<string, string> = historial ? { historial: '1' } : {};
+    return this.http.get<PedidosResponse>(`${environment.apiUrl}/pedidos`, { params });
   }
 
   /**

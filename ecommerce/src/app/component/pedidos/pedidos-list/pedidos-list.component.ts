@@ -112,9 +112,21 @@ export class PedidosListComponent implements OnInit {
     window.open(`${environment.erpFrontUrl}?${params.toString()}`, '_blank');
   }
 
+  /**
+   * Alterna entre la bandeja (pendientes + atendidos hoy) y el historial
+   * completo. Los pedidos atendidos en días anteriores no se borran: solo
+   * salen de la bandeja al cierre del día.
+   */
+  verHistorial = false;
+
+  alternarHistorial(): void {
+    this.verHistorial = !this.verHistorial;
+    this.cargarPedidos();
+  }
+
   cargarPedidos(): void {
     this.loading = true;
-    this.pedidosService.getPedidos().subscribe({
+    this.pedidosService.getPedidos(this.verHistorial).subscribe({
       next: (response) => {
         if (response.status === 'success') {
           this.pedidos = response.pedidos || [];
@@ -223,6 +235,76 @@ export class PedidosListComponent implements OnInit {
   getInitials(nombre: string): string {
     if (!nombre) return '?';
     return nombre.split(' ').map(n => n.charAt(0)).join('').toUpperCase().substring(0, 2);
+  }
+
+  // ────────────────────────── Detalle de pago por moneda ──────────────────────
+  //
+  // Un pedido puede tener productos en soles y en dólares a la vez. La cabecera
+  // guarda un solo subtotal/igv/total —que suma las dos monedas y por eso no
+  // significa nada—, así que el desglose se recalcula desde las líneas, que sí
+  // llevan su moneda.
+
+  /** Monedas presentes en el pedido, soles primero. */
+  monedasDelPedido(pedido: any): string[] {
+    const detalles = pedido?.detalles || [];
+    const pagos = pedido?.metodos_pago || [];
+
+    const monedas = new Set<string>([
+      ...detalles.map((d: any) => d.moneda || 's'),
+      ...pagos.map((m: any) => m.moneda || 's'),
+    ]);
+
+    return ['s', 'd'].filter(m => monedas.has(m));
+  }
+
+  /** Métodos de pago de una moneda. */
+  pagosDeMoneda(pedido: any, moneda: string): any[] {
+    return (pedido?.metodos_pago || []).filter((m: any) => (m.moneda || 's') === moneda);
+  }
+
+  /** Lo pagado en una moneda. */
+  totalPagadoEnMoneda(pedido: any, moneda: string): number {
+    return this.pagosDeMoneda(pedido, moneda)
+      .reduce((suma: number, m: any) => suma + (Number(m.monto) || 0), 0);
+  }
+
+  /**
+   * Total de los productos de una moneda. El envío se cobra en soles, así que
+   * solo entra en ese bloque.
+   */
+  totalDeMoneda(pedido: any, moneda: string): number {
+    const productos = (pedido?.detalles || [])
+      .filter((d: any) => (d.moneda || 's') === moneda)
+      .reduce((suma: number, d: any) => suma + (Number(d.cantidad) || 0) * (Number(d.precio_unitario) || 0), 0);
+
+    return moneda === 's' ? productos + (Number(pedido?.costo_envio) || 0) : productos;
+  }
+
+  /** Base sin IGV: los precios ya lo incluyen. */
+  subtotalDeMoneda(pedido: any, moneda: string): number {
+    return this.totalDeMoneda(pedido, moneda) / 1.18;
+  }
+
+  igvDeMoneda(pedido: any, moneda: string): number {
+    return this.totalDeMoneda(pedido, moneda) - this.subtotalDeMoneda(pedido, moneda);
+  }
+
+  nombreMoneda(moneda: string): string {
+    return moneda === 'd' ? 'Dólares' : 'Soles';
+  }
+
+  /**
+   * Nombre del titular del pedido: el del cliente de 7Power si la cuenta está
+   * vinculada, porque es a nombre de quién se emite el comprobante. Si no, el
+   * que se registró en el pedido o el de la cuenta del e-commerce.
+   */
+  nombreCliente(pedido: any): string {
+    if (!pedido) return '';
+
+    const apellidos = pedido.user_cliente?.apellidos || '';
+    const deLaCuenta = `${pedido.user_cliente?.nombres || ''} ${apellidos}`.trim();
+
+    return pedido.cliente_erp?.nombre || pedido.cliente_nombre || deLaCuenta;
   }
 
   cambiarEstado(pedido: any): void {

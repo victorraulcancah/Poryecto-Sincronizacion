@@ -337,12 +337,7 @@ class ClientesController extends Controller
             return response()->json($propio);
         }
 
-        // El código de cliente no es único globalmente (se genera por empresa);
-        // el e-commerce corresponde a la empresa 1.
-        $erp = DB::connection('mysql_7power')->table('clients')
-            ->where('codigo', $cliente->codigo_erp)
-            ->where('company_id', 1)
-            ->first(['codigo', 'tipo', 'dni_ruc', 'name', 'last_name', 'razon_social', 'direccion', 'email', 'telefono']);
+        $erp = app(\App\Services\ClienteErpService::class)->porCodigo($cliente->codigo_erp);
 
         // Vinculado a un código que ya no existe en el ERP: se cae a los datos
         // propios en vez de dejar el bloque vacío.
@@ -350,20 +345,17 @@ class ClientesController extends Controller
             return response()->json($propio);
         }
 
-        // Las empresas se identifican por razón social; las personas, por nombre.
-        $nombre = trim($erp->razon_social ?: trim($erp->name . ' ' . $erp->last_name));
-
         return response()->json([
             'vinculado' => true,
             'origen' => 'erp',
-            'codigo_erp' => $erp->codigo,
-            'nombre' => $nombre ?: $propio['nombre'],
-            'documento' => $erp->dni_ruc ?: $propio['documento'],
+            'codigo_erp' => $erp['codigo_erp'],
+            'nombre' => $erp['nombre'] ?: $propio['nombre'],
+            'documento' => $erp['documento'] ?: $propio['documento'],
             // El ERP no siempre tiene teléfono/correo cargados; se completa con
             // los del usuario para no mostrar campos vacíos.
-            'telefono' => $erp->telefono ?: $propio['telefono'],
-            'email' => $erp->email ?: $propio['email'],
-            'direccion' => $erp->direccion,
+            'telefono' => $erp['telefono'] ?: $propio['telefono'],
+            'email' => $erp['email'] ?: $propio['email'],
+            'direccion' => $erp['direccion'],
         ]);
     }
 

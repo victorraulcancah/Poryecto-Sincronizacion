@@ -32,6 +32,13 @@ class PedidosController extends Controller
                 'metodosPago'
             ]);
 
+            // Por defecto la pantalla es una bandeja de trabajo: solo lo que
+            // espera una acción, más lo que se atendió hoy (a medianoche sale).
+            // Con ?historial=1 se ve todo, sin ocultar nada.
+            if (!filter_var($request->query('historial', false), FILTER_VALIDATE_BOOLEAN)) {
+                $query->pendientesDeAccion();
+            }
+
             // Filtros
             if ($request->has('estado_pedido_id') && $request->estado_pedido_id !== '') {
                 $query->where('estado_pedido_id', $request->estado_pedido_id);
@@ -67,8 +74,15 @@ class PedidosController extends Controller
 
             $pedidos = $query->orderBy('fecha_pedido', 'desc')->get();
 
+            // Datos de los clientes vinculados tal como estan en el ERP, en una
+            // sola consulta para toda la lista: el detalle del pedido muestra
+            // esos y no los de la cuenta del e-commerce.
+            $clientesErp = app(\App\Services\ClienteErpService::class)->porCodigos(
+                $pedidos->pluck('userCliente.codigo_erp')->all()
+            );
+
             // Transformar los datos para incluir los accessors
-            $pedidosTransformados = $pedidos->map(function ($pedido) {
+            $pedidosTransformados = $pedidos->map(function ($pedido) use ($clientesErp) {
                 return [
                     'id' => $pedido->id,
                     'codigo_pedido' => $pedido->codigo_pedido,
@@ -80,7 +94,11 @@ class PedidosController extends Controller
                     'descuento_total' => $pedido->descuento_total,
                     'total' => $pedido->total,
                     'moneda' => $pedido->moneda ?? 's',
+                    // Cliente de 7Power al que esta vinculada la cuenta, o null
+                    // si no lo esta (o si el codigo ya no existe en el ERP).
+                    'cliente_erp' => $clientesErp[$pedido->userCliente->codigo_erp ?? ''] ?? null,
                     'estado_pedido_id' => $pedido->estado_pedido_id,
+                    'atendido_at' => $pedido->atendido_at,
                     'metodo_pago' => $pedido->metodo_pago,
                     'metodos_pago' => $pedido->metodosPago,
                     'observaciones' => $pedido->observaciones,
@@ -426,14 +444,27 @@ class PedidosController extends Controller
         try {
             $pedido = Pedido::findOrFail($pedidoId);
             $estadoAnterior = $pedido->estado_pedido_id;
-            
+            $estadoNuevo = (int) $request->estado_pedido_id;
+
+            // El flujo solo admite estos tres; los demás siguen en la tabla por
+            // los pedidos antiguos, pero ya no se pueden asignar.
+            $permitidos = [Pedido::ESTADO_EN_ESPERA, Pedido::ESTADO_EN_PREPARACION, Pedido::ESTADO_CANCELADO];
+            if (!in_array($estadoNuevo, $permitidos, true)) {
+                return response()->json([
+                    'message' => 'Ese estado no forma parte del flujo de pedidos.'
+                ], 422);
+            }
+
             DB::beginTransaction();
-            
-            // Actualizar estado del pedido
+
+            // Al salir de "En espera" queda atendido, y con eso desaparece de la
+            // bandeja al cierre del día. Si vuelve a "En espera" se limpia la
+            // marca y regresa a la lista de pendientes.
             $pedido->update([
-                'estado_pedido_id' => $request->estado_pedido_id
+                'estado_pedido_id' => $estadoNuevo,
+                'atendido_at' => $estadoNuevo === Pedido::ESTADO_EN_ESPERA ? null : now(),
             ]);
-            
+
             // Crear registro de tracking
             PedidoTracking::create([
                 'pedido_id' => $pedido->id,

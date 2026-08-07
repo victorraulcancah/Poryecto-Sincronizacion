@@ -801,8 +801,18 @@
             <!-- Columna Derecha: Cliente -->
             <div class="col-lg-8">
               <div class="detail-card">
-                <div class="detail-card__header">
+                <div class="detail-card__header d-flex align-items-center gap-12 flex-wrap">
                   <h6 class="mb-0 fw-bold"><i class="ph ph-user-circle me-8 text-main-600"></i>Datos del Cliente</h6>
+                  <!-- De donde salen los datos: del cliente de 7Power si la
+                       cuenta esta vinculada, o de la cuenta del e-commerce. -->
+                  <span *ngIf="pedidoSeleccionado?.cliente_erp"
+                        class="badge bg-main-50 text-main-600 fw-medium rounded-pill px-10 py-4">
+                    <i class="ph ph-link me-4"></i>Cliente 7Power {{ pedidoSeleccionado?.cliente_erp?.codigo_erp }}
+                  </span>
+                  <span *ngIf="!pedidoSeleccionado?.cliente_erp"
+                        class="badge bg-gray-100 text-gray-600 fw-medium rounded-pill px-10 py-4">
+                    Cuenta no vinculada
+                  </span>
                 </div>
                 <div class="detail-card__body">
                   <div class="row g-16">
@@ -811,21 +821,22 @@
                         <span class="info-item__label">Nombre / Razón Social</span>
                         <div class="d-flex align-items-center gap-12 mt-4">
                           <div class="w-40 h-40 bg-gray-100 rounded-circle flex-center text-gray-600 fw-bold">
-                            {{ getInitials(pedidoSeleccionado?.cliente_nombre || '') }}
+                            {{ getInitials(nombreCliente(pedidoSeleccionado)) }}
                           </div>
-                          <span class="info-item__value fw-bold">
-                            {{ pedidoSeleccionado?.cliente_nombre ||
-                               (pedidoSeleccionado?.user_cliente?.nombres + ' ' + pedidoSeleccionado?.user_cliente?.apellidos) }}
-                          </span>
+                          <span class="info-item__value fw-bold">{{ nombreCliente(pedidoSeleccionado) }}</span>
                         </div>
                       </div>
                     </div>
                     <div class="col-md-6">
                       <div class="info-item">
-                        <span class="info-item__label">Documento de Identidad</span>
+                        <span class="info-item__label">
+                          {{ pedidoSeleccionado?.cliente_erp?.es_empresa ? 'RUC' : 'Documento de Identidad' }}
+                        </span>
                         <span class="info-item__value mt-4">
                           <i class="ph ph-identification-card me-6 text-gray-400"></i>
-                          {{ pedidoSeleccionado?.numero_documento || pedidoSeleccionado?.user_cliente?.numero_documento }}
+                          {{ pedidoSeleccionado?.cliente_erp?.documento ||
+                             pedidoSeleccionado?.numero_documento ||
+                             pedidoSeleccionado?.user_cliente?.numero_documento || 'No registrado' }}
                         </span>
                       </div>
                     </div>
@@ -834,7 +845,18 @@
                         <span class="info-item__label">Correo Electrónico</span>
                         <span class="info-item__value mt-4">
                           <i class="ph ph-envelope me-6 text-gray-400"></i>
-                          {{ pedidoSeleccionado?.cliente_email || pedidoSeleccionado?.user_cliente?.email || 'No registrado' }}
+                          {{ pedidoSeleccionado?.cliente_erp?.email ||
+                             pedidoSeleccionado?.cliente_email ||
+                             pedidoSeleccionado?.user_cliente?.email || 'No registrado' }}
+                        </span>
+                      </div>
+                    </div>
+                    <div class="col-12 mt-16" *ngIf="pedidoSeleccionado?.cliente_erp?.direccion">
+                      <div class="info-item">
+                        <span class="info-item__label">Dirección registrada en 7Power</span>
+                        <span class="info-item__value mt-4">
+                          <i class="ph ph-map-pin me-6 text-gray-400"></i>
+                          {{ pedidoSeleccionado?.cliente_erp?.direccion }}
                         </span>
                       </div>
                     </div>
@@ -995,13 +1017,33 @@
                 </div>
                 <div class="detail-card__body">
                   <!-- Si el pedido viene de una cotización con métodos combinados, se muestra el desglose -->
+                  <!-- Agrupado por moneda: soles y dolares no se suman entre si. -->
                   <div *ngIf="pedidoSeleccionado?.metodos_pago?.length; else metodoPagoUnico">
-                    <div *ngFor="let m of pedidoSeleccionado?.metodos_pago"
-                         class="d-flex justify-content-between align-items-center p-12 mb-8 rounded-12 border border-gray-100 bg-main-50">
-                      <span class="fw-semibold text-dark">
-                        <i class="ph-bold ph-wallet me-8 text-main-600"></i>{{ formatMetodoPago(m.tipo) }}
-                      </span>
-                      <span class="fw-bold text-main-600">{{ (m.moneda || 's') | moneda }} {{ m.monto | number:'1.2-2' }}</span>
+                    <div *ngFor="let mon of monedasDelPedido(pedidoSeleccionado)" class="mb-16">
+                      <div class="d-flex justify-content-between align-items-center mb-8">
+                        <span class="text-uppercase text-gray-500 fw-semibold" style="font-size: 11px; letter-spacing: .04em;">
+                          {{ nombreMoneda(mon) }}
+                        </span>
+                        <span class="text-gray-400" style="font-size: 11px;">
+                          {{ pagosDeMoneda(pedidoSeleccionado, mon).length }}
+                          {{ pagosDeMoneda(pedidoSeleccionado, mon).length === 1 ? 'método' : 'métodos' }}
+                        </span>
+                      </div>
+
+                      <div *ngFor="let m of pagosDeMoneda(pedidoSeleccionado, mon)"
+                           class="d-flex justify-content-between align-items-center p-12 mb-8 rounded-12 border border-gray-100 bg-main-50">
+                        <span class="fw-semibold text-dark">
+                          <i class="ph-bold ph-wallet me-8 text-main-600"></i>{{ formatMetodoPago(m.tipo) }}
+                        </span>
+                        <span class="fw-bold text-main-600">{{ mon | moneda }} {{ m.monto | number:'1.2-2' }}</span>
+                      </div>
+
+                      <div class="d-flex justify-content-between align-items-center px-12 pt-8 border-top">
+                        <span class="fw-semibold text-gray-600">Total en {{ nombreMoneda(mon).toLowerCase() }}</span>
+                        <span class="fw-bold text-heading">
+                          {{ mon | moneda }} {{ totalPagadoEnMoneda(pedidoSeleccionado, mon) | number:'1.2-2' }}
+                        </span>
+                      </div>
                     </div>
                   </div>
                   <ng-template #metodoPagoUnico>
@@ -1032,22 +1074,27 @@
                   <h6 class="mb-0 fw-bold"><i class="ph ph-receipt me-8 text-main-600"></i>Desglose del Total</h6>
                 </div>
                 <div class="detail-card__body">
-                  <div class="total-summary-box">
+                  <!-- Un desglose por moneda, recalculado desde las lineas: la
+                       cabecera guarda un unico total que mezcla las dos. -->
+                  <div class="total-summary-box mb-16" *ngFor="let mon of monedasDelPedido(pedidoSeleccionado)">
+                    <div class="text-uppercase text-gray-500 fw-semibold mb-8" style="font-size: 11px; letter-spacing: .04em;">
+                      {{ nombreMoneda(mon) }}
+                    </div>
                     <div class="d-flex justify-content-between mb-8">
                       <span class="text-gray-500">Subtotal</span>
-                      <span class="fw-semibold">{{ (pedidoSeleccionado?.moneda || 's') | moneda }} {{ pedidoSeleccionado?.subtotal | number:'1.2-2' }}</span>
+                      <span class="fw-semibold">{{ mon | moneda }} {{ subtotalDeMoneda(pedidoSeleccionado, mon) | number:'1.2-2' }}</span>
                     </div>
                     <div class="d-flex justify-content-between mb-8">
                       <span class="text-gray-500">IGV (18%)</span>
-                      <span class="fw-semibold">{{ (pedidoSeleccionado?.moneda || 's') | moneda }} {{ pedidoSeleccionado?.igv | number:'1.2-2' }}</span>
+                      <span class="fw-semibold">{{ mon | moneda }} {{ igvDeMoneda(pedidoSeleccionado, mon) | number:'1.2-2' }}</span>
                     </div>
-                    <div class="d-flex justify-content-between mb-12">
+                    <div class="d-flex justify-content-between mb-12" *ngIf="mon === 's'">
                       <span class="text-gray-500">Envío</span>
-                      <span class="fw-semibold">{{ (pedidoSeleccionado?.moneda || 's') | moneda }} {{ pedidoSeleccionado?.costo_envio | number:'1.2-2' }}</span>
+                      <span class="fw-semibold">{{ mon | moneda }} {{ pedidoSeleccionado?.costo_envio | number:'1.2-2' }}</span>
                     </div>
                     <div class="d-flex justify-content-between pt-12 border-top">
                       <span class="fw-bold text-heading">TOTAL</span>
-                      <span class="fw-bold text-success-600 fs-5">{{ (pedidoSeleccionado?.moneda || 's') | moneda }} {{ pedidoSeleccionado?.total | number:'1.2-2' }}</span>
+                      <span class="fw-bold text-success-600 fs-5">{{ mon | moneda }} {{ totalDeMoneda(pedidoSeleccionado, mon) | number:'1.2-2' }}</span>
                     </div>
                   </div>
                 </div>

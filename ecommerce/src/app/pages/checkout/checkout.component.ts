@@ -730,14 +730,21 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     const formaEnvioStr = formData.departamento === '15' ? 'delivery' : 'envio_provincia';
 
     // Desglose completo de métodos de pago combinados (incluye Crédito si se usó).
-    const metodosPago = this.tiposPago
-      .filter(tipo => tipo.id && this.metodosPagoSeleccionados.has(tipo.id))
-      .map(tipo => ({
-        tipo: tipo.codigo,
-        moneda: this.monedaPagoSeleccionada,
-        monto: this.getMontoMetodo(tipo)
-      }))
-      .filter(m => m.monto > 0);
+    //
+    // Se recorren todas las monedas, no solo la seleccionada: los montos se
+    // guardan por moneda y antes se enviaban únicamente los de la que estuviera
+    // activa al pulsar el botón, así que en una compra mixta el backend recibía
+    // la mitad del pago y rechazaba la cotización por descuadre.
+    const metodosPago = this.monedasDisponibles.flatMap(moneda =>
+      this.tiposPago
+        .filter(tipo => !!tipo.id)
+        .map(tipo => ({
+          tipo: tipo.codigo,
+          moneda,
+          monto: this.montosPorMetodo[`${moneda}_${tipo.id}`] || 0
+        }))
+        .filter(m => m.monto > 0)
+    );
 
     const cotizacionData: CrearCotizacionRequest = {
       // ✅ Excluye "guardados para después": no forman parte de este pedido.
