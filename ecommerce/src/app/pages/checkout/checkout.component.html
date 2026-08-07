@@ -390,15 +390,37 @@
                       <i class="ph-fill ph-user-circle"></i>
                     </div>
                     <div class="flex-grow-1">
-                      <h6 class="text-heading fw-semibold mb-12">Datos del Titular</h6>
+                      <div class="d-flex align-items-center flex-wrap gap-8 mb-12">
+                        <h6 class="text-heading fw-semibold mb-0">Datos del Titular</h6>
+                        <!-- De dónde salen los datos: del cliente de 7Power si
+                             la cuenta está vinculada, o de la cuenta misma. -->
+                        <span *ngIf="titular?.vinculado" class="badge bg-main-50 text-main-600 fw-medium rounded-pill px-10 py-4">
+                          <i class="ph ph-link me-4"></i>Cliente 7Power {{ titular?.codigo_erp }}
+                        </span>
+                        <span *ngIf="titular && !titular.vinculado" class="badge bg-gray-100 text-gray-600 fw-medium rounded-pill px-10 py-4">
+                          Cuenta registrada
+                        </span>
+                      </div>
                       <div class="row gy-12 mb-16">
                         <div class="col-sm-6">
                           <span class="text-gray-500 text-xs d-block">Cliente</span>
-                          <span class="fw-medium">{{ checkoutForm.get('cliente')?.value || '—' }}</span>
+                          <span class="fw-medium">{{ titular?.nombre || checkoutForm.get('cliente')?.value || '—' }}</span>
+                        </div>
+                        <div class="col-sm-6">
+                          <span class="text-gray-500 text-xs d-block">{{ titular?.vinculado ? 'DNI / RUC' : 'Documento' }}</span>
+                          <span class="fw-medium">{{ titular?.documento || checkoutForm.get('numeroDocumento')?.value || '—' }}</span>
                         </div>
                         <div class="col-sm-6">
                           <span class="text-gray-500 text-xs d-block">Contacto</span>
-                          <span class="fw-medium">{{ checkoutForm.get('celular')?.value || '—' }}</span>
+                          <span class="fw-medium">{{ titular?.telefono || checkoutForm.get('celular')?.value || '—' }}</span>
+                        </div>
+                        <div class="col-sm-6">
+                          <span class="text-gray-500 text-xs d-block">Correo</span>
+                          <span class="fw-medium">{{ titular?.email || checkoutForm.get('email')?.value || '—' }}</span>
+                        </div>
+                        <div class="col-12" *ngIf="titular?.direccion">
+                          <span class="text-gray-500 text-xs d-block">Dirección</span>
+                          <span class="fw-medium">{{ titular?.direccion }}</span>
                         </div>
                       </div>
 

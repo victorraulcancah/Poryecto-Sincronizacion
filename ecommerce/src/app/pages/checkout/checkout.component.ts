@@ -16,7 +16,7 @@ import { ReniecService } from '../../services/reniec.service';
 import { ClienteService } from '../../services/cliente.service';
 import { FormaEnvioService, FormaEnvio } from '../../services/forma-envio.service';
 import { TipoPagoService, TipoPago } from '../../services/tipo-pago.service';
-import { ClientePortalService } from '../../services/cliente-portal.service';
+import { ClientePortalService, TitularCheckout } from '../../services/cliente-portal.service';
 import { OfertasService } from '../../services/ofertas.service';
 import { MonedaPipe } from '../../pipes/moneda.pipe';
 import { Subject, takeUntil } from 'rxjs';
@@ -42,6 +42,8 @@ import Swal from 'sweetalert2';
 export class CheckoutComponent implements OnInit, OnDestroy {
   checkoutForm!: FormGroup;
   cartItems: CartItem[] = [];
+  /** Titular del comprobante (cliente de 7Power si la cuenta está vinculada). */
+  titular: TitularCheckout | null = null;
   cartSummary: CartSummary = {
     subtotal: 0,
     igv: 0,
@@ -318,7 +320,24 @@ export class CheckoutComponent implements OnInit, OnDestroy {
           celularControl?.updateValueAndValidity();
 
           this.cargarCredito();
+          this.cargarTitular();
         }
+      });
+  }
+
+  /**
+   * Titular del comprobante que se muestra en el paso de pago: si la cuenta
+   * está vinculada a un cliente de 7Power, son los datos de ese cliente; si
+   * no, los del usuario registrado.
+   */
+  private cargarTitular(): void {
+    this.clientePortalService.getTitular()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (titular) => (this.titular = titular),
+        // Si la consulta falla se deja el bloque con los datos del formulario,
+        // que ya vienen del usuario registrado.
+        error: () => (this.titular = null),
       });
   }
 

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ClientesController extends Controller
 {
@@ -304,6 +305,65 @@ class ClientesController extends Controller
         return response()->json([
             'vinculado' => true,
             'credito_disponible' => $creditoDisponible ?? ($cliente->credito_disponible ?? 0),
+        ]);
+    }
+
+    /**
+     * Datos del titular para el paso de pago del checkout.
+     *
+     * Si la cuenta está vinculada a un cliente de 7Power, manda los datos de
+     * ese cliente (es a nombre de quién se emite el comprobante); si no, los
+     * del usuario registrado en el e-commerce.
+     */
+    public function miTitular(): JsonResponse
+    {
+        $cliente = auth()->user();
+
+        if (!($cliente instanceof UserCliente)) {
+            return response()->json(['message' => 'Acceso no autorizado'], 401);
+        }
+
+        $propio = [
+            'vinculado' => false,
+            'origen' => 'ecommerce',
+            'nombre' => trim($cliente->nombres . ' ' . $cliente->apellidos),
+            'documento' => $cliente->numero_documento,
+            'telefono' => $cliente->telefono,
+            'email' => $cliente->email,
+            'direccion' => null,
+        ];
+
+        if (!$cliente->codigo_erp) {
+            return response()->json($propio);
+        }
+
+        // El código de cliente no es único globalmente (se genera por empresa);
+        // el e-commerce corresponde a la empresa 1.
+        $erp = DB::connection('mysql_7power')->table('clients')
+            ->where('codigo', $cliente->codigo_erp)
+            ->where('company_id', 1)
+            ->first(['codigo', 'tipo', 'dni_ruc', 'name', 'last_name', 'razon_social', 'direccion', 'email', 'telefono']);
+
+        // Vinculado a un código que ya no existe en el ERP: se cae a los datos
+        // propios en vez de dejar el bloque vacío.
+        if (!$erp) {
+            return response()->json($propio);
+        }
+
+        // Las empresas se identifican por razón social; las personas, por nombre.
+        $nombre = trim($erp->razon_social ?: trim($erp->name . ' ' . $erp->last_name));
+
+        return response()->json([
+            'vinculado' => true,
+            'origen' => 'erp',
+            'codigo_erp' => $erp->codigo,
+            'nombre' => $nombre ?: $propio['nombre'],
+            'documento' => $erp->dni_ruc ?: $propio['documento'],
+            // El ERP no siempre tiene teléfono/correo cargados; se completa con
+            // los del usuario para no mostrar campos vacíos.
+            'telefono' => $erp->telefono ?: $propio['telefono'],
+            'email' => $erp->email ?: $propio['email'],
+            'direccion' => $erp->direccion,
         ]);
     }
 

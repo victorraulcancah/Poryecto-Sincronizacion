@@ -3,6 +3,19 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
+/** Titular a nombre de quien se emite el comprobante. */
+export interface TitularCheckout {
+  /** true si la cuenta está vinculada a un cliente de 7Power. */
+  vinculado: boolean;
+  origen: 'erp' | 'ecommerce';
+  codigo_erp?: string;
+  nombre: string;
+  documento: string | null;
+  telefono: string | null;
+  email: string | null;
+  direccion: string | null;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -91,5 +104,13 @@ export class ClientePortalService {
    */
   getCredito(): Observable<{ vinculado: boolean; credito_disponible: number }> {
     return this.http.get<{ vinculado: boolean; credito_disponible: number }>(`${this.apiUrl}/credito`);
+  }
+
+  /**
+   * Datos del titular para el paso de pago del checkout: los del cliente de
+   * 7Power si la cuenta está vinculada, o los del usuario registrado si no.
+   */
+  getTitular(): Observable<TitularCheckout> {
+    return this.http.get<TitularCheckout>(`${this.apiUrl}/titular`);
   }
 }
