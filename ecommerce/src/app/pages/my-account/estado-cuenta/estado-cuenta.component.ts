@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../services/auth.service';
+import { RangoFechasComponent } from '../../../components/rango-fechas/rango-fechas.component';
 import {
   EstadoCuentaService,
   EstadoCuentaResponse,
@@ -11,7 +12,7 @@ import {
 @Component({
   selector: 'app-estado-cuenta',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RangoFechasComponent],
   templateUrl: './estado-cuenta.component.html',
   styleUrl: './estado-cuenta.component.scss'
 })
@@ -63,6 +64,13 @@ export class EstadoCuentaComponent implements OnInit {
   aplicarFiltroFechas(): void {
     if (!this.fechaDesde || !this.fechaHasta) return;
     this.cargar();
+  }
+
+  /** Rango elegido en el calendario (se dispara recién al presionar "Aplicar"). */
+  cambiarRangoFechas(rango: { desde: string; hasta: string }): void {
+    this.fechaDesde = rango.desde;
+    this.fechaHasta = rango.hasta;
+    this.aplicarFiltroFechas();
   }
 
   private cargar(): void {

@@ -86,16 +86,13 @@
 
     <!-- Filtro de fechas + buscador, en una sola fila (sin fondo de color) -->
     <div class="flex-align gap-8 flex-nowrap mb-8">
-      <i class="ph ph-calendar-blank text-gray-400"></i>
-      <input type="date" class="form-control form-control-sm py-2" style="max-width: 130px; height: 28px;" [(ngModel)]="fechaDesde">
-      <span class="text-gray-400">—</span>
-      <input type="date" class="form-control form-control-sm py-2" style="max-width: 130px; height: 28px;" [(ngModel)]="fechaHasta">
-      <button type="button" class="btn btn-sm py-2 d-flex align-items-center gap-4 text-white"
-        style="height: 28px; background-color: #9B1C1C; border-color: #9B1C1C;"
-        (click)="aplicarFiltroFechas()">
-        <i class="ph ph-magnifying-glass"></i>
-        Buscar
-      </button>
+      <!-- Calendario de rango: el filtro recién se aplica al presionar
+           "Aplicar" dentro del panel. -->
+      <app-rango-fechas
+        [desde]="fechaDesde"
+        [hasta]="fechaHasta"
+        (aplicar)="cambiarRangoFechas($event)"
+      ></app-rango-fechas>
       <div class="position-relative flex-grow-1">
         <input
           type="text"
