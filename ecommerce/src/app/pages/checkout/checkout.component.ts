@@ -98,10 +98,13 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   tipoComprobante: 'boleta' | 'factura' = 'boleta';
   // ✅ Tipo de cambio referencial (informativo, sin conversión automática de totales)
   tipoCambioReferencial = 3.70;
-  // ✅ Crédito disponible del cliente (si está vinculado al ERP 7Power). Se muestra
-  // como un método de pago más, reutilizando toggleMetodoPago/montosPorMetodo,
-  // con un id reservado que nunca coincide con un tipo_pago real de la BD.
-  readonly ID_TIPO_CREDITO = -1;
+  // ✅ El crédito es el método "Crédito autorizado" de la tabla tipo_pagos. Antes
+  // el checkout agregaba además una card propia con id -1, así que un cliente
+  // vinculado veía dos opciones de crédito; ahora solo existe la de la BD y se
+  // reconoce por su código.
+  readonly CODIGO_CREDITO = 'credito_autorizado';
+  // Crédito disponible del cliente (si está vinculado al ERP 7Power); es el
+  // tope del monto que puede poner en ese método.
   creditoDisponible = 0;
 
   private destroy$ = new Subject<void>();
@@ -342,8 +345,9 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Consulta el crédito disponible del cliente (si está vinculado al ERP) y,
-   * de haberlo, lo agrega como una opción más de método de pago.
+   * Consulta el crédito disponible del cliente (si está vinculado al ERP). No
+   * agrega ninguna card: el método de pago es "Crédito autorizado", que ya
+   * viene de la BD. El monto solo sirve de tope.
    */
   private cargarCredito(): void {
     this.clientePortalService.getCredito()
@@ -351,27 +355,17 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (res) => {
           this.creditoDisponible = res.vinculado ? (res.credito_disponible || 0) : 0;
-
-          this.tiposPago = this.tiposPago.filter(t => t.id !== this.ID_TIPO_CREDITO);
-          if (this.creditoDisponible > 0) {
-            this.tiposPago = [
-              ...this.tiposPago,
-              {
-                id: this.ID_TIPO_CREDITO,
-                nombre: 'Crédito',
-                codigo: 'CREDITO',
-                descripcion: `Disponible: S/ ${this.formatPrice(this.creditoDisponible)}`,
-                icono: 'ph-bold ph-credit-card',
-                activo: true,
-                orden: 999
-              }
-            ];
-          }
         },
         error: () => {
-          // Sin crédito visible si falla la consulta; no bloquea el checkout.
+          // Sin crédito disponible si falla la consulta; no bloquea el checkout.
+          this.creditoDisponible = 0;
         }
       });
+  }
+
+  /** El método de pago a crédito, reconocido por su código en la BD. */
+  esMetodoCredito(tipo: TipoPago): boolean {
+    return (tipo?.codigo || '').toLowerCase() === this.CODIGO_CREDITO;
   }
 
   buscarDocumento(): void {
@@ -834,7 +828,9 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
   onMontoMetodoChange(tipo: TipoPago, valor: string | number): void {
     let monto = Number(valor) || 0;
-    if (tipo.id === this.ID_TIPO_CREDITO) {
+    // A crédito no se puede poner más de lo aprobado; el backend igual lo
+    // vuelve a validar antes de descontarlo.
+    if (this.esMetodoCredito(tipo)) {
       monto = Math.min(monto, this.creditoDisponible);
     }
     this.montosPorMetodo[this.claveMetodoPago(tipo)] = monto;

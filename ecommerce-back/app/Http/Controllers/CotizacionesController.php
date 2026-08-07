@@ -228,8 +228,14 @@ class CotizacionesController extends Controller
                     throw new \Exception('La suma de los métodos de pago no coincide con el total de la cotización.');
                 }
 
+                // Códigos que identifican un pago a crédito. 'credito_autorizado'
+                // es el de la tabla tipo_pagos; los otros dos vienen de la card
+                // que el checkout generaba por su cuenta y se siguen aceptando
+                // para no romper cotizaciones ya enviadas.
+                $codigosCredito = ['CREDITO_AUTORIZADO', 'CREDITO', 'CRÉDITO'];
+
                 foreach ($metodosPago as $metodo) {
-                    if (mb_strtoupper($metodo['tipo']) === 'CREDITO' || mb_strtoupper($metodo['tipo']) === 'CRÉDITO') {
+                    if (in_array(mb_strtoupper($metodo['tipo']), $codigosCredito, true)) {
                         $montoCredito += (float) $metodo['monto'];
                     }
                 }
