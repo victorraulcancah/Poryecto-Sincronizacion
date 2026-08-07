@@ -142,7 +142,7 @@
           <!-- Las filas de una misma venta se agrupan: solo la primera repite
                fecha y documento, y lleva la línea divisoria. -->
           <tr *ngFor="let mov of movimientosFiltrados; let i = index"
-              [class.text-danger-600]="esFilaRoja(mov)"
+              [class.fila-pago]="esFilaRoja(mov)"
               [class.fila-continuacion]="!esInicioDeGrupo(i)">
             <td class="text-center py-1">
               {{ esInicioDeGrupo(i) ? formatearFecha(mov.created_at) : '' }}

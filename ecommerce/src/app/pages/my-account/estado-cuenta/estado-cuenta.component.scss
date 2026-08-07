@@ -22,6 +22,19 @@
     border-top: 0;
   }
 
+  /* Pagos en rojo.
+   *
+   * El color se aplica sobre cada `td` y no sobre el `tr`: Bootstrap le pone
+   * `color: var(--bs-table-color)` a las celdas (`.table > :not(caption) > * > *`),
+   * así que el color heredado de la fila quedaba pisado y los pagos se veían
+   * en negro. */
+  tbody tr.fila-pago td,
+  tbody tr.fila-pago td span {
+    /* `!important` porque los prefijos "S/." y "$." llevan la utilidad
+       `.text-gray-500`, que en este proyecto ya viene con !important. */
+    color: var(--danger-600) !important;
+  }
+
   /* La descripción es la columna larga: se le da el espacio sobrante y se
      evita que los nombres de producto partan la fila en varias líneas. */
   td:nth-child(4) {
