@@ -18,6 +18,9 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class PedidosController extends Controller
 {
+    // Precio y moneda por producto (soles y/o dolares).
+    use \App\Http\Controllers\Concerns\ResuelvePreciosPorMoneda;
+
     public function index(Request $request)
     {
         try {
@@ -296,6 +299,9 @@ class PedidosController extends Controller
             // Calcular totales
             $subtotal = 0;
             $productosValidados = [];
+            // Listas aplicables al cliente (soles y dolares); el precio se
+            // resuelve producto por producto contra ellas.
+            $listasPrecio = $this->listasPrecioAplicables($userCliente);
 
             foreach ($request->productos as $prod) {
                 $producto = Producto::findOrFail($prod['producto_id']);
@@ -306,23 +312,31 @@ class PedidosController extends Controller
                 }
 
                 $cantidad = $prod['cantidad'];
-                $tipoPrecioId = optional($userCliente)->tipoPrecioEfectivoId();
-                $precioUnitario = $producto->precioPara($tipoPrecioId) ?? $producto->precio_venta;
+                // El precio y la moneda se resuelven por producto: uno cotizado
+                // solo en dólares se guardaba en 0 porque se buscaba únicamente
+                // en la lista de soles.
+                $pm = $this->precioYMonedaProducto($producto, $listasPrecio);
+                $precioUnitario = $pm['precio'];
                 $subtotalLinea = $cantidad * $precioUnitario;
-                
+
                 $subtotal += $subtotalLinea;
 
                 $productosValidados[] = [
                     'producto' => $producto,
                     'cantidad' => $cantidad,
                     'precio_unitario' => $precioUnitario,
-                    'subtotal_linea' => $subtotalLinea
+                    'subtotal_linea' => $subtotalLinea,
+                    'moneda' => $pm['moneda'] ?? 's',
                 ];
             }
 
             $igv = $subtotal * 0.18;
             $total = $subtotal + $igv;
-            $moneda = optional(TipoPrecio::find($tipoPrecioId))->tipo_moneda ?? 's';
+            // Moneda del pedido: la de sus líneas. Si el carrito mezcla soles y
+            // dólares se deja soles, porque la cabecera guarda un solo total;
+            // cada línea sí conserva su moneda real.
+            $monedasUsadas = array_unique(array_column($productosValidados, 'moneda'));
+            $moneda = count($monedasUsadas) === 1 ? reset($monedasUsadas) : 's';
 
             // Crear pedido con toda la información
             $pedido = Pedido::create([
@@ -366,7 +380,9 @@ class PedidosController extends Controller
                     'cantidad' => $prod['cantidad'],
                     'precio_unitario' => $prod['precio_unitario'],
                     'subtotal_linea' => $prod['subtotal_linea'],
-                    'moneda' => $moneda
+                    // Moneda real de la linea, que puede diferir de la del pedido
+                    // cuando el carrito mezcla soles y dolares.
+                    'moneda' => $prod['moneda'],
                 ]);
 
                 // Actualizar stock

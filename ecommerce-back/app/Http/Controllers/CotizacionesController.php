@@ -21,6 +21,9 @@ use Illuminate\Support\Facades\Storage;
 
 class CotizacionesController extends Controller
 {
+    // Precio y moneda por producto (soles y/o dolares).
+    use \App\Http\Controllers\Concerns\ResuelvePreciosPorMoneda;
+
     private function isAdminUser($user): bool
     {
         return $user !== null
@@ -178,8 +181,11 @@ class CotizacionesController extends Controller
                 $producto = Producto::findOrFail($prod['producto_id']);
 
                 $cantidad = $prod['cantidad'];
-                $tipoPrecioId = optional($userCliente)->tipoPrecioEfectivoId();
-                $precioUnitario = $producto->precioPara($tipoPrecioId) ?? $producto->precio_venta;
+                // El precio y la moneda se resuelven por producto: uno cotizado
+                // solo en dolares se guardaba en 0 porque se buscaba unicamente
+                // en la lista de soles.
+                $pm = $this->precioYMonedaProducto($producto, $this->listasPrecioAplicables($userCliente));
+                $precioUnitario = $pm['precio'];
                 $subtotalLineaBruto = $cantidad * $precioUnitario;
 
                 if ($producto->mostrar_igv) {
@@ -197,13 +203,18 @@ class CotizacionesController extends Controller
                     'producto' => $producto,
                     'cantidad' => $cantidad,
                     'precio_unitario' => $precioUnitario,
-                    'subtotal_linea' => $subtotalLineaBase
+                    'subtotal_linea' => $subtotalLineaBase,
+                    'moneda' => $pm['moneda'] ?? 's',
                 ];
             }
 
             $costoEnvio = $request->costo_envio ?? 0;
             $total = $subtotal + $igv + $costoEnvio;
-            $moneda = optional(TipoPrecio::find($tipoPrecioId))->tipo_moneda ?? 's';
+            // Moneda de la cotizacion: la de sus lineas. Si se mezclan soles y
+            // dolares se deja soles, porque la cabecera guarda un solo total;
+            // cada linea si conserva su moneda real.
+            $monedasUsadas = array_unique(array_column($productosValidados, 'moneda'));
+            $moneda = count($monedasUsadas) === 1 ? reset($monedasUsadas) : 's';
 
             // Desglose de métodos de pago (si vino del checkout combinando
             // varios métodos, p.ej. Yape + Crédito). El crédito se descuenta
@@ -290,7 +301,9 @@ class CotizacionesController extends Controller
                     'cantidad' => $prod['cantidad'],
                     'precio_unitario' => $prod['precio_unitario'],
                     'subtotal_linea' => $prod['subtotal_linea'],
-                    'moneda' => $moneda
+                    // Moneda real de la linea, que puede diferir de la de la
+                    // cabecera cuando el carrito mezcla soles y dolares.
+                    'moneda' => $prod['moneda'],
                 ]);
             }
 
@@ -384,8 +397,11 @@ class CotizacionesController extends Controller
                 $producto = Producto::findOrFail($prod['producto_id']);
                 $cantidad = $prod['cantidad'];
                 $userCliente = UserCliente::find($cotizacion->user_cliente_id);
-                $tipoPrecioId = optional($userCliente)->tipoPrecioEfectivoId();
-                $precioUnitario = $producto->precioPara($tipoPrecioId) ?? $producto->precio_venta;
+                // El precio y la moneda se resuelven por producto: uno cotizado
+                // solo en dolares se guardaba en 0 porque se buscaba unicamente
+                // en la lista de soles.
+                $pm = $this->precioYMonedaProducto($producto, $this->listasPrecioAplicables($userCliente));
+                $precioUnitario = $pm['precio'];
                 $subtotalLineaBruto = $cantidad * $precioUnitario;
 
                 if ($producto->mostrar_igv) {
@@ -403,13 +419,15 @@ class CotizacionesController extends Controller
                     'producto' => $producto,
                     'cantidad' => $cantidad,
                     'precio_unitario' => $precioUnitario,
-                    'subtotal_linea' => $subtotalLineaBase
+                    'subtotal_linea' => $subtotalLineaBase,
+                    'moneda' => $pm['moneda'] ?? 's',
                 ];
             }
 
             $costoEnvio = $cotizacion->costo_envio ?? 0;
             $total = $subtotal + $igv + $costoEnvio;
-            $moneda = optional(TipoPrecio::find($tipoPrecioId))->tipo_moneda ?? $cotizacion->moneda ?? 's';
+            $monedasUsadas = array_unique(array_column($productosValidados, 'moneda'));
+            $moneda = count($monedasUsadas) === 1 ? reset($monedasUsadas) : ($cotizacion->moneda ?? 's');
 
             $cotizacion->update([
                 'subtotal' => $subtotal,
@@ -436,7 +454,9 @@ class CotizacionesController extends Controller
                     'cantidad' => $prod['cantidad'],
                     'precio_unitario' => $prod['precio_unitario'],
                     'subtotal_linea' => $prod['subtotal_linea'],
-                    'moneda' => $moneda
+                    // Moneda real de la linea, que puede diferir de la de la
+                    // cabecera cuando el carrito mezcla soles y dolares.
+                    'moneda' => $prod['moneda'],
                 ]);
             }
 

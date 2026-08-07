@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\Validator;
 
 class ProductosController extends Controller
 {
+    // Precio y moneda por producto: un producto puede estar cotizado solo en
+    // soles, solo en dolares o en las dos.
+    use \App\Http\Controllers\Concerns\ResuelvePreciosPorMoneda;
+
     /**
      * Obtener todos los productos
      */
@@ -381,97 +385,6 @@ class ProductosController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
-    }
-
-    /**
-     * Cliente autenticado (UserCliente) o null si es invitado.
-     */
-    private function clienteAutenticado(): ?\App\Models\UserCliente
-    {
-        $user = auth('sanctum')->user();
-        return $user instanceof \App\Models\UserCliente ? $user : null;
-    }
-
-    /**
-     * Listas activas para invitados, una por moneda como máximo, en orden
-     * soles primero (para que sea la opción por defecto en el selector).
-     */
-    private function opcionesPrecioInvitado(): array
-    {
-        $opciones = [];
-        foreach (['s', 'd'] as $moneda) {
-            $tp = \App\Models\TipoPrecio::paraInvitados($moneda);
-            if ($tp) {
-                $opciones[] = ['moneda' => $moneda, 'tipo_precio_id' => $tp->id];
-            }
-        }
-        return $opciones;
-    }
-
-    /**
-     * TODAS las listas de precio aplicables (soles primero), no solo la
-     * primera. Es lo que permite que un producto cotizado únicamente en una
-     * moneda muestre su precio en vez de 0.
-     *
-     * - Cliente logueado: sus listas asignadas (PEN y USD); si no tiene
-     *   ninguna, cae en la predeterminada por moneda.
-     * - Invitado: las configuradas en "Clientes visitantes".
-     */
-    private function listasPrecioAplicables(): array
-    {
-        $cliente = $this->clienteAutenticado();
-
-        if ($cliente) {
-            $ids = array_values(array_filter([
-                $cliente->tipo_precio_id,
-                $cliente->tipo_precio_id_usd,
-            ]));
-
-            if (!empty($ids)) {
-                return \App\Models\TipoPrecio::whereIn('id', $ids)
-                    ->where('activo', true)
-                    ->get()
-                    // Soles primero: es la moneda por defecto del catálogo.
-                    ->sortBy(fn($t) => $t->tipo_moneda === 's' ? 0 : 1)
-                    ->map(fn($t) => ['moneda' => $t->tipo_moneda, 'tipo_precio_id' => $t->id])
-                    ->values()
-                    ->all();
-            }
-
-            // Sin listas propias: la predeterminada de cada moneda.
-            $opciones = [];
-            foreach (['s', 'd'] as $moneda) {
-                $tp = \App\Models\TipoPrecio::predeterminado($moneda);
-                if ($tp) {
-                    $opciones[] = ['moneda' => $moneda, 'tipo_precio_id' => $tp->id];
-                }
-            }
-            return $opciones;
-        }
-
-        return $this->opcionesPrecioInvitado();
-    }
-
-    /**
-     * Precio y moneda de un producto recorriendo las listas aplicables.
-     *
-     * Antes se usaba una sola lista (siempre soles) y, si el producto no
-     * tenía precio ahí, caía al campo `precio_venta` de la tabla productos
-     * —que está en 0— así que los productos cotizados solo en dólares se
-     * mostraban en "S/ 0.00". Ahora se prueba lista por lista y se devuelve
-     * la moneda de la que realmente tuvo precio.
-     */
-    private function precioYMonedaProducto($producto, array $listas): array
-    {
-        foreach ($listas as $op) {
-            $precio = $producto->precioPara($op['tipo_precio_id']);
-            if ($precio !== null && $precio > 0) {
-                return ['precio' => $precio, 'moneda' => $op['moneda']];
-            }
-        }
-
-        // Sin precio en ninguna lista: se muestra 0 en la moneda por defecto.
-        return ['precio' => 0, 'moneda' => $listas[0]['moneda'] ?? null];
     }
 
     public function productosPublicos(Request $request)

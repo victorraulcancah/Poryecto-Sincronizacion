@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\Validator;
 
 class CartController extends Controller
 {
+    // El carrito resuelve el precio igual que el catálogo: si la ficha muestra
+    // US$ 35, acá no puede salir S/ 0.00.
+    use \App\Http\Controllers\Concerns\ResuelvePreciosPorMoneda;
+
     /**
      * Obtener todos los items del carrito del usuario autenticado.
      */
@@ -28,41 +32,38 @@ class CartController extends Controller
             'producto.precios',
         ]);
 
-        // Resolver tipo de precio + moneda según el tipo de usuario.
-        $tipoPrecioId = null;
-        $moneda = null;
-
+        // Listas de precio aplicables (soles y dólares). El precio y la moneda
+        // se resuelven producto por producto: el carrito puede tener uno
+        // cotizado en soles y otro en dólares a la vez.
         if ($authenticatedUser instanceof \App\Models\User) {
             // Usuario del sistema (admin/vendedor): usa la lista predeterminada global.
             $query->where('user_id', $authenticatedUser->id);
-            $tipoPrecioId = optional(\App\Models\TipoPrecio::predeterminado())->id;
+            $listas = [];
+            foreach (['s', 'd'] as $m) {
+                $tp = \App\Models\TipoPrecio::predeterminado($m);
+                if ($tp) {
+                    $listas[] = ['moneda' => $m, 'tipo_precio_id' => $tp->id];
+                }
+            }
         } elseif ($authenticatedUser instanceof \App\Models\UserCliente) {
-            // Cliente del e-commerce: su lista asignada o la predeterminada.
             $query->where('user_cliente_id', $authenticatedUser->id);
-            $tipoPrecioId = $authenticatedUser->tipoPrecioEfectivoId();
+            $listas = $this->listasPrecioAplicables($authenticatedUser);
         } else {
             return response()->json(['message' => 'Tipo de usuario no válido.'], 401);
         }
 
-        if ($tipoPrecioId) {
-            $moneda = optional(\App\Models\TipoPrecio::find($tipoPrecioId))->tipo_moneda;
-        }
-
         $cartItems = $query->get();
 
-        $formattedItems = $cartItems->map(function ($item) use ($tipoPrecioId, $moneda) {
-            // Precio resuelto desde la lista del cliente; si el producto no
-            // tiene precio en esa lista, cae al precio_venta base.
-            $precioResuelto = $item->producto->precioPara($tipoPrecioId)
-                ?? (float) $item->producto->precio_venta;
+        $formattedItems = $cartItems->map(function ($item) use ($listas) {
+            $pm = $this->precioYMonedaProducto($item->producto, $listas);
 
             return [
                 'id' => $item->id, // ID del item del carrito
                 'producto_id' => $item->producto->id,
                 'nombre' => $item->producto->nombre,
                 'imagen_url' => $item->producto->imagen ? asset('storage/productos/' . $item->producto->imagen) : null,
-                'precio' => (float) $precioResuelto,
-                'moneda' => $moneda,
+                'precio' => (float) $pm['precio'],
+                'moneda' => $pm['moneda'],
                 'cantidad' => (int) $item->cantidad,
                 'stock_disponible' => (int) $item->producto->stock,
                 'codigo_producto' => $item->producto->codigo_producto,
