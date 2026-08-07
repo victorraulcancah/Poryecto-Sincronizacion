@@ -1,13 +1,30 @@
 /* Tabla de movimientos del estado de cuenta.
  *
  * El tamaño de letra se fija acá (y no con utilidades en el HTML) porque el
- * `.table` global impone `font-size: 0.875rem` en los `th`, lo que dejaba el
- * encabezado más grande que el cuerpo. Con esta regla, encabezado y filas
- * quedan iguales y compactos.
+ * `.table` global impone `font-size: 0.875rem` en los `th` y un padding de
+ * 1rem en las celdas, lo que dejaba el encabezado más grande que el cuerpo y
+ * hacía que la tabla no entrara en su recuadro (aparecía scroll horizontal).
  */
 .tabla-movimientos {
   th,
   td {
-    font-size: 11px;
+    font-size: 10px;
+    /* El padding lateral del `.table` global es de 0.75rem; se reduce para
+       que las seis columnas entren sin desbordar. */
+    padding-left: 0.35rem;
+    padding-right: 0.35rem;
+  }
+
+  /* Filas que continúan una misma venta: sin línea divisoria, para que el
+     grupo se lea como un solo bloque. La divisoria queda solo al empezar
+     cada documento. */
+  tbody tr.fila-continuacion td {
+    border-top: 0;
+  }
+
+  /* La descripción es la columna larga: se le da el espacio sobrante y se
+     evita que los nombres de producto partan la fila en varias líneas. */
+  td:nth-child(4) {
+    white-space: nowrap;
   }
 }

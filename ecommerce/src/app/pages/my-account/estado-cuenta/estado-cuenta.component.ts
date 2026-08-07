@@ -164,8 +164,36 @@ export class EstadoCuentaComponent implements OnInit {
   }
 
   /** Fila en rojo: es un pago, o la venta está anulada (estado === false). */
+  /** Un movimiento es un pago (no una venta). */
+  esPago(mov: MovimientoEstadoCuenta): boolean {
+    // El ERP devuelve el método de pago con distintos nombres según el tipo de
+    // movimiento; antes solo se miraba `payment_method`, así que los pagos
+    // agregados no se detectaban y salían en negro.
+    return (
+      mov.type === 'payment_seller_aggregated' ||
+      !!mov.payment_method ||
+      !!mov.paymentMethod ||
+      (mov.payment_methods?.length ?? 0) > 0 ||
+      !mov.product
+    );
+  }
+
   esFilaRoja(mov: MovimientoEstadoCuenta): boolean {
-    return !!mov.payment_method || mov.sale?.estado === false;
+    return this.esPago(mov) || mov.sale?.estado === false;
+  }
+
+  /**
+   * Primera fila de su documento: los productos de una misma venta llegan como
+   * filas separadas, así que solo la primera muestra fecha y documento y se le
+   * pinta la línea divisoria. Así cada orden se ve como un bloque.
+   */
+  esInicioDeGrupo(indice: number): boolean {
+    if (indice === 0) return true;
+    const actual = this.movimientosFiltrados[indice];
+    const previo = this.movimientosFiltrados[indice - 1];
+    // Los pagos no se agrupan: cada uno es su propia línea.
+    if (this.esPago(actual) || this.esPago(previo)) return true;
+    return this.documento(actual) !== this.documento(previo);
   }
 
   get hayDeudaAnterior(): boolean {

@@ -139,9 +139,17 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let mov of movimientosFiltrados" [class.text-danger-600]="esFilaRoja(mov)">
-            <td class="text-center py-1">{{ formatearFecha(mov.created_at) }}</td>
-            <td class="text-center py-1">{{ documento(mov) }}</td>
+          <!-- Las filas de una misma venta se agrupan: solo la primera repite
+               fecha y documento, y lleva la línea divisoria. -->
+          <tr *ngFor="let mov of movimientosFiltrados; let i = index"
+              [class.text-danger-600]="esFilaRoja(mov)"
+              [class.fila-continuacion]="!esInicioDeGrupo(i)">
+            <td class="text-center py-1">
+              {{ esInicioDeGrupo(i) ? formatearFecha(mov.created_at) : '' }}
+            </td>
+            <td class="text-center py-1">
+              {{ esInicioDeGrupo(i) ? documento(mov) : '' }}
+            </td>
             <td class="text-center py-1">{{ cantidad(mov) }}</td>
             <td class="text-start py-1">{{ descripcion(mov) }}</td>
             <td class="text-center py-1">
