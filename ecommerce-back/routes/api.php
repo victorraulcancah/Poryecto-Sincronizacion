@@ -57,6 +57,11 @@ Route::middleware(['auth:sanctum'])->prefix('user')->group(function () {
     Route::patch('/dni', [\App\Http\Controllers\UserAccountController::class, 'actualizarDocumentoBoleta']);
 });
 
+// Estado de cuenta: completa lo que el endpoint público del ERP no devuelve.
+Route::middleware(['auth:sanctum'])->prefix('estado-cuenta')->group(function () {
+    Route::get('/documentos-pagos', [\App\Http\Controllers\EstadoCuentaController::class, 'documentosDePagos']);
+});
+
 // Sincronización con 7Power
 Route::middleware(['auth:sanctum'])->prefix('sincronizacion')->group(function () {
     Route::post('/7power', [\App\Http\Controllers\SincronizacionController::class, 'sincronizarDesde7Power']);

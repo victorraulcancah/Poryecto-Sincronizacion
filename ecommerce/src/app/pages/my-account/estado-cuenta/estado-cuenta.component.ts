@@ -30,6 +30,12 @@ export class EstadoCuentaComponent implements OnInit {
   private codigoErp = '';
   busqueda = '';
 
+  /**
+   * Documentos de venta de cada pago, por id de PaymentSeller. No viene en la
+   * respuesta del ERP: se pide aparte a nuestro backend y se cruza acá.
+   */
+  private documentosPorPago: Record<string, string[]> = {};
+
   // Filtro de fechas (por defecto, el mes en curso, igual que el ERP).
   fechaDesde = '';
   fechaHasta = '';
@@ -53,6 +59,14 @@ export class EstadoCuentaComponent implements OnInit {
     const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
     this.fechaDesde = this.aInputDate(inicioMes);
     this.fechaHasta = this.aInputDate(hoy);
+
+    // El mapa cubre todo el historial, así que se pide una sola vez y sirve
+    // para cualquier rango de fechas. Si falla, los pagos quedan sin documento
+    // pero el estado de cuenta se muestra igual.
+    this.estadoCuentaService.obtenerDocumentosDePagos().subscribe({
+      next: (mapa) => (this.documentosPorPago = mapa || {}),
+      error: () => (this.documentosPorPago = {}),
+    });
 
     this.cargar();
   }
@@ -118,7 +132,13 @@ export class EstadoCuentaComponent implements OnInit {
    * vista detallada por producto (columnsEstadoDeCuentaPrincipal).
    */
   documento(mov: MovimientoEstadoCuenta): string {
-    if (mov.type === 'payment_seller_aggregated' || !mov.sale) return '-';
+    // El pago no tiene documento propio: se muestra el de la(s) venta(s) a las
+    // que se aplicó, para saber de qué venta fue el pago.
+    if (mov.type === 'payment_seller_aggregated') {
+      const docs = this.documentosPorPago[this.idDePago(mov)] ?? [];
+      return docs.length ? docs.join(' / ') : '-';
+    }
+    if (!mov.sale) return '-';
     if (mov.sale.boleta) {
       const b = mov.sale.boleta;
       const tipo = (b.tipo || 'bol').toString().toUpperCase();
@@ -128,6 +148,14 @@ export class EstadoCuentaComponent implements OnInit {
     }
     const nro = (mov.sale.nro_documento ?? '0').toString().padStart(4, '0');
     return `V001-${nro}`;
+  }
+
+  /**
+   * Id del PaymentSeller dentro del id del movimiento, que el ERP arma como
+   * "ps-agg-soles-132" / "ps-agg-dolares-132".
+   */
+  private idDePago(mov: MovimientoEstadoCuenta): string {
+    return String(mov.id ?? '').split('-').pop() ?? '';
   }
 
   /** Cantidad del producto (columna "Cantidad"). */

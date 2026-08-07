@@ -73,4 +73,18 @@ export class EstadoCuentaService {
       { params }
     );
   }
+
+  /**
+   * Documentos de venta a los que se aplicó cada pago, indexados por el id del
+   * PaymentSeller: { "132": ["V001-3929", "V001-3930"] }.
+   *
+   * El endpoint del ERP no trae este dato en las filas de pago, así que lo
+   * arma nuestro backend leyendo la base de 7Power. Un pago puede repartirse
+   * entre cuotas de varias ventas, por eso es una lista.
+   */
+  obtenerDocumentosDePagos(): Observable<Record<string, string[]>> {
+    return this.http.get<Record<string, string[]>>(
+      `${environment.apiUrl}/estado-cuenta/documentos-pagos`
+    );
+  }
 }
