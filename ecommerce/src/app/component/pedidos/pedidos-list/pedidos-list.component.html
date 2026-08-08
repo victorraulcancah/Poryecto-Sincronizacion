@@ -782,7 +782,9 @@
         </div>
       </div>
 
-      <div class="modal-body p-24">
+      <!-- Alto fijo con scroll propio: cada pestaña tiene distinta cantidad de
+           contenido y el modal cambiaba de tamaño al cambiar de una a otra. -->
+      <div class="modal-body p-24" style="height: 60dvh; overflow-y: auto;">
         <!-- ═══════════ TAB 1: INFORMACIÓN GENERAL ═══════════ -->
         <div *ngIf="activeTabDetalle === 'general'" class="animate__animated animate__fadeIn">
           <div class="row g-24">
@@ -896,9 +898,9 @@
                         <div class="d-flex align-items-center gap-12 mt-4">
                           <span class="info-item__value">
                             <i class="ph ph-phone me-6 text-gray-400"></i>
-                            {{ pedidoSeleccionado?.telefono_contacto || 'No registrado' }}
+                            {{ telefonoCliente(pedidoSeleccionado) || 'No registrado' }}
                           </span>
-                          <button *ngIf="pedidoSeleccionado?.telefono_contacto" 
+                          <button *ngIf="telefonoCliente(pedidoSeleccionado)"
                                   (click)="contactarWhatsApp(pedidoSeleccionado)"
                                   class="btn btn-sm btn-success px-12 py-4 rounded-pill">
                             <i class="ph ph-whatsapp-logo me-4"></i> WhatsApp

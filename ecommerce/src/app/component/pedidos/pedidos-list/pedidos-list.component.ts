@@ -249,9 +249,10 @@ export class PedidosListComponent implements OnInit {
   }
 
   contactarWhatsApp(pedido: any): void {
-    const telefono = pedido.telefono_contacto || '';
+    // El mismo número que muestra el bloque: el del cliente vinculado.
+    const telefono = this.telefonoCliente(pedido);
     const codigo = pedido.codigo_pedido;
-    const cliente = pedido.cliente_nombre;
+    const cliente = this.nombreCliente(pedido);
     const total = pedido.total;
     const mensaje = `Hola ${cliente}, te contactamos respecto a tu pedido ${codigo} por S/ ${total}. ¿En qué podemos ayudarte?`;
     const telefonoLimpio = telefono.replace(/\D/g, '');
@@ -339,6 +340,15 @@ export class PedidosListComponent implements OnInit {
    * vinculada, porque es a nombre de quién se emite el comprobante. Si no, el
    * que se registró en el pedido o el de la cuenta del e-commerce.
    */
+  /**
+   * Teléfono del titular: el del cliente de 7Power si la cuenta está vinculada,
+   * igual que el resto del bloque "Datos del Cliente". Si el ERP no lo tiene
+   * cargado, se cae al que se dejó en el pedido.
+   */
+  telefonoCliente(pedido: any): string {
+    return pedido?.cliente_erp?.telefono || pedido?.telefono_contacto || '';
+  }
+
   nombreCliente(pedido: any): string {
     if (!pedido) return '';
 
