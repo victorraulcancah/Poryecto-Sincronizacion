@@ -112,14 +112,20 @@ export class PedidosListComponent implements OnInit {
       ? this.productosDeMoneda(pedido, moneda)
       : (pedido.detalles || []);
 
+    // Formato CODIGO:CANTIDAD. Antes se mandaba solo el código y el ERP cargaba
+    // una unidad de cada uno, así que un pedido de 2 unidades entraba por la
+    // mitad del importe.
     const codigosProductos = productos
-      .map((d: any) => d.codigo_producto)
-      .filter(Boolean)
+      .filter((d: any) => d.codigo_producto)
+      .map((d: any) => `${d.codigo_producto}:${Number(d.cantidad) || 1}`)
       .join(',');
 
     const params = new URLSearchParams({ codigo_cliente: codigoCliente });
     if (codigosProductos) params.set('productos', codigosProductos);
-    if (moneda) params.set('moneda', moneda);
+    // Lista de precio del ERP que corresponde a la moneda del pedido. Sin
+    // esto, Nueva Venta abre con la lista del cliente (soles) y los productos
+    // cotizados en dólares se cargan en 0.
+    if (pedido?.lista_precio_erp) params.set('lista_precio', String(pedido.lista_precio_erp));
 
     window.open(`${environment.erpFrontUrl}?${params.toString()}`, '_blank');
   }

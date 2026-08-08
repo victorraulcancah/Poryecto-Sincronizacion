@@ -81,8 +81,29 @@ class PedidosController extends Controller
                 $pedidos->pluck('userCliente.codigo_erp')->all()
             );
 
+            // Id que tiene en el ERP cada lista de precio del e-commerce. Se
+            // manda al boton "Enviar a ERP" para que Nueva Venta abra con la
+            // lista correcta: si un pedido en dolares se abre con la lista de
+            // soles del cliente, sus productos quedan en 0.
+            $listaErpPorTipoPrecio = \App\Models\TipoPrecio::pluck('tipo_precio_7power_id', 'id');
+            $listasPorCliente = [];
+
             // Transformar los datos para incluir los accessors
-            $pedidosTransformados = $pedidos->map(function ($pedido) use ($clientesErp) {
+            $pedidosTransformados = $pedidos->map(function ($pedido) use ($clientesErp, $listaErpPorTipoPrecio, &$listasPorCliente) {
+                // Lista de precio (id del ERP) que corresponde a la moneda del
+                // pedido. Se resuelve una vez por cliente, no por pedido.
+                $listaPrecioErp = null;
+                if ($pedido->userCliente) {
+                    $clienteId = $pedido->userCliente->id;
+                    if (!array_key_exists($clienteId, $listasPorCliente)) {
+                        $listasPorCliente[$clienteId] = collect(
+                            $this->listasPrecioAplicables($pedido->userCliente)
+                        )->pluck('tipo_precio_id', 'moneda')->all();
+                    }
+                    $tipoPrecioId = $listasPorCliente[$clienteId][$pedido->moneda ?? 's'] ?? null;
+                    $listaPrecioErp = $tipoPrecioId ? ($listaErpPorTipoPrecio[$tipoPrecioId] ?? null) : null;
+                }
+
                 return [
                     'id' => $pedido->id,
                     'codigo_pedido' => $pedido->codigo_pedido,
@@ -97,6 +118,7 @@ class PedidosController extends Controller
                     // Cliente de 7Power al que esta vinculada la cuenta, o null
                     // si no lo esta (o si el codigo ya no existe en el ERP).
                     'cliente_erp' => $clientesErp[$pedido->userCliente->codigo_erp ?? ''] ?? null,
+                    'lista_precio_erp' => $listaPrecioErp,
                     'estado_pedido_id' => $pedido->estado_pedido_id,
                     'atendido_at' => $pedido->atendido_at,
                     'metodo_pago' => $pedido->metodo_pago,
