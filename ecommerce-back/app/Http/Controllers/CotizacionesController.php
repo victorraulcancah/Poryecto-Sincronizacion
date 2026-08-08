@@ -280,86 +280,123 @@ class CotizacionesController extends Controller
                 }
             }
 
-            // Crear cotización
-            $cotizacion = Cotizacion::create([
-                'codigo_cotizacion' => Cotizacion::generarCodigoCotizacion(),
-                'user_cliente_id' => $userCliente->id,
-                'fecha_cotizacion' => now(),
-                'subtotal' => $subtotal,
-                'igv' => $igv,
-                'descuento_total' => 0,
-                'total' => $total,
-                'estado_cotizacion_id' => 1, // Pendiente
-                'metodo_pago_preferido' => $request->metodo_pago_preferido,
-                'direccion_envio' => $request->direccion_envio,
-                'telefono_contacto' => $request->telefono_contacto,
-                'observaciones' => $request->observaciones,
-                'numero_documento' => $request->numero_documento,
-                'cliente_nombre' => $request->cliente_nombre,
-                'cliente_email' => $request->cliente_email,
-                'forma_envio' => $request->forma_envio,
-                'costo_envio' => $costoEnvio,
-                'moneda' => $moneda,
-                'departamento_id' => $request->departamento_id,
-                'provincia_id' => $request->provincia_id,
-                'distrito_id' => $request->distrito_id,
-                'departamento_nombre' => $request->departamento_nombre,
-                'provincia_nombre' => $request->provincia_nombre,
-                'distrito_nombre' => $request->distrito_nombre,
-                'ubicacion_completa' => $request->ubicacion_completa,
-                'user_id' => 1 // Sistema
-            ]);
+            // Una cotización por moneda. El cliente hace una sola compra, pero
+            // soles y dólares se gestionan por separado: cada cotización lleva
+            // su total en su propia moneda, con sus productos y sus métodos de
+            // pago, y genera su propio pedido. Es lo que el ERP puede procesar,
+            // porque una venta de 7Power maneja una sola moneda.
+            $creadas = [];
 
-            // Establecer fecha de vencimiento (7 días)
-            $cotizacion->establecerFechaVencimiento(7);
+            foreach (['s', 'd'] as $monedaCot) {
+                $lineas = array_values(array_filter(
+                    $productosValidados,
+                    fn ($prod) => $prod['moneda'] === $monedaCot
+                ));
 
-            // Guardar el desglose completo de métodos de pago (si vino del checkout).
-            foreach ($metodosPago as $metodo) {
-                \App\Models\CotizacionMetodoPago::create([
-                    'cotizacion_id' => $cotizacion->id,
-                    'tipo' => $metodo['tipo'],
-                    'moneda' => $metodo['moneda'],
-                    'monto' => $metodo['monto'],
+                if (empty($lineas)) {
+                    continue;
+                }
+
+                $pagosDeMoneda = array_values(array_filter(
+                    $metodosPago,
+                    fn ($metodo) => ($metodo['moneda'] ?? 's') === $monedaCot
+                ));
+
+                // El envío se cobra en soles, así que solo entra en esa cotización.
+                $envioDeMoneda = $monedaCot === 's' ? $costoEnvio : 0;
+
+                $subtotalCot = array_sum(array_column($lineas, 'subtotal_linea'));
+                $totalCot = $totalPorMoneda[$monedaCot];
+                $igvCot = $totalCot - $envioDeMoneda - $subtotalCot;
+
+                $cotizacion = Cotizacion::create([
+                    'codigo_cotizacion' => Cotizacion::generarCodigoCotizacion(),
+                    'user_cliente_id' => $userCliente->id,
+                    'fecha_cotizacion' => now(),
+                    'subtotal' => $subtotalCot,
+                    'igv' => $igvCot,
+                    'descuento_total' => 0,
+                    'total' => $totalCot,
+                    'estado_cotizacion_id' => 1, // Pendiente
+                    'metodo_pago_preferido' => $request->metodo_pago_preferido,
+                    'direccion_envio' => $request->direccion_envio,
+                    'telefono_contacto' => $request->telefono_contacto,
+                    'observaciones' => $request->observaciones,
+                    'numero_documento' => $request->numero_documento,
+                    'cliente_nombre' => $request->cliente_nombre,
+                    'cliente_email' => $request->cliente_email,
+                    'forma_envio' => $request->forma_envio,
+                    'costo_envio' => $envioDeMoneda,
+                    'moneda' => $monedaCot,
+                    'departamento_id' => $request->departamento_id,
+                    'provincia_id' => $request->provincia_id,
+                    'distrito_id' => $request->distrito_id,
+                    'departamento_nombre' => $request->departamento_nombre,
+                    'provincia_nombre' => $request->provincia_nombre,
+                    'distrito_nombre' => $request->distrito_nombre,
+                    'ubicacion_completa' => $request->ubicacion_completa,
+                    'user_id' => 1 // Sistema
                 ]);
+
+                // Establecer fecha de vencimiento (7 días)
+                $cotizacion->establecerFechaVencimiento(7);
+
+                foreach ($pagosDeMoneda as $metodo) {
+                    \App\Models\CotizacionMetodoPago::create([
+                        'cotizacion_id' => $cotizacion->id,
+                        'tipo' => $metodo['tipo'],
+                        'moneda' => $metodo['moneda'],
+                        'monto' => $metodo['monto'],
+                    ]);
+                }
+
+                foreach ($lineas as $prod) {
+                    CotizacionDetalle::create([
+                        'cotizacion_id' => $cotizacion->id,
+                        'producto_id' => $prod['producto']->id,
+                        'codigo_producto' => $prod['producto']->codigo_producto,
+                        'nombre_producto' => $prod['producto']->nombre,
+                        'cantidad' => $prod['cantidad'],
+                        'precio_unitario' => $prod['precio_unitario'],
+                        'subtotal_linea' => $prod['subtotal_linea'],
+                        'moneda' => $prod['moneda'],
+                    ]);
+                }
+
+                CotizacionTracking::crearRegistro(
+                    $cotizacion->id,
+                    1, // Pendiente
+                    'Cotización creada desde el checkout del e-commerce',
+                    1 // Sistema
+                );
+
+                // El pedido se genera en el acto, en estado "En espera": el
+                // cliente ya no tiene que pulsar "Pedir" en un segundo paso, y
+                // mientras siga en ese estado puede editar la cotización.
+                $pedido = $this->crearPedidoDesdeCotizacion($cotizacion);
+
+                $creadas[] = [
+                    'cotizacion' => $cotizacion->load(['detalles', 'estadoCotizacion', 'metodosPago']),
+                    'codigo_cotizacion' => $cotizacion->codigo_cotizacion,
+                    'pedido_codigo' => $pedido->codigo_pedido,
+                    'moneda' => $monedaCot,
+                    'total' => round($totalCot, 2),
+                ];
             }
-
-            // Crear detalles
-            foreach ($productosValidados as $prod) {
-                CotizacionDetalle::create([
-                    'cotizacion_id' => $cotizacion->id,
-                    'producto_id' => $prod['producto']->id,
-                    'codigo_producto' => $prod['producto']->codigo_producto,
-                    'nombre_producto' => $prod['producto']->nombre,
-                    'cantidad' => $prod['cantidad'],
-                    'precio_unitario' => $prod['precio_unitario'],
-                    'subtotal_linea' => $prod['subtotal_linea'],
-                    // Moneda real de la linea, que puede diferir de la de la
-                    // cabecera cuando el carrito mezcla soles y dolares.
-                    'moneda' => $prod['moneda'],
-                ]);
-            }
-
-            // Crear registro inicial de tracking
-            CotizacionTracking::crearRegistro(
-                $cotizacion->id,
-                1, // Pendiente
-                'Cotización creada desde el checkout del e-commerce',
-                1 // Sistema
-            );
-
-            // El pedido se genera en el acto, en estado "En espera": el cliente
-            // ya no tiene que pulsar "Pedir" en un segundo paso. Mientras siga
-            // en ese estado puede seguir editando la cotización.
-            $pedido = $this->crearPedidoDesdeCotizacion($cotizacion);
 
             DB::commit();
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Cotización creada exitosamente',
-                'cotizacion' => $cotizacion->load(['detalles', 'estadoCotizacion', 'metodosPago']),
-                'codigo_cotizacion' => $cotizacion->codigo_cotizacion,
-                'pedido_codigo' => $pedido->codigo_pedido,
+                'message' => count($creadas) > 1
+                    ? 'Se generaron ' . count($creadas) . ' cotizaciones, una por moneda.'
+                    : 'Cotización creada exitosamente',
+                // Una entrada por moneda. Los campos sueltos apuntan a la
+                // primera para no romper a quien lea la respuesta anterior.
+                'cotizaciones' => $creadas,
+                'cotizacion' => $creadas[0]['cotizacion'] ?? null,
+                'codigo_cotizacion' => $creadas[0]['codigo_cotizacion'] ?? null,
+                'pedido_codigo' => $creadas[0]['pedido_codigo'] ?? null,
             ], 201);
 
         } catch (\Exception $e) {

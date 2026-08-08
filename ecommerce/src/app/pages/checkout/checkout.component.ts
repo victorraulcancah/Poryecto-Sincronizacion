@@ -783,15 +783,36 @@ export class CheckoutComponent implements OnInit, OnDestroy {
         if (response.status === 'success') {
           this.cartService.clearCart();
 
+          // Una compra con soles y dólares genera una cotización por moneda,
+          // porque cada una se gestiona y se factura por separado.
+          const creadas = (response as any).cotizaciones || [];
+          const varias = creadas.length > 1;
+
+          const detalle = creadas.length
+            ? creadas.map((c: any) => `
+                <div class="d-flex justify-content-between border-bottom py-2">
+                  <span>${c.codigo_cotizacion}</span>
+                  <strong>${c.moneda === 'd' ? 'US$' : 'S/'} ${this.formatPrice(c.total)}</strong>
+                </div>`).join('')
+            : `<div class="d-flex justify-content-between border-bottom py-2">
+                 <span>${response.codigo_cotizacion}</span>
+                 <strong>${this.formatPrice(response.cotizacion?.total ?? 0)}</strong>
+               </div>`;
+
           Swal.fire({
-            title: '¡Cotización creada exitosamente!',
+            title: varias ? '¡Cotizaciones creadas!' : '¡Cotización creada exitosamente!',
             html: `
               <div class="text-center">
                 <i class="ph ph-check-circle text-success mb-3" style="font-size: 4rem;"></i>
-                <h5>Cotización ${response.codigo_cotizacion}</h5>
-                <p class="text-muted">Tu cotización ha sido registrada exitosamente.</p>
-                <p><strong>Total: ${(response.cotizacion?.moneda || this.cartItems[0]?.moneda || 's') === 'd' ? 'US$' : 'S/'} ${this.formatPrice(response.cotizacion?.total ?? this.getTotalFinal())}</strong></p>
-                <p class="text-sm text-gray-600">Puedes ver el estado de tu cotización en "Mi Cuenta"</p>
+                <p class="text-muted">
+                  ${varias
+                    ? 'Tu compra tiene productos en soles y en dólares, así que se registró una cotización por cada moneda.'
+                    : 'Tu cotización ha sido registrada exitosamente.'}
+                </p>
+                <div class="text-start mt-3">${detalle}</div>
+                <p class="text-sm text-gray-600 mt-3">
+                  Puedes ver ${varias ? 'su estado' : 'el estado de tu cotización'} en "Mi Cuenta"
+                </p>
               </div>
             `,
             icon: 'success',
