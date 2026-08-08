@@ -781,7 +781,12 @@ export class CheckoutComponent implements OnInit, OnDestroy {
         this.procesandoPedido = false;
 
         if (response.status === 'success') {
-          this.cartService.clearCart();
+          // clearCart() devuelve un Observable frío: sin suscribirse la
+          // petición nunca sale y el carrito del cliente quedaba con los
+          // productos ya cotizados.
+          this.cartService.clearCart().subscribe({
+            error: (err) => console.error('No se pudo vaciar el carrito:', err),
+          });
 
           // Una compra con soles y dólares genera una cotización por moneda,
           // porque cada una se gestiona y se factura por separado.

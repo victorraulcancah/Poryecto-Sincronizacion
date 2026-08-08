@@ -30,6 +30,12 @@ export class EstadoCuentaComponent implements OnInit {
   private codigoErp = '';
   busqueda = '';
 
+  // Paginación acumulativa: el endpoint devuelve 50 filas por página y la
+  // tabla va pidiendo las siguientes al llegar al fondo, como el ERP.
+  private pagina = 1;
+  totalMovimientos = 0;
+  cargandoMas = false;
+
   // Filtro de fechas (por defecto, el mes en curso, igual que el ERP).
   fechaDesde = '';
   fechaHasta = '';
@@ -80,11 +86,15 @@ export class EstadoCuentaComponent implements OnInit {
 
   private cargar(): void {
     this.cargando = true;
+    this.pagina = 1;
+    this.totalMovimientos = 0;
+
     this.estadoCuentaService
-      .obtenerEstadoCuenta(this.codigoErp, [this.fechaDesde, this.fechaHasta])
+      .obtenerEstadoCuenta(this.codigoErp, [this.fechaDesde, this.fechaHasta], 1)
       .subscribe({
         next: (res) => {
           this.resumen = res;
+          this.totalMovimientos = res.total ?? 0;
           // Se respeta el orden que manda el backend (del más antiguo al más
           // reciente, como un estado de cuenta bancario). Es el mismo que ve
           // el ERP: los dos endpoints pasan por procesarPaginacion.
@@ -99,6 +109,40 @@ export class EstadoCuentaComponent implements OnInit {
             err?.error?.error || 'No se pudo cargar el estado de cuenta. Intenta nuevamente más tarde.';
         }
       });
+  }
+
+  /**
+   * Trae la página siguiente y la agrega al final, igual que el scroll
+   * infinito de la tabla del ERP. El endpoint devuelve 50 filas por página, así
+   * que sin esto el cliente solo veía las 50 más antiguas del rango.
+   */
+  private cargarMas(): void {
+    if (this.cargandoMas || this.movimientos.length >= this.totalMovimientos) return;
+
+    this.cargandoMas = true;
+    this.estadoCuentaService
+      .obtenerEstadoCuenta(this.codigoErp, [this.fechaDesde, this.fechaHasta], this.pagina + 1)
+      .subscribe({
+        next: (res) => {
+          this.pagina += 1;
+          this.movimientos = [...this.movimientos, ...(res.data || [])];
+          this.aplicarBusqueda();
+          this.cargandoMas = false;
+        },
+        error: () => (this.cargandoMas = false),
+      });
+  }
+
+  /** Al llegar al final de la tabla se pide la página siguiente. */
+  alHacerScroll(evento: Event): void {
+    const cont = evento.target as HTMLElement;
+    const alFinal = cont.scrollTop + cont.clientHeight >= cont.scrollHeight - 40;
+
+    if (alFinal) this.cargarMas();
+  }
+
+  get hayMasMovimientos(): boolean {
+    return this.movimientos.length < this.totalMovimientos;
   }
 
   aplicarBusqueda(): void {

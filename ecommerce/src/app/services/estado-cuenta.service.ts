@@ -70,11 +70,17 @@ export class EstadoCuentaService {
    */
   obtenerEstadoCuenta(
     codigoErp: string,
-    fechas?: [string, string]
+    fechas?: [string, string],
+    pagina = 1,
+    porPagina = 50
   ): Observable<EstadoCuentaResponse> {
     const params: Record<string, string | string[]> = {
       codigo: codigoErp,
       agrupado: 'false',
+      // El endpoint recorta a 50 filas si no se le pide página; sin esto el
+      // cliente solo veía los primeros 50 movimientos del rango.
+      'pagination[current]': String(pagina),
+      'pagination[pageSize]': String(porPagina),
     };
     if (fechas) {
       params['fechas[]'] = fechas;
