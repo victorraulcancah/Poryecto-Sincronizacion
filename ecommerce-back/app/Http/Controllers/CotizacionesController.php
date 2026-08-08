@@ -923,16 +923,27 @@ class CotizacionesController extends Controller
                 ], 403);
             }
 
-            // Verificar que la cotización se puede eliminar (solo pendientes o rechazadas)
-            $estadosEliminables = [1, 4]; // 1=Pendiente, 4=Rechazada
-            if (!in_array($cotizacion->estado_cotizacion_id, $estadosEliminables)) {
+            // Misma regla que editar: el cliente puede eliminar mientras el
+            // vendedor no haya tomado el pedido, o sea mientras siga "En
+            // espera". Un administrador no tiene ese límite.
+            $pedido = $this->pedidoDeCotizacion($cotizacion);
+
+            if ($user instanceof UserCliente && $pedido && !$pedido->esEditablePorCliente()) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'No se puede eliminar una cotización que ya fue procesada'
+                    'message' => 'Esta cotización ya está siendo atendida y no se puede eliminar.'
                 ], 422);
             }
 
             DB::beginTransaction();
+
+            // El pedido que generó la cotización se va con ella; si no, quedaría
+            // en la bandeja del vendedor apuntando a algo que ya no existe.
+            if ($pedido) {
+                $pedido->detalles()->delete();
+                $pedido->metodosPago()->delete();
+                $pedido->delete();
+            }
 
             // Eliminar detalles de la cotización
             $cotizacion->detalles()->delete();

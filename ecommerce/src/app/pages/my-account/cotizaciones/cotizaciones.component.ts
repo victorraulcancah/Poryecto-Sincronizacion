@@ -177,6 +177,18 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
   // desde el checkout, asi que ya no hay un segundo paso que solicitar.
 
   eliminarCotizacion(cotizacion: Cotizacion): void {
+    // Misma ventana que la edición: se cierra cuando el vendedor toma el
+    // pedido. El backend también lo rechaza; esto evita abrir el diálogo.
+    if (!cotizacion.editable) {
+      Swal.fire({
+        title: 'Ya no se puede eliminar',
+        text: 'Un vendedor ya está atendiendo tu pedido, así que la cotización quedó cerrada.',
+        icon: 'info',
+        confirmButtonColor: '#0dcaf0'
+      });
+      return;
+    }
+
     Swal.fire({
       title: '¿Eliminar cotización?',
       html: `

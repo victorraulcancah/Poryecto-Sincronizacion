@@ -144,11 +144,30 @@ class Cotizacion extends Model
     }
 
     // Generar código de cotización automático
+    /**
+     * Correlativo anual y único para todas las cuentas: 2026-00001, 2026-00002...
+     *
+     * Cada cliente continúa la misma secuencia; solo se reinicia al cambiar de
+     * año. Antes el código era COT-AAAAMMDD-NNNN, que se reiniciaba cada día y
+     * se calculaba contando las filas del día, así que borrar una cotización
+     * hacía que la siguiente repitiera un código ya usado.
+     *
+     * Se toma el último correlativo del año en vez de contar filas —así un
+     * borrado no reutiliza números— y se bloquea esa fila para que dos
+     * cotizaciones simultáneas no reciban el mismo.
+     */
     public static function generarCodigoCotizacion(): string
     {
-        $fecha = date('Ymd');
-        $contador = static::whereDate('created_at', today())->count() + 1;
-        return 'COT-' . $fecha . '-' . str_pad($contador, 4, '0', STR_PAD_LEFT);
+        $anio = date('Y');
+
+        $ultimo = static::where('codigo_cotizacion', 'like', $anio . '-%')
+            ->orderByDesc('codigo_cotizacion')
+            ->lockForUpdate()
+            ->value('codigo_cotizacion');
+
+        $siguiente = $ultimo ? ((int) substr($ultimo, strlen($anio) + 1)) + 1 : 1;
+
+        return $anio . '-' . str_pad((string) $siguiente, 5, '0', STR_PAD_LEFT);
     }
 
     // Establecer fecha de vencimiento automática (7 días por defecto)
