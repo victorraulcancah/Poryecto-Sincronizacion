@@ -100,8 +100,9 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   // Se pisa con el TC comercial del ERP apenas responde; el 3.70 solo se ve si
   // esa consulta falla o si el ERP aún no tiene ningún valor registrado.
   tipoCambioReferencial = 3.70;
-  /** Fuente y fecha del TC, para que el cliente sepa de cuándo es. */
-  tipoCambioFuente: { fuente?: string; fecha?: string } | null = null;
+  /** Detalle del TC: se muestra como tooltip del botón de refrescar. */
+  tipoCambioDetalle = '';
+  cargandoTipoCambio = false;
   // ✅ El crédito es el método "Crédito autorizado" de la tabla tipo_pagos. Antes
   // el checkout agregaba además una card propia con id -1, así que un cliente
   // vinculado veía dos opciones de crédito; ahora solo existe la de la BD y se
@@ -354,17 +355,23 @@ export class CheckoutComponent implements OnInit, OnDestroy {
    * TC comercial del ERP (Bloomberg + margen), el mismo que aplica el vendedor
    * en Nueva Venta. Es informativo: no convierte los totales.
    */
-  private cargarTipoCambio(): void {
+  cargarTipoCambio(): void {
+    this.cargandoTipoCambio = true;
     this.clientePortalService.getTipoCambio()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (tc) => {
+          this.cargandoTipoCambio = false;
           if (!tc?.disponible || !tc.valor_final) return;
+
           this.tipoCambioReferencial = tc.valor_final;
-          this.tipoCambioFuente = { fuente: tc.fuente, fecha: tc.fecha_fuente };
+          // Mismo detalle que el tooltip del badge del ERP.
+          const fuente = tc.fuente === 'bloomberg' ? 'Bloomberg' : (tc.fuente ?? '');
+          this.tipoCambioDetalle =
+            `${fuente} ${tc.valor_fuente} (${tc.fecha_fuente}) + margen S/ ${tc.margen}`;
         },
         // Si falla, se queda el valor por defecto en vez de dejarlo vacío.
-        error: () => {},
+        error: () => (this.cargandoTipoCambio = false),
       });
   }
 
