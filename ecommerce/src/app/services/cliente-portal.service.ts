@@ -16,6 +16,19 @@ export interface TitularCheckout {
   direccion: string | null;
 }
 
+/** TC comercial del ERP: interbancario de Bloomberg más el margen de la empresa. */
+export interface TipoCambioComercial {
+  /** false si el ERP todavía no tiene ningún valor registrado. */
+  disponible: boolean;
+  valor_fuente?: number;
+  fuente?: string;
+  fecha_fuente?: string;
+  margen?: number;
+  /** El que se muestra al cliente: valor_fuente + margen. */
+  valor_final?: number;
+  actualizado_en?: string | null;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -112,5 +125,13 @@ export class ClientePortalService {
    */
   getTitular(): Observable<TitularCheckout> {
     return this.http.get<TitularCheckout>(`${this.apiUrl}/titular`);
+  }
+
+  /**
+   * TC comercial de la empresa, el mismo que usa Nueva Venta del ERP
+   * (interbancario de Bloomberg + margen). Sale de la base de 7Power.
+   */
+  getTipoCambio(): Observable<TipoCambioComercial> {
+    return this.http.get<TipoCambioComercial>(`${this.apiUrl}/tipo-cambio`);
   }
 }

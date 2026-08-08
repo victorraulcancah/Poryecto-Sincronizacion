@@ -585,6 +585,11 @@
                           <span class="fw-semibold text-sm">Tipo de cambio referencial</span>
                         </div>
                         <span class="fw-bold text-lg d-block mb-4">1 USD = S/ {{ formatPrice(tipoCambioReferencial) }}</span>
+                        <!-- De dónde sale el TC: es el mismo que aplica el
+                             vendedor en el ERP, no un valor fijo del sitio. -->
+                        <p class="text-xs text-gray-600 mb-0" *ngIf="tipoCambioFuente">
+                          Fuente: {{ tipoCambioFuente.fuente | titlecase }} · {{ tipoCambioFuente.fecha }}
+                        </p>
                         <p class="text-xs text-gray-600 mb-0">El tipo de cambio puede variar al momento del pago.</p>
                       </div>
                     </div>

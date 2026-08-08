@@ -97,7 +97,11 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   montosPorMetodo: { [clave: string]: number } = {};
   tipoComprobante: 'boleta' | 'factura' = 'boleta';
   // ✅ Tipo de cambio referencial (informativo, sin conversión automática de totales)
+  // Se pisa con el TC comercial del ERP apenas responde; el 3.70 solo se ve si
+  // esa consulta falla o si el ERP aún no tiene ningún valor registrado.
   tipoCambioReferencial = 3.70;
+  /** Fuente y fecha del TC, para que el cliente sepa de cuándo es. */
+  tipoCambioFuente: { fuente?: string; fecha?: string } | null = null;
   // ✅ El crédito es el método "Crédito autorizado" de la tabla tipo_pagos. Antes
   // el checkout agregaba además una card propia con id -1, así que un cliente
   // vinculado veía dos opciones de crédito; ahora solo existe la de la BD y se
@@ -336,6 +340,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
           this.cargarCredito();
           this.cargarTitular();
+          this.cargarTipoCambio();
         }
       });
   }
@@ -345,6 +350,24 @@ export class CheckoutComponent implements OnInit, OnDestroy {
    * está vinculada a un cliente de 7Power, son los datos de ese cliente; si
    * no, los del usuario registrado.
    */
+  /**
+   * TC comercial del ERP (Bloomberg + margen), el mismo que aplica el vendedor
+   * en Nueva Venta. Es informativo: no convierte los totales.
+   */
+  private cargarTipoCambio(): void {
+    this.clientePortalService.getTipoCambio()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (tc) => {
+          if (!tc?.disponible || !tc.valor_final) return;
+          this.tipoCambioReferencial = tc.valor_final;
+          this.tipoCambioFuente = { fuente: tc.fuente, fecha: tc.fecha_fuente };
+        },
+        // Si falla, se queda el valor por defecto en vez de dejarlo vacío.
+        error: () => {},
+      });
+  }
+
   private cargarTitular(): void {
     this.clientePortalService.getTitular()
       .pipe(takeUntil(this.destroy$))

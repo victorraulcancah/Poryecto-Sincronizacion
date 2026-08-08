@@ -146,6 +146,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/credito', [ClientesController::class, 'miCredito']);
         // Datos del titular que se muestran en el paso de pago del checkout.
         Route::get('/titular', [ClientesController::class, 'miTitular']);
+        // TC comercial del ERP (Bloomberg + margen), para el paso de pago.
+        Route::get('/tipo-cambio', [\App\Http\Controllers\TipoCambioController::class, 'comercial']);
     });
 
     Route::middleware('permission:clientes.delete')->group(function () {
