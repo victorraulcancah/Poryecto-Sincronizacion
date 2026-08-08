@@ -252,6 +252,19 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
     return this.cotizacionesService.getEstadoClass(estado);
   }
 
+  /** Color del estado de la gestión del pedido. */
+  claseEstadoPedido(cotizacion: Cotizacion): string {
+    switch (cotizacion.estado_pedido?.nombre_estado) {
+      case 'En preparación':
+        return 'bg-info-50 text-info-600';
+      case 'Cancelado':
+        return 'bg-danger-50 text-danger-600';
+      default:
+        // En espera: es lo que todavía puede editar el cliente.
+        return 'bg-warning-50 text-warning-600';
+    }
+  }
+
   onImgError(event: any): void {
     const img = event.target as HTMLImageElement;
     if (img.dataset['fallback']) return; // anti-loop

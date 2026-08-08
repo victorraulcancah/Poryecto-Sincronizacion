@@ -44,8 +44,12 @@
 
           <!-- Estado y monto -->
           <div class="col-md-4 text-center">
-            <span class="badge bg-info-50 text-info-600 px-12 py-6 rounded-pill mb-8">
-              {{ cotizacion.estado_actual.nombre || 'Pendiente' }}
+            <!-- Se muestra el estado de la gestión del pedido ("En espera"),
+                 que es el mismo que ve el vendedor. El de la cotización queda
+                 como dato interno: siempre decía "Pendiente". -->
+            <span class="badge px-12 py-6 rounded-pill mb-8"
+                  [ngClass]="claseEstadoPedido(cotizacion)">
+              {{ cotizacion.estado_pedido?.nombre_estado || cotizacion.estado_actual.nombre || 'En espera' }}
             </span>
             <h6 class="text-heading mb-0">{{ (cotizacion.moneda || 's') | moneda }} {{ cotizacion.total | number:'1.2-2' }}</h6>
             <p class="text-xs text-gray-500 mb-0">{{ (cotizacion.productos && cotizacion.productos.length) || 0 }} productos</p>

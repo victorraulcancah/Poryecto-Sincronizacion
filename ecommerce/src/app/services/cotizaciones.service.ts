@@ -16,6 +16,13 @@ export interface Cotizacion {
   total: number;
   estado_actual: EstadoCotizacion;
   /**
+   * Estado de la gestión del pedido, que es el que se le muestra al cliente:
+   * "En espera" mientras nadie lo atienda, luego "En preparación" o
+   * "Cancelado". El `estado_actual` de la cotización queda como dato interno.
+   */
+  estado_pedido?: { id: number; nombre_estado: string } | null;
+  codigo_pedido?: string | null;
+  /**
    * El cliente todavía puede editarla: su pedido sigue "En espera", o sea que
    * ningún vendedor entró a atenderlo.
    */

@@ -561,14 +561,22 @@ class CotizacionesController extends Controller
             ->orderBy('fecha_cotizacion', 'desc')
             ->get();
 
-            // Estado del pedido de cada cotizacion, en una sola consulta: de él
-            // depende si el cliente todavía puede editarla.
-            $estadoPedidoPorCotizacion = Pedido::whereIn('cotizacion_id', $cotizaciones->pluck('id'))
-                ->pluck('estado_pedido_id', 'cotizacion_id');
+            // Estado del pedido de cada cotizacion, en una sola consulta. Es el
+            // estado real que ve el vendedor y del que depende si el cliente
+            // todavia puede editarla, asi que es el que se le muestra a él
+            // tambien (antes veia el de la cotizacion, siempre "Pendiente").
+            $pedidosPorCotizacion = Pedido::with('estadoPedido')
+                ->whereIn('cotizacion_id', $cotizaciones->pluck('id'))
+                ->get()
+                ->keyBy('cotizacion_id');
+
+            $estadoPedidoPorCotizacion = $pedidosPorCotizacion->map(
+                fn ($pedido) => $pedido->estado_pedido_id
+            );
 
             return response()->json([
                 'status' => 'success',
-                'cotizaciones' => $cotizaciones->map(function($cotizacion) use ($estadoPedidoPorCotizacion) {
+                'cotizaciones' => $cotizaciones->map(function($cotizacion) use ($estadoPedidoPorCotizacion, $pedidosPorCotizacion) {
                     return [
                         'id' => $cotizacion->id,
                         'codigo_cotizacion' => $cotizacion->codigo_cotizacion,
@@ -580,6 +588,10 @@ class CotizacionesController extends Controller
                         'total' => $cotizacion->total,
                         'moneda' => $cotizacion->moneda ?? 's',
                         'estado_actual' => $cotizacion->estadoCotizacion,
+                        // Estado de la gestion del pedido: "En espera" mientras
+                        // nadie lo atienda, luego "En preparacion" o "Cancelado".
+                        'estado_pedido' => optional($pedidosPorCotizacion[$cotizacion->id] ?? null)->estadoPedido,
+                        'codigo_pedido' => optional($pedidosPorCotizacion[$cotizacion->id] ?? null)->codigo_pedido,
                         // El cliente puede editar mientras el vendedor no haya
                         // entrado a atender el pedido (sigue "En espera").
                         'editable' => ($estadoPedidoPorCotizacion[$cotizacion->id] ?? Pedido::ESTADO_EN_ESPERA)
