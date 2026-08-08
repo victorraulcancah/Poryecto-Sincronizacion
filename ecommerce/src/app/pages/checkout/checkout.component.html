@@ -615,7 +615,7 @@
                             min="0"
                             step="0.01"
                             [max]="montoMaximoMetodo(tipo)"
-                            [ngModel]="getMontoMetodo(tipo)"
+                            [ngModel]="montoParaInput(tipo)"
                             [ngModelOptions]="{standalone: true}"
                             (ngModelChange)="onMontoMetodoChange(tipo, $event)"
                             (input)="corregirTope(tipo, $event)"

@@ -26,6 +26,26 @@ export interface Compra {
   observaciones?: string;
 }
 
+/** Una venta del ERP 7Power: una compra que el cliente hizo en la tienda. */
+export interface CompraErp {
+  id: number;
+  /** Comprobante: "BOL001-0123" o "V001-5876" si aún no tiene boleta. */
+  documento: string;
+  fecha: string;
+  moneda: 's' | 'd';
+  total: number;
+  anulada: boolean;
+  observaciones?: string | null;
+  productos: {
+    codigo: string | null;
+    nombre: string | null;
+    cantidad: number;
+    precio: number;
+    subtotal: number;
+    moneda: string;
+  }[];
+}
+
 export interface MetodoPagoCompra {
   id: number;
   tipo: string;
@@ -120,6 +140,23 @@ export class ComprasService {
           throw error;
         })
       );
+  }
+
+  /**
+   * Compras hechas en la tienda, leídas del ERP 7Power.
+   *
+   * Solo devuelve algo si la cuenta está vinculada (`vinculado`); son ventas ya
+   * emitidas, sin estados ni seguimiento, así que van aparte de las compras
+   * del e-commerce.
+   */
+  obtenerMisComprasErp(): Observable<{
+    status: string;
+    vinculado: boolean;
+    compras: CompraErp[];
+  }> {
+    return this.http.get<{ status: string; vinculado: boolean; compras: CompraErp[] }>(
+      `${this.apiUrl}/compras/mis-compras-erp`
+    );
   }
 
   /**

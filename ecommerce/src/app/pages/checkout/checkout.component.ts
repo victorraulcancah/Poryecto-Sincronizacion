@@ -219,13 +219,25 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       });
   }
 
+  /**
+   * El carrito se vacía a propósito al generar la cotización; sin esta marca,
+   * el aviso de "carrito vacío" saltaba encima del mensaje de éxito y mandaba
+   * al cliente a /shop.
+   */
+  private cotizacionGenerada = false;
+
   private redirectIfCartIsEmpty(): void {
-    if (typeof window === 'undefined' || !this.cartLoaded || this.cartItems.length > 0) {
+    if (
+      typeof window === 'undefined' ||
+      !this.cartLoaded ||
+      this.cartItems.length > 0 ||
+      this.cotizacionGenerada
+    ) {
       return;
     }
 
     Swal.fire({
-      title: 'Carrito vacÃ­o',
+      title: 'Carrito vacío',
       text: 'No tienes productos en tu carrito para procesar la compra',
       icon: 'warning',
       confirmButtonColor: '#dc3545'
@@ -781,6 +793,10 @@ export class CheckoutComponent implements OnInit, OnDestroy {
         this.procesandoPedido = false;
 
         if (response.status === 'success') {
+          // Se marca antes de vaciar: al quedar el carrito en cero se dispara
+          // redirectIfCartIsEmpty(), y acá el vaciado es intencional.
+          this.cotizacionGenerada = true;
+
           // clearCart() devuelve un Observable frío: sin suscribirse la
           // petición nunca sale y el carrito del cliente quedaba con los
           // productos ya cotizados.
@@ -943,6 +959,14 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
   getMontoMetodo(tipo: TipoPago): number {
     return this.montosPorMetodo[this.claveMetodoPago(tipo)] || 0;
+  }
+
+  /**
+   * Valor que muestra el input: vacío cuando no hay monto, para que se vea el
+   * placeholder "0.00" en vez de un 0 escrito que el cliente tiene que borrar.
+   */
+  montoParaInput(tipo: TipoPago): number | null {
+    return this.getMontoMetodo(tipo) || null;
   }
 
   onMontoMetodoChange(tipo: TipoPago, valor: string | number): void {

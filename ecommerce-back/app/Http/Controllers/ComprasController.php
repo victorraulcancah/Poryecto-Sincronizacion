@@ -331,6 +331,36 @@ class ComprasController extends Controller
     /**
      * Obtener compras del cliente
      */
+    /**
+     * Compras que el cliente hizo en la tienda, tomadas del ERP 7Power.
+     *
+     * Solo aplica a cuentas vinculadas: se resuelven por el `codigo_erp`. Van
+     * aparte de las compras del e-commerce porque son otro origen y otro
+     * flujo; acá no hay estados ni seguimiento, son ventas ya emitidas.
+     */
+    public function misComprasErp(Request $request)
+    {
+        $cliente = $request->user();
+
+        if (!($cliente instanceof UserCliente)) {
+            return response()->json(['status' => 'error', 'message' => 'Acceso no autorizado'], 401);
+        }
+
+        $servicio = app(\App\Services\ClienteErpService::class);
+        $clienteErpId = $servicio->idPorCodigo($cliente->codigo_erp);
+
+        if (!$clienteErpId) {
+            // Cuenta sin vincular, o vinculada a un código que ya no existe.
+            return response()->json(['status' => 'success', 'vinculado' => false, 'compras' => []]);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'vinculado' => true,
+            'compras' => $servicio->comprasDeCliente($clienteErpId),
+        ]);
+    }
+
     public function misCompras(Request $request)
     {
         try {

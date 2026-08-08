@@ -14,8 +14,110 @@
     </div>
   </div>
 
-  <!-- Contenido de compras -->
-  <div class="p-24 p-md-32">
+  <!-- Origen de las compras. La pestaña de tienda solo aparece si la cuenta
+       está vinculada a un cliente de 7Power. -->
+  <div class="px-24 px-md-32 pt-16 border-bottom border-gray-100" *ngIf="cuentaVinculada">
+    <div class="d-flex gap-24">
+      <button type="button"
+              class="btn btn-link p-0 pb-12 text-decoration-none border-0 rounded-0"
+              [class.text-success-600]="origen === 'ecommerce'"
+              [class.fw-bold]="origen === 'ecommerce'"
+              [class.text-gray-500]="origen !== 'ecommerce'"
+              [style.border-bottom]="origen === 'ecommerce' ? '2px solid var(--success-600)' : '2px solid transparent'"
+              (click)="origen = 'ecommerce'">
+        <i class="ph ph-shopping-cart me-8"></i>Compras en línea
+        <span class="badge bg-gray-100 text-gray-600 rounded-pill ms-4">{{ compras.length }}</span>
+      </button>
+      <button type="button"
+              class="btn btn-link p-0 pb-12 text-decoration-none border-0 rounded-0"
+              [class.text-success-600]="origen === 'tienda'"
+              [class.fw-bold]="origen === 'tienda'"
+              [class.text-gray-500]="origen !== 'tienda'"
+              [style.border-bottom]="origen === 'tienda' ? '2px solid var(--success-600)' : '2px solid transparent'"
+              (click)="origen = 'tienda'">
+        <i class="ph ph-storefront me-8"></i>Compras en tienda
+        <span class="badge bg-gray-100 text-gray-600 rounded-pill ms-4">{{ comprasErp.length }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════ COMPRAS EN TIENDA (ventas del ERP) ══════════ -->
+  <div class="p-24 p-md-32" *ngIf="origen === 'tienda'">
+    <div *ngIf="cargandoComprasErp" class="text-center py-40">
+      <div class="spinner-border text-success-600" role="status">
+        <span class="visually-hidden">Cargando compras...</span>
+      </div>
+    </div>
+
+    <div *ngIf="!cargandoComprasErp && comprasErp.length === 0" class="text-center py-60">
+      <div class="w-80 h-80 bg-gray-50 text-gray-400 rounded-circle flex-center mx-auto mb-24">
+        <i class="ph ph-storefront text-3xl"></i>
+      </div>
+      <h5 class="text-heading mb-12">No tienes compras en tienda</h5>
+      <p class="text-gray-500 mb-0">Acá aparecen las compras que hiciste directamente en 7Power.</p>
+    </div>
+
+    <div *ngFor="let compra of comprasErp"
+         class="border border-gray-100 hover-border-success-600 rounded-16 p-20 mb-16 transition-2">
+      <div class="flex-between align-items-center gap-16 flex-wrap cursor-pointer"
+           (click)="verDetalleCompraErp(compra)">
+        <div class="flex-align gap-16">
+          <div class="w-40 h-40 rounded-circle flex-center"
+               [class.bg-success-50]="!compra.anulada" [class.text-success-600]="!compra.anulada"
+               [class.bg-danger-50]="compra.anulada" [class.text-danger-600]="compra.anulada">
+            <i class="ph-bold" [class.ph-receipt]="!compra.anulada" [class.ph-x-circle]="compra.anulada"></i>
+          </div>
+          <div>
+            <h6 class="mb-2 text-heading">{{ compra.documento }}</h6>
+            <p class="text-gray-500 mb-0 text-sm">{{ formatearFecha(compra.fecha) }}</p>
+          </div>
+        </div>
+
+        <div class="text-end">
+          <!-- Una venta del ERP es siempre de una sola moneda. -->
+          <h6 class="mb-2" [class.text-heading]="!compra.anulada" [class.text-danger-600]="compra.anulada">
+            {{ compra.moneda | moneda }} {{ formatearMonto(compra.total) }}
+          </h6>
+          <span *ngIf="compra.anulada" class="badge bg-danger-50 text-danger-600 rounded-pill">Anulada</span>
+          <span *ngIf="!compra.anulada" class="text-gray-500 text-xs">
+            {{ compra.productos.length }} {{ compra.productos.length === 1 ? 'producto' : 'productos' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Detalle desplegable -->
+      <div *ngIf="compraErpAbierta?.id === compra.id" class="mt-16 pt-16 border-top border-gray-100">
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0">
+            <thead>
+              <tr class="text-gray-500 text-xs">
+                <th>CÓDIGO</th>
+                <th>PRODUCTO</th>
+                <th class="text-center">CANT.</th>
+                <th class="text-end">PRECIO</th>
+                <th class="text-end">SUBTOTAL</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of compra.productos" class="text-sm">
+                <td class="text-gray-500">{{ p.codigo || '-' }}</td>
+                <td>{{ p.nombre || '-' }}</td>
+                <td class="text-center">{{ p.cantidad }}</td>
+                <td class="text-end">{{ p.moneda | moneda }} {{ formatearMonto(p.precio) }}</td>
+                <td class="text-end fw-semibold">{{ p.moneda | moneda }} {{ formatearMonto(p.subtotal) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p *ngIf="compra.observaciones" class="text-gray-500 text-sm mt-12 mb-0 fst-italic">
+          {{ compra.observaciones }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ COMPRAS EN LÍNEA (e-commerce) ══════════ -->
+  <div class="p-24 p-md-32" *ngIf="origen === 'ecommerce'">
     <!-- Loading state -->
     <div *ngIf="isLoadingCompras" class="text-center py-40">
       <div class="spinner-border text-success-600" role="status">
