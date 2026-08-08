@@ -43,7 +43,11 @@
                 </div>
                 <div class="d-flex justify-content-between align-items-center mt-4">
                   <span class="text-xs text-gray-500">{{ p.fecha_pedido | date:'dd/MM/yyyy HH:mm' }}</span>
-                  <span class="text-xs fw-semibold text-main-600">{{ (p.moneda || 's') | moneda }} {{ p.total | number:'1.2-2' }}</span>
+                  <span class="text-xs fw-semibold text-main-600">
+                    <span *ngFor="let mon of monedasDelPedido(p); let i = index">
+                      <span *ngIf="i > 0" class="text-gray-400 mx-4">·</span>{{ mon | moneda }} {{ totalDeMoneda(p, mon) | number:'1.2-2' }}
+                    </span>
+                  </span>
                 </div>
               </button>
             </div>
@@ -166,9 +170,13 @@
 
             <!-- Total -->
             <td>
+              <!-- Un importe por moneda. El `total` de la cabecera suma soles y
+                   dolares en un solo numero, asi que no se muestra. -->
               <div class="pedido-total-info">
-                <div class="total-amount">{{ (pedido.moneda || 's') | moneda }} {{ pedido.total | number:'1.2-2' }}</div>
-                <div class="total-label">Total</div>
+                <div class="total-amount" *ngFor="let mon of monedasDelPedido(pedido)">
+                  {{ mon | moneda }} {{ totalDeMoneda(pedido, mon) | number:'1.2-2' }}
+                </div>
+                <div class="total-label">{{ tieneVariasMonedas(pedido) ? 'Totales' : 'Total' }}</div>
               </div>
             </td>
 
@@ -731,7 +739,7 @@
                     (click)="activeTabDetalle = 'productos'">
               <i class="ph ph-shopping-cart me-8"></i>Productos
               <span class="badge bg-main-600 text-white rounded-pill ms-8" style="font-size: 10px;">
-                {{ pedidoSeleccionado?.detalles?.length || 0 }}
+                {{ productosDeMoneda(pedidoSeleccionado, monedaDetalle).length }}
               </span>
             </button>
           </li>
@@ -750,6 +758,28 @@
             </button>
           </li>
         </ul>
+      </div>
+
+      <!-- Selector de moneda: el pedido puede tener productos en soles y en
+           dolares. En vez de partirlo en dos registros, el detalle muestra una
+           moneda por vez. Solo aparece si hay mas de una. -->
+      <div class="px-24 py-12 border-bottom bg-white" *ngIf="tieneVariasMonedas(pedidoSeleccionado)">
+        <div class="d-flex align-items-center gap-12 flex-wrap">
+          <span class="text-gray-500 text-sm">Esta compra tiene dos monedas:</span>
+          <div class="btn-group btn-group-sm" role="group">
+            <button type="button"
+                    *ngFor="let mon of monedasDelPedido(pedidoSeleccionado)"
+                    class="btn rounded-pill px-16 me-8"
+                    [class.btn-main]="monedaDetalle === mon"
+                    [class.btn-outline-main]="monedaDetalle !== mon"
+                    (click)="monedaDetalle = mon">
+              {{ nombreMoneda(mon) }}
+              <span class="ms-4 fw-bold">
+                {{ mon | moneda }} {{ totalDeMoneda(pedidoSeleccionado, mon) | number:'1.2-2' }}
+              </span>
+            </button>
+          </div>
+        </div>
       </div>
 
       <div class="modal-body p-24">
@@ -905,7 +935,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let detalle of pedidoSeleccionado?.detalles" class="align-middle">
+                <tr *ngFor="let detalle of productosDeMoneda(pedidoSeleccionado, monedaDetalle)" class="align-middle">
                   <td class="ps-24">
                     <div class="product-thumb">
                       <img [src]="detalle.imagen_url || 'assets/images/products/no-image.png'" 
@@ -932,21 +962,24 @@
             <div class="table-footer-summary p-24">
               <div class="row justify-content-end">
                 <div class="col-md-5 col-lg-4">
+                  <!-- Totales de la moneda que se esta viendo, calculados desde
+                       las lineas: la cabecera guarda un unico total que suma las
+                       dos monedas. -->
                   <div class="summary-row">
                     <span class="summary-label">Subtotal:</span>
-                    <span class="summary-value">{{ (pedidoSeleccionado?.moneda || 's') | moneda }} {{ pedidoSeleccionado?.subtotal | number:'1.2-2' }}</span>
+                    <span class="summary-value">{{ monedaDetalle | moneda }} {{ subtotalDeMoneda(pedidoSeleccionado, monedaDetalle) | number:'1.2-2' }}</span>
                   </div>
                   <div class="summary-row">
                     <span class="summary-label">IGV (18%):</span>
-                    <span class="summary-value">{{ (pedidoSeleccionado?.moneda || 's') | moneda }} {{ pedidoSeleccionado?.igv | number:'1.2-2' }}</span>
+                    <span class="summary-value">{{ monedaDetalle | moneda }} {{ igvDeMoneda(pedidoSeleccionado, monedaDetalle) | number:'1.2-2' }}</span>
                   </div>
-                  <div class="summary-row">
+                  <div class="summary-row" *ngIf="monedaDetalle === 's'">
                     <span class="summary-label">Envío:</span>
-                    <span class="summary-value">{{ (pedidoSeleccionado?.moneda || 's') | moneda }} {{ pedidoSeleccionado?.costo_envio | number:'1.2-2' }}</span>
+                    <span class="summary-value">{{ monedaDetalle | moneda }} {{ pedidoSeleccionado?.costo_envio | number:'1.2-2' }}</span>
                   </div>
                   <div class="summary-row total-row mt-12 pt-12">
                     <span class="summary-label">Total:</span>
-                    <span class="summary-value text-success-600">{{ (pedidoSeleccionado?.moneda || 's') | moneda }} {{ pedidoSeleccionado?.total | number:'1.2-2' }}</span>
+                    <span class="summary-value text-success-600">{{ monedaDetalle | moneda }} {{ totalDeMoneda(pedidoSeleccionado, monedaDetalle) | number:'1.2-2' }}</span>
                   </div>
                 </div>
               </div>
@@ -1019,7 +1052,7 @@
                   <!-- Si el pedido viene de una cotización con métodos combinados, se muestra el desglose -->
                   <!-- Agrupado por moneda: soles y dolares no se suman entre si. -->
                   <div *ngIf="pedidoSeleccionado?.metodos_pago?.length; else metodoPagoUnico">
-                    <div *ngFor="let mon of monedasDelPedido(pedidoSeleccionado)" class="mb-16">
+                    <div *ngFor="let mon of [monedaDetalle]" class="mb-16">
                       <div class="d-flex justify-content-between align-items-center mb-8">
                         <span class="text-uppercase text-gray-500 fw-semibold" style="font-size: 11px; letter-spacing: .04em;">
                           {{ nombreMoneda(mon) }}
@@ -1076,7 +1109,7 @@
                 <div class="detail-card__body">
                   <!-- Un desglose por moneda, recalculado desde las lineas: la
                        cabecera guarda un unico total que mezcla las dos. -->
-                  <div class="total-summary-box mb-16" *ngFor="let mon of monedasDelPedido(pedidoSeleccionado)">
+                  <div class="total-summary-box mb-16" *ngFor="let mon of [monedaDetalle]">
                     <div class="text-uppercase text-gray-500 fw-semibold mb-8" style="font-size: 11px; letter-spacing: .04em;">
                       {{ nombreMoneda(mon) }}
                     </div>
@@ -1107,11 +1140,15 @@
       <!-- Footer con acciones mejoradas -->
       <div class="modal-footer bg-gray-50 border-top-0 p-24">
         <div class="ms-auto d-flex gap-12">
+          <!-- Una venta de 7Power maneja una sola moneda, asi que un pedido
+               mixto se envia como dos ventas, una por boton. -->
           <button type="button" class="btn btn-outline-success rounded-pill px-24 py-10"
-                  *ngIf="puedeEnviarAErp(pedidoSeleccionado)"
-                  (click)="enviarAErp(pedidoSeleccionado)"
-                  title="Abre 'Nueva Venta' en el ERP con el cliente y los productos precargados">
-            <i class="ph ph-arrow-square-out me-8"></i>Enviar a ERP
+                  *ngFor="let mon of monedasDelPedido(pedidoSeleccionado)"
+                  [hidden]="!puedeEnviarAErp(pedidoSeleccionado)"
+                  (click)="enviarAErp(pedidoSeleccionado, mon)"
+                  [title]="'Abre Nueva Venta en el ERP con los productos en ' + nombreMoneda(mon).toLowerCase()">
+            <i class="ph ph-arrow-square-out me-8"></i>Enviar
+            {{ tieneVariasMonedas(pedidoSeleccionado) ? nombreMoneda(mon).toLowerCase() + ' ' : '' }}a ERP
           </button>
           <button type="button" class="btn btn-outline-main rounded-pill px-24 py-10" (click)="imprimirPedido()">
             <i class="ph ph-printer me-8"></i>Imprimir

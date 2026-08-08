@@ -89,7 +89,14 @@ export class PedidosListComponent implements OnInit {
     return !!pedido?.user_cliente?.codigo_erp;
   }
 
-  enviarAErp(pedido: any): void {
+  /**
+   * Abre "Nueva Venta" del ERP con los productos de UNA moneda.
+   *
+   * Una venta de 7Power maneja una sola moneda, así que un pedido mixto se
+   * gestiona como dos ventas: se pulsa el botón de cada moneda. En el
+   * e-commerce sigue siendo un único pedido.
+   */
+  enviarAErp(pedido: any, moneda?: string): void {
     const codigoCliente = pedido?.user_cliente?.codigo_erp;
     if (!codigoCliente) {
       Swal.fire({
@@ -101,13 +108,18 @@ export class PedidosListComponent implements OnInit {
       return;
     }
 
-    const codigosProductos = (pedido.detalles || [])
+    const productos = moneda
+      ? this.productosDeMoneda(pedido, moneda)
+      : (pedido.detalles || []);
+
+    const codigosProductos = productos
       .map((d: any) => d.codigo_producto)
       .filter(Boolean)
       .join(',');
 
     const params = new URLSearchParams({ codigo_cliente: codigoCliente });
     if (codigosProductos) params.set('productos', codigosProductos);
+    if (moneda) params.set('moneda', moneda);
 
     window.open(`${environment.erpFrontUrl}?${params.toString()}`, '_blank');
   }
@@ -211,9 +223,18 @@ export class PedidosListComponent implements OnInit {
     this.currentPage = 1;
   }
 
+  /**
+   * Moneda que se está viendo en el detalle. Un pedido puede tener productos
+   * en soles y en dólares; en vez de partirlo en dos registros, el detalle
+   * muestra una moneda por vez.
+   */
+  monedaDetalle = 's';
+
   verDetalle(pedido: any): void {
     this.pedidoSeleccionado = pedido;
     this.activeTabDetalle = 'general';
+    // Se abre en la primera moneda del pedido (soles si tiene).
+    this.monedaDetalle = this.monedasDelPedido(pedido)[0] || 's';
     const modal = document.getElementById('detallePedidoModal');
     if (modal) {
       const bootstrapModal = new (window as any).bootstrap.Modal(modal);
@@ -254,7 +275,21 @@ export class PedidosListComponent implements OnInit {
       ...pagos.map((m: any) => m.moneda || 's'),
     ]);
 
-    return ['s', 'd'].filter(m => monedas.has(m));
+    const presentes = ['s', 'd'].filter(m => monedas.has(m));
+
+    // Un pedido sin líneas ni pagos (creado a mano desde el panel) se trata
+    // como de una sola moneda, la suya, para no dejar la fila sin importe.
+    return presentes.length ? presentes : [pedido?.moneda || 's'];
+  }
+
+  /** El pedido mezcla monedas, así que el detalle necesita el selector. */
+  tieneVariasMonedas(pedido: any): boolean {
+    return this.monedasDelPedido(pedido).length > 1;
+  }
+
+  /** Productos de una moneda. */
+  productosDeMoneda(pedido: any, moneda: string): any[] {
+    return (pedido?.detalles || []).filter((d: any) => (d.moneda || 's') === moneda);
   }
 
   /** Métodos de pago de una moneda. */
