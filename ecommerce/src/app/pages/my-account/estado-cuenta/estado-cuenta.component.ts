@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../services/auth.service';
 import { RangoFechasComponent } from '../../../components/rango-fechas/rango-fechas.component';
 import {
-  AplicacionPago,
   EstadoCuentaService,
   EstadoCuentaResponse,
   MovimientoEstadoCuenta,
@@ -30,13 +29,6 @@ export class EstadoCuentaComponent implements OnInit {
 
   private codigoErp = '';
   busqueda = '';
-
-  /**
-   * Cómo se repartió cada pago entre las ventas que cubrió, por id de
-   * PaymentSeller. No viene en la respuesta del ERP: se pide aparte a nuestro
-   * backend y se cruza acá.
-   */
-  private aplicacionesPorPago: Record<string, AplicacionPago[]> = {};
 
   // Filtro de fechas (por defecto, el mes en curso, igual que el ERP).
   fechaDesde = '';
@@ -65,23 +57,9 @@ export class EstadoCuentaComponent implements OnInit {
     this.recargar();
   }
 
-  /**
-   * Vuelve a consultar la API con el rango actual. El mapa de pagos se pide
-   * antes que los movimientos porque de él depende cómo se separan las filas
-   * de pago; si falla, los pagos salen sin documento pero el estado de cuenta
-   * se muestra igual.
-   */
+  /** Vuelve a consultar la API con el rango actual. */
   recargar(): void {
-    this.estadoCuentaService.obtenerDocumentosDePagos().subscribe({
-      next: (mapa) => {
-        this.aplicacionesPorPago = mapa || {};
-        this.cargar();
-      },
-      error: () => {
-        this.aplicacionesPorPago = {};
-        this.cargar();
-      },
-    });
+    this.cargar();
   }
 
   private aInputDate(d: Date): string {
@@ -107,10 +85,10 @@ export class EstadoCuentaComponent implements OnInit {
       .subscribe({
         next: (res) => {
           this.resumen = res;
-          // Más reciente primero, igual que la vista del ERP.
-          this.movimientos = this.separarPagosPorVenta(res.data || []).sort(
-            (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-          );
+          // Se respeta el orden que manda el backend (del más antiguo al más
+          // reciente, como un estado de cuenta bancario). Es el mismo que ve
+          // el ERP: los dos endpoints pasan por procesarPaginacion.
+          this.movimientos = [...(res.data || [])];
           this.aplicarBusqueda();
           this.cargando = false;
         },
@@ -121,57 +99,6 @@ export class EstadoCuentaComponent implements OnInit {
             err?.error?.error || 'No se pudo cargar el estado de cuenta. Intenta nuevamente más tarde.';
         }
       });
-  }
-
-  /**
-   * Un pago puede cubrir cuotas de varias ventas. En ese caso se parte en una
-   * fila por venta, cada una con su documento y el monto que le tocó, en vez
-   * de una sola fila con dos documentos juntos.
-   *
-   * Los pagos que cubren una sola venta (o ninguna, como el saldo a favor) se
-   * dejan tal cual; solo se les anota el documento.
-   */
-  private separarPagosPorVenta(movimientos: MovimientoEstadoCuenta[]): MovimientoEstadoCuenta[] {
-    const resultado: MovimientoEstadoCuenta[] = [];
-
-    for (const mov of movimientos) {
-      const aplicaciones =
-        mov.type === 'payment_seller_aggregated' ? this.aplicacionesPorPago[this.idDePago(mov)] ?? [] : [];
-
-      if (aplicaciones.length === 0) {
-        resultado.push(mov);
-        continue;
-      }
-
-      if (aplicaciones.length === 1) {
-        resultado.push({ ...mov, documento_venta: aplicaciones[0].documento });
-        continue;
-      }
-
-      const total = Number(mov.total_sumado ?? 0);
-      const aplicado = aplicaciones.reduce((suma, a) => suma + Number(a.monto ?? 0), 0);
-      // Lo que el pago no aplicó a ninguna venta (saldo a favor) va en una
-      // fila aparte, para que la suma de la columna siga dando el total.
-      const resto = Math.round((total - aplicado) * 100) / 100;
-
-      aplicaciones.forEach((aplicacion, i) => {
-        // Si se aplicó de más (diferencias de redondeo del ERP), el sobrante
-        // se descuenta de la última fila en vez de mostrar un monto negativo.
-        const ajuste = resto < 0 && i === aplicaciones.length - 1 ? resto : 0;
-        resultado.push({
-          ...mov,
-          id: `${mov.id}-${aplicacion.documento}`,
-          documento_venta: aplicacion.documento,
-          total_sumado: Number(aplicacion.monto ?? 0) + ajuste,
-        });
-      });
-
-      if (resto > 0) {
-        resultado.push({ ...mov, id: `${mov.id}-resto`, total_sumado: resto });
-      }
-    }
-
-    return resultado;
   }
 
   aplicarBusqueda(): void {
@@ -196,12 +123,7 @@ export class EstadoCuentaComponent implements OnInit {
    * vista detallada por producto (columnsEstadoDeCuentaPrincipal).
    */
   documento(mov: MovimientoEstadoCuenta): string {
-    // El pago no tiene documento propio: lleva el de la venta a la que se
-    // aplicó, que anota separarPagosPorVenta().
-    if (mov.type === 'payment_seller_aggregated') {
-      return mov.documento_venta ?? '-';
-    }
-    if (!mov.sale) return '-';
+    if (mov.type === 'payment_seller_aggregated' || !mov.sale) return '-';
     if (mov.sale.boleta) {
       const b = mov.sale.boleta;
       const tipo = (b.tipo || 'bol').toString().toUpperCase();
@@ -211,14 +133,6 @@ export class EstadoCuentaComponent implements OnInit {
     }
     const nro = (mov.sale.nro_documento ?? '0').toString().padStart(4, '0');
     return `V001-${nro}`;
-  }
-
-  /**
-   * Id del PaymentSeller dentro del id del movimiento, que el ERP arma como
-   * "ps-agg-soles-132" / "ps-agg-dolares-132".
-   */
-  private idDePago(mov: MovimientoEstadoCuenta): string {
-    return String(mov.id ?? '').split('-').pop() ?? '';
   }
 
   /** Cantidad del producto (columna "Cantidad"). */
@@ -279,20 +193,6 @@ export class EstadoCuentaComponent implements OnInit {
 
   esFilaRoja(mov: MovimientoEstadoCuenta): boolean {
     return this.esPago(mov) || mov.sale?.estado === false;
-  }
-
-  /**
-   * Primera fila de su documento: los productos de una misma venta llegan como
-   * filas separadas, así que solo la primera muestra fecha y documento y se le
-   * pinta la línea divisoria. Así cada orden se ve como un bloque.
-   */
-  esInicioDeGrupo(indice: number): boolean {
-    if (indice === 0) return true;
-    const actual = this.movimientosFiltrados[indice];
-    const previo = this.movimientosFiltrados[indice - 1];
-    // Los pagos no se agrupan: cada uno es su propia línea.
-    if (this.esPago(actual) || this.esPago(previo)) return true;
-    return this.documento(actual) !== this.documento(previo);
   }
 
   get hayDeudaAnterior(): boolean {

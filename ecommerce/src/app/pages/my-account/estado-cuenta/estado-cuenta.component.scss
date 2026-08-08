@@ -15,13 +15,6 @@
     padding-right: 0.35rem;
   }
 
-  /* Filas que continúan una misma venta: sin línea divisoria, para que el
-     grupo se lea como un solo bloque. La divisoria queda solo al empezar
-     cada documento. */
-  tbody tr.fila-continuacion td {
-    border-top: 0;
-  }
-
   /* Pagos en rojo.
    *
    * El color se aplica sobre cada `td` y no sobre el `tr`: Bootstrap le pone
