@@ -633,9 +633,10 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     } else {
       rucControl?.clearValidators();
       razonSocialControl?.clearValidators();
-      // ✅ Algunos clientes se registran solo con RUC (cuenta empresarial); si
-      // quieren Boleta, deben poder registrar y guardar su DNI aquí mismo.
-      numeroDocumentoControl?.setValidators([Validators.required, Validators.pattern('^[0-9]{8}$')]);
+      // El documento ya no se edita en el checkout: viene del perfil del
+      // cliente. Si se dejara obligatorio con 8 dígitos, una cuenta registrada
+      // con RUC quedaría bloqueada sin campo visible donde corregirlo.
+      numeroDocumentoControl?.clearValidators();
     }
 
     rucControl?.updateValueAndValidity();
@@ -667,32 +668,6 @@ export class CheckoutComponent implements OnInit, OnDestroy {
         Swal.fire({
           title: 'Error al guardar',
           text: error.error?.message || 'No se pudo guardar el RUC/Razón Social. Intenta nuevamente.',
-          icon: 'error',
-          confirmButtonColor: '#dc3545'
-        });
-      }
-    });
-  }
-
-  guardarDni(): void {
-    const control = this.checkoutForm.get('numeroDocumento');
-    control?.markAsTouched();
-
-    if (control?.invalid) return;
-
-    this.authService.actualizarDni(control?.value).subscribe({
-      next: () => {
-        Swal.fire({
-          title: 'DNI guardado',
-          icon: 'success',
-          timer: 1500,
-          showConfirmButton: false
-        });
-      },
-      error: (error) => {
-        Swal.fire({
-          title: 'Error al guardar',
-          text: error.error?.message || 'No se pudo guardar el DNI. Intenta nuevamente.',
           icon: 'error',
           confirmButtonColor: '#dc3545'
         });

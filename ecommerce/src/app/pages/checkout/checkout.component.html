@@ -449,44 +449,6 @@
                         </button>
                       </div>
 
-                      <!-- DNI: solo si eligió Boleta. Algunos clientes se registran solo con
-                           RUC (cuenta empresarial); aquí pueden registrar y guardar su DNI. -->
-                      <div class="row" *ngIf="tipoComprobante === 'boleta'">
-                        <div class="col-sm-6 mb-8">
-                          <label class="text-gray-500 text-xs d-block mb-4">DNI <span class="text-danger">*</span></label>
-                          <input
-                            type="text"
-                            class="form-control form-control-sm rounded-6"
-                            formControlName="numeroDocumento"
-                            maxlength="8"
-                            placeholder="12345678"
-                            [class.is-invalid]="
-                              checkoutForm.get('numeroDocumento')?.invalid &&
-                              checkoutForm.get('numeroDocumento')?.touched
-                            "
-                          />
-                          <div
-                            class="invalid-feedback"
-                            *ngIf="
-                              checkoutForm.get('numeroDocumento')?.invalid &&
-                              checkoutForm.get('numeroDocumento')?.touched
-                            "
-                          >
-                            Ingresa un DNI válido de 8 dígitos
-                          </div>
-                        </div>
-                        <div class="col-sm-6 mb-8 d-flex align-items-end">
-                          <button
-                            type="button"
-                            class="btn btn-main btn-sm rounded-6"
-                            (click)="guardarDni()"
-                          >
-                            <i class="ph ph-floppy-disk me-4"></i>
-                            Guardar
-                          </button>
-                        </div>
-                      </div>
-
                       <!-- RUC / Razón Social: solo obligatorios si eligió Factura -->
                       <div class="row" *ngIf="tipoComprobante === 'factura'">
                         <div class="col-sm-6 mb-8">
