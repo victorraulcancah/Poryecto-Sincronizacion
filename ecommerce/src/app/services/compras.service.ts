@@ -159,6 +159,13 @@ export class ComprasService {
     );
   }
 
+  /** Comprobante en PDF de una compra hecha en la tienda. */
+  descargarComprobanteErp(id: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/compras/erp/${id}/comprobante`, {
+      responseType: 'blob'
+    });
+  }
+
   /**
    * Obtener mis compras (para clientes)
    */

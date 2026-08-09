@@ -94,6 +94,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/mis-compras', [ComprasController::class, 'misCompras']);
         // Compras hechas en la tienda, leídas del ERP (solo cuentas vinculadas).
         Route::get('/mis-compras-erp', [ComprasController::class, 'misComprasErp']);
+        // Comprobante en PDF de una de esas compras.
+        Route::get('/erp/{id}/comprobante', [ComprasController::class, 'comprobanteErpPdf']);
         Route::get('/{id}/tracking', [ComprasController::class, 'getTracking']);
         Route::post('/', [ComprasController::class, 'store']);
     });

@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
-import { ComprasService, Compra, CompraErp } from '../../../services/compras.service';
+import { ComprasService, CompraErp } from '../../../services/compras.service';
 import { MonedaPipe } from '../../../pipes/moneda.pipe';
 
 @Component({
@@ -12,18 +12,15 @@ import { MonedaPipe } from '../../../pipes/moneda.pipe';
   styleUrl: './compras.component.scss'
 })
 export class ComprasComponent implements OnInit, OnDestroy {
-  compras: Compra[] = [];
-  isLoadingCompras = false;
-  compraSeleccionada: Compra | null = null;
 
   // Compras hechas en la tienda (ventas del ERP). Solo llegan si la cuenta
   // está vinculada a un cliente de 7Power.
   comprasErp: CompraErp[] = [];
   cuentaVinculada = false;
   cargandoComprasErp = false;
-  /** Qué origen se está viendo: el e-commerce o la tienda. */
-  origen: 'ecommerce' | 'tienda' = 'ecommerce';
   compraErpAbierta: CompraErp | null = null;
+  /** Id de la compra cuyo PDF se está generando. */
+  descargando: number | null = null;
 
   private destroy$ = new Subject<void>();
 
@@ -32,7 +29,6 @@ export class ComprasComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.cargarCompras();
     this.cargarComprasErp();
   }
 
@@ -59,6 +55,31 @@ export class ComprasComponent implements OnInit, OnDestroy {
     this.compraErpAbierta = this.compraErpAbierta?.id === compra.id ? null : compra;
   }
 
+  /**
+   * Abre el comprobante en PDF en otra pestaña. El endpoint pide token, así
+   * que se descarga como blob y se abre desde memoria.
+   */
+  verComprobante(compra: CompraErp): void {
+    if (this.descargando) return;
+
+    this.descargando = compra.id;
+    this.comprasService.descargarComprobanteErp(compra.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (blob) => {
+          const url = URL.createObjectURL(blob);
+          window.open(url, '_blank');
+          // El navegador ya tiene el contenido; se libera al rato para no
+          // cortar la carga de la pestaña recién abierta.
+          setTimeout(() => URL.revokeObjectURL(url), 60000);
+          this.descargando = null;
+        },
+        error: () => {
+          this.descargando = null;
+        }
+      });
+  }
+
   formatearMonto(valor: number | null | undefined): string {
     return (valor ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
@@ -68,35 +89,6 @@ export class ComprasComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private cargarCompras(): void {
-    this.isLoadingCompras = true;
-    this.comprasService.obtenerMisCompras()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          if (response.status === 'success' && response.compras) {
-            this.compras = response.compras;
-          }
-          this.isLoadingCompras = false;
-        },
-        error: (error) => {
-          console.error('Error cargando compras:', error);
-          this.isLoadingCompras = false;
-        }
-      });
-  }
-
-  mostrarModalDetalle = false;
-
-  verDetalleCompra(compra: Compra): void {
-    this.compraSeleccionada = compra;
-    this.mostrarModalDetalle = true;
-  }
-
-  cerrarModalDetalle(): void {
-    this.mostrarModalDetalle = false;
-    this.compraSeleccionada = null;
-  }
 
   formatearMoneda(moneda: string): string {
     return moneda === 'd' ? 'US$' : 'S/';

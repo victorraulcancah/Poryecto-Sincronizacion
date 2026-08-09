@@ -14,35 +14,8 @@
     </div>
   </div>
 
-  <!-- Origen de las compras. La pestaña de tienda solo aparece si la cuenta
-       está vinculada a un cliente de 7Power. -->
-  <div class="px-24 px-md-32 pt-16 border-bottom border-gray-100" *ngIf="cuentaVinculada">
-    <div class="d-flex gap-24">
-      <button type="button"
-              class="btn btn-link p-0 pb-12 text-decoration-none border-0 rounded-0"
-              [class.text-success-600]="origen === 'ecommerce'"
-              [class.fw-bold]="origen === 'ecommerce'"
-              [class.text-gray-500]="origen !== 'ecommerce'"
-              [style.border-bottom]="origen === 'ecommerce' ? '2px solid var(--success-600)' : '2px solid transparent'"
-              (click)="origen = 'ecommerce'">
-        <i class="ph ph-shopping-cart me-8"></i>Compras en línea
-        <span class="badge bg-gray-100 text-gray-600 rounded-pill ms-4">{{ compras.length }}</span>
-      </button>
-      <button type="button"
-              class="btn btn-link p-0 pb-12 text-decoration-none border-0 rounded-0"
-              [class.text-success-600]="origen === 'tienda'"
-              [class.fw-bold]="origen === 'tienda'"
-              [class.text-gray-500]="origen !== 'tienda'"
-              [style.border-bottom]="origen === 'tienda' ? '2px solid var(--success-600)' : '2px solid transparent'"
-              (click)="origen = 'tienda'">
-        <i class="ph ph-storefront me-8"></i>Compras en tienda
-        <span class="badge bg-gray-100 text-gray-600 rounded-pill ms-4">{{ comprasErp.length }}</span>
-      </button>
-    </div>
-  </div>
-
   <!-- ══════════ COMPRAS EN TIENDA (ventas del ERP) ══════════ -->
-  <div class="p-24 p-md-32" *ngIf="origen === 'tienda'">
+  <div class="p-24 p-md-32">
     <div *ngIf="cargandoComprasErp" class="text-center py-40">
       <div class="spinner-border text-success-600" role="status">
         <span class="visually-hidden">Cargando compras...</span>
@@ -112,139 +85,17 @@
         <p *ngIf="compra.observaciones" class="text-gray-500 text-sm mt-12 mb-0 fst-italic">
           {{ compra.observaciones }}
         </p>
-      </div>
-    </div>
-  </div>
 
-  <!-- ══════════ COMPRAS EN LÍNEA (e-commerce) ══════════ -->
-  <div class="p-24 p-md-32" *ngIf="origen === 'ecommerce'">
-    <!-- Loading state -->
-    <div *ngIf="isLoadingCompras" class="text-center py-40">
-      <div class="spinner-border text-success-600" role="status">
-        <span class="visually-hidden">Cargando compras...</span>
-      </div>
-    </div>
-
-    <!-- Lista de compras -->
-    <div *ngIf="!isLoadingCompras && compras.length > 0">
-      <div *ngFor="let compra of compras"
-           class="border border-gray-100 hover-border-success-600 rounded-16 p-20 mb-16 transition-2 hover-shadow-sm">
-
-        <div class="row align-items-center">
-          <!-- Información básica -->
-          <div class="col-md-4">
-            <div class="flex-align gap-12 mb-8">
-              <div class="w-40 h-40 bg-success-50 text-success-600 rounded-circle flex-center">
-                <i class="ph-bold ph-package"></i>
-              </div>
-              <div>
-                <h6 class="mb-2 text-heading">{{ compra.codigo_compra }}</h6>
-                <p class="text-xs text-gray-500 mb-0">{{ formatearFecha(compra.fecha_compra) }}</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Estado y monto -->
-          <div class="col-md-4 text-center">
-            <span [class]="'badge px-12 py-6 rounded-pill mb-8 ' + getEstadoCompraClass(compra.estado_compra)">
-              {{ compra.estado_compra.nombre || 'En proceso' }}
-            </span>
-            <h6 class="text-heading mb-0">S/ {{ compra.total | number:'1.2-2' }}</h6>
-            <p class="text-xs text-gray-500 mb-0">{{ compra.productos.length || 0 }} productos</p>
-          </div>
-
-          <!-- Acciones -->
-          <div class="col-md-4 text-end">
-            <button (click)="verDetalleCompra(compra)"
-                    class="btn bg-main-50 hover-bg-main-100 text-main-600 px-16 py-8 rounded-8 text-sm transition-2">
-              <i class="ph ph-eye me-4"></i>
-              Ver detalle
-            </button>
-          </div>
+        <div class="mt-16">
+          <button type="button"
+                  class="btn btn-outline-main btn-sm rounded-pill flex-align gap-8"
+                  [disabled]="descargando === compra.id"
+                  (click)="verComprobante(compra)">
+            <i class="ph-bold" [class.ph-file-pdf]="descargando !== compra.id"
+               [class.ph-spinner]="descargando === compra.id"></i>
+            {{ descargando === compra.id ? 'Generando...' : 'Ver documento' }}
+          </button>
         </div>
       </div>
     </div>
-
-    <!-- Estado vacío -->
-    <div *ngIf="!isLoadingCompras && compras.length === 0" class="text-center py-60">
-      <div class="w-80 h-80 bg-gray-50 text-gray-400 rounded-circle flex-center mx-auto mb-24">
-        <i class="ph ph-package text-3xl"></i>
-      </div>
-      <h5 class="text-heading mb-12">No tienes compras</h5>
-      <p class="text-gray-500 mb-24 max-w-400 mx-auto">
-        Cuando realices una compra, aparecerá aquí para que puedas hacer seguimiento.
-      </p>
-      <a routerLink="/shop" class="btn btn-main rounded-pill px-32 py-12">
-        <i class="ph-bold ph-shopping-cart me-8"></i>
-        Ir de compras
-      </a>
-    </div>
   </div>
-</div>
-
-<!-- Modal de detalle de compra: desglose completo de métodos de pago -->
-<div class="modal fade show d-block" tabindex="-1" *ngIf="mostrarModalDetalle && compraSeleccionada"
-     style="background: rgba(0,0,0,0.5);" (click)="cerrarModalDetalle()">
-  <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
-    <div class="modal-content rounded-16">
-      <div class="modal-header border-bottom border-gray-100">
-        <h5 class="modal-title text-heading">Detalle de {{ compraSeleccionada.codigo_compra }}</h5>
-        <button type="button" class="btn-close" (click)="cerrarModalDetalle()"></button>
-      </div>
-      <div class="modal-body">
-        <p class="text-sm text-gray-500 mb-4">Fecha: {{ formatearFecha(compraSeleccionada.fecha_compra) }}</p>
-        <p class="text-sm text-gray-500 mb-16">
-          Estado:
-          <span [class]="'badge px-8 py-4 rounded-pill ' + getEstadoCompraClass(compraSeleccionada.estado_compra)">
-            {{ compraSeleccionada.estado_compra.nombre }}
-          </span>
-        </p>
-
-        <h6 class="text-heading mb-8">Métodos de pago</h6>
-        <table class="table table-sm mb-16" *ngIf="compraSeleccionada.metodos_pago?.length">
-          <thead>
-            <tr class="text-xs text-gray-500">
-              <th>Tipo</th>
-              <th>Moneda</th>
-              <th class="text-end">Monto</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let m of compraSeleccionada.metodos_pago">
-              <td>{{ m.tipo }}</td>
-              <td>{{ formatearMoneda(m.moneda) }}</td>
-              <td class="text-end">{{ formatearMoneda(m.moneda) }} {{ formatearPrecio(m.monto) }}</td>
-            </tr>
-          </tbody>
-        </table>
-        <p class="text-sm text-gray-500 mb-16" *ngIf="!compraSeleccionada.metodos_pago?.length">
-          {{ compraSeleccionada.metodo_pago || 'No especificado' }}
-        </p>
-
-        <h6 class="text-heading mb-8">Productos</h6>
-        <table class="table table-sm mb-0">
-          <thead>
-            <tr class="text-xs text-gray-500">
-              <th>Producto</th>
-              <th class="text-center">Cant.</th>
-              <th class="text-end">Subtotal</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let p of compraSeleccionada.productos">
-              <td>{{ p.nombre }}</td>
-              <td class="text-center">{{ p.cantidad }}</td>
-              <td class="text-end">S/ {{ formatearPrecio(p.subtotal) }}</td>
-            </tr>
-          </tbody>
-          <tfoot>
-            <tr class="fw-bold">
-              <td colspan="2">Total</td>
-              <td class="text-end">S/ {{ formatearPrecio(compraSeleccionada.total) }}</td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>

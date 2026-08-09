@@ -361,6 +361,38 @@ class ComprasController extends Controller
         ]);
     }
 
+    /**
+     * PDF de una compra hecha en la tienda (venta del ERP).
+     *
+     * El comprobante no se genera en 7Power —allá se arma en el navegador—,
+     * así que acá se emite uno con los datos de la venta.
+     */
+    public function comprobanteErpPdf(Request $request, $id)
+    {
+        $cliente = $request->user();
+
+        if (!($cliente instanceof UserCliente)) {
+            return response()->json(['message' => 'Acceso no autorizado'], 401);
+        }
+
+        $servicio = app(\App\Services\ClienteErpService::class);
+        $clienteErpId = $servicio->idPorCodigo($cliente->codigo_erp);
+
+        // comprobanteDeVenta devuelve null si la venta no es de este cliente,
+        // así que también hace de control de acceso.
+        $compra = $clienteErpId ? $servicio->comprobanteDeVenta($clienteErpId, (int) $id) : null;
+
+        if (!$compra) {
+            return response()->json(['message' => 'Compra no encontrada'], 404);
+        }
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('exports.compra-erp-pdf', [
+            'compra' => $compra,
+        ])->setPaper('a4');
+
+        return $pdf->stream($compra['documento'] . '.pdf');
+    }
+
     public function misCompras(Request $request)
     {
         try {
