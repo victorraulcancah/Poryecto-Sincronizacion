@@ -99,3 +99,24 @@
       </div>
     </div>
   </div>
+</div>
+
+<!-- Comprobante: se ve sobre la misma página, como en el ERP. -->
+<div class="comprobante-overlay" *ngIf="compraComprobante" (click)="cerrarComprobante()">
+  <div class="comprobante-modal" (click)="$event.stopPropagation()">
+    <div class="flex-between align-items-center gap-16 px-24 py-16 border-bottom border-gray-100">
+      <h6 class="mb-0 text-heading">Venta Nro: {{ compraComprobante.documento }}</h6>
+      <div class="flex-align gap-8">
+        <button type="button" class="btn btn-main btn-sm rounded-pill flex-align gap-8"
+                (click)="descargarComprobante()">
+          <i class="ph-bold ph-download-simple"></i> PDF
+        </button>
+        <button type="button" class="btn btn-outline-gray btn-sm rounded-circle w-40 h-40 flex-center"
+                (click)="cerrarComprobante()" aria-label="Cerrar">
+          <i class="ph-bold ph-x"></i>
+        </button>
+      </div>
+    </div>
+    <iframe class="comprobante-visor" [src]="urlComprobante" title="Comprobante"></iframe>
+  </div>
+</div>

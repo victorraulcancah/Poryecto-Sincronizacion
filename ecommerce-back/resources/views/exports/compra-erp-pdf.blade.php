@@ -53,7 +53,7 @@
         }
         .info { width: 100%; margin-top: 8px; font-size: 10px; }
         .info td { vertical-align: top; padding: 1px 0; }
-        .info .et { font-weight: bold; white-space: nowrap; width: 120px; }
+        .info .et { font-weight: bold; white-space: nowrap; width: 135px; padding-right: 10px; }
 
         /* Tabla de productos */
         .items { width: 100%; margin-top: 10px; font-size: 10px; }
@@ -83,8 +83,8 @@
             padding: 4px; font-weight: bold; margin-bottom: 8px; border-radius: 6px;
         }
 
-        .pie { border-top: 2px solid #000; margin-top: 26px; padding-top: 6px; }
-        .pie .gracias { text-align: right; font-weight: 600; font-size: 10px; margin-bottom: 4px; }
+        .gracias { text-align: right; font-weight: bold; font-size: 10px; margin: 6px 0 4px; }
+        .pie { border-top: 2px solid #000; padding-top: 6px; }
         .pie td { vertical-align: top; font-size: 10px; }
         .pie .legal { text-align: center; line-height: 1.5; }
     </style>
@@ -207,8 +207,9 @@
     <div class="tc">Tipo de Cambio: S/. {{ $compra['tipo_de_cambio'] }}</div>
 @endif
 
+<div class="gracias">GRACIAS POR SU COMPRA!</div>
+
 <div class="pie">
-    <div class="gracias">GRACIAS POR SU COMPRA!</div>
     <table class="w100">
         <tr>
             <td style="width: 50%;" class="legal">

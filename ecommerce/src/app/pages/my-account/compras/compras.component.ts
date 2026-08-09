@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Subject, takeUntil } from 'rxjs';
 import { ComprasService, CompraErp } from '../../../services/compras.service';
 import { MonedaPipe } from '../../../pipes/moneda.pipe';
@@ -21,11 +22,16 @@ export class ComprasComponent implements OnInit, OnDestroy {
   compraErpAbierta: CompraErp | null = null;
   /** Id de la compra cuyo PDF se está generando. */
   descargando: number | null = null;
+  /** Comprobante que se está viendo en el modal. */
+  compraComprobante: CompraErp | null = null;
+  urlComprobante: SafeResourceUrl | null = null;
+  private blobComprobante: string | null = null;
 
   private destroy$ = new Subject<void>();
 
   constructor(
-    private comprasService: ComprasService
+    private comprasService: ComprasService,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -56,8 +62,9 @@ export class ComprasComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Abre el comprobante en PDF en otra pestaña. El endpoint pide token, así
-   * que se descarga como blob y se abre desde memoria.
+   * Abre el comprobante en un modal sobre la misma página, como el ERP. El
+   * endpoint pide token, así que se descarga como blob y se muestra desde
+   * memoria.
    */
   verComprobante(compra: CompraErp): void {
     if (this.descargando) return;
@@ -67,11 +74,12 @@ export class ComprasComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (blob) => {
-          const url = URL.createObjectURL(blob);
-          window.open(url, '_blank');
-          // El navegador ya tiene el contenido; se libera al rato para no
-          // cortar la carga de la pestaña recién abierta.
-          setTimeout(() => URL.revokeObjectURL(url), 60000);
+          this.cerrarComprobante();
+          this.blobComprobante = URL.createObjectURL(blob);
+          // Angular bloquea las blob: URL en un iframe si no se marcan como
+          // confiables.
+          this.urlComprobante = this.sanitizer.bypassSecurityTrustResourceUrl(this.blobComprobante);
+          this.compraComprobante = compra;
           this.descargando = null;
         },
         error: () => {
@@ -80,11 +88,31 @@ export class ComprasComponent implements OnInit, OnDestroy {
       });
   }
 
+  cerrarComprobante(): void {
+    if (this.blobComprobante) {
+      URL.revokeObjectURL(this.blobComprobante);
+      this.blobComprobante = null;
+    }
+    this.urlComprobante = null;
+    this.compraComprobante = null;
+  }
+
+  /** Descarga el comprobante que se está viendo. */
+  descargarComprobante(): void {
+    if (!this.blobComprobante || !this.compraComprobante) return;
+
+    const enlace = document.createElement('a');
+    enlace.href = this.blobComprobante;
+    enlace.download = `${this.compraComprobante.documento}.pdf`;
+    enlace.click();
+  }
+
   formatearMonto(valor: number | null | undefined): string {
     return (valor ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
   ngOnDestroy(): void {
+    this.cerrarComprobante();
     this.destroy$.next();
     this.destroy$.complete();
   }
