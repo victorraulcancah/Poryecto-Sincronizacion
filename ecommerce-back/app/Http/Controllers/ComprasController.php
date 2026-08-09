@@ -388,9 +388,29 @@ class ComprasController extends Controller
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('exports.compra-erp-pdf', [
             'compra' => $compra,
-        ])->setPaper('a4');
+        ])->setPaper($this->hojaComprobante($compra));
 
         return $pdf->stream($compra['documento'] . '.pdf');
+    }
+
+    /**
+     * Hoja a la medida del comprobante: ancho A4 y alto según los productos,
+     * para que no quede media página en blanco. Nunca pasa del alto de un A4.
+     */
+    private function hojaComprobante(array $compra): array
+    {
+        $anchoA4 = 595.28;
+        $altoA4 = 841.89;
+
+        // Cabecera, información general, totales y pie ocupan un alto fijo; a
+        // eso se le suma una línea por producto.
+        $alto = 390 + (count($compra['productos']) * 21);
+
+        if (!empty($compra['observaciones'])) {
+            $alto += 30;
+        }
+
+        return [0, 0, $anchoA4, min($alto, $altoA4)];
     }
 
     public function misCompras(Request $request)

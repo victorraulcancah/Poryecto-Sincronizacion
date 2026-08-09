@@ -61,30 +61,30 @@
             background: #0000001a; text-align: left; padding: 3.5px 8px;
             font-weight: bold; font-size: 10px;
         }
-        .items td { padding: 3.5px 8px; border-bottom: 1px solid #f0f0f0; }
+        .items td { padding: 5px 8px; border-bottom: 1px solid #f0f0f0; }
         .items .sim { color: #94a3b8; font-weight: bold; }
         .marca { color: #84cc16; font-weight: bold; padding: 0 4px; }
 
-        .items-count { text-align: right; text-transform: uppercase; font-size: 10px; margin-top: 8px; }
+        .items-count { text-align: right; text-transform: uppercase; font-size: 10px; margin-top: 14px; }
         .totales {
             width: 100%; border-top: 2px solid #000; border-bottom: 2px solid #000;
-            padding: 4px 0; margin-top: 2px;
+            margin-top: 10px;
         }
-        .totales td { text-align: right; padding: 2px 6px; font-size: 10px; }
+        .totales td { text-align: right; padding: 8px 10px; font-size: 10px; line-height: 1.6; }
         .totales .b { display: block; }
         .total-final {
-            width: 100%; border-bottom: 2px solid #000; padding: 4px 0;
+            width: 100%; border-bottom: 2px solid #000; padding: 10px 10px 10px 0;
             text-align: right; font-weight: bold; font-size: 12px;
         }
-        .tc { text-align: right; font-size: 9px; color: #6b7280; margin-top: 2px; }
+        .tc { text-align: right; font-size: 9px; color: #6b7280; margin-top: 6px; }
 
         .anulada {
             border: 2px solid #dc2626; color: #dc2626; text-align: center;
             padding: 4px; font-weight: bold; margin-bottom: 8px; border-radius: 6px;
         }
 
-        .gracias { text-align: right; font-weight: bold; font-size: 10px; margin: 6px 0 4px; }
-        .pie { border-top: 2px solid #000; padding-top: 6px; }
+        .gracias { text-align: right; font-weight: bold; font-size: 10px; margin: 16px 0 12px; }
+        .pie { border-top: 2px solid #000; padding-top: 12px; }
         .pie td { vertical-align: top; font-size: 10px; }
         .pie .legal { text-align: center; line-height: 1.5; }
     </style>
