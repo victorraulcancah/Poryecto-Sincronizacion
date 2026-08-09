@@ -70,7 +70,7 @@
             width: 100%; border-top: 2px solid #000; border-bottom: 2px solid #000;
             margin-top: 10px;
         }
-        .totales td { text-align: right; padding: 8px 10px; font-size: 10px; line-height: 1.6; }
+        .totales td { text-align: right; padding: 6px 10px; font-size: 10px; line-height: 1.5; }
         .totales .b { display: block; }
         .total-final {
             width: 100%; border-bottom: 2px solid #000; padding: 10px 10px 10px 0;

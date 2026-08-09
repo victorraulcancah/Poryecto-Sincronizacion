@@ -403,8 +403,9 @@ class ComprasController extends Controller
         $altoA4 = 841.89;
 
         // Cabecera, información general, totales y pie ocupan un alto fijo; a
-        // eso se le suma una línea por producto.
-        $alto = 390 + (count($compra['productos']) * 21);
+        // eso se le suma una línea por producto. Se deja holgura: si el pie no
+        // entra, dompdf lo manda a una segunda hoja.
+        $alto = 500 + (count($compra['productos']) * 21);
 
         if (!empty($compra['observaciones'])) {
             $alto += 30;
