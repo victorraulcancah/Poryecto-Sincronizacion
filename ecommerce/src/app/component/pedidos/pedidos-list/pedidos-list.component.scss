@@ -680,119 +680,6 @@
     }
   }
 
-  .status-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 12px;
-    margin-bottom: 24px;
-  }
-
-  .status-card {
-    cursor: pointer;
-    border: 2px solid #f3f4f6;
-    border-radius: 16px;
-    padding: 16px;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    background: #fff;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    position: relative;
-
-    &:hover {
-      border-color: #fee2e2;
-      background: #fffafa;
-      transform: translateY(-2px);
-    }
-
-    &--active {
-      border-color: #c22026 !important;
-      background: #fff5f5 !important;
-      box-shadow: 0 10px 15px -3px rgba(194, 32, 38, 0.1);
-
-      .status-card__icon {
-        background: #c22026 !important;
-        color: #fff !important;
-        transform: scale(1.1);
-      }
-
-      .status-card__name {
-        color: #c22026 !important;
-      }
-
-      &::after {
-        content: '✓';
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        background: #c22026;
-        color: #fff;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 10px;
-        font-weight: bold;
-      }
-    }
-
-    &__icon {
-      width: 44px;
-      height: 44px;
-      background: #f9fafb;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 12px;
-      font-size: 20px;
-      color: #6b7280;
-      transition: all 0.2s;
-    }
-
-    &__name {
-      font-size: 13px;
-      font-weight: 700;
-      color: #374151;
-      margin-bottom: 4px;
-      line-height: 1.2;
-    }
-
-    &__desc {
-      font-size: 11px;
-      color: #9ca3af;
-      line-height: 1.3;
-    }
-  }
-
-  .comment-section {
-    label {
-      font-size: 13px;
-      font-weight: 700;
-      color: #374151;
-      margin-bottom: 8px;
-      display: block;
-    }
-
-    .form-control {
-      border-radius: 16px;
-      border: 1px solid #f3f4f6;
-      padding: 16px;
-      font-size: 14px;
-      background: #f9fafb;
-      transition: all 0.2s;
-
-      &:focus {
-        background: #fff;
-        border-color: #c22026;
-        box-shadow: 0 0 0 4px rgba(194, 32, 38, 0.05);
-      }
-    }
-  }
-
   .modal-footer {
     padding: 24px 32px;
     border-top: 1px solid #f3f4f6;
@@ -822,6 +709,166 @@
         opacity: 0.6;
         cursor: not-allowed;
       }
+    }
+  }
+}
+
+/* ===== Selección de estado =====
+   Se usa en el modal de "Cambiar Estado" y en la pestaña del mismo nombre
+   dentro del detalle del pedido, así que va fuera de ambos. */
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.status-card {
+  cursor: pointer;
+  border: 2px solid #f3f4f6;
+  border-radius: 16px;
+  padding: 16px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+
+  &:hover {
+    border-color: #fee2e2;
+    background: #fffafa;
+    transform: translateY(-2px);
+  }
+
+  &--active {
+    border-color: #c22026 !important;
+    background: #fff5f5 !important;
+    box-shadow: 0 10px 15px -3px rgba(194, 32, 38, 0.1);
+
+    .status-card__icon {
+      background: #c22026 !important;
+      color: #fff !important;
+      transform: scale(1.1);
+    }
+
+    .status-card__name {
+      color: #c22026 !important;
+    }
+
+    &::after {
+      content: '✓';
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: #c22026;
+      color: #fff;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: bold;
+    }
+  }
+
+  &__icon {
+    width: 44px;
+    height: 44px;
+    background: #f9fafb;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    font-size: 20px;
+    color: #6b7280;
+    transition: all 0.2s;
+  }
+
+  &__name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #374151;
+    margin-bottom: 4px;
+    line-height: 1.2;
+  }
+
+  &__desc {
+    font-size: 11px;
+    color: #9ca3af;
+    line-height: 1.3;
+  }
+}
+
+/* La pestaña de estado tiene todo el ancho del modal para ella: tarjetas más
+   grandes y repartidas, para no dejar el bloque flotando arriba. */
+.estado-tab {
+  display: flex;
+  flex-direction: column;
+  min-height: 460px;
+
+  .status-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .status-card {
+    padding: 24px 20px;
+
+    &__icon {
+      width: 56px;
+      height: 56px;
+      font-size: 26px;
+    }
+
+    &__name {
+      font-size: 15px;
+    }
+
+    &__desc {
+      font-size: 12px;
+    }
+  }
+
+  // El comentario ocupa lo que sobre hasta el pie del modal.
+  .comment-section {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+
+    .form-control {
+      flex: 1;
+      resize: none;
+    }
+  }
+}
+
+.comment-section {
+  label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #374151;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .form-control {
+    border-radius: 16px;
+    border: 1px solid #f3f4f6;
+    padding: 16px;
+    font-size: 14px;
+    background: #f9fafb;
+    transition: all 0.2s;
+
+    &:focus {
+      background: #fff;
+      border-color: #c22026;
+      box-shadow: 0 0 0 4px rgba(194, 32, 38, 0.05);
     }
   }
 }

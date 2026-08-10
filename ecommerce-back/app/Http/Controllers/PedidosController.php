@@ -109,6 +109,8 @@ class PedidosController extends Controller
                     'codigo_pedido' => $pedido->codigo_pedido,
                     'cliente_id' => $pedido->cliente_id,
                     'user_cliente_id' => $pedido->user_cliente_id,
+                    // Cotización que originó el pedido, si vino de ese flujo.
+                    'cotizacion_id' => $pedido->cotizacion_id,
                     'fecha_pedido' => $pedido->fecha_pedido,
                     'subtotal' => $pedido->subtotal,
                     'igv' => $pedido->igv,

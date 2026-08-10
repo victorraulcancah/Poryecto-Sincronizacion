@@ -354,6 +354,19 @@ export class PedidosListComponent implements OnInit {
     return pedido?.cliente_erp?.telefono || pedido?.telefono_contacto || '';
   }
 
+  /**
+   * Dirección del titular: la registrada en 7Power si la cuenta está vinculada
+   * —es la que vale para el despacho—, y si no la que quedó en el pedido.
+   */
+  direccionCliente(pedido: any): string {
+    return pedido?.cliente_erp?.direccion || pedido?.direccion_envio || '';
+  }
+
+  /** La dirección que se muestra viene del ERP y no de la tienda. */
+  direccionEsDeErp(pedido: any): boolean {
+    return !!pedido?.cliente_erp?.direccion;
+  }
+
   nombreCliente(pedido: any): string {
     if (!pedido) return '';
 

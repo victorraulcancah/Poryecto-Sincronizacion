@@ -201,11 +201,7 @@
                         title="Contactar WhatsApp">
                   <i class="ph ph-whatsapp-logo"></i>
                 </button>
-                <button class="action-buttons__btn action-buttons__btn--edit"
-                        (click)="cambiarEstado(pedido)"
-                        title="Cambiar estado">
-                  <i class="ph ph-gear"></i>
-                </button>
+                <!-- El cambio de estado se hace desde la pestaña del detalle. -->
               </div>
             </td>
           </tr>
@@ -1014,10 +1010,29 @@
                       <span class="info-item__value fw-semibold text-dark">{{ formatFormaEnvio(pedidoSeleccionado?.forma_envio) }}</span>
                     </div>
                   </div>
+                  <!-- Si la cuenta está vinculada manda la dirección del
+                       cliente en 7Power; si no, la registrada en la tienda. -->
                   <div class="info-item mb-20">
-                    <span class="info-item__label">Dirección Completa</span>
+                    <span class="info-item__label">
+                      Dirección Completa
+                      <span *ngIf="direccionEsDeErp(pedidoSeleccionado)"
+                            class="badge bg-main-50 text-main-600 rounded-pill ms-8" style="font-size: 10px;">
+                        <i class="ph ph-link me-4"></i>7POWER
+                      </span>
+                    </span>
                     <span class="info-item__value mt-4 d-block bg-gray-50 p-12 rounded-8 border border-gray-100 text-dark">
                       <i class="ph ph-map-pin me-6 text-danger-600"></i>
+                      {{ direccionCliente(pedidoSeleccionado) || '—' }}
+                    </span>
+                  </div>
+
+                  <!-- La que dejó el cliente al comprar, cuando no es la misma. -->
+                  <div class="info-item mb-20"
+                       *ngIf="direccionEsDeErp(pedidoSeleccionado) && pedidoSeleccionado?.direccion_envio
+                              && pedidoSeleccionado?.direccion_envio !== direccionCliente(pedidoSeleccionado)">
+                    <span class="info-item__label">Dirección indicada en el pedido</span>
+                    <span class="info-item__value mt-4 d-block text-gray-600">
+                      <i class="ph ph-map-pin me-6 text-gray-400"></i>
                       {{ pedidoSeleccionado?.direccion_envio }}
                     </span>
                   </div>
@@ -1138,7 +1153,7 @@
         </div>
 
         <!-- TAB: CAMBIAR ESTADO -->
-        <div *ngIf="activeTabDetalle === 'estado'" class="animate__animated animate__fadeIn">
+        <div *ngIf="activeTabDetalle === 'estado'" class="estado-tab animate__animated animate__fadeIn">
           <!-- Alerta provincia especial -->
           <div *ngIf="pedidoSeleccionado && esEnvioAProvincia(pedidoSeleccionado)"
                class="alert alert-danger bg-danger-50 border-danger-100 d-flex align-items-center mb-24 rounded-16 p-16">
@@ -1149,7 +1164,7 @@
             </div>
           </div>
 
-          <div class="d-flex align-items-center gap-12 mb-16">
+          <div class="d-flex align-items-center gap-12 mb-20">
             <h6 class="fw-bold text-heading mb-0">Seleccione el Nuevo Estado</h6>
             <span class="status-badge" [ngClass]="getEstadoBadgeClass(pedidoSeleccionado?.estado_pedido?.nombre_estado)">
               Actual: {{ pedidoSeleccionado?.estado_pedido?.nombre_estado || 'Sin estado' }}
@@ -1171,23 +1186,13 @@
 
           <div class="comment-section">
             <label>Comentario adicional (Opcional)</label>
-            <textarea class="form-control" rows="3"
+            <textarea class="form-control" rows="6"
                       [(ngModel)]="comentarioEstado"
                       placeholder="Escribe una nota interna o información para el cliente..."></textarea>
-          </div>
-
-          <div class="d-flex justify-content-end gap-12 mt-24">
-            <button type="button" class="btn btn-link text-gray-500 fw-bold text-sm text-decoration-none"
-                    (click)="resetFormEstado(); activeTabDetalle = 'general'">
-              Cancelar
-            </button>
-            <button type="button" class="btn-confirm"
-                    [disabled]="!estadoSeleccionado || cambiandoEstado"
-                    (click)="confirmarCambioEstado()">
-              <span *ngIf="cambiandoEstado" class="spinner-border spinner-border-sm me-8"></span>
-              <i *ngIf="!cambiandoEstado" class="ph ph-check-circle me-8"></i>
-              {{ cambiandoEstado ? 'Guardando...' : 'Confirmar Nuevo Estado' }}
-            </button>
+            <p class="text-sm text-gray-500 mt-8 mb-0">
+              <i class="ph ph-info me-4"></i>
+              Queda registrado en el historial del pedido junto con el cambio de estado.
+            </p>
           </div>
         </div>
       </div>
@@ -1208,11 +1213,20 @@
           <button type="button" class="btn btn-outline-main rounded-pill px-24 py-10" (click)="imprimirPedido()">
             <i class="ph ph-printer me-8"></i>Imprimir
           </button>
-          <!-- Lleva a la pestaña de estado, sin cerrar el detalle. -->
+          <!-- El mismo botón lleva a la pestaña de estado y, ya dentro de
+               ella, confirma el cambio. -->
           <button type="button" class="btn btn-main rounded-pill px-32 py-10"
                   *ngIf="activeTabDetalle !== 'estado'"
                   (click)="abrirTabEstado()">
             <i class="ph ph-gear me-8"></i>Cambiar Estado
+          </button>
+          <button type="button" class="btn btn-main rounded-pill px-32 py-10"
+                  *ngIf="activeTabDetalle === 'estado'"
+                  [disabled]="!estadoSeleccionado || cambiandoEstado"
+                  (click)="confirmarCambioEstado()">
+            <span *ngIf="cambiandoEstado" class="spinner-border spinner-border-sm me-8"></span>
+            <i *ngIf="!cambiandoEstado" class="ph ph-check-circle me-8"></i>
+            {{ cambiandoEstado ? 'Guardando...' : 'Confirmar Nuevo Estado' }}
           </button>
         </div>
       </div>
