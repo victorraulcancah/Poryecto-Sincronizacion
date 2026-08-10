@@ -20,6 +20,27 @@ class Pedido extends Model
     public const ESTADO_EN_PREPARACION = 4;
     public const ESTADO_CANCELADO = 8;
 
+    /**
+     * Correlativo anual del pedido: "2026-00001", el mismo formato que las
+     * cotizaciones.
+     *
+     * Los códigos viejos ("PED-20260810-0030") se conservan; el `like` por año
+     * los ignora, así que la numeración nueva arranca en 1.
+     */
+    public static function generarCodigoPedido(): string
+    {
+        $anio = date('Y');
+
+        $ultimo = static::where('codigo_pedido', 'like', $anio . '-%')
+            ->orderByDesc('codigo_pedido')
+            ->lockForUpdate()
+            ->value('codigo_pedido');
+
+        $siguiente = $ultimo ? ((int) substr($ultimo, strlen($anio) + 1)) + 1 : 1;
+
+        return $anio . '-' . str_pad((string) $siguiente, 5, '0', STR_PAD_LEFT);
+    }
+
     protected $fillable = [
         'codigo_pedido',
         'cliente_id',

@@ -1005,7 +1005,7 @@ class CotizacionesController extends Controller
         $cotizacion->load('detalles.producto', 'metodosPago');
 
         $pedido = Pedido::create([
-            'codigo_pedido'      => 'PED-' . date('Ymd') . '-' . str_pad(Pedido::count() + 1, 4, '0', STR_PAD_LEFT),
+            'codigo_pedido'      => Pedido::generarCodigoPedido(),
             'cotizacion_id'      => $cotizacion->id,
             'user_cliente_id'    => $cotizacion->user_cliente_id,
             'cliente_id'         => $cotizacion->cliente_id,

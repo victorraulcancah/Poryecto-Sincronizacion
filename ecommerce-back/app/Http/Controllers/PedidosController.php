@@ -258,7 +258,7 @@ class PedidosController extends Controller
             $total      = $subtotal + $igv + $costoEnvio;
 
             $pedido = Pedido::create([
-                'codigo_pedido'    => 'PED-' . date('Ymd') . '-' . str_pad(Pedido::count() + 1, 4, '0', STR_PAD_LEFT),
+                'codigo_pedido'    => Pedido::generarCodigoPedido(),
                 'cliente_id'       => null,
                 'user_cliente_id'  => null,
                 'fecha_pedido'     => now(),
@@ -382,7 +382,7 @@ class PedidosController extends Controller
 
             // Crear pedido con toda la información
             $pedido = Pedido::create([
-                'codigo_pedido' => 'PED-' . date('Ymd') . '-' . str_pad(Pedido::count() + 1, 4, '0', STR_PAD_LEFT),
+                'codigo_pedido' => Pedido::generarCodigoPedido(),
                 'cliente_id' => null, // Para e-commerce usamos user_cliente_id
                 'user_cliente_id' => $userCliente->id,
                 'fecha_pedido' => now(),
