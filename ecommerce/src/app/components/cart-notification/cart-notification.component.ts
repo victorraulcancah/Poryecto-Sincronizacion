@@ -1,7 +1,9 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 
+import { CartItem, CartService } from '../../services/cart.service';
 import { MonedaPipe } from '../../pipes/moneda.pipe';
 
 @Component({
@@ -11,13 +13,14 @@ import { MonedaPipe } from '../../pipes/moneda.pipe';
   templateUrl: './cart-notification.component.html',
   styleUrl: './cart-notification.component.scss'
 })
-export class CartNotificationComponent implements OnInit, OnDestroy {
+export class CartNotificationComponent implements OnInit, OnChanges, OnDestroy {
   @Input() isVisible: boolean = false;
   @Input() productName: string = '';
   @Input() productPrice: number = 0;
   @Input() productImage: string = '';
   @Input() productMoneda: string = 's';
   @Input() quantity: number = 1;
+  @Input() productId?: number;
   @Input() showSuggestions: boolean = true;
   @Input() suggestedProducts: any[] = [];
   @Input() autoCloseDelay: number = 8000; // 8 segundos
@@ -26,16 +29,104 @@ export class CartNotificationComponent implements OnInit, OnDestroy {
   @Output() onViewCart = new EventEmitter<void>();
   @Output() onSuggestedProductSelect = new EventEmitter<any>();
 
+  /** Línea del carrito del producto recién agregado. */
+  item: CartItem | null = null;
+  /** Cantidad que se ve en el contador; puede ir por delante del carrito. */
+  cantidad: number = 1;
+  actualizando = false;
+  errorStock = '';
+
   private autoCloseTimer?: number;
+  private items: CartItem[] = [];
+  private destroy$ = new Subject<void>();
+
+  constructor(private cartService: CartService) {}
 
   ngOnInit() {
+    this.cantidad = this.quantity;
+
+    // El contador trabaja sobre el carrito real: así el máximo es el stock y
+    // el cambio se ve reflejado en el resto de la página.
+    this.cartService.cartItems$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(items => {
+        this.items = items || [];
+        this.item = this.ubicarItem(this.items);
+        if (this.item && !this.actualizando) {
+          this.cantidad = this.item.cantidad;
+        }
+      });
+
     if (this.isVisible && this.autoCloseDelay > 0) {
+      this.startAutoCloseTimer();
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    // Cada vez que se agrega otro producto el modal se reusa: hay que volver a
+    // apuntar a la línea nueva y reiniciar el cierre automático.
+    if (changes['productId'] || changes['productName'] || changes['quantity']) {
+      this.errorStock = '';
+      this.item = this.ubicarItem(this.items);
+      // La cantidad que se muestra es la que quedó en el carrito, que puede
+      // ser mayor a la recién agregada si el producto ya estaba.
+      this.cantidad = this.item?.cantidad ?? this.quantity;
+    }
+
+    if (changes['isVisible'] && this.isVisible && this.autoCloseDelay > 0) {
       this.startAutoCloseTimer();
     }
   }
 
   ngOnDestroy() {
     this.clearAutoCloseTimer();
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  /** Tope del contador: el stock de la línea, o lo que ya se agregó. */
+  get maximo(): number {
+    return this.item?.stock_disponible ?? this.cantidad;
+  }
+
+  cambiarCantidad(delta: number): void {
+    const nueva = this.cantidad + delta;
+
+    if (nueva < 1 || nueva > this.maximo || !this.item || this.actualizando) {
+      return;
+    }
+
+    this.errorStock = '';
+    this.cantidad = nueva;
+    this.actualizando = true;
+    // Mientras se actualiza no se cierra solo: el usuario está interactuando.
+    this.clearAutoCloseTimer();
+
+    this.cartService.updateQuantity(this.item, nueva)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.actualizando = false;
+        },
+        error: () => {
+          // Si el backend rechaza el cambio se vuelve a la cantidad real.
+          this.cantidad = this.item?.cantidad ?? this.cantidad;
+          this.errorStock = 'No se pudo actualizar la cantidad.';
+          this.actualizando = false;
+        }
+      });
+  }
+
+  private ubicarItem(items: CartItem[]): CartItem | null {
+    if (!items?.length) return null;
+
+    // Por id cuando el llamador lo pasó; si no, por nombre (los llamadores
+    // viejos solo mandan los datos visibles).
+    return (
+      items.find(i => this.productId != null && i.producto_id === this.productId) ||
+      items.find(i => i.nombre === this.productName) ||
+      null
+    );
   }
 
   private startAutoCloseTimer() {

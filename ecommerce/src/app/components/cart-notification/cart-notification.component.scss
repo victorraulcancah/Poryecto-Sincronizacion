@@ -1,85 +1,5 @@
-// Usando las clases existentes del proyecto con algunos estilos específicos mínimos
-
-.success-container {
-  position: relative;
-  display: inline-block;
-}
-
-.cart-success-icon {
-  animation: checkmarkPulse 0.8s ease-out;
-  position: relative;
-  z-index: 2;
-  box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
-}
-
-.success-particles {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100px;
-  height: 100px;
-  pointer-events: none;
-
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #28a745;
-    animation: particleFloat 1.5s ease-out infinite;
-  }
-
-  &::before {
-    top: 20%;
-    left: 20%;
-    animation-delay: 0.3s;
-  }
-
-  &::after {
-    top: 30%;
-    right: 20%;
-    animation-delay: 0.6s;
-  }
-}
-
-.suggestion-item {
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-}
-
-@keyframes checkmarkPulse {
-  0% {
-    transform: scale(0);
-    opacity: 0;
-  }
-  50% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes particleFloat {
-  0% {
-    opacity: 0;
-    transform: translateY(0) scale(0);
-  }
-  50% {
-    opacity: 1;
-    transform: translateY(-20px) scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-40px) scale(0);
-  }
-}
+// Modal de "producto agregado": panel ancho y compacto, con el producto y su
+// contador de cantidad en una sola fila.
 
 .animate-in {
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -90,32 +10,193 @@
   z-index: 9999 !important;
 }
 
-// Responsive para móviles
+.cart-noti {
+  width: 92%;
+  max-width: 720px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.cart-noti__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--gray-100, #eee);
+}
+
+.cart-noti__close {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: #111827;
+  }
+}
+
+.cart-noti__body {
+  padding: 20px 24px;
+}
+
+.cart-noti__producto {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.cart-noti__img {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--gray-100, #eee);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
+.cart-noti__datos {
+  flex: 1;
+  min-width: 0;
+}
+
+// Contador de cantidad
+.cart-noti__cantidad {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.cart-noti__paso {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--gray-200, #e5e7eb);
+  border-radius: 6px;
+  background: #f7f7f7;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) {
+    background: #ededed;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.cart-noti__valor {
+  min-width: 24px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.cart-noti__stock {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.cart-noti__sugeridos {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--gray-100, #eee);
+}
+
+.cart-noti__sugerido {
+  width: 90px;
+  text-align: center;
+  padding: 8px;
+  border: 1px solid var(--gray-100, #eee);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  img {
+    width: 100%;
+    height: 48px;
+    object-fit: contain;
+    border-radius: 4px;
+    margin-bottom: 4px;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.cart-noti__pie {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 20px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--gray-100, #eee);
+}
+
+.cart-noti__seguir {
+  border: 0;
+  background: transparent;
+  color: #4b5563;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+
+  &:hover {
+    color: #111827;
+  }
+}
+
+// Responsive: en móvil el producto se apila y los botones ocupan el ancho.
 @media (max-width: 640px) {
-  .cart-notification-modal {
-    width: 95% !important;
-    margin: 20px;
+  .cart-noti__head,
+  .cart-noti__body,
+  .cart-noti__pie {
+    padding-left: 16px;
+    padding-right: 16px;
   }
 
-  .px-32 {
-    padding-left: 20px !important;
-    padding-right: 20px !important;
+  .cart-noti__producto {
+    flex-wrap: wrap;
+    gap: 12px;
   }
 
-  .pt-32 {
-    padding-top: 24px !important;
+  .cart-noti__datos {
+    flex-basis: calc(100% - 84px);
   }
 
-  .text-24 {
-    font-size: 20px !important;
+  .cart-noti__stock {
+    flex-basis: 100%;
   }
 
-  .d-flex.gap-12 {
-    flex-direction: column;
-    gap: 8px !important;
-  }
+  .cart-noti__pie {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 12px;
 
-  .text-16 {
-    font-size: 14px !important;
+    .btn {
+      justify-content: center;
+    }
   }
 }

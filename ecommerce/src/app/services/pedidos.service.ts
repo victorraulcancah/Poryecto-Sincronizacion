@@ -8,6 +8,8 @@ export interface Pedido {
   codigo_pedido: string;
   cliente_id: number | null;
   user_cliente_id: number | null;
+  /** Cotización que originó el pedido, si vino del flujo de cotización. */
+  cotizacion_id?: number | null;
   fecha_pedido: string;
   subtotal: string;
   igv: string;

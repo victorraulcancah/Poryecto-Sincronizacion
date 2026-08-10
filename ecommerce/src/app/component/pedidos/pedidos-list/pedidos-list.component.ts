@@ -180,7 +180,9 @@ export class PedidosListComponent implements OnInit {
   calcularNotificaciones(): void {
     const vistos = this.getVistos();
     this.pedidosDesdeCotizacion = this.pedidos
-      .filter(p => p.observaciones?.includes('Generado desde cotización'))
+      // Los pedidos viejos no tienen `cotizacion_id`: se reconocen por la
+      // referencia que antes se guardaba en las observaciones.
+      .filter(p => !!p.cotizacion_id || !!p.observaciones?.includes('Generado desde cotización'))
       .sort((a, b) => new Date(b.fecha_pedido).getTime() - new Date(a.fecha_pedido).getTime());
 
     this.idsNoVistosSesion = new Set(

@@ -9,6 +9,11 @@ export interface CartNotificationData {
   productMoneda: string;
   quantity: number;
   suggestedProducts: any[];
+  /**
+   * Id del producto agregado. Con él el modal ubica la línea del carrito y
+   * puede cambiarle la cantidad sin salir de la página.
+   */
+  productId?: number;
 }
 
 @Injectable({
@@ -52,7 +57,8 @@ export class CartNotificationService {
     productImage: string,
     quantity: number = 1,
     suggestedProducts: any[] = [],
-    productMoneda: string = 's'
+    productMoneda: string = 's',
+    productId?: number
   ) {
     this.showNotification({
       productName,
@@ -60,7 +66,8 @@ export class CartNotificationService {
       productImage,
       productMoneda,
       quantity,
-      suggestedProducts
+      suggestedProducts,
+      productId
     });
   }
 }

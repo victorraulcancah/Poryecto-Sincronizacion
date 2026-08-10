@@ -288,7 +288,8 @@ export class IndexTwoComponent implements OnInit {
           productImage,
           1,
           suggestedProducts,
-          producto.moneda
+          producto.moneda,
+          producto.id
         );
       },
       error: (err) => {

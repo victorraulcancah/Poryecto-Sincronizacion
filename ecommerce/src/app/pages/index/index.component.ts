@@ -866,7 +866,8 @@ export class IndexComponent implements OnInit, OnDestroy, AfterViewInit {
           productImage,
           1,
           suggestedProducts,
-          product.moneda
+          product.moneda,
+          product.id
         );
       },
       error: (err) => {
@@ -912,7 +913,8 @@ export class IndexComponent implements OnInit, OnDestroy, AfterViewInit {
           productImage,
           1,
           suggestedProducts,
-          producto.moneda
+          producto.moneda,
+          producto.id
         );
       },
       error: (err) => {

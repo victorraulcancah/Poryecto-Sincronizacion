@@ -12,98 +12,99 @@
 
   <!-- Modal centrado -->
   <div
-    class="position-absolute top-50 start-50 translate-middle bg-white rounded-16 p-0 transition-2"
+    class="cart-noti position-absolute top-50 start-50 translate-middle bg-white rounded-16 transition-2"
     [class.animate-in]="isVisible"
-    [style.max-width]="'480px'"
-    [style.width]="'90%'"
-    [style.max-height]="'80vh'"
-    [style.overflow-y]="'auto'"
-    [style.box-shadow]="'0 20px 60px rgba(0, 0, 0, 0.2)'"
     [style.transform]="isVisible ? 'scale(1) translateY(0)' : 'scale(0.7) translateY(50px)'"
     (click)="$event.stopPropagation()">
 
-    <!-- Botón cerrar -->
-    <button
-      class="position-absolute w-32 h-32 border-0 rounded-circle flex-center cursor-pointer z-10 transition-2 text-gray-600 hover-text-gray-900"
-      [style.top]="'16px'"
-      [style.right]="'16px'"
-      [style.background]="'rgba(0, 0, 0, 0.1)'"
-      (click)="closeNotification()"
-      aria-label="Cerrar">
-      <i class="ph ph-x"></i>
-    </button>
-
-    <!-- Icono de éxito con efecto más llamativo -->
-    <div class="text-center pt-32 px-32 pb-16">
-      <div class="success-container">
-        <div
-          class="w-64 h-64 rounded-circle d-inline-flex align-items-center justify-content-center text-white text-32 cart-success-icon"
-          [style.background]="'linear-gradient(135deg, #28a745, #20c997)'">
-          <i class="ph ph-check"></i>
-        </div>
-        <div class="success-particles"></div>
+    <!-- Cabecera: confirmación + cerrar -->
+    <div class="cart-noti__head">
+      <div class="flex-align gap-12">
+        <i class="ph ph-check-circle text-success-600 text-2xl"></i>
+        <h6 class="mb-0 text-heading fw-semibold">Producto agregado a tu carrito</h6>
       </div>
+      <button
+        class="cart-noti__close"
+        (click)="closeNotification()"
+        aria-label="Cerrar">
+        <i class="ph ph-x"></i>
+      </button>
     </div>
 
-    <!-- Contenido principal -->
-    <div class="px-32 pb-32">
-      <h3 class="text-center text-24 fw-bold text-main-600 mb-8">¡Producto agregado!</h3>
-      <p class="text-center text-14 text-gray-600 mb-24">Se agregó exitosamente a tu carrito de compras</p>
-
-      <!-- Información del producto -->
-      <div class="d-flex gap-16 p-20 bg-color-one rounded-12 mb-24 border border-gray-100">
-        <div class="w-80 h-80 rounded-8 overflow-hidden flex-shrink-0 bg-white d-flex align-items-center justify-content-center">
+    <!-- Producto: imagen · nombre · precio · contador de cantidad -->
+    <div class="cart-noti__body">
+      <div class="cart-noti__producto">
+        <div class="cart-noti__img">
           <img
             [src]="productImage"
             [alt]="productName"
-            class="w-100 h-100 object-fit-cover"
             (error)="onImageError($event)">
         </div>
 
-        <div class="flex-grow-1 d-flex flex-column justify-content-center">
-          <h4 class="text-16 fw-semibold text-gray-900 mb-8 line-height-13">{{ productName }}</h4>
-          <div class="d-flex flex-column gap-4">
-            <span class="text-18 fw-bold text-main-600">{{ productMoneda | moneda }} {{ productPrice | number:'1.2-2' }}</span>
-            <span class="text-14 text-gray-600">Cantidad: {{ quantity }}</span>
-          </div>
+        <div class="cart-noti__datos">
+          <p class="mb-4 text-sm text-heading fw-medium line-height-13">{{ productName }}</p>
+          <span class="text-lg fw-bold text-main-600">
+            {{ productMoneda | moneda }} {{ productPrice | number:'1.2-2' }}
+          </span>
         </div>
+
+        <!-- Contador: cambia la cantidad en el carrito sin salir del modal -->
+        <div class="cart-noti__cantidad">
+          <button
+            type="button"
+            class="cart-noti__paso"
+            [disabled]="cantidad <= 1 || actualizando || !item"
+            (click)="cambiarCantidad(-1)"
+            aria-label="Quitar una unidad">
+            <i class="ph ph-minus"></i>
+          </button>
+          <span class="cart-noti__valor">{{ cantidad }}</span>
+          <button
+            type="button"
+            class="cart-noti__paso"
+            [disabled]="cantidad >= maximo || actualizando || !item"
+            (click)="cambiarCantidad(1)"
+            aria-label="Agregar una unidad">
+            <i class="ph ph-plus"></i>
+          </button>
+        </div>
+
+        <span class="cart-noti__stock text-sm text-gray-500" *ngIf="item">
+          Máximo {{ maximo }} {{ maximo === 1 ? 'unidad' : 'unidades' }}.
+        </span>
       </div>
 
-      <!-- Productos sugeridos mini -->
-      <div class="mb-24" *ngIf="showSuggestions && suggestedProducts.length > 0">
-        <p class="text-14 fw-semibold text-gray-900 mb-12 text-center">¡No te pierdas estos productos!</p>
-        <div class="d-flex gap-12 justify-content-center">
+      <p class="text-sm text-danger-600 mt-8 mb-0" *ngIf="errorStock">{{ errorStock }}</p>
+
+      <!-- Productos sugeridos -->
+      <div class="cart-noti__sugeridos" *ngIf="showSuggestions && suggestedProducts.length > 0">
+        <p class="text-sm fw-semibold text-heading mb-8">También te puede interesar</p>
+        <div class="d-flex gap-12">
           <div
             *ngFor="let product of suggestedProducts.slice(0, 3)"
-            class="flex-grow-1 max-w-80 text-center cursor-pointer transition-2 rounded-8 p-8 border border-gray-100 hover-border-main-600 suggestion-item"
+            class="cart-noti__sugerido"
             (click)="onSuggestedProductClick(product)">
             <img
               [src]="product.imagen_url || product.imagen_principal"
               [alt]="product.nombre"
-              class="w-100 rounded-4 mb-4"
-              [style.height]="'50px'"
-              [style.object-fit]="'cover'"
               (error)="onImageError($event)">
-            <span class="text-12 fw-semibold text-main-600">{{ product.moneda | moneda }} {{ product.precio | number:'1.2-2' }}</span>
+            <span class="text-xs fw-semibold text-main-600">
+              {{ product.moneda | moneda }} {{ product.precio | number:'1.2-2' }}
+            </span>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Botones de acción -->
-      <div class="d-flex gap-12 mb-20">
-        <button
-          class="flex-grow-1 btn bg-color-three text-gray-600 hover-bg-gray-200 hover-text-gray-900 py-14 px-24 rounded-12 fw-semibold text-16 border border-gray-200 transition-2"
-          (click)="closeNotification()">
-          Seguir comprando
-        </button>
-        <button
-          class="flex-grow-1 btn btn-main d-flex align-items-center justify-content-center gap-8 py-14 px-24 rounded-12 fw-semibold text-16 transition-2 hover-bg-main-800"
-          (click)="goToCart()">
-          <i class="ph ph-shopping-cart"></i>
-          Ver carrito
-        </button>
-      </div>
-
+    <!-- Acciones -->
+    <div class="cart-noti__pie">
+      <button class="cart-noti__seguir" (click)="closeNotification()">
+        Seguir comprando
+      </button>
+      <button class="btn btn-main rounded-8 px-32 py-12 fw-semibold flex-align gap-8" (click)="goToCart()">
+        <i class="ph ph-shopping-cart"></i>
+        Ir al carrito
+      </button>
     </div>
   </div>
 </div>

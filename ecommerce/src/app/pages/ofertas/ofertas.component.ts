@@ -330,7 +330,8 @@ export class OfertasComponent implements OnInit {
           productImage,
           1,
           suggestedProducts as any,
-          producto.moneda
+          producto.moneda,
+          producto.id
         )
       },
       error: (err) => {

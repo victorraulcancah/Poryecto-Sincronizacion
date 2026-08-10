@@ -451,17 +451,28 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Recorta en el propio input lo que se escribió de más.
+   * Limpia lo que se escribió en el propio input: ceros a la izquierda y lo
+   * que pase del tope.
    *
    * `onMontoMetodoChange` ya topa el valor del modelo, pero `ngModel` no
    * reescribe el campo cuando el modelo no cambió: escribir 1000 sobre un tope
    * de 100 dejaba el modelo en 100 y "1000" a la vista.
    */
-  corregirTope(tipo: TipoPago, evento: Event): void {
+  corregirMonto(tipo: TipoPago, evento: Event): void {
     const input = evento.target as HTMLInputElement;
-    const escrito = Number(input.value);
 
-    if (!input.value || isNaN(escrito)) return;
+    if (!input.value) return;
+
+    // El 0 no puede ser el primer dígito ("050" es 50). Los decimales no se
+    // tocan: en "0.50" el cero no va seguido de otro dígito.
+    const sinCeros = input.value.replace(/^(-?)0+(?=\d)/, '$1');
+    if (sinCeros !== input.value) {
+      input.value = sinCeros;
+      this.onMontoMetodoChange(tipo, sinCeros);
+    }
+
+    const escrito = Number(input.value);
+    if (isNaN(escrito)) return;
 
     const tope = this.montoMaximoMetodo(tipo);
     if (escrito > tope) {

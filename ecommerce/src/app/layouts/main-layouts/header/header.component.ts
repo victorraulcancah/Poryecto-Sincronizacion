@@ -838,7 +838,8 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
           item.imagen_url || 'assets/images/thumbs/product-default.png',
           1,
           [],
-          item.moneda
+          item.moneda,
+          item.producto_id
         );
       },
       error: (err) => {

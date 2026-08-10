@@ -81,7 +81,7 @@
                     No tienes productos en el carrito.
                   </td>
                 </tr>
-                <tr *ngFor="let item of productosEnCarrito" class="border-bottom border-gray-100">
+                <tr *ngFor="let item of productosEnCarrito; let ultimo = last" class="border-bottom border-gray-100">
                   <!-- Producto -->
                   <td class="px-12 py-12">
                     <div class="d-flex align-items-center gap-12">
@@ -198,9 +198,12 @@
                       <i class="ph ph-dots-three-vertical" style="font-size: 1.1rem;"></i>
                     </button>
 
+                    <!-- En la última fila se despliega hacia arriba: hacia
+                         abajo se sale de la tarjeta y obliga a hacer scroll. -->
                     <div *ngIf="menuAbiertoId === item.id"
                          class="cart-item-menu position-absolute bg-white border border-gray-100 rounded-8 shadow-sm"
-                         style="right: 12px; top: 100%; z-index: 10; min-width: 180px; text-align: left;"
+                         [class.cart-item-menu--arriba]="ultimo"
+                         style="right: 12px; min-width: 180px; text-align: left;"
                          (click)="$event.stopPropagation()">
                       <button type="button"
                               class="btn d-block w-100 text-start px-16 py-10 text-gray-900 border-0"

@@ -1003,7 +1003,6 @@ class CotizacionesController extends Controller
     private function crearPedidoDesdeCotizacion(Cotizacion $cotizacion): Pedido
     {
         $cotizacion->load('detalles.producto', 'metodosPago');
-        $referencia = 'Generado desde cotización ' . $cotizacion->codigo_cotizacion;
 
         $pedido = Pedido::create([
             'codigo_pedido'      => 'PED-' . date('Ymd') . '-' . str_pad(Pedido::count() + 1, 4, '0', STR_PAD_LEFT),
@@ -1032,7 +1031,9 @@ class CotizacionesController extends Controller
             'provincia_nombre'   => $cotizacion->provincia_nombre,
             'distrito_nombre'    => $cotizacion->distrito_nombre,
             'ubicacion_completa' => $cotizacion->ubicacion_completa,
-            'observaciones'      => trim(($cotizacion->observaciones ? $cotizacion->observaciones . ' | ' : '') . $referencia),
+            // Solo lo que escribió el cliente: el vínculo con la cotización ya
+            // queda en `cotizacion_id`.
+            'observaciones'      => $cotizacion->observaciones,
         ]);
 
         foreach ($cotizacion->detalles as $detalle) {

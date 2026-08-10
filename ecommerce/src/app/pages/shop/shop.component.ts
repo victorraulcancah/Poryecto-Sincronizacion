@@ -406,7 +406,8 @@ export class ShopComponent implements OnInit, OnDestroy {
           productImage,
           1,
           suggestedProducts,
-          producto.moneda
+          producto.moneda,
+          producto.id
         );
       },
       error: (err) => {

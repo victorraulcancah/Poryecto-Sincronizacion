@@ -107,7 +107,8 @@ export class FavoritosComponent implements OnInit {
           productImage,
           1,
           [],
-          producto.moneda
+          producto.moneda,
+          producto.id
         );
       },
       error: (err) => {

@@ -1,5 +1,15 @@
 /* ===== Menú de 3 puntos por producto (Guardar para después / Eliminar) ===== */
 .cart-item-menu {
+  top: 100%;
+  // Por encima del resto de filas y del bloque del cupón.
+  z-index: 20;
+
+  // En la última fila se abre hacia arriba para no desbordar la tarjeta.
+  &--arriba {
+    top: auto;
+    bottom: 100%;
+  }
+
   button {
     background: none;
     color: #1a1a2e;
