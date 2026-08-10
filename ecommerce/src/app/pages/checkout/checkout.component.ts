@@ -655,34 +655,19 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     numeroDocumentoControl?.updateValueAndValidity();
   }
 
+  /**
+   * Guarda el RUC/Razón Social en el perfil al cotizar, para no volver a
+   * pedirlos en la próxima compra. Va en silencio: es un efecto secundario del
+   * pedido, no una acción del usuario, y un fallo acá no debe cortar el flujo.
+   */
   guardarDatosFacturacion(): void {
-    const rucControl = this.checkoutForm.get('ruc');
-    const razonSocialControl = this.checkoutForm.get('razonSocial');
-    rucControl?.markAsTouched();
-    razonSocialControl?.markAsTouched();
+    const ruc = this.checkoutForm.get('ruc')?.value;
+    const razonSocial = this.checkoutForm.get('razonSocial')?.value;
 
-    if (rucControl?.invalid || razonSocialControl?.invalid) return;
-
-    const ruc = rucControl?.value;
-    const razonSocial = razonSocialControl?.value;
+    if (!ruc || !razonSocial) return;
 
     this.authService.actualizarFacturacion(ruc, razonSocial).subscribe({
-      next: () => {
-        Swal.fire({
-          title: 'Datos de facturación guardados',
-          icon: 'success',
-          timer: 1500,
-          showConfirmButton: false
-        });
-      },
-      error: (error) => {
-        Swal.fire({
-          title: 'Error al guardar',
-          text: error.error?.message || 'No se pudo guardar el RUC/Razón Social. Intenta nuevamente.',
-          icon: 'error',
-          confirmButtonColor: '#dc3545'
-        });
-      }
+      error: (error) => console.warn('No se pudo guardar el RUC/Razón Social', error)
     });
   }
 

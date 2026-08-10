@@ -253,6 +253,18 @@ export class PedidosListComponent implements OnInit {
     }
   }
 
+  /**
+   * Número en el formato que espera wa.me: solo dígitos y un único prefijo de
+   * país. El teléfono del ERP suele venir ya con "+51", y anteponerle otro 51
+   * dejaba el enlace en un número inexistente.
+   */
+  private numeroWhatsApp(telefono: string): string {
+    const digitos = (telefono || '').replace(/\D/g, '');
+
+    // Un celular peruano son 9 dígitos; si trae más, ya incluye el país.
+    return digitos.length > 9 ? digitos : `51${digitos}`;
+  }
+
   contactarWhatsApp(pedido: any): void {
     // El mismo número que muestra el bloque: el del cliente vinculado.
     const telefono = this.telefonoCliente(pedido);
@@ -260,8 +272,7 @@ export class PedidosListComponent implements OnInit {
     const cliente = this.nombreCliente(pedido);
     const total = pedido.total;
     const mensaje = `Hola ${cliente}, te contactamos respecto a tu pedido ${codigo} por S/ ${total}. ¿En qué podemos ayudarte?`;
-    const telefonoLimpio = telefono.replace(/\D/g, '');
-    const whatsappUrl = `https://wa.me/51${telefonoLimpio}?text=${encodeURIComponent(mensaje)}`;
+    const whatsappUrl = `https://wa.me/${this.numeroWhatsApp(telefono)}?text=${encodeURIComponent(mensaje)}`;
     window.open(whatsappUrl, '_blank');
   }
 
