@@ -757,6 +757,13 @@
               <i class="ph ph-credit-card me-8"></i>Detalle de Pago
             </button>
           </li>
+          <li class="nav-item">
+            <button class="nav-link custom-tab-link"
+                    [class.active]="activeTabDetalle === 'estado'"
+                    (click)="abrirTabEstado()">
+              <i class="ph ph-gear me-8"></i>Cambiar Estado
+            </button>
+          </li>
         </ul>
       </div>
 
@@ -1129,6 +1136,60 @@
             </div>
           </div>
         </div>
+
+        <!-- TAB: CAMBIAR ESTADO -->
+        <div *ngIf="activeTabDetalle === 'estado'" class="animate__animated animate__fadeIn">
+          <!-- Alerta provincia especial -->
+          <div *ngIf="pedidoSeleccionado && esEnvioAProvincia(pedidoSeleccionado)"
+               class="alert alert-danger bg-danger-50 border-danger-100 d-flex align-items-center mb-24 rounded-16 p-16">
+            <i class="ph-bold ph-info text-danger-600 fs-4 me-12"></i>
+            <div class="text-sm text-danger-700">
+              <strong>Flujo de Provincia:</strong> Sigue el orden:
+              <span class="fw-bold">Pendiente → En Recepción → Enviado a Provincia → Entregado</span>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center gap-12 mb-16">
+            <h6 class="fw-bold text-heading mb-0">Seleccione el Nuevo Estado</h6>
+            <span class="status-badge" [ngClass]="getEstadoBadgeClass(pedidoSeleccionado?.estado_pedido?.nombre_estado)">
+              Actual: {{ pedidoSeleccionado?.estado_pedido?.nombre_estado || 'Sin estado' }}
+            </span>
+          </div>
+
+          <div class="status-grid">
+            <div *ngFor="let estado of estadosDisponibles"
+                 class="status-card"
+                 [class.status-card--active]="estadoSeleccionado === estado.id"
+                 (click)="seleccionarEstado(estado.id)">
+              <div class="status-card__icon">
+                <i [class]="getStatusIcon(estado.nombre_estado)"></i>
+              </div>
+              <div class="status-card__name">{{ estado.nombre_estado }}</div>
+              <div class="status-card__desc">{{ estado.descripcion || 'Actualizar flujo' }}</div>
+            </div>
+          </div>
+
+          <div class="comment-section">
+            <label>Comentario adicional (Opcional)</label>
+            <textarea class="form-control" rows="3"
+                      [(ngModel)]="comentarioEstado"
+                      placeholder="Escribe una nota interna o información para el cliente..."></textarea>
+          </div>
+
+          <div class="d-flex justify-content-end gap-12 mt-24">
+            <button type="button" class="btn btn-link text-gray-500 fw-bold text-sm text-decoration-none"
+                    (click)="resetFormEstado(); activeTabDetalle = 'general'">
+              Cancelar
+            </button>
+            <button type="button" class="btn-confirm"
+                    [disabled]="!estadoSeleccionado || cambiandoEstado"
+                    (click)="confirmarCambioEstado()">
+              <span *ngIf="cambiandoEstado" class="spinner-border spinner-border-sm me-8"></span>
+              <i *ngIf="!cambiandoEstado" class="ph ph-check-circle me-8"></i>
+              {{ cambiandoEstado ? 'Guardando...' : 'Confirmar Nuevo Estado' }}
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Footer con acciones mejoradas -->
@@ -1147,8 +1208,10 @@
           <button type="button" class="btn btn-outline-main rounded-pill px-24 py-10" (click)="imprimirPedido()">
             <i class="ph ph-printer me-8"></i>Imprimir
           </button>
-          <button type="button" class="btn btn-main rounded-pill px-32 py-10" 
-                  (click)="cambiarEstado(pedidoSeleccionado)" data-bs-dismiss="modal">
+          <!-- Lleva a la pestaña de estado, sin cerrar el detalle. -->
+          <button type="button" class="btn btn-main rounded-pill px-32 py-10"
+                  *ngIf="activeTabDetalle !== 'estado'"
+                  (click)="abrirTabEstado()">
             <i class="ph ph-gear me-8"></i>Cambiar Estado
           </button>
         </div>

@@ -65,7 +65,7 @@ export class PedidosListComponent implements OnInit {
   totalNuevoPedido = 0;
   buscandoDocumento = false;
   activeTabCrear: 'cliente' | 'envio' | 'productos' = 'cliente';
-  activeTabDetalle: 'general' | 'productos' | 'envio' | 'pago' = 'general';
+  activeTabDetalle: 'general' | 'productos' | 'envio' | 'pago' | 'estado' = 'general';
   pdfPreviewUrl: SafeResourceUrl | null = null;
   loadingPdf: boolean = false;
 
@@ -241,6 +241,9 @@ export class PedidosListComponent implements OnInit {
   verDetalle(pedido: any): void {
     this.pedidoSeleccionado = pedido;
     this.activeTabDetalle = 'general';
+    // Los estados disponibles dependen del pedido: se recargan al abrir la
+    // pestaña de estado.
+    this.resetFormEstado();
     // Se abre en la primera moneda del pedido (soles si tiene).
     this.monedaDetalle = this.monedasDelPedido(pedido)[0] || 's';
     const modal = document.getElementById('detallePedidoModal');
@@ -358,6 +361,18 @@ export class PedidosListComponent implements OnInit {
     const deLaCuenta = `${pedido.user_cliente?.nombres || ''} ${apellidos}`.trim();
 
     return pedido.cliente_erp?.nombre || pedido.cliente_nombre || deLaCuenta;
+  }
+
+  /**
+   * Pestaña de cambio de estado dentro del propio detalle: antes había que
+   * cerrar el detalle para abrir otro modal.
+   */
+  abrirTabEstado(): void {
+    this.activeTabDetalle = 'estado';
+
+    if (this.pedidoSeleccionado && !this.estadosDisponibles.length) {
+      this.loadEstadosDisponibles(this.pedidoSeleccionado.id);
+    }
   }
 
   cambiarEstado(pedido: any): void {
@@ -508,10 +523,14 @@ export class PedidosListComponent implements OnInit {
           this.aplicarFiltros();
         }
 
-        const modal = document.getElementById('cambiarEstadoModal');
-        if (modal) {
-          (window as any).bootstrap.Modal.getInstance(modal)?.hide();
-        }
+        // El cambio se puede hacer desde el modal aparte o desde la pestaña
+        // del detalle: se cierra el que esté abierto.
+        ['cambiarEstadoModal', 'detallePedidoModal'].forEach(id => {
+          const modal = document.getElementById(id);
+          if (modal) {
+            (window as any).bootstrap.Modal.getInstance(modal)?.hide();
+          }
+        });
 
         this.resetFormEstado();
 
