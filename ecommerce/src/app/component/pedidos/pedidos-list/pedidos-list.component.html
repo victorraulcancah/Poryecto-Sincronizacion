@@ -144,15 +144,25 @@
               <div class="client-info__subtitle">{{ formatFormaEnvio(pedido.forma_envio) }}</div>
             </td>
 
-            <!-- Cliente -->
+            <!-- Cliente: si la cuenta está vinculada manda el cliente de
+                 7Power, que es a nombre de quién se emite el comprobante. -->
             <td>
               <div class="d-flex align-items-center gap-12">
                 <div class="table-avatar__circle" style="background-color: var(--main-600);">
-                  {{ getInitials(pedido.cliente_nombre) }}
+                  {{ getInitials(nombreCliente(pedido)) }}
                 </div>
                 <div>
-                  <div class="client-info__name">{{ pedido.cliente_nombre }}</div>
-                  <div class="client-info__subtitle">{{ pedido.cliente_email }}</div>
+                  <div class="client-info__name">
+                    {{ nombreCliente(pedido) }}
+                    <span *ngIf="pedido.cliente_erp"
+                          class="badge bg-main-50 text-main-600 rounded-pill ms-4" style="font-size: 10px;">
+                      <i class="ph ph-link me-2"></i>{{ pedido.cliente_erp.codigo_erp }}
+                    </span>
+                  </div>
+                  <div class="client-info__subtitle">
+                    <span *ngIf="documentoCliente(pedido)">{{ documentoCliente(pedido) }} · </span>
+                    {{ correoCliente(pedido) }}
+                  </div>
                 </div>
               </div>
             </td>

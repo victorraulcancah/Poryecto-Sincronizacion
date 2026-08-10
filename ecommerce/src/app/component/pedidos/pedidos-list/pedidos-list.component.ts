@@ -365,6 +365,18 @@ export class PedidosListComponent implements OnInit {
     return pedido?.cliente_erp?.telefono || pedido?.telefono_contacto || '';
   }
 
+  /** Documento del titular: el del cliente de 7Power si está vinculado. */
+  documentoCliente(pedido: any): string {
+    return pedido?.cliente_erp?.documento || pedido?.numero_documento || '';
+  }
+
+  /** Correo del titular, con la misma prioridad que el resto de sus datos. */
+  correoCliente(pedido: any): string {
+    const deLaCuenta = pedido?.user_cliente?.email || '';
+
+    return pedido?.cliente_erp?.email || pedido?.cliente_email || deLaCuenta;
+  }
+
   /**
    * Dirección del titular: la registrada en 7Power si la cuenta está vinculada
    * —es la que vale para el despacho—, y si no la que quedó en el pedido.
