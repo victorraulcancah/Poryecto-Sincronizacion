@@ -1120,9 +1120,47 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Dirección registrada en 7Power, disponible solo si la cuenta está
+   * vinculada y el cliente la tiene cargada allá.
+   */
+  get direccionErp(): string | null {
+    return this.titular?.vinculado ? this.titular?.direccion || null : null;
+  }
+
+  /** Si la entrega va a la dirección del ERP en vez de la del e-commerce. */
+  usandoDireccionErp = false;
+
+  /**
+   * Cambia la entrega a la dirección de 7Power.
+   *
+   * Solo se reemplaza el texto: el ubigeo del ERP no existe (allá la dirección
+   * es una cadena suelta) y es lo que define la forma y el costo de envío, así
+   * que se conserva el de la dirección que ya estaba elegida.
+   */
+  usarDireccionErp(): void {
+    if (!this.direccionErp) return;
+
+    this.usandoDireccionErp = true;
+    this.checkoutForm.patchValue({ direccion: this.direccionErp });
+  }
+
+  /** Vuelve a la dirección guardada en el e-commerce. */
+  usarMiDireccion(): void {
+    this.usandoDireccionErp = false;
+
+    if (this.direccionSeleccionada) {
+      this.checkoutForm.patchValue({
+        direccion: this.direccionSeleccionada.direccion_completa
+      });
+    }
+  }
+
   seleccionarDireccion(direccion: Direccion): void {
     this.direccionSeleccionada = direccion;
     this.usarDireccionPersonalizada = false;
+    // Elegir una dirección propia descarta la del ERP.
+    this.usandoDireccionErp = false;
     this.cerrarModalDirecciones();
 
     this.checkoutForm.patchValue({
