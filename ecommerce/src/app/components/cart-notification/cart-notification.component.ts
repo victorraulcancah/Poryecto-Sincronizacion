@@ -185,12 +185,4 @@ export class CartNotificationComponent implements OnInit, OnChanges, OnDestroy {
     const img = event.target as HTMLImageElement;
     img.style.visibility = 'hidden';
   }
-
-  /**
-   * Disponibilidad sin revelar el stock real, con el mismo criterio que la
-   * ficha de producto.
-   */
-  get textoDisponibilidad(): string {
-    return this.maximo <= 10 ? 'Pocas unidades disponibles' : 'Producto disponible';
-  }
 }

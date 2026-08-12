@@ -69,10 +69,21 @@
           </button>
         </div>
 
-        <!-- Disponibilidad sin mostrar el stock real, igual que la ficha. -->
-        <span class="cart-noti__stock text-sm text-gray-500" *ngIf="item">
-          {{ textoDisponibilidad }}
-        </span>
+        <!-- Mismo formato de stock que las cards de producto. -->
+        <div class="cart-noti__stock flex-align gap-4" *ngIf="item">
+          <span class="text-md d-flex" [class.text-success-600]="maximo > 10"
+            [class.text-warning-600]="maximo > 0 && maximo <= 10"
+            [class.text-danger-600]="maximo === 0">
+            <i class="ph-fill ph-package"></i>
+          </span>
+          <span class="text-xs fw-medium" [class.text-success-600]="maximo > 10"
+            [class.text-warning-600]="maximo > 0 && maximo <= 10"
+            [class.text-danger-600]="maximo === 0">
+            <span *ngIf="maximo > 10">Stock: +10 unidades</span>
+            <span *ngIf="maximo > 0 && maximo <= 10">Stock: {{ maximo }} unidades</span>
+            <span *ngIf="maximo === 0">Agotado</span>
+          </span>
+        </div>
       </div>
 
       <p class="text-sm text-danger-600 mt-8 mb-0" *ngIf="errorStock">{{ errorStock }}</p>
