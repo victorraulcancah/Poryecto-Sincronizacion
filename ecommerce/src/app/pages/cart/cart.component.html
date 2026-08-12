@@ -114,9 +114,18 @@
                         <p class="text-gray-500 mb-2" style="font-size: 0.75rem;">
                           Código: {{ item.codigo_producto }}
                         </p>
-                        <p class="text-success-600 mb-0" style="font-size: 0.75rem;">
-                          <i class="ph ph-check-circle me-1"></i>
-                          {{ item.stock_disponible }} disponibles
+                        <!-- Mismo formato de stock que las cards de producto:
+                             por encima de 10 no se revela la cantidad real. -->
+                        <p class="mb-0 fw-medium" style="font-size: 0.75rem;"
+                           [class.text-success-600]="item.stock_disponible > 10"
+                           [class.text-warning-600]="item.stock_disponible > 0 && item.stock_disponible <= 10"
+                           [class.text-danger-600]="item.stock_disponible === 0">
+                          <i class="ph-fill ph-package me-1"></i>
+                          <span *ngIf="item.stock_disponible > 10">Stock: +10 unidades</span>
+                          <span *ngIf="item.stock_disponible > 0 && item.stock_disponible <= 10">
+                            Stock: {{ item.stock_disponible }} unidades
+                          </span>
+                          <span *ngIf="item.stock_disponible === 0">Agotado</span>
                         </p>
                       </div>
                     </div>
