@@ -1204,13 +1204,21 @@ class CotizacionesController extends Controller
 
             $simboloMoneda = ($cotizacion->moneda ?? 's') === 'd' ? 'US$' : 'S/';
 
+            // Si la cuenta está vinculada, el comprobante va a nombre del
+            // cliente de 7Power, no del que se escribió en el checkout.
+            $clienteErp = app(\App\Services\ClienteErpService::class)
+                ->porCodigo($cotizacion->userCliente->codigo_erp ?? null);
+
             $datos = [
                 'numero_cotizacion' => $cotizacion->codigo_cotizacion,
-                'fecha' => $cotizacion->fecha_cotizacion->format('d/m/Y'),
-                'cliente' => $cotizacion->cliente_nombre,
-                'email' => $cotizacion->cliente_email,
-                'telefono' => $cotizacion->telefono_contacto,
-                'direccion' => $cotizacion->direccion_envio,
+                'fecha' => $cotizacion->fecha_cotizacion->format('d/m/Y H:i'),
+                'cliente' => $clienteErp['nombre'] ?? $cotizacion->cliente_nombre,
+                'documento' => $clienteErp['documento'] ?? $cotizacion->numero_documento,
+                'es_empresa' => $clienteErp['es_empresa'] ?? false,
+                'codigo_erp' => $clienteErp['codigo_erp'] ?? null,
+                'email' => $clienteErp['email'] ?? $cotizacion->cliente_email,
+                'telefono' => $clienteErp['telefono'] ?? $cotizacion->telefono_contacto,
+                'direccion' => $clienteErp['direccion'] ?? $cotizacion->direccion_envio,
                 'departamento' => $cotizacion->departamento_nombre ?? 'N/A',
                 'provincia' => $cotizacion->provincia_nombre ?? 'N/A',
                 'distrito' => $cotizacion->distrito_nombre ?? 'N/A',

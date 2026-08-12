@@ -81,18 +81,18 @@
         
         .order-title {
             color: #c22026;
-            font-size: 11px;
+            font-size: 15px;
             font-weight: 800;
-            margin-bottom: 6px;
+            margin-bottom: 10px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
         }
-        
+
         .order-number {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 800;
             color: #121535;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
         }
         
         .status-pill {
@@ -247,10 +247,9 @@
         </div>
         <div class="header-right">
             <div class="order-badge">
-                <div class="order-title">Cotización de Venta</div>
-                <div class="order-number">{{ $numero_cotizacion }}</div>
-                <div style="font-size: 9.5px; margin-bottom: 10px; color: #4b5563;">{{ $fecha }}</div>
-                <div class="status-pill">VÁLIDA POR 30 DÍAS</div>
+                <div class="order-title">Cotización</div>
+                <div class="order-number">Nro: {{ $numero_cotizacion }}</div>
+                <div style="font-size: 9.5px; color: #6b7280;">{{ $fecha }}</div>
             </div>
         </div>
     </div>
@@ -259,10 +258,20 @@
         <tr>
             <td class="details-cell">
                 <div class="card">
+                    {{-- Con la cuenta vinculada, estos datos son los del
+                         cliente en 7Power; si no, los del checkout. --}}
                     <div class="card-title">Información del Cliente</div>
                     <div class="info-row"><span class="label">Cliente:</span> {{ $cliente }}</div>
+                    @if(!empty($documento))
+                        <div class="info-row">
+                            <span class="label">{{ ($es_empresa ?? false) ? 'RUC:' : 'DNI:' }}</span> {{ $documento }}
+                        </div>
+                    @endif
                     <div class="info-row"><span class="label">Email:</span> {{ $email }}</div>
                     <div class="info-row"><span class="label">Teléfono:</span> {{ $telefono }}</div>
+                    @if(!empty($direccion))
+                        <div class="info-row"><span class="label">Dirección:</span> {{ $direccion }}</div>
+                    @endif
                     <div class="info-row"><span class="label">Ubicación:</span> {{ $departamento }}, {{ $provincia }}, {{ $distrito }}</div>
                 </div>
             </td>
