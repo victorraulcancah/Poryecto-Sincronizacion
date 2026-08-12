@@ -58,7 +58,20 @@
             aria-label="Quitar una unidad">
             <i class="ph ph-minus"></i>
           </button>
-          <span class="cart-noti__valor">{{ cantidad }}</span>
+          <!-- La cantidad también se puede escribir; nunca por encima del stock. -->
+          <input
+            type="number"
+            class="cart-noti__valor"
+            min="1"
+            [max]="maximo"
+            [value]="cantidad"
+            [disabled]="!item || actualizando"
+            (input)="escribirCantidad($event)"
+            (change)="confirmarCantidad($event)"
+            (blur)="confirmarCantidad($event)"
+            (keyup.enter)="confirmarCantidad($event)"
+            aria-label="Cantidad">
+
           <button
             type="button"
             class="cart-noti__paso"

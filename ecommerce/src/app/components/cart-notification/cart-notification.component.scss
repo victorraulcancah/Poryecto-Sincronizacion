@@ -106,9 +106,31 @@
 }
 
 .cart-noti__valor {
-  min-width: 24px;
+  width: 52px;
+  height: 34px;
   text-align: center;
   font-weight: 600;
+  border: 1px solid var(--gray-200, #e5e7eb);
+  border-radius: 6px;
+  padding: 0 4px;
+
+  &:focus {
+    outline: none;
+    border-color: var(--main-600, #9b1c1c);
+  }
+
+  &:disabled {
+    background: #f7f7f7;
+  }
+
+  // Sin las flechitas del input number: el +/- ya cumple esa función.
+  -moz-appearance: textfield;
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
 }
 
 .cart-noti__stock {

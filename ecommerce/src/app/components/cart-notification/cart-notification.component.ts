@@ -90,9 +90,45 @@ export class CartNotificationComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   cambiarCantidad(delta: number): void {
-    const nueva = this.cantidad + delta;
+    this.fijarCantidad(this.cantidad + delta);
+  }
 
-    if (nueva < 1 || nueva > this.maximo || !this.item || this.actualizando) {
+  /**
+   * Mientras se escribe: se recortan los ceros a la izquierda y lo que pase del
+   * stock, pero todavía no se toca el carrito.
+   */
+  escribirCantidad(evento: Event): void {
+    const input = evento.target as HTMLInputElement;
+    const escrito = parseInt(input.value, 10);
+
+    // Campo vacío: se deja borrar sin corregir nada todavía.
+    if (isNaN(escrito)) return;
+
+    const valor = Math.min(Math.max(escrito, 1), this.maximo);
+    input.value = String(valor);
+    this.cantidad = valor;
+  }
+
+  /** Al salir del campo (o con Enter) recién se guarda en el carrito. */
+  confirmarCantidad(evento: Event): void {
+    const input = evento.target as HTMLInputElement;
+    const escrito = parseInt(input.value, 10);
+    const valor = isNaN(escrito) ? 1 : Math.min(Math.max(escrito, 1), this.maximo);
+
+    input.value = String(valor);
+    this.fijarCantidad(valor);
+  }
+
+  private fijarCantidad(nueva: number): void {
+    if (
+      nueva < 1 ||
+      nueva > this.maximo ||
+      nueva === this.item?.cantidad ||
+      !this.item ||
+      this.actualizando
+    ) {
+      // Se vuelve a lo que hay en el carrito para no dejar el campo mintiendo.
+      this.cantidad = this.item?.cantidad ?? this.cantidad;
       return;
     }
 
