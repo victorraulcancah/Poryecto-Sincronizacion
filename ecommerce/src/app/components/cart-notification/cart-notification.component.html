@@ -85,11 +85,15 @@
             *ngFor="let product of suggestedProducts.slice(0, 3)"
             class="cart-noti__sugerido"
             (click)="onSuggestedProductClick(product)">
-            <img
-              *ngIf="product.imagen_url || product.imagen_principal"
-              [src]="product.imagen_url || product.imagen_principal"
-              [alt]="product.nombre"
-              (error)="onImageError($event)">
+            <!-- El alto de la miniatura se reserva siempre, cargue o no la
+                 imagen: si no, las tarjetas quedan de distinto alto. -->
+            <div class="cart-noti__sugerido-img">
+              <img
+                *ngIf="product.imagen_url || product.imagen_principal"
+                [src]="product.imagen_url || product.imagen_principal"
+                [alt]="product.nombre"
+                (error)="onImageError($event)">
+            </div>
             <span class="cart-noti__sugerido-nombre">{{ product.nombre }}</span>
             <!-- Cada pantalla arma el sugerido con un campo distinto. -->
             <span class="text-xs fw-semibold text-main-600" *ngIf="precioSugerido(product) as precio">

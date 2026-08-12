@@ -123,7 +123,12 @@
 }
 
 .cart-noti__sugerido {
+  // Alto fijo y bloques del mismo tamaño: las tarjetas se ven parejas aunque
+  // una no tenga imagen o el nombre sea más corto.
   width: 90px;
+  height: 116px;
+  display: flex;
+  flex-direction: column;
   text-align: center;
   padding: 8px;
   border: 1px solid var(--gray-100, #eee);
@@ -131,12 +136,18 @@
   cursor: pointer;
   transition: all 0.2s;
 
-  img {
-    width: 100%;
-    height: 48px;
-    object-fit: contain;
-    border-radius: 4px;
+  // El hueco de la miniatura se reserva cargue o no la imagen.
+  .cart-noti__sugerido-img {
+    height: 44px;
+    flex-shrink: 0;
     margin-bottom: 4px;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 4px;
+    }
   }
 
   // Nombre corto, para que el sugerido se entienda aunque no cargue la imagen.
@@ -148,7 +159,7 @@
     font-size: 11px;
     line-height: 1.3;
     color: #4b5563;
-    margin-bottom: 2px;
+    flex: 1;
   }
 
   &:hover {
