@@ -161,8 +161,36 @@ export class CartNotificationComponent implements OnInit, OnChanges, OnDestroy {
     this.onSuggestedProductSelect.emit(product);
   }
 
+  /**
+   * Precio del sugerido: cada pantalla arma esos objetos con un campo distinto
+   * (`precio`, `precio_venta`, `precio_con_descuento`), y cuando no coincidía
+   * se veía el símbolo de la moneda solo, sin importe.
+   */
+  precioSugerido(product: any): number | null {
+    const precio = Number(
+      product?.precio_con_descuento || product?.precio || product?.precio_venta || 0
+    );
+
+    return precio > 0 ? precio : null;
+  }
+
+  /**
+   * Imagen rota: se oculta y listo.
+   *
+   * Antes se apuntaba a `product-default.png`, que no existe en el proyecto:
+   * el reemplazo también fallaba, volvía a disparar este handler y el modal
+   * quedaba parpadeando en bucle.
+   */
   onImageError(event: any) {
     const img = event.target as HTMLImageElement;
-    img.src = 'assets/images/thumbs/product-default.png';
+    img.style.visibility = 'hidden';
+  }
+
+  /**
+   * Disponibilidad sin revelar el stock real, con el mismo criterio que la
+   * ficha de producto.
+   */
+  get textoDisponibilidad(): string {
+    return this.maximo <= 10 ? 'Pocas unidades disponibles' : 'Producto disponible';
   }
 }

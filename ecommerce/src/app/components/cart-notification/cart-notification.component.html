@@ -69,8 +69,9 @@
           </button>
         </div>
 
+        <!-- Disponibilidad sin mostrar el stock real, igual que la ficha. -->
         <span class="cart-noti__stock text-sm text-gray-500" *ngIf="item">
-          Máximo {{ maximo }} {{ maximo === 1 ? 'unidad' : 'unidades' }}.
+          {{ textoDisponibilidad }}
         </span>
       </div>
 
@@ -85,11 +86,14 @@
             class="cart-noti__sugerido"
             (click)="onSuggestedProductClick(product)">
             <img
+              *ngIf="product.imagen_url || product.imagen_principal"
               [src]="product.imagen_url || product.imagen_principal"
               [alt]="product.nombre"
               (error)="onImageError($event)">
-            <span class="text-xs fw-semibold text-main-600">
-              {{ product.moneda | moneda }} {{ product.precio | number:'1.2-2' }}
+            <span class="cart-noti__sugerido-nombre">{{ product.nombre }}</span>
+            <!-- Cada pantalla arma el sugerido con un campo distinto. -->
+            <span class="text-xs fw-semibold text-main-600" *ngIf="precioSugerido(product) as precio">
+              {{ product.moneda | moneda }} {{ precio | number:'1.2-2' }}
             </span>
           </div>
         </div>

@@ -139,6 +139,18 @@
     margin-bottom: 4px;
   }
 
+  // Nombre corto, para que el sugerido se entienda aunque no cargue la imagen.
+  .cart-noti__sugerido-nombre {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 11px;
+    line-height: 1.3;
+    color: #4b5563;
+    margin-bottom: 2px;
+  }
+
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
