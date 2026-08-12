@@ -614,7 +614,7 @@
                   <h6 class="text-heading fw-semibold mb-4">2. Selecciona el método de pago</h6>
                   <p class="text-sm text-gray-500 mb-12">Puedes combinar varios métodos.</p>
                   <div class="row g-12">
-                    <div class="col-6 col-md-3" *ngFor="let tipo of tiposPago">
+                    <div class="col-6 col-md-3" *ngFor="let tipo of tiposPagoVisibles">
                       <div
                         class="metodo-pago-card"
                         [class.metodo-pago-card--activo]="esMetodoSeleccionado(tipo)"
@@ -627,15 +627,13 @@
 
                         <div class="metodo-pago-card__input" (click)="$event.stopPropagation()">
                           <label class="text-xs text-gray-500 d-block mb-2">{{ monedaPagoSeleccionada | moneda }}</label>
+                          <!-- Texto y no number: así el monto se puede mostrar
+                               con separador de miles mientras se escribe. -->
                           <input
-                            type="number"
+                            type="text"
+                            inputmode="decimal"
                             class="form-control form-control-sm rounded-6"
-                            min="0"
-                            step="0.01"
-                            [max]="montoMaximoMetodo(tipo)"
-                            [ngModel]="montoParaInput(tipo)"
-                            [ngModelOptions]="{standalone: true}"
-                            (ngModelChange)="onMontoMetodoChange(tipo, $event)"
+                            [value]="montoFormateado(tipo)"
                             (input)="corregirMonto(tipo, $event)"
                             placeholder="0.00"
                           />
@@ -700,7 +698,7 @@
                     >
                       <option value="">Tipo de pago (*)</option>
                       <option
-                        *ngFor="let tipo of tiposPago"
+                        *ngFor="let tipo of tiposPagoVisibles"
                         [value]="tipo.codigo"
                       >
                         {{ tipo.nombre }}
@@ -732,17 +730,23 @@
                       for="aceptaTerminos"
                     >
                       He leído y acepto los
-                      <a
-                        href="#"
-                        class="text-main-600 text-decoration-underline"
-                        >términos y condiciones</a
+                      <!-- Botones y no enlaces: antes eran href="#" y el clic
+                           sacaba al cliente del checkout. -->
+                      <button
+                        type="button"
+                        class="btn btn-link p-0 align-baseline text-main-600 text-decoration-underline text-sm"
+                        (click)="abrirLegal('terminos')"
                       >
+                        términos y condiciones
+                      </button>
                       y las
-                      <a
-                        href="#"
-                        class="text-main-600 text-decoration-underline"
-                        >políticas de privacidad</a
+                      <button
+                        type="button"
+                        class="btn btn-link p-0 align-baseline text-main-600 text-decoration-underline text-sm"
+                        (click)="abrirLegal('privacidad')"
                       >
+                        políticas de privacidad
+                      </button>
                     </label>
                   </div>
                   <div
@@ -1069,6 +1073,35 @@
   (direccionGuardada)="onNuevaDireccionGuardada()"
   (cerrar)="cerrarModalNuevaDireccion()"
 ></app-modal-direccion>
+
+<!-- ====================== Modal: términos y políticas ====================== -->
+<div
+  *ngIf="modalLegal"
+  class="modal d-block"
+  style="background-color: rgba(0,0,0,0.5);"
+  (click)="cerrarLegal()"
+>
+  <div class="modal-dialog modal-dialog-centered modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header border-bottom border-gray-100">
+        <h5 class="modal-title fw-semibold text-heading">
+          {{ modalLegal === 'terminos' ? 'Términos y condiciones' : 'Políticas de privacidad' }}
+        </h5>
+        <button type="button" class="btn-close" (click)="cerrarLegal()" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body p-24" style="max-height: 60vh; overflow-y: auto;">
+        <p class="text-sm text-gray-600" *ngFor="let parrafo of textoLegal">{{ parrafo }}</p>
+      </div>
+
+      <div class="modal-footer border-top border-gray-100">
+        <button type="button" class="btn btn-main rounded-8 px-24" (click)="cerrarLegal()">
+          Entendido
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ========================== Shipping Section Start ============================ -->
 <app-shipping></app-shipping>

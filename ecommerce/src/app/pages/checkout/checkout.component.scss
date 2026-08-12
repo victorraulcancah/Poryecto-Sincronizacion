@@ -349,6 +349,11 @@
 
 .metodo-pago-card {
   position: relative;
+  // En columna y con el input pegado abajo: las descripciones tienen distinto
+  // largo y, sin esto, el campo del monto quedaba a distinta altura en cada
+  // tarjeta.
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--bs-gray-200, #dee2e6);
   border-radius: 8px;
   padding: 14px 10px;
@@ -395,7 +400,9 @@
   }
 
   &__input {
-    margin-top: 10px;
+    // `auto` empuja el campo al pie de la tarjeta, así todos quedan alineados.
+    margin-top: auto;
+    padding-top: 10px;
   }
 }
 

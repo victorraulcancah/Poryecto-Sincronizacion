@@ -405,9 +405,61 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       });
   }
 
+  // ------------------------------------------------ términos y privacidad
+
+  /**
+   * Texto legal que se muestra en el modal.
+   *
+   * Provisorio: la empresa todavía no entregó la redacción definitiva, y no
+   * hay tabla ni endpoint donde guardarla. Cuando la entreguen, esto se
+   * reemplaza por páginas propias como la de política de cookies.
+   */
+  private readonly TEXTOS_LEGALES: Record<'terminos' | 'privacidad', string[]> = {
+    terminos: [
+      'Al enviar esta cotización aceptas que los precios, el stock y los plazos de entrega quedan sujetos a confirmación por parte de nuestro equipo comercial.',
+      'La cotización tiene una validez de 30 días calendario. Los precios incluyen IGV salvo que se indique lo contrario, y pueden variar si cambia el tipo de cambio en compras en dólares.',
+      'La entrega se coordina una vez confirmado el pago. Los tiempos de despacho a provincia dependen del operador logístico.',
+      'Para consultas sobre esta compra puedes escribirnos por los canales de atención publicados en la tienda.'
+    ],
+    privacidad: [
+      'Los datos que registras en el checkout —nombre, documento, teléfono, correo y dirección— se usan únicamente para emitir tu comprobante, coordinar la entrega y darte soporte sobre tu compra.',
+      'No compartimos tu información con terceros ajenos a la operación. Los datos de despacho se entregan al operador logístico solo para completar el envío.',
+      'Puedes solicitar la corrección o eliminación de tus datos escribiéndonos por los canales de atención de la tienda.'
+    ]
+  };
+
+  /** Qué texto legal está abierto, o null si el modal está cerrado. */
+  modalLegal: 'terminos' | 'privacidad' | null = null;
+
+  get textoLegal(): string[] {
+    return this.modalLegal ? this.TEXTOS_LEGALES[this.modalLegal] : [];
+  }
+
+  abrirLegal(cual: 'terminos' | 'privacidad'): void {
+    this.modalLegal = cual;
+  }
+
+  cerrarLegal(): void {
+    this.modalLegal = null;
+  }
+
   /** El método de pago a crédito, reconocido por su código en la BD. */
   esMetodoCredito(tipo: TipoPago): boolean {
     return (tipo?.codigo || '').toLowerCase() === this.CODIGO_CREDITO;
+  }
+
+  /**
+   * Métodos de pago que se le muestran al cliente.
+   *
+   * El crédito solo aparece si el ERP le devolvió al menos 1 de crédito
+   * disponible: con 0 o en negativo no tiene sentido ofrecerlo. Mientras la
+   * consulta no responde tampoco se muestra, para no hacerlo aparecer y
+   * desaparecer.
+   */
+  get tiposPagoVisibles(): TipoPago[] {
+    return this.tiposPago.filter(
+      tipo => !this.esMetodoCredito(tipo) || this.creditoDisponible >= 1
+    );
   }
 
   // ------------------------------------------------------- cuadre de los pagos
@@ -451,33 +503,62 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Limpia lo que se escribió en el propio input: ceros a la izquierda y lo
-   * que pase del tope.
+   * Monto del método tal como se muestra en el campo: con separador de miles
+   * y vacío cuando es cero, para que se vea el placeholder.
+   */
+  montoFormateado(tipo: TipoPago): string {
+    const monto = this.getMontoMetodo(tipo);
+
+    return monto > 0 ? this.conSeparadorDeMiles(String(monto)) : '';
+  }
+
+  /**
+   * Formatea lo que se escribe en el campo del monto.
    *
-   * `onMontoMetodoChange` ya topa el valor del modelo, pero `ngModel` no
-   * reescribe el campo cuando el modelo no cambió: escribir 1000 sobre un tope
-   * de 100 dejaba el modelo en 100 y "1000" a la vista.
+   * Se acepta solo números, se recortan los ceros a la izquierda y lo que pase
+   * del tope, y se agregan las comas de miles mientras se escribe: 5200 se ve
+   * como 5,200. La coma es solo separador visual; el modelo guarda el número.
    */
   corregirMonto(tipo: TipoPago, evento: Event): void {
     const input = evento.target as HTMLInputElement;
 
-    if (!input.value) return;
-
-    // El 0 no puede ser el primer dígito ("050" es 50). Los decimales no se
-    // tocan: en "0.50" el cero no va seguido de otro dígito.
-    const sinCeros = input.value.replace(/^(-?)0+(?=\d)/, '$1');
-    if (sinCeros !== input.value) {
-      input.value = sinCeros;
-      this.onMontoMetodoChange(tipo, sinCeros);
+    if (!input.value) {
+      this.onMontoMetodoChange(tipo, 0);
+      return;
     }
 
-    const escrito = Number(input.value);
-    if (isNaN(escrito)) return;
+    // Solo dígitos y un punto decimal; las comas del formato se descartan.
+    const limpio = input.value.replace(/[^\d.]/g, '');
+    const [enteraCruda, ...resto] = limpio.split('.');
 
+    // El 0 no puede ser el primer dígito ("050" es 50).
+    let entera = enteraCruda.replace(/^0+(?=\d)/, '');
+    // Se escriben como mucho dos decimales.
+    let decimales = resto.length ? resto.join('').slice(0, 2) : '';
+    const escribiendoDecimal = limpio.includes('.');
+
+    let monto = Number(`${entera || '0'}.${decimales || '0'}`);
     const tope = this.montoMaximoMetodo(tipo);
-    if (escrito > tope) {
-      input.value = String(tope);
+
+    if (monto > tope) {
+      monto = tope;
+      entera = String(Math.floor(tope));
+      decimales = String(Math.round((tope - Math.floor(tope)) * 100)).padStart(2, '0');
+      decimales = decimales === '00' ? '' : decimales;
     }
+
+    input.value = this.conSeparadorDeMiles(entera)
+      + (escribiendoDecimal || decimales ? `.${decimales}` : '');
+
+    this.onMontoMetodoChange(tipo, monto);
+  }
+
+  /** "5200.5" → "5,200.5". Solo la parte entera lleva comas. */
+  private conSeparadorDeMiles(valor: string): string {
+    const [entera, decimales] = valor.split('.');
+    const conComas = (entera || '0').replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+    return decimales ? `${conComas}.${decimales}` : conComas;
   }
 
   private redondear(valor: number): number {
@@ -960,14 +1041,6 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
   getMontoMetodo(tipo: TipoPago): number {
     return this.montosPorMetodo[this.claveMetodoPago(tipo)] || 0;
-  }
-
-  /**
-   * Valor que muestra el input: vacío cuando no hay monto, para que se vea el
-   * placeholder "0.00" en vez de un 0 escrito que el cliente tiene que borrar.
-   */
-  montoParaInput(tipo: TipoPago): number | null {
-    return this.getMontoMetodo(tipo) || null;
   }
 
   onMontoMetodoChange(tipo: TipoPago, valor: string | number): void {
