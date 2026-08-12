@@ -355,7 +355,16 @@ class ClientesController extends Controller
             // los del usuario para no mostrar campos vacíos.
             'telefono' => $erp['telefono'] ?: $propio['telefono'],
             'email' => $erp['email'] ?: $propio['email'],
-            'direccion' => $erp['direccion'],
+            'es_empresa' => $erp['es_empresa'],
+            // Dirección tal como está en el ERP: sus partes y su ubigeo, para
+            // poder ofrecerla como dirección de entrega en el checkout.
+            'direccion' => $erp['direccion_completa'] ?: $erp['direccion'],
+            'calle' => $erp['calle'],
+            'lote' => $erp['lote'],
+            'indicaciones' => $erp['indicaciones'],
+            'departamento' => $erp['departamento'],
+            'provincia' => $erp['provincia'],
+            'distrito' => $erp['distrito'],
         ]);
     }
 

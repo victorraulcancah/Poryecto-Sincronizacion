@@ -33,10 +33,19 @@ class ClienteErpService
             return [];
         }
 
-        $filas = DB::connection('mysql_7power')->table('clients')
-            ->whereIn('codigo', $codigos)
-            ->where('company_id', self::COMPANY_ID)
-            ->get(['codigo', 'tipo', 'dni_ruc', 'name', 'last_name', 'razon_social', 'direccion', 'email', 'telefono']);
+        // La dirección del ERP son varios campos más su ubigeo, no una sola
+        // cadena: se traen todos para poder mostrarla completa.
+        $filas = DB::connection('mysql_7power')->table('clients as c')
+            ->leftJoin('ubigeo_peru_departments as dep', 'dep.id', '=', 'c.department_id')
+            ->leftJoin('ubigeo_peru_provinces as pro', 'pro.id', '=', 'c.province_id')
+            ->leftJoin('ubigeo_peru_districts as dis', 'dis.id', '=', 'c.district_id')
+            ->whereIn('c.codigo', $codigos)
+            ->where('c.company_id', self::COMPANY_ID)
+            ->get([
+                'c.codigo', 'c.tipo', 'c.dni_ruc', 'c.name', 'c.last_name', 'c.razon_social',
+                'c.direccion', 'c.calle', 'c.lote', 'c.indicaciones', 'c.email', 'c.telefono',
+                'dep.name as departamento', 'pro.name as provincia', 'dis.name as distrito',
+            ]);
 
         $mapa = [];
         foreach ($filas as $fila) {
@@ -49,6 +58,13 @@ class ClienteErpService
                 'telefono' => $fila->telefono ?: null,
                 'email' => $fila->email ?: null,
                 'direccion' => $fila->direccion ?: null,
+                'calle' => $fila->calle ?: null,
+                'lote' => $fila->lote ?: null,
+                'indicaciones' => $fila->indicaciones ?: null,
+                'departamento' => $fila->departamento ?: null,
+                'provincia' => $fila->provincia ?: null,
+                'distrito' => $fila->distrito ?: null,
+                'direccion_completa' => $this->direccionCompleta($fila),
             ];
         }
 
@@ -63,6 +79,21 @@ class ClienteErpService
         }
 
         return $this->porCodigos([$codigo])[$codigo] ?? null;
+    }
+
+    /**
+     * La dirección tal como se arma en el ERP: calle, dirección y número o
+     * lote en una sola línea. El ubigeo va aparte.
+     */
+    private function direccionCompleta(object $fila): ?string
+    {
+        $partes = array_filter([
+            $fila->calle ?? null,
+            $fila->direccion ?? null,
+            $fila->lote ?? null,
+        ], fn ($parte) => trim((string) $parte) !== '');
+
+        return $partes ? implode(' ', $partes) : null;
     }
 
     /**

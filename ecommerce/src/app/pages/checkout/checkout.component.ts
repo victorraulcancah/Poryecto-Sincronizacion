@@ -1132,28 +1132,72 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   usandoDireccionErp = false;
 
   /**
-   * Cambia la entrega a la dirección de 7Power.
-   *
-   * Solo se reemplaza el texto: el ubigeo del ERP no existe (allá la dirección
-   * es una cadena suelta) y es lo que define la forma y el costo de envío, así
-   * que se conserva el de la dirección que ya estaba elegida.
+   * Cambia la entrega a la dirección de 7Power, con su propio ubigeo: de ahí
+   * salen la forma y el costo de envío.
    */
   usarDireccionErp(): void {
     if (!this.direccionErp) return;
 
     this.usandoDireccionErp = true;
     this.checkoutForm.patchValue({ direccion: this.direccionErp });
+
+    this.aplicarUbigeoPorNombre(
+      this.titular?.departamento,
+      this.titular?.provincia,
+      this.titular?.distrito
+    );
   }
 
   /** Vuelve a la dirección guardada en el e-commerce. */
   usarMiDireccion(): void {
     this.usandoDireccionErp = false;
 
-    if (this.direccionSeleccionada) {
-      this.checkoutForm.patchValue({
-        direccion: this.direccionSeleccionada.direccion_completa
+    if (!this.direccionSeleccionada) return;
+
+    this.checkoutForm.patchValue({
+      direccion: this.direccionSeleccionada.direccion_completa
+    });
+
+    this.aplicarUbigeoPorNombre(
+      this.direccionSeleccionada.ubigeo?.departamento_nombre,
+      this.direccionSeleccionada.ubigeo?.provincia_nombre,
+      this.direccionSeleccionada.ubigeo?.distrito_nombre
+    );
+  }
+
+  /**
+   * Selecciona departamento, provincia y distrito buscándolos por nombre.
+   *
+   * Los ids del ERP y los del catálogo del e-commerce no son los mismos, así
+   * que el nombre es lo único que sirve para cruzarlos. Cada nivel depende del
+   * anterior, de ahí el encadenado.
+   */
+  private aplicarUbigeoPorNombre(
+    nombreDepartamento?: string | null,
+    nombreProvincia?: string | null,
+    nombreDistrito?: string | null
+  ): void {
+    if (!nombreDepartamento) return;
+
+    const departamento = this.departamentos.find(d => d.nombre === nombreDepartamento);
+    if (!departamento) return;
+
+    this.checkoutForm.patchValue({ departamento: departamento.id });
+
+    this.onDepartamentoChange().then(() => {
+      const provincia = this.provincias.find(p => p.nombre === nombreProvincia);
+      if (!provincia) return;
+
+      this.checkoutForm.patchValue({ provincia: provincia.id });
+
+      this.onProvinciaChange().then(() => {
+        const distrito = this.distritos.find(d => d.nombre === nombreDistrito);
+        if (!distrito) return;
+
+        this.checkoutForm.patchValue({ distrito: distrito.id });
+        this.onDistritoChange();
       });
-    }
+    });
   }
 
   seleccionarDireccion(direccion: Direccion): void {
@@ -1169,25 +1213,11 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       celular: direccion.telefono || ''
     });
 
-    if (direccion.ubigeo) {
-      const departamento = this.departamentos.find(d => d.nombre === direccion.ubigeo?.departamento_nombre);
-      if (departamento) {
-        this.checkoutForm.patchValue({ departamento: departamento.id });
-        this.onDepartamentoChange().then(() => {
-          const provincia = this.provincias.find(p => p.nombre === direccion.ubigeo?.provincia_nombre);
-          if (provincia) {
-            this.checkoutForm.patchValue({ provincia: provincia.id });
-            this.onProvinciaChange().then(() => {
-              const distrito = this.distritos.find(d => d.nombre === direccion.ubigeo?.distrito_nombre);
-              if (distrito) {
-                this.checkoutForm.patchValue({ distrito: distrito.id });
-                this.onDistritoChange();
-              }
-            });
-          }
-        });
-      }
-    }
+    this.aplicarUbigeoPorNombre(
+      direccion.ubigeo?.departamento_nombre,
+      direccion.ubigeo?.provincia_nombre,
+      direccion.ubigeo?.distrito_nombre
+    );
   }
 
   async onDepartamentoChange(): Promise<void> {

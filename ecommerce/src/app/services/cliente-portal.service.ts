@@ -13,7 +13,15 @@ export interface TitularCheckout {
   documento: string | null;
   telefono: string | null;
   email: string | null;
+  es_empresa?: boolean;
+  /** Calle + dirección + número/lote, tal como está en el ERP. */
   direccion: string | null;
+  calle?: string | null;
+  lote?: string | null;
+  indicaciones?: string | null;
+  departamento?: string | null;
+  provincia?: string | null;
+  distrito?: string | null;
 }
 
 /** TC comercial del ERP: interbancario de Bloomberg más el margen de la empresa. */

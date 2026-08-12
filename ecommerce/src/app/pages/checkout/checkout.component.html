@@ -130,20 +130,40 @@
                       <div class="flex-between align-items-start gap-12">
                         <div class="flex-grow-1">
                           <div class="flex-align gap-8 mb-4">
-                            <span class="text-xs fw-medium text-gray-600">Dirección registrada en 7Power</span>
+                            <span class="w-24 h-24 bg-main-50 text-main-600 rounded-circle flex-center flex-shrink-0">
+                              <i class="ph ph-link text-xs"></i>
+                            </span>
+                            <h6 class="mb-0 text-sm fw-medium">{{ titular?.nombre }}</h6>
+                            <span class="bg-main-50 text-main-600 px-6 py-1 rounded-pill text-xs">
+                              7POWER
+                            </span>
                             <span
                               *ngIf="usandoDireccionErp"
-                              class="bg-main-50 text-main-600 px-6 py-1 rounded-pill text-xs"
+                              class="bg-success-50 text-success-600 px-6 py-1 rounded-pill text-xs"
                             >
                               En uso
                             </span>
                           </div>
-                          <p class="text-sm text-gray-600 mb-0">{{ direccionErp }}</p>
+                          <p class="text-sm text-gray-600 mb-2">{{ direccionErp }}</p>
+                          <p class="text-xs text-gray-500 mb-2" *ngIf="titular?.distrito">
+                            {{ titular?.distrito }}, {{ titular?.provincia }}, {{ titular?.departamento }}
+                          </p>
+                          <p class="text-xs text-gray-500 fst-italic mb-2" *ngIf="titular?.indicaciones">
+                            {{ titular?.indicaciones }}
+                          </p>
+                          <p class="text-xs text-gray-500 mb-0">
+                            <!-- 11 dígitos es RUC; 8, DNI. -->
+                            <span *ngIf="titular?.documento">
+                              {{ titular?.documento?.length === 11 ? 'RUC' : 'DNI' }} {{ titular?.documento }} ·
+                            </span>
+                            <span *ngIf="titular?.telefono">{{ titular?.telefono }} · </span>
+                            Dirección registrada en 7Power
+                          </p>
                         </div>
                         <button
                           *ngIf="!usandoDireccionErp"
                           type="button"
-                          class="btn btn-sm btn-outline-main rounded-6 flex-shrink-0"
+                          class="btn btn-sm bg-main-600 text-white rounded-6 flex-shrink-0"
                           (click)="usarDireccionErp()"
                         >
                           Usar esta dirección
@@ -151,7 +171,7 @@
                         <button
                           *ngIf="usandoDireccionErp"
                           type="button"
-                          class="btn btn-sm btn-outline-gray rounded-6 flex-shrink-0"
+                          class="btn btn-sm bg-gray-100 text-gray-700 rounded-6 flex-shrink-0"
                           (click)="usarMiDireccion()"
                         >
                           Volver a la mía

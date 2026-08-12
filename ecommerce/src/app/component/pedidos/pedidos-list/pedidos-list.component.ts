@@ -378,16 +378,31 @@ export class PedidosListComponent implements OnInit {
   }
 
   /**
-   * Dirección del titular: la registrada en 7Power si la cuenta está vinculada
-   * —es la que vale para el despacho—, y si no la que quedó en el pedido.
+   * Dirección de entrega: la que el cliente eligió al cotizar.
+   *
+   * En el checkout puede quedarse con una de sus direcciones o despachar a la
+   * registrada en 7Power, así que manda lo que guardó el pedido.
    */
   direccionCliente(pedido: any): string {
-    return pedido?.cliente_erp?.direccion || pedido?.direccion_envio || '';
+    return pedido?.direccion_envio || pedido?.cliente_erp?.direccion || '';
   }
 
-  /** La dirección que se muestra viene del ERP y no de la tienda. */
+  /** El cliente eligió despachar a la dirección registrada en 7Power. */
   direccionEsDeErp(pedido: any): boolean {
-    return !!pedido?.cliente_erp?.direccion;
+    const delErp = this.normalizar(pedido?.cliente_erp?.direccion);
+
+    return !!delErp && delErp === this.normalizar(pedido?.direccion_envio);
+  }
+
+  /** Dirección del ERP, cuando es distinta de la elegida para la entrega. */
+  otraDireccionDelErp(pedido: any): string {
+    const delErp = pedido?.cliente_erp?.direccion;
+
+    return delErp && !this.direccionEsDeErp(pedido) ? delErp : '';
+  }
+
+  private normalizar(texto?: string | null): string {
+    return (texto || '').trim().toUpperCase();
   }
 
   nombreCliente(pedido: any): string {

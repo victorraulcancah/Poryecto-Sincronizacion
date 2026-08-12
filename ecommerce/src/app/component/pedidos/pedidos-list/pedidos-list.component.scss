@@ -476,6 +476,31 @@
   }
 }
 
+// Tabla de productos del detalle: el reparto del ancho se define acá porque
+// el nombre del producto es lo que más espacio necesita, y la cantidad lo que
+// menos (son uno o dos dígitos).
+.modern-table--productos {
+  table-layout: fixed;
+  width: 100%;
+
+  th:nth-child(1), td:nth-child(1) { width: 86px; }   // imagen
+  th:nth-child(3), td:nth-child(3) { width: 70px; }   // cantidad
+  th:nth-child(4), td:nth-child(4) { width: 110px; }  // precio unitario
+  th:nth-child(5), td:nth-child(5) { width: 130px; }  // total
+  // La columna de producto se queda con todo el ancho restante.
+
+  // El nombre completo, en hasta dos líneas: la regla global de .product-name
+  // lo corta a 200px con puntos suspensivos.
+  .product-name {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: normal;
+    max-width: none;
+  }
+}
+
 .product-thumb {
   width: 54px;
   height: 54px;

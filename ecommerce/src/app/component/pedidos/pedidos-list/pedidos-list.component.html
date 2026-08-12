@@ -939,12 +939,12 @@
         <!-- ═══════════ TAB 2: PRODUCTOS ═══════════ -->
         <div *ngIf="activeTabDetalle === 'productos'" class="animate__animated animate__fadeIn">
           <div class="modern-table-container">
-            <table class="table modern-table mb-0">
+            <table class="table modern-table modern-table--productos mb-0">
               <thead>
                 <tr>
                   <th class="ps-24">IMAGEN</th>
                   <th>PRODUCTO</th>
-                  <th class="text-center">CANTIDAD</th>
+                  <th class="text-center">CANT.</th>
                   <th class="text-end">PRECIO UNIT.</th>
                   <th class="text-end pe-24">TOTAL</th>
                 </tr>
@@ -1020,8 +1020,8 @@
                       <span class="info-item__value fw-semibold text-dark">{{ formatFormaEnvio(pedidoSeleccionado?.forma_envio) }}</span>
                     </div>
                   </div>
-                  <!-- Si la cuenta está vinculada manda la dirección del
-                       cliente en 7Power; si no, la registrada en la tienda. -->
+                  <!-- La que el cliente eligió al cotizar: puede ser una suya o
+                       la registrada en 7Power. -->
                   <div class="info-item mb-20">
                     <span class="info-item__label">
                       Dirección Completa
@@ -1036,14 +1036,12 @@
                     </span>
                   </div>
 
-                  <!-- La que dejó el cliente al comprar, cuando no es la misma. -->
-                  <div class="info-item mb-20"
-                       *ngIf="direccionEsDeErp(pedidoSeleccionado) && pedidoSeleccionado?.direccion_envio
-                              && pedidoSeleccionado?.direccion_envio !== direccionCliente(pedidoSeleccionado)">
-                    <span class="info-item__label">Dirección indicada en el pedido</span>
+                  <!-- La del ERP como referencia, cuando eligió otra. -->
+                  <div class="info-item mb-20" *ngIf="otraDireccionDelErp(pedidoSeleccionado)">
+                    <span class="info-item__label">Dirección registrada en 7Power</span>
                     <span class="info-item__value mt-4 d-block text-gray-600">
                       <i class="ph ph-map-pin me-6 text-gray-400"></i>
-                      {{ pedidoSeleccionado?.direccion_envio }}
+                      {{ otraDireccionDelErp(pedidoSeleccionado) }}
                     </span>
                   </div>
                   <div class="p-12 rounded-12 border border-gray-100" style="background-color: #f8f9fa;">
