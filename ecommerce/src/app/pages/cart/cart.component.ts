@@ -241,7 +241,7 @@ export class CartComponent implements OnInit, OnDestroy {
           if (response.cupon.tipo_descuento === 'porcentaje') {
             mensajeDescuento = `${response.cupon.valor_descuento}% de descuento`;
           } else {
-            mensajeDescuento = `S/ ${response.descuento.toFixed(2)} de descuento`;
+            mensajeDescuento = `S/ ${this.formatPrice(response.descuento)} de descuento`;
           }
 
           Swal.fire({
@@ -343,9 +343,12 @@ export class CartComponent implements OnInit, OnDestroy {
     return Math.max(0, total - descuento);
   }
   
-  formatPrice(price: number | undefined | null): string { 
-    const safePrice = this.ensureNumber(price);
-    return safePrice.toFixed(2); 
+  /** Importe con separador de miles: 1500 se muestra como 1,500.00. */
+  formatPrice(price: number | undefined | null): string {
+    return this.ensureNumber(price).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
   }
   
   onImageError(event: any): void {

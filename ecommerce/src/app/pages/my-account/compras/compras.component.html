@@ -32,8 +32,7 @@
 
     <div *ngFor="let compra of comprasErp"
          class="border border-gray-100 hover-border-success-600 rounded-16 p-20 mb-16 transition-2">
-      <div class="flex-between align-items-center gap-16 flex-wrap cursor-pointer"
-           (click)="verDetalleCompraErp(compra)">
+      <div class="flex-between align-items-center gap-16 flex-wrap">
         <div class="flex-align gap-16">
           <div class="w-40 h-40 rounded-circle flex-center"
                [class.bg-success-50]="!compra.anulada" [class.text-success-600]="!compra.anulada"
@@ -41,61 +40,94 @@
             <i class="ph-bold" [class.ph-receipt]="!compra.anulada" [class.ph-x-circle]="compra.anulada"></i>
           </div>
           <div>
-            <h6 class="mb-2 text-heading">{{ compra.documento }}</h6>
+            <!-- El número de documento abre el comprobante. -->
+            <button type="button"
+                    class="compra-documento"
+                    [disabled]="descargando === compra.id"
+                    (click)="verComprobante(compra)">
+              {{ compra.documento }}
+              <i class="ph" [class.ph-file-pdf]="descargando !== compra.id"
+                 [class.ph-spinner]="descargando === compra.id"></i>
+            </button>
             <p class="text-gray-500 mb-0 text-sm">{{ formatearFecha(compra.fecha) }}</p>
           </div>
         </div>
 
-        <div class="text-end">
-          <!-- Una venta del ERP es siempre de una sola moneda. -->
-          <h6 class="mb-2" [class.text-heading]="!compra.anulada" [class.text-danger-600]="compra.anulada">
-            {{ compra.moneda | moneda }} {{ formatearMonto(compra.total) }}
-          </h6>
-          <span *ngIf="compra.anulada" class="badge bg-danger-50 text-danger-600 rounded-pill">Anulada</span>
-          <span *ngIf="!compra.anulada" class="text-gray-500 text-xs">
-            {{ compra.productos.length }} {{ compra.productos.length === 1 ? 'producto' : 'productos' }}
-          </span>
+        <div class="flex-align gap-16">
+          <div class="text-end">
+            <!-- Una venta del ERP es siempre de una sola moneda. -->
+            <h6 class="mb-2" [class.text-heading]="!compra.anulada" [class.text-danger-600]="compra.anulada">
+              {{ compra.moneda | moneda }} {{ formatearMonto(compra.total) }}
+            </h6>
+            <span *ngIf="compra.anulada" class="badge bg-danger-50 text-danger-600 rounded-pill">Anulada</span>
+            <span *ngIf="!compra.anulada" class="text-gray-500 text-xs">
+              {{ compra.productos.length }} {{ compra.productos.length === 1 ? 'producto' : 'productos' }}
+            </span>
+          </div>
+
+          <!-- Despliega el detalle de la compra. -->
+          <button type="button"
+                  class="compra-desplegar"
+                  [attr.aria-expanded]="compraErpAbierta?.id === compra.id"
+                  [title]="compraErpAbierta?.id === compra.id ? 'Ocultar detalle' : 'Ver detalle'"
+                  (click)="verDetalleCompraErp(compra)">
+            <i class="ph-bold"
+               [class.ph-caret-down]="compraErpAbierta?.id !== compra.id"
+               [class.ph-caret-up]="compraErpAbierta?.id === compra.id"></i>
+          </button>
         </div>
       </div>
 
-      <!-- Detalle desplegable -->
-      <div *ngIf="compraErpAbierta?.id === compra.id" class="mt-16 pt-16 border-top border-gray-100">
-        <div class="table-responsive">
-          <table class="table table-sm align-middle mb-0">
+      <!-- Detalle desplegable: misma tabla que el detalle de pedido -->
+      <div *ngIf="compraErpAbierta?.id === compra.id" class="mt-16">
+        <div class="compra-tabla">
+          <table class="table mb-0">
             <thead>
-              <tr class="text-gray-500 text-xs">
-                <th>CÓDIGO</th>
+              <tr>
+                <th class="ps-24">CÓDIGO</th>
                 <th>PRODUCTO</th>
                 <th class="text-center">CANT.</th>
-                <th class="text-end">PRECIO</th>
-                <th class="text-end">SUBTOTAL</th>
+                <th class="text-end">PRECIO UNIT.</th>
+                <th class="text-end pe-24">TOTAL</th>
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let p of compra.productos" class="text-sm">
-                <td class="text-gray-500">{{ p.codigo || '-' }}</td>
-                <td>{{ p.nombre || '-' }}</td>
-                <td class="text-center">{{ p.cantidad }}</td>
-                <td class="text-end">{{ p.moneda | moneda }} {{ formatearMonto(p.precio) }}</td>
-                <td class="text-end fw-semibold">{{ p.moneda | moneda }} {{ formatearMonto(p.subtotal) }}</td>
+              <tr *ngFor="let p of compra.productos">
+                <td class="ps-24 text-gray-500">{{ p.codigo || '-' }}</td>
+                <td>
+                  <div class="compra-producto__nombre">{{ p.nombre || '-' }}</div>
+                </td>
+                <td class="text-center">
+                  <span class="compra-cantidad">{{ p.cantidad }}</span>
+                </td>
+                <td class="text-end text-gray-500">{{ p.moneda | moneda }} {{ formatearMonto(p.precio) }}</td>
+                <td class="text-end pe-24 fw-bold text-success-600">
+                  {{ p.moneda | moneda }} {{ formatearMonto(p.subtotal) }}
+                </td>
               </tr>
             </tbody>
           </table>
+
+          <!-- Totales, calculados desde las líneas -->
+          <div class="compra-totales">
+            <div class="compra-totales__fila">
+              <span>Subtotal:</span>
+              <span>{{ compra.moneda | moneda }} {{ formatearMonto(compra.total / 1.18) }}</span>
+            </div>
+            <div class="compra-totales__fila">
+              <span>IGV (18%):</span>
+              <span>{{ compra.moneda | moneda }} {{ formatearMonto(compra.total - compra.total / 1.18) }}</span>
+            </div>
+            <div class="compra-totales__fila compra-totales__fila--total">
+              <span>Total:</span>
+              <span class="text-success-600">{{ compra.moneda | moneda }} {{ formatearMonto(compra.total) }}</span>
+            </div>
+          </div>
         </div>
+
         <p *ngIf="compra.observaciones" class="text-gray-500 text-sm mt-12 mb-0 fst-italic">
           {{ compra.observaciones }}
         </p>
-
-        <div class="mt-16">
-          <button type="button"
-                  class="btn btn-outline-main btn-sm rounded-pill flex-align gap-8"
-                  [disabled]="descargando === compra.id"
-                  (click)="verComprobante(compra)">
-            <i class="ph-bold" [class.ph-file-pdf]="descargando !== compra.id"
-               [class.ph-spinner]="descargando === compra.id"></i>
-            {{ descargando === compra.id ? 'Generando...' : 'Ver documento' }}
-          </button>
-        </div>
       </div>
     </div>
   </div>

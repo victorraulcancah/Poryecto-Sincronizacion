@@ -1,5 +1,128 @@
 // Estilos específicos para el componente de compras
 
+// Número de documento: abre el comprobante.
+.compra-documento {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--heading-color, #131118);
+  cursor: pointer;
+
+  i {
+    color: var(--main-600, #9b1c1c);
+    font-size: 0.95rem;
+  }
+
+  &:hover {
+    color: var(--main-600, #9b1c1c);
+    text-decoration: underline;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+// Botón para desplegar el detalle.
+.compra-desplegar {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border: 1px solid var(--gray-100, #eee);
+  border-radius: 50%;
+  background: #fff;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: var(--gray-50, #f8f9fa);
+    color: #111827;
+  }
+}
+
+// Tabla del detalle: mismo diseño que la del detalle de pedido.
+.compra-tabla {
+  border: 1px solid var(--gray-100, #eee);
+  border-radius: 12px;
+  overflow: hidden;
+
+  thead {
+    background: var(--gray-50, #f8f9fa);
+
+    th {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gray-500, #6b7280);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--gray-100, #eee);
+    }
+  }
+
+  tbody td {
+    padding: 16px;
+    font-size: 14px;
+    border-bottom: 1px solid var(--gray-50, #f8f9fa);
+    vertical-align: middle;
+  }
+}
+
+.compra-producto__nombre {
+  font-weight: 700;
+  color: var(--heading-color, #131118);
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+// Cantidad en píldora, como en el detalle de pedido.
+.compra-cantidad {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #fff5f5;
+  color: var(--main-600, #9b1c1c);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.compra-totales {
+  padding: 20px 24px;
+  background: var(--gray-50, #f8f9fa);
+
+  &__fila {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-left: auto;
+    max-width: 280px;
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 8px;
+
+    &--total {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--gray-200, #e5e7eb);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--heading-color, #131118);
+      margin-bottom: 0;
+    }
+  }
+}
+
 // Comprobante: modal sobre la misma página, como el visor del ERP.
 .comprobante-overlay {
   position: fixed;

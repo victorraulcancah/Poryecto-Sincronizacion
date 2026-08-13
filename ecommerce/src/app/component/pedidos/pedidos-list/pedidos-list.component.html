@@ -130,7 +130,6 @@
             <th>CÓDIGO</th>
             <th>CLIENTE</th>
             <th class="d-none d-lg-table-cell">FECHA</th>
-            <th class="d-none d-md-table-cell">MÉTODO PAGO</th>
             <th>TOTAL</th>
             <th class="d-none d-md-table-cell">ESTADO</th>
             <th class="text-end">ACCIONES</th>
@@ -171,11 +170,6 @@
             <td class="d-none d-lg-table-cell">
               <div class="date-info__main">{{ pedido.fecha_pedido | date:'dd/MM/yyyy' }}</div>
               <div class="date-info__relative">{{ pedido.fecha_pedido | date:'HH:mm' }}</div>
-            </td>
-
-            <!-- Método de pago -->
-            <td class="d-none d-md-table-cell">
-              <div class="client-info__name">{{ formatMetodoPago(pedido.metodo_pago) }}</div>
             </td>
 
             <!-- Total -->
@@ -533,9 +527,11 @@
                   <div *ngFor="let p of productosSugeridos"
                        class="producto-card-search"
                        (click)="agregarProducto(p)">
-                    <img [src]="p.imagen_url || 'assets/images/products/no-image.png'"
+                    <img *ngIf="p.imagen_url"
+                         [src]="p.imagen_url"
                          width="48" height="48"
-                         style="object-fit:cover; border-radius:8px; flex-shrink:0;" />
+                         style="object-fit:cover; border-radius:8px; flex-shrink:0;"
+                         (error)="ocultarImagen($event)" />
                     <div class="flex-grow-1 overflow-hidden">
                       <div class="fw-semibold text-sm text-truncate">{{ p.nombre }}</div>
                       <div class="text-xs text-gray-400">{{ p.codigo_producto }}</div>
@@ -953,9 +949,10 @@
                 <tr *ngFor="let detalle of productosDeMoneda(pedidoSeleccionado, monedaDetalle)" class="align-middle">
                   <td class="ps-24">
                     <div class="product-thumb">
-                      <img [src]="detalle.imagen_url || 'assets/images/products/no-image.png'" 
+                      <img *ngIf="detalle.imagen_url"
+                           [src]="detalle.imagen_url"
                            [alt]="detalle.nombre_producto"
-                           onerror="this.src='assets/images/products/no-image.png'" />
+                           (error)="ocultarImagen($event)" />
                     </div>
                   </td>
                   <td>
@@ -1230,7 +1227,7 @@
           </button>
           <button type="button" class="btn btn-main rounded-pill px-32 py-10"
                   *ngIf="activeTabDetalle === 'estado'"
-                  [disabled]="!estadoSeleccionado || cambiandoEstado"
+                  [disabled]="!estadoSeleccionado || cambiandoEstado || estadoSeleccionado === pedidoSeleccionado?.estado_pedido_id"
                   (click)="confirmarCambioEstado()">
             <span *ngIf="cambiandoEstado" class="spinner-border spinner-border-sm me-8"></span>
             <i *ngIf="!cambiandoEstado" class="ph ph-check-circle me-8"></i>
@@ -1331,7 +1328,7 @@
           Cancelar
         </button>
         <button type="button" class="btn-confirm"
-                [disabled]="!estadoSeleccionado || cambiandoEstado"
+                [disabled]="!estadoSeleccionado || cambiandoEstado || estadoSeleccionado === pedidoSeleccionado?.estado_pedido_id"
                 (click)="confirmarCambioEstado()">
           <span *ngIf="cambiandoEstado" class="spinner-border spinner-border-sm me-8"></span>
           <i *ngIf="!cambiandoEstado" class="ph ph-check-circle me-8"></i>

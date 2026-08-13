@@ -191,11 +191,20 @@ class Pedido extends Model
      */
     public function scopePendientesDeAccion($query)
     {
-        return $query->where(function ($q) {
-            $q->where('estado_pedido_id', self::ESTADO_EN_ESPERA)
-                ->orWhere(function ($q) {
+        $hoy = now()->toDateString();
+
+        return $query->where(function ($q) use ($hoy) {
+            // En espera: solo los del día. A medianoche salen de la bandeja
+            // aunque nadie los haya atendido.
+            $q->where(function ($q) use ($hoy) {
+                $q->where('estado_pedido_id', self::ESTADO_EN_ESPERA)
+                    ->whereDate('fecha_pedido', $hoy);
+            })
+                // Ya atendidos: se quedan hasta el cierre del día en que se
+                // atendieron.
+                ->orWhere(function ($q) use ($hoy) {
                     $q->whereNotNull('atendido_at')
-                        ->whereDate('atendido_at', now()->toDateString());
+                        ->whereDate('atendido_at', $hoy);
                 });
         });
     }

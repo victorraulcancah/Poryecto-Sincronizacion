@@ -989,11 +989,20 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     return precio * cantidad;
   }
 
-  // ✅ Monedas presentes en el carrito (sin conversión: cada una se suma por separado)
-  // ✅ Siempre se muestran ambas monedas (Soles y Dólares), aunque la venta sea
-  // solo en una de ellas — la que no tenga productos simplemente queda en 0.
+  /**
+   * Monedas de la venta, sin conversión: cada una se cobra y se cuadra por
+   * separado. Solo las que realmente hay en el carrito — si la compra es toda
+   * en soles, no tiene sentido ofrecer dólares en 0.
+   */
   get monedasDisponibles(): string[] {
-    return ['s', 'd'];
+    const monedas = this.monedasEnCarrito;
+
+    return monedas.length ? monedas : ['s'];
+  }
+
+  /** Si la venta incluye dólares; de eso depende mostrar el tipo de cambio. */
+  get hayDolares(): boolean {
+    return this.monedasDisponibles.includes('d');
   }
 
   // Monedas realmente presentes en el carrito (para el mensaje informativo).
@@ -1104,6 +1113,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     img.src = 'assets/images/placeholder.svg';
   }
 
+  /** Importe con separador de miles: 1500 se muestra como 1,500.00. */
   formatPrice(price: number | string | null | undefined): string {
     const numPrice = typeof price === 'number' ? price : parseFloat(String(price || 0));
 
@@ -1111,7 +1121,10 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       return '0.00';
     }
 
-    return numPrice.toFixed(2);
+    return numPrice.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
   }
 
   private loadDireccionesGuardadas(seleccionarMasReciente: boolean = false, idParaReseleccionar?: number): void {

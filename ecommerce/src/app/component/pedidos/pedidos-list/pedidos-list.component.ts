@@ -401,6 +401,17 @@ export class PedidosListComponent implements OnInit {
     return delErp && !this.direccionEsDeErp(pedido) ? delErp : '';
   }
 
+  /**
+   * Imagen rota: se oculta y listo.
+   *
+   * Antes el `onerror` apuntaba a `products/no-image.png`, que no existe en el
+   * proyecto: el reemplazo también fallaba, volvía a disparar el error y la
+   * fila quedaba parpadeando.
+   */
+  ocultarImagen(evento: Event): void {
+    (evento.target as HTMLImageElement).style.display = 'none';
+  }
+
   private normalizar(texto?: string | null): string {
     return (texto || '').trim().toUpperCase();
   }
@@ -551,6 +562,10 @@ export class PedidosListComponent implements OnInit {
     this.pedidosService.getEstados(pedidoId).subscribe({
       next: (response: any) => {
         this.estadosDisponibles = response.estados || response;
+
+        // Arranca marcado el estado actual del pedido, para que se vea en cuál
+        // está sin tener que compararlo con el badge de arriba.
+        this.estadoSeleccionado = this.pedidoSeleccionado?.estado_pedido_id ?? null;
       },
       error: (error) => {
         console.error('Error cargando estados:', error);
