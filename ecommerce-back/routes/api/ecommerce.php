@@ -76,6 +76,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}/tracking', [CotizacionesController::class, 'getTracking']);
         Route::post('/{id}/convertir-compra', [CotizacionesController::class, 'convertirACompra']);
         Route::post('/{id}/pedir', [CotizacionesController::class, 'pedirCotizacion']);
+        // El cliente elimina su propia cotización mientras siga "En espera".
+        // Va acá y no en el grupo con `permission:`, porque ese middleware es
+        // de Spatie y UserCliente no maneja roles: reventaba antes de llegar al
+        // controlador, que ya valida propiedad y estado.
+        Route::delete('/{id}', [CotizacionesController::class, 'destroy']);
     });
 
     Route::prefix('cotizaciones')->middleware('permission:cotizaciones.ver')->group(function () {
@@ -83,7 +88,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/estadisticas', [CotizacionesController::class, 'estadisticas']);
         Route::get('/estados/lista', [CotizacionesController::class, 'getEstados']);
         Route::get('/{id}', [CotizacionesController::class, 'show'])->middleware('permission:cotizaciones.show');
-        Route::delete('/{id}', [CotizacionesController::class, 'destroy']);
         Route::patch('/{id}/estado', [CotizacionesController::class, 'cambiarEstado'])->middleware('permission:cotizaciones.edit');
     });
 

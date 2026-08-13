@@ -1,8 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, forkJoin, takeUntil } from 'rxjs';
+import { Router } from '@angular/router';
 import { CotizacionesService, Cotizacion } from '../../../services/cotizaciones.service';
+import { CartService } from '../../../services/cart.service';
 import { ProductosService, ProductoSugerencia } from '../../../services/productos.service';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { MonedaPipe } from '../../../pipes/moneda.pipe';
@@ -59,6 +61,8 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
   constructor(
     private cotizacionesService: CotizacionesService,
     private productosService: ProductosService,
+    private cartService: CartService,
+    private router: Router,
     private sanitizer: DomSanitizer
   ) { }
 
@@ -286,9 +290,17 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
 
   // ── Edición de cotización ─────────────────────────────────
 
+  /**
+   * Editar = rehacer el pedido desde el carrito.
+   *
+   * En vez de un modal aparte, los productos de la cotización vuelven al
+   * carrito y el cliente recorre otra vez el flujo normal (Carro → Entrega →
+   * Pago), donde puede moverse entre pasos y cambiar lo que necesite. La
+   * cotización original se elimina: al terminar se genera una nueva.
+   */
   abrirEdicion(cotizacion: Cotizacion): void {
     // La ventana de edición se cierra cuando un vendedor toma el pedido; el
-    // backend también lo rechaza, pero así se avisa antes de abrir el modal.
+    // backend también lo rechaza, pero así se avisa antes.
     if (!cotizacion.editable) {
       Swal.fire({
         title: 'Ya no se puede editar',
@@ -299,35 +311,107 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.cotizacionEnEdicion = cotizacion;
-    this.activeTabEdicion = 'datos';
-    this.formEdicion = {
-      cliente_nombre: cotizacion.cliente_nombre || '',
-      cliente_email: cotizacion.cliente_email || '',
-      telefono_contacto: cotizacion.telefono_contacto || '',
-      numero_documento: cotizacion.numero_documento || '',
+    const productos = (cotizacion.productos || []).filter(p => p.producto_id != null);
+
+    if (!productos.length) {
+      Swal.fire({
+        title: 'No se puede editar',
+        text: 'Esta cotización no tiene productos que se puedan devolver al carrito.',
+        icon: 'warning',
+        confirmButtonColor: '#dc3545'
+      });
+      return;
+    }
+
+    Swal.fire({
+      title: '¿Editar esta cotización?',
+      html: `
+        <div class="text-start">
+          <p>Los productos de <strong>${cotizacion.codigo_cotizacion}</strong> vuelven a tu carrito para que rehagas el pedido.</p>
+          <p class="text-warning mt-3">
+            <i class="ph ph-warning-circle"></i>
+            Se reemplaza lo que tengas ahora en el carrito y la cotización actual se elimina.
+          </p>
+        </div>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#198754',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Sí, editar',
+      cancelButtonText: 'Cancelar'
+    }).then(resultado => {
+      if (resultado.isConfirmed) {
+        this.devolverAlCarrito(cotizacion, productos);
+      }
+    });
+  }
+
+  /**
+   * Deja el carrito con los productos de la cotización y lleva al cliente al
+   * primer paso.
+   */
+  private devolverAlCarrito(cotizacion: Cotizacion, productos: any[]): void {
+    // Lo que ya había cargado el cliente (observaciones, dirección y los
+    // montos por método de pago) viaja al checkout para no volver a pedirlo.
+    sessionStorage.setItem('cotizacion_editando', JSON.stringify({
+      observaciones: cotizacion.observaciones || '',
       direccion_envio: cotizacion.direccion_envio || '',
       metodo_pago_preferido: cotizacion.metodo_pago_preferido || '',
-      observaciones: cotizacion.observaciones || '',
-    };
-    this.itemsEdicion = (cotizacion.productos || [])
-      .filter(p => p.producto_id != null)
-      .map(p => ({
-        producto_id: p.producto_id!,
-        nombre: p.nombre,
-        imagen: p.imagen,
-        cantidad: p.cantidad,
-        precio_unitario: p.precio_unitario,
-        moneda: p.moneda || cotizacion.moneda || 's',
-      }));
-    this.terminoBusquedaProducto = '';
-    this.productosSugeridos = [];
-    this.recalcularEdicion();
+      metodos_pago: cotizacion.metodos_pago || [],
+    }));
 
-    const modal = document.getElementById('editarCotizacionModal');
-    if (modal) {
-      new (window as any).bootstrap.Modal(modal).show();
-    }
+    Swal.fire({
+      title: 'Preparando tu carrito...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+
+    // Primero se borra la cotización: si eso falla, el carrito queda intacto y
+    // el cliente no pierde nada.
+    this.cotizacionesService.eliminarCotizacion(cotizacion.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.cartService.clearCart()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              next: () => this.agregarProductosAlCarrito(productos),
+              error: () => this.agregarProductosAlCarrito(productos)
+            });
+        },
+        error: () => {
+          Swal.fire({
+            title: 'No se pudo editar',
+            text: 'No fue posible liberar la cotización. Intenta nuevamente.',
+            icon: 'error',
+            confirmButtonColor: '#dc3545'
+          });
+        }
+      });
+  }
+
+  private agregarProductosAlCarrito(productos: any[]): void {
+    const pendientes = productos.map(p =>
+      this.cartService.addToCart({ id: p.producto_id }, p.cantidad)
+    );
+
+    forkJoin(pendientes)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          Swal.close();
+          this.router.navigate(['/cart']);
+        },
+        error: () => {
+          Swal.fire({
+            title: 'Carrito incompleto',
+            text: 'Algunos productos no se pudieron agregar. Revisa tu carrito antes de continuar.',
+            icon: 'warning',
+            confirmButtonColor: '#ffc107'
+          }).then(() => this.router.navigate(['/cart']));
+        }
+      });
   }
 
   buscarProductoEdicion(): void {

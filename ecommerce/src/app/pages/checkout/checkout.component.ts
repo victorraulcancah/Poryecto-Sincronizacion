@@ -140,9 +140,52 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     this.loadFormasEnvio();
     this.loadTiposPago();
     this.loadCuponAplicado();
+    this.loadCotizacionEditando();
     this.loadUbigeoData().then(() => {
       this.loadDireccionesGuardadas();
     });
+  }
+
+  /**
+   * Cotización que se está rehaciendo desde "Editar": vuelve lo que el cliente
+   * ya había cargado (observaciones y los montos por método de pago) para no
+   * pedírselo de nuevo. La deja el listado de cotizaciones en sessionStorage.
+   */
+  private cotizacionEditando: {
+    observaciones?: string;
+    metodo_pago_preferido?: string;
+    metodos_pago?: { tipo: string; moneda: string; monto: number }[];
+  } | null = null;
+
+  private loadCotizacionEditando(): void {
+    const guardada = sessionStorage.getItem('cotizacion_editando');
+    if (!guardada) return;
+
+    try {
+      this.cotizacionEditando = JSON.parse(guardada);
+    } catch {
+      this.cotizacionEditando = null;
+      return;
+    }
+
+    this.checkoutForm.patchValue({
+      observaciones: this.cotizacionEditando?.observaciones || '',
+      tipoPago: this.cotizacionEditando?.metodo_pago_preferido || '',
+    });
+  }
+
+  /** Rearma los montos por método; necesita los tipos de pago ya cargados. */
+  private reponerPagosDeLaEdicion(): void {
+    const pagos = this.cotizacionEditando?.metodos_pago;
+    if (!pagos?.length || !this.tiposPago.length) return;
+
+    for (const pago of pagos) {
+      const tipo = this.tiposPago.find(t => t.codigo === pago.tipo);
+      if (!tipo?.id) continue;
+
+      this.montosPorMetodo[`${pago.moneda}_${tipo.id}`] = Number(pago.monto) || 0;
+      this.metodosPagoSeleccionados.add(tipo.id);
+    }
   }
 
   private loadCuponAplicado(): void {
@@ -287,6 +330,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     this.tipoPagoService.obtenerActivos().subscribe({
       next: (response) => {
         this.tiposPago = response.tipos_pago;
+        this.reponerPagosDeLaEdicion();
       },
       error: (error) => {
         console.error('Error cargando tipos de pago:', error);
@@ -873,6 +917,8 @@ export class CheckoutComponent implements OnInit, OnDestroy {
           // Se marca antes de vaciar: al quedar el carrito en cero se dispara
           // redirectIfCartIsEmpty(), y acá el vaciado es intencional.
           this.cotizacionGenerada = true;
+          // Ya se usó lo que venía de la cotización que se estaba editando.
+          sessionStorage.removeItem('cotizacion_editando');
 
           // clearCart() devuelve un Observable frío: sin suscribirse la
           // petición nunca sale y el carrito del cliente quedaba con los
