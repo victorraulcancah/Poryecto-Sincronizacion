@@ -314,6 +314,34 @@
   }
 }
 
+// Fila del modal de direcciones: radio, la dirección en un renglón y su acción.
+.direccion-opcion {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--bs-gray-200, #dee2e6);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--bs-main-600, #9b1c1c);
+  }
+
+  &--activa {
+    border-color: var(--bs-main-600, #9b1c1c);
+    background-color: rgba(155, 28, 28, 0.04);
+  }
+
+  &__texto {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.875rem;
+    color: #4b5563;
+  }
+}
+
 .moneda-card {
   border: 1px solid var(--bs-gray-200, #dee2e6);
   border-radius: 8px;

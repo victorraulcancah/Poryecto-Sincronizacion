@@ -1005,7 +1005,10 @@ class CotizacionesController extends Controller
         $cotizacion->load('detalles.producto', 'metodosPago');
 
         $pedido = Pedido::create([
-            'codigo_pedido'      => Pedido::generarCodigoPedido(),
+            // El pedido lleva el mismo número que su cotización: cada
+            // cotización genera uno solo, y así el vendedor ve el mismo código
+            // en las dos pantallas.
+            'codigo_pedido'      => $cotizacion->codigo_cotizacion,
             'cotizacion_id'      => $cotizacion->id,
             'user_cliente_id'    => $cotizacion->user_cliente_id,
             'cliente_id'         => $cotizacion->cliente_id,

@@ -1234,6 +1234,36 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     );
   }
 
+  /** Elige la dirección del ERP desde el modal y lo cierra. */
+  seleccionarDireccionErp(): void {
+    this.usarDireccionErp();
+    this.cerrarModalDirecciones();
+  }
+
+  /** La dirección del ERP en un solo renglón, con su ubigeo. */
+  get direccionErpEnUnaLinea(): string {
+    return [
+      this.direccionErp,
+      this.titular?.distrito,
+      this.titular?.provincia,
+      this.titular?.departamento,
+    ]
+      .filter(Boolean)
+      .join(', ');
+  }
+
+  /** Una dirección guardada en un solo renglón, con su ubigeo. */
+  direccionEnUnaLinea(direccion: Direccion): string {
+    return [
+      direccion.direccion_completa,
+      direccion.ubigeo?.distrito_nombre,
+      direccion.ubigeo?.provincia_nombre,
+      direccion.ubigeo?.departamento_nombre,
+    ]
+      .filter(Boolean)
+      .join(', ');
+  }
+
   /** Vuelve a la dirección guardada en el e-commerce. */
   usarMiDireccion(): void {
     this.usandoDireccionErp = false;
