@@ -92,24 +92,7 @@
                   <div class="border border-main-600 bg-main-25 rounded-8 p-12" *ngIf="direccionSeleccionada">
                     <div class="flex-between align-items-start gap-12">
                       <div class="flex-grow-1">
-                        <div class="flex-align gap-8 mb-4">
-                          <h6 class="mb-0 text-sm fw-medium">
-                            {{ usandoDireccionErp ? titular?.nombre : direccionSeleccionada.nombre_destinatario }}
-                          </h6>
-                          <span
-                            *ngIf="usandoDireccionErp"
-                            class="bg-main-50 text-main-600 px-6 py-1 rounded-pill text-xs"
-                          >
-                            7POWER
-                          </span>
-                          <span
-                            *ngIf="!usandoDireccionErp && direccionSeleccionada.predeterminada"
-                            class="bg-success-50 text-success-600 px-6 py-1 rounded-pill text-xs"
-                          >
-                            Principal
-                          </span>
-                        </div>
-                        <!-- La que se eligió: una guardada o la del ERP. -->
+                        <!-- Solo la dirección elegida: una guardada o la del ERP. -->
                         <p class="text-sm text-gray-600 mb-0">
                           {{ usandoDireccionErp ? direccionErpEnUnaLinea : direccionEnUnaLinea(direccionSeleccionada) }}
                         </p>
@@ -155,33 +138,6 @@
                     "
                   >
                     La dirección es requerida
-                  </div>
-                </div>
-
-                <!-- Celular: solo se pide si el perfil del cliente no tiene uno registrado -->
-                <div class="mb-20" *ngIf="mostrarCelularManual">
-                  <label class="form-label text-heading fw-medium">
-                    Celular <span class="text-danger">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    class="form-control rounded-8"
-                    formControlName="celular"
-                    placeholder="999 999 999"
-                    maxlength="9"
-                    [class.is-invalid]="
-                      checkoutForm.get('celular')?.invalid &&
-                      checkoutForm.get('celular')?.touched
-                    "
-                  />
-                  <div
-                    class="invalid-feedback"
-                    *ngIf="
-                      checkoutForm.get('celular')?.invalid &&
-                      checkoutForm.get('celular')?.touched
-                    "
-                  >
-                    El número de celular es requerido
                   </div>
                 </div>
 

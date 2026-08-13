@@ -73,7 +73,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   // ✅ "Tu Orden" colapsado por defecto: cerrado muestra miniaturas, abierto el detalle línea por línea
   resumenPedidoExpandido = false;
   private readonly camposEntrega = [
-    'cliente', 'direccion', 'celular', 'departamento', 'provincia', 'distrito', 'formaEnvio', 'email'
+    'cliente', 'direccion', 'departamento', 'provincia', 'distrito', 'formaEnvio', 'email'
   ];
 
   direccionesGuardadas: Direccion[] = [];
@@ -328,15 +328,10 @@ export class CheckoutComponent implements OnInit, OnDestroy {
             razonSocial: user.razon_social || ''
           });
 
-          // ✅ El celular solo es obligatorio cuando se pide manualmente (el perfil no
-          // tiene uno registrado). Si ya viene del perfil, no se valida el formato para
-          // no bloquear "Continuar" por un número guardado en otro formato.
+          // El celular ya no se pide en el checkout: viene del perfil o de la
+          // dirección elegida, así que no se valida acá.
           const celularControl = this.checkoutForm.get('celular');
-          if (this.mostrarCelularManual) {
-            celularControl?.setValidators([Validators.required, Validators.pattern('^[9][0-9]{8}$')]);
-          } else {
-            celularControl?.clearValidators();
-          }
+          celularControl?.clearValidators();
           celularControl?.updateValueAndValidity();
 
           this.cargarCredito();
