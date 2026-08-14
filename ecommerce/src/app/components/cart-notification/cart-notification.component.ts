@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, debounceTime, takeUntil } from 'rxjs';
 
 import { CartItem, CartService } from '../../services/cart.service';
 import { MonedaPipe } from '../../pipes/moneda.pipe';
@@ -36,6 +36,8 @@ export class CartNotificationComponent implements OnInit, OnChanges, OnDestroy {
   actualizando = false;
   errorStock = '';
 
+  /** Cantidad elegida por el cliente; se manda al carrito con un respiro. */
+  private cantidadPedida$ = new Subject<number>();
   private autoCloseTimer?: number;
   private items: CartItem[] = [];
   private destroy$ = new Subject<void>();
@@ -56,6 +58,10 @@ export class CartNotificationComponent implements OnInit, OnChanges, OnDestroy {
           this.cantidad = this.item.cantidad;
         }
       });
+
+    this.cantidadPedida$
+      .pipe(debounceTime(500), takeUntil(this.destroy$))
+      .subscribe(cantidad => this.guardarCantidad(cantidad));
 
     if (this.isVisible && this.autoCloseDelay > 0) {
       this.startAutoCloseTimer();
@@ -119,14 +125,16 @@ export class CartNotificationComponent implements OnInit, OnChanges, OnDestroy {
     this.fijarCantidad(valor);
   }
 
+  /**
+   * El contador responde al toque y el carrito se actualiza después.
+   *
+   * Antes cada clic esperaba la respuesta del servidor con los botones
+   * bloqueados, así que subir de 1 a 7 era imposible de seguido. Ahora la
+   * cantidad se ve al instante y solo se manda la última, medio segundo
+   * después del último clic.
+   */
   private fijarCantidad(nueva: number): void {
-    if (
-      nueva < 1 ||
-      nueva > this.maximo ||
-      nueva === this.item?.cantidad ||
-      !this.item ||
-      this.actualizando
-    ) {
+    if (nueva < 1 || nueva > this.maximo || !this.item) {
       // Se vuelve a lo que hay en el carrito para no dejar el campo mintiendo.
       this.cantidad = this.item?.cantidad ?? this.cantidad;
       return;
@@ -134,9 +142,19 @@ export class CartNotificationComponent implements OnInit, OnChanges, OnDestroy {
 
     this.errorStock = '';
     this.cantidad = nueva;
-    this.actualizando = true;
-    // Mientras se actualiza no se cierra solo: el usuario está interactuando.
+    // Mientras el cliente interactúa el modal no se cierra solo.
     this.clearAutoCloseTimer();
+    this.cantidadPedida$.next(nueva);
+  }
+
+  /** Manda al carrito la última cantidad elegida. */
+  private guardarCantidad(nueva: number): void {
+    if (!this.item || nueva === this.item.cantidad) {
+      this.actualizando = false;
+      return;
+    }
+
+    this.actualizando = true;
 
     this.cartService.updateQuantity(this.item, nueva)
       .pipe(takeUntil(this.destroy$))

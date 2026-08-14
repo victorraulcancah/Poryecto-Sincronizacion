@@ -444,6 +444,11 @@ class ProductosController extends Controller
             $query->where('marca_id', $request->brand);
         }
 
+        // Los agotados van al final, sea cual sea el orden elegido: el cliente
+        // ve primero lo que puede comprar. Va antes que el resto de criterios
+        // para que mande sobre ellos.
+        $query->orderByRaw('CASE WHEN stock > 0 THEN 0 ELSE 1 END');
+
         // Ordenamiento
         if ($request->has('sortBy')) {
             switch ($request->sortBy) {

@@ -53,7 +53,7 @@
           <button
             type="button"
             class="cart-noti__paso"
-            [disabled]="cantidad <= 1 || actualizando || !item"
+            [disabled]="cantidad <= 1 || !item"
             (click)="cambiarCantidad(-1)"
             aria-label="Quitar una unidad">
             <i class="ph ph-minus"></i>
@@ -65,7 +65,7 @@
             min="1"
             [max]="maximo"
             [value]="cantidad"
-            [disabled]="!item || actualizando"
+            [disabled]="!item"
             (input)="escribirCantidad($event)"
             (change)="confirmarCantidad($event)"
             (blur)="confirmarCantidad($event)"
@@ -75,7 +75,7 @@
           <button
             type="button"
             class="cart-noti__paso"
-            [disabled]="cantidad >= maximo || actualizando || !item"
+            [disabled]="cantidad >= maximo || !item"
             (click)="cambiarCantidad(1)"
             aria-label="Agregar una unidad">
             <i class="ph ph-plus"></i>
