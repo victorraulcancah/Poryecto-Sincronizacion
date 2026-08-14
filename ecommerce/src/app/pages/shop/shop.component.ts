@@ -314,6 +314,11 @@ export class ShopComponent implements OnInit, OnDestroy {
         // Topes del deslizador de precio (vienen sin aplicar el rango elegido).
         if (response.precio_min != null) this.precioTopeMin = Math.floor(response.precio_min);
         if (response.precio_max != null) this.precioTopeMax = Math.ceil(response.precio_max);
+        // Con un solo producto (o ninguno) los dos topes coinciden y el
+        // deslizador quedaría trabado; se le da un recorrido mínimo.
+        if (this.precioTopeMax <= this.precioTopeMin) {
+          this.precioTopeMax = this.precioTopeMin + 1000;
+        }
         this.isLoading = false;
       },
       error: (error) => {

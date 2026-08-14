@@ -60,6 +60,8 @@ export interface ProductoPublico {
   imagen_principal: string;
   categoria: string;
   categoria_id: number;
+  /** Nombre de la marca; la tarjeta muestra "By <marca>". */
+  marca?: string | null;
   rating: number;
   total_reviews: string;
   reviews_count: number;

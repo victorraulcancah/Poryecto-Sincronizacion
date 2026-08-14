@@ -113,16 +113,13 @@
                             </div>
                         </div>
 
-                        <!-- Rango de precio -->
+                        <!-- Rango de precio: siempre visible, no se pliega. -->
                         <div class="filtros-panel__seccion">
-                            <button type="button" class="filtros-panel__seccion-head"
-                                (click)="alternarSeccion('precio')">
+                            <div class="filtros-panel__seccion-head filtros-panel__seccion-head--fija">
                                 <span>Rango de precio</span>
-                                <i class="ph ph-caret-down filtros-panel__flecha"
-                                    [class.abierta]="seccionesAbiertas.precio"></i>
-                            </button>
+                            </div>
 
-                            <div class="filtros-panel__colapsable" [class.abierto]="seccionesAbiertas.precio">
+                            <div>
                               <div class="filtros-panel__cuerpo">
                                 <div class="filtros-panel__precio">
                                     <input type="number" min="0" placeholder="S/ Mínimo" [(ngModel)]="minPrice"
@@ -134,7 +131,7 @@
 
                                 <!-- Los topes del deslizador son el precio más bajo y más alto
                                      del resultado actual; los calcula el backend. -->
-                                <div class="filtros-panel__slider" *ngIf="precioTopeMax > precioTopeMin">
+                                <div class="filtros-panel__slider">
                                     <input type="range" [min]="precioTopeMin" [max]="precioTopeMax"
                                         [ngModel]="minPrice ?? precioTopeMin"
                                         (ngModelChange)="minPrice = +$event; onPrecioSlider()" name="sliderMin" />
@@ -260,7 +257,7 @@
                     </a>
                 </h6>
 
-                <div class="flex-align gap-4 mb-12">
+                <div class="flex-align gap-4 mb-8">
                     <span class="text-main-600 text-md d-flex">
                         <i class="ph-fill ph-barcode"></i>
                     </span>
@@ -269,29 +266,30 @@
                     </span>
                 </div>
 
-                <div class="flex-align mb-20 mt-16 gap-6">
-                    <span class="text-xs fw-medium text-gray-500">{{ producto.rating }}</span>
-                    <span class="text-xs fw-medium text-warning-600 d-flex">
-                        <i class="ph-fill ph-star"></i>
+                <!-- Stock con el mismo formato de las tarjetas de la portada -->
+                <div class="flex-align gap-4 mb-8">
+                    <span class="text-md d-flex" [class.text-success-600]="producto.stock > 10"
+                          [class.text-warning-600]="producto.stock > 0 && producto.stock <= 10"
+                          [class.text-danger-600]="producto.stock === 0">
+                        <i class="ph-fill ph-package"></i>
                     </span>
-                    <span class="text-xs fw-medium text-gray-500">({{ producto.total_reviews }})</span>
+                    <span class="text-xs fw-medium" [class.text-success-600]="producto.stock > 10"
+                          [class.text-warning-600]="producto.stock > 0 && producto.stock <= 10"
+                          [class.text-danger-600]="producto.stock === 0">
+                        <span *ngIf="producto.stock > 10">Stock: +10 unidades</span>
+                        <span *ngIf="producto.stock > 0 && producto.stock <= 10">Stock: {{ producto.stock }} unidades</span>
+                        <span *ngIf="producto.stock === 0">Agotado</span>
+                    </span>
                 </div>
 
-                <div class="mt-8">
-                    <div class="progress w-100 bg-color-three rounded-pill h-4" role="progressbar"
-                         [attr.aria-valuenow]="(producto.sold_count / producto.total_stock) * 100" 
-                         aria-valuemin="0" aria-valuemax="100">
-                        <div class="progress-bar bg-main-two-600 rounded-pill"
-                             [style.width.%]="(producto.sold_count / producto.total_stock) * 100"></div>
-                    </div>
-                    <span class="text-gray-900 text-xs fw-medium mt-8">
-                        Sold: {{ producto.sold_count }}/{{ producto.total_stock }}
-                    </span>
+                <div class="flex-align gap-4">
+                    <span class="text-main-600 text-md d-flex"><i class="ph-fill ph-storefront"></i></span>
+                    <span class="text-gray-500 text-xs">By {{ producto.marca || 'Tienda' }}</span>
                 </div>
 
                 <!-- Cliente logueado: precio + carrito -->
                 <ng-container *ngIf="producto.precio_visible !== false">
-                  <div class="product-card__price my-20">
+                  <div class="product-card__price mt-12 mb-8">
                       <span *ngIf="producto.precio_oferta"
                             class="text-gray-400 text-md fw-semibold text-decoration-line-through">
                           {{ producto.moneda | moneda }} {{ producto.precio }}
@@ -300,6 +298,12 @@
                           {{ producto.moneda | moneda }} {{ producto.precio_oferta || producto.precio }}
                           <span class="text-gray-500 fw-normal">/Qty</span>
                       </span>
+                  </div>
+
+                  <div class="flex-align gap-6">
+                      <span class="text-xs fw-bold text-gray-600">{{ producto.rating || 4.8 }}</span>
+                      <span class="text-15 fw-bold text-warning-600 d-flex"><i class="ph-fill ph-star"></i></span>
+                      <span class="text-xs fw-bold text-gray-600">({{ producto.total_reviews }})</span>
                   </div>
 
                   <button

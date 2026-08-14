@@ -250,8 +250,8 @@
     }
 
     &:hover {
-      border-color: var(--fp-acento);
-      color: var(--fp-acento);
+      border-color: #9aa2ae;
+      color: #1f2733;
     }
   }
 
@@ -279,23 +279,22 @@
     }
   }
 
-  /* Contenedor plegable animado: la fila del grid pasa de 0fr a 1fr, que es la
-     forma de animar "hasta el alto del contenido" sin fijar un alto a mano. */
+  /* Contenedor plegable animado. Se anima `max-height` (y no el alto real ni
+     una fila de grid) porque es lo único que cierra de verdad a cero en todos
+     los navegadores: con grid, el hijo conserva su `min-height: auto` y la
+     sección cerrada seguía dejando ver el buscador. */
   &__colapsable {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition: grid-template-rows 0.25s ease;
-
-    /* `min-height: 0` es imprescindible: por defecto un ítem de grid vale
-       `min-height: auto` y no baja del alto de su contenido, así que la
-       sección "cerrada" seguía dejando ver el buscador. */
-    > * {
-      overflow: hidden;
-      min-height: 0;
-    }
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.25s ease, opacity 0.2s ease;
 
     &.abierto {
-      grid-template-rows: 1fr;
+      /* Tope alto: el contenido real (buscador + 5 opciones + "Ver más") no
+         llega ni de cerca, y así la transición tiene un valor concreto que
+         animar (con `auto` no habría animación). */
+      max-height: 900px;
+      opacity: 1;
     }
   }
 
@@ -305,6 +304,10 @@
     &.abierta {
       transform: rotate(180deg);
     }
+  }
+
+  &__seccion-head--fija {
+    cursor: default;
   }
 
   &__cuerpo {
@@ -335,7 +338,7 @@
 
       &:focus {
         outline: none;
-        border-color: var(--fp-acento);
+        border-color: #9aa2ae;
       }
     }
   }
@@ -354,12 +357,12 @@
       width: 15px;
       height: 15px;
       flex-shrink: 0;
-      accent-color: var(--fp-acento);
+      accent-color: #1f2733;
       cursor: pointer;
     }
 
     &:hover {
-      color: var(--fp-acento);
+      color: #1f2733;
     }
   }
 
@@ -394,7 +397,7 @@
     cursor: pointer;
 
     &:hover {
-      color: var(--fp-acento);
+      color: #1f2733;
     }
   }
 
@@ -415,7 +418,7 @@
 
       &:focus {
         outline: none;
-        border-color: var(--fp-acento);
+        border-color: #9aa2ae;
       }
     }
   }

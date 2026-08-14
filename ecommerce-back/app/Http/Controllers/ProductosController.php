@@ -401,7 +401,7 @@ class ProductosController extends Controller
         // Se muestran todos los productos activos, incluidos los que no
         // tienen stock (se marcan como "Agotado" en el catálogo en vez de
         // ocultarse, para que coincida con el conteo de "Activos" del admin).
-        $query = Producto::with(['categoria.seccion', 'precios'])
+        $query = Producto::with(['categoria.seccion', 'precios', 'marca'])
             ->where('activo', true);
 
         // Filtrar por categoría si se proporciona
@@ -507,6 +507,7 @@ class ProductosController extends Controller
                     'imagen_principal' => $producto->imagen ? asset('storage/productos/' . $producto->imagen) : '/placeholder-product.jpg',
                     'categoria' => $producto->categoria?->nombre,
                     'categoria_id' => $producto->categoria_id,
+                    'marca' => $producto->marca?->nombre,
                     'rating' => 4.8,
                     'total_reviews' => rand(15, 25) . 'k',
                     'reviews_count' => rand(150, 250),
@@ -550,6 +551,7 @@ class ProductosController extends Controller
                 'imagen_principal' => $producto->imagen ? asset('storage/productos/' . $producto->imagen) : '/placeholder-product.jpg', // ✅ CORREGIR
                 'categoria' => $producto->categoria?->nombre,
                 'categoria_id' => $producto->categoria_id,
+                'marca' => $producto->marca?->nombre,
 
                 // ✅ CAMPOS DE RATING (valores fijos por ahora)
                 'rating' => 4.8,
