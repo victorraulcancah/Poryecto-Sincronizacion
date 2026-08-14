@@ -60,8 +60,10 @@ export interface ProductoPublico {
   imagen_principal: string;
   categoria: string;
   categoria_id: number;
-  /** Nombre de la marca; la tarjeta muestra "By <marca>". */
-  marca?: string | null;
+  /** Nombre de la marca; la tarjeta muestra "By <marca>".
+   *  Sin `null`: el tipo gemelo de `types/almacen.types` lo declara como
+   *  `string | undefined` y con `null` las asignaciones entre ambos no compilan. */
+  marca?: string;
   rating: number;
   total_reviews: string;
   reviews_count: number;
