@@ -14,7 +14,7 @@
     [style.top.px]="posicion.top"
     [style.left.px]="posicion.left"
   >
-    <!-- Atajos, como el filtro de reportes del ERP. -->
+    <!-- Atajos en columna, como el filtro de reportes del ERP. -->
     <div class="rango-fechas__atajos">
       <button
         type="button"
@@ -26,84 +26,96 @@
       </button>
     </div>
 
-    <div class="rango-fechas__meses">
-      <!-- Mes izquierdo -->
-      <div class="rango-fechas__mes">
-        <div class="rango-fechas__cabecera">
-          <button type="button" class="rango-fechas__nav" (click)="mesAnterior()" aria-label="Mes anterior">
-            <i class="ph ph-caret-left"></i>
-          </button>
-          <span class="rango-fechas__titulo">
-            {{ nombreMes(mesBase) }} <span class="rango-fechas__anio">{{ mesBase.getFullYear() }}</span>
-          </span>
-          <span class="rango-fechas__nav rango-fechas__nav--oculto"></span>
+    <div class="rango-fechas__calendario">
+      <div class="rango-fechas__meses">
+        <!-- Mes izquierdo -->
+        <div class="rango-fechas__mes">
+          <div class="rango-fechas__cabecera">
+            <div class="rango-fechas__navs">
+              <button type="button" class="rango-fechas__nav" (click)="anioAnteriorVista()" aria-label="Año anterior">
+                <i class="ph ph-caret-double-left"></i>
+              </button>
+              <button type="button" class="rango-fechas__nav" (click)="mesAnterior()" aria-label="Mes anterior">
+                <i class="ph ph-caret-left"></i>
+              </button>
+            </div>
+            <span class="rango-fechas__titulo">
+              {{ nombreMes(mesBase) }} <span class="rango-fechas__anio">{{ mesBase.getFullYear() }}</span>
+            </span>
+            <span class="rango-fechas__navs rango-fechas__navs--oculto"></span>
+          </div>
+
+          <div class="rango-fechas__semana">
+            <span *ngFor="let d of diasSemana">{{ d }}</span>
+          </div>
+
+          <div class="rango-fechas__dias">
+            <button
+              type="button"
+              *ngFor="let dia of diasDe(mesBase); trackBy: trackDia"
+              class="rango-fechas__dia"
+              [class.fuera]="noSeleccionable(dia)"
+              [class.hoy]="esHoy(dia)"
+              [class.extremo]="esInicio(dia) || esFin(dia)"
+              [class.rango]="enRango(dia)"
+              [disabled]="noSeleccionable(dia)"
+              (click)="elegir(dia)"
+              (mouseenter)="hover = dia.fecha"
+            >
+              {{ dia.fecha.getDate() }}
+            </button>
+          </div>
         </div>
 
-        <div class="rango-fechas__semana">
-          <span *ngFor="let d of diasSemana">{{ d }}</span>
-        </div>
+        <!-- Mes derecho -->
+        <div class="rango-fechas__mes">
+          <div class="rango-fechas__cabecera">
+            <span class="rango-fechas__navs rango-fechas__navs--oculto"></span>
+            <span class="rango-fechas__titulo">
+              {{ nombreMes(mesSecundario) }} <span class="rango-fechas__anio">{{ mesSecundario.getFullYear() }}</span>
+            </span>
+            <div class="rango-fechas__navs">
+              <button type="button" class="rango-fechas__nav" (click)="mesSiguiente()" aria-label="Mes siguiente">
+                <i class="ph ph-caret-right"></i>
+              </button>
+              <button type="button" class="rango-fechas__nav" (click)="anioSiguienteVista()" aria-label="Año siguiente">
+                <i class="ph ph-caret-double-right"></i>
+              </button>
+            </div>
+          </div>
 
-        <div class="rango-fechas__dias">
-          <button
-            type="button"
-            *ngFor="let dia of diasDe(mesBase); trackBy: trackDia"
-            class="rango-fechas__dia"
-            [class.fuera]="noSeleccionable(dia)"
-            [class.hoy]="esHoy(dia)"
-            [class.extremo]="esInicio(dia) || esFin(dia)"
-            [class.rango]="enRango(dia)"
-            [disabled]="noSeleccionable(dia)"
-            (click)="elegir(dia)"
-            (mouseenter)="hover = dia.fecha"
-          >
-            {{ dia.fecha.getDate() }}
-          </button>
+          <div class="rango-fechas__semana">
+            <span *ngFor="let d of diasSemana">{{ d }}</span>
+          </div>
+
+          <div class="rango-fechas__dias">
+            <button
+              type="button"
+              *ngFor="let dia of diasDe(mesSecundario); trackBy: trackDia"
+              class="rango-fechas__dia"
+              [class.fuera]="noSeleccionable(dia)"
+              [class.hoy]="esHoy(dia)"
+              [class.extremo]="esInicio(dia) || esFin(dia)"
+              [class.rango]="enRango(dia)"
+              [disabled]="noSeleccionable(dia)"
+              (click)="elegir(dia)"
+              (mouseenter)="hover = dia.fecha"
+            >
+              {{ dia.fecha.getDate() }}
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Mes derecho -->
-      <div class="rango-fechas__mes">
-        <div class="rango-fechas__cabecera">
-          <span class="rango-fechas__nav rango-fechas__nav--oculto"></span>
-          <span class="rango-fechas__titulo">
-            {{ nombreMes(mesSecundario) }} <span class="rango-fechas__anio">{{ mesSecundario.getFullYear() }}</span>
-          </span>
-          <button type="button" class="rango-fechas__nav" (click)="mesSiguiente()" aria-label="Mes siguiente">
-            <i class="ph ph-caret-right"></i>
+      <!-- Pie -->
+      <div class="rango-fechas__pie">
+        <span class="rango-fechas__resumen">{{ resumen }}</span>
+        <div class="rango-fechas__acciones">
+          <button type="button" class="rango-fechas__borrar" (click)="borrar()">Borrar</button>
+          <button type="button" class="rango-fechas__aplicar" [disabled]="!seleccionInicio" (click)="confirmar()">
+            Aplicar
           </button>
         </div>
-
-        <div class="rango-fechas__semana">
-          <span *ngFor="let d of diasSemana">{{ d }}</span>
-        </div>
-
-        <div class="rango-fechas__dias">
-          <button
-            type="button"
-            *ngFor="let dia of diasDe(mesSecundario); trackBy: trackDia"
-            class="rango-fechas__dia"
-            [class.fuera]="noSeleccionable(dia)"
-            [class.hoy]="esHoy(dia)"
-            [class.extremo]="esInicio(dia) || esFin(dia)"
-            [class.rango]="enRango(dia)"
-            [disabled]="noSeleccionable(dia)"
-            (click)="elegir(dia)"
-            (mouseenter)="hover = dia.fecha"
-          >
-            {{ dia.fecha.getDate() }}
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Pie -->
-    <div class="rango-fechas__pie">
-      <span class="rango-fechas__resumen">{{ resumen }}</span>
-      <div class="rango-fechas__acciones">
-        <button type="button" class="rango-fechas__borrar" (click)="borrar()">Borrar</button>
-        <button type="button" class="rango-fechas__aplicar" [disabled]="!seleccionInicio" (click)="confirmar()">
-          Aplicar
-        </button>
       </div>
     </div>
   </div>

@@ -42,36 +42,55 @@
   &__panel {
     position: fixed;
     z-index: 1050;
+    display: flex;
     background: #fff;
     border: 1px solid #e2e8f0;
     border-radius: 14px;
     box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16);
+    overflow: hidden;
+  }
+
+  /* El calendario ocupa la parte derecha del panel. */
+  &__calendario {
     padding: 16px;
   }
 
   /* Atajos a la izquierda, como en el filtro de reportes del ERP. */
   &__atajos {
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    padding-bottom: 12px;
-    margin-bottom: 12px;
-    border-bottom: 1px solid #eef2f7;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-width: 132px;
+    padding: 12px 8px;
+    border-right: 1px solid #eef2f7;
   }
 
   &__atajo {
-    border: 1px solid #e2e8f0;
-    background: #fff;
-    border-radius: 999px;
-    padding: 4px 12px;
-    font-size: 12px;
+    width: 100%;
+    border: 0;
+    background: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 13px;
+    text-align: left;
     color: #475569;
     cursor: pointer;
     transition: all 0.15s;
 
     &:hover {
-      border-color: var(--rf-rojo, #9b1c1c);
+      background: var(--rf-rojo-suave, #fbe9e9);
       color: var(--rf-rojo, #9b1c1c);
+    }
+  }
+
+  &__navs {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+
+    &--oculto {
+      visibility: hidden;
     }
   }
 

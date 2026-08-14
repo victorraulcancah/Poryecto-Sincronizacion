@@ -47,7 +47,7 @@ export class RangoFechasComponent implements OnInit {
   /** Día bajo el cursor, para previsualizar el rango mientras se elige. */
   hover: Date | null = null;
 
-  readonly diasSemana = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
+  readonly diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   readonly meses = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
@@ -116,6 +116,14 @@ export class RangoFechasComponent implements OnInit {
       new Date(this.hoy.getFullYear() - 1, 0, 1),
       new Date(this.hoy.getFullYear() - 1, 11, 31),
     ];
+  }
+
+  anioAnteriorVista(): void {
+    this.mesBase = new Date(this.mesBase.getFullYear() - 1, this.mesBase.getMonth(), 1);
+  }
+
+  anioSiguienteVista(): void {
+    this.mesBase = new Date(this.mesBase.getFullYear() + 1, this.mesBase.getMonth(), 1);
   }
 
   /** Lunes de la semana de una fecha (la semana arranca en lunes). */
@@ -205,7 +213,9 @@ export class RangoFechasComponent implements OnInit {
   diasDe(mes: Date): Dia[] {
     const primero = new Date(mes.getFullYear(), mes.getMonth(), 1);
     const inicio = new Date(primero);
-    inicio.setDate(inicio.getDate() - primero.getDay());
+    // La grilla empieza el lunes de esa semana (domingo cuenta como día 7).
+    const diaSemana = primero.getDay() === 0 ? 7 : primero.getDay();
+    inicio.setDate(inicio.getDate() - (diaSemana - 1));
 
     const dias: Dia[] = [];
     for (let i = 0; i < 42; i++) {
