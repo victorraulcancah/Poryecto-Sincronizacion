@@ -446,7 +446,9 @@ class ProductosController extends Controller
         // Límites de precio del resultado ANTES de aplicar el rango de precio:
         // son los topes del deslizador del filtro, así que no pueden depender
         // del rango que el propio deslizador ya tenga puesto.
-        $limites = (clone $query)->reorder()
+        // `toBase()` evita que Eloquent hidrate un modelo y dispare los eager
+        // loads (categoria, precios) sobre una fila que solo trae dos números.
+        $limites = (clone $query)->reorder()->toBase()
             ->selectRaw('MIN(precio_venta) as minimo, MAX(precio_venta) as maximo')
             ->first();
 

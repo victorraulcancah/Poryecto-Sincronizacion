@@ -174,6 +174,7 @@ export class ShopComponent implements OnInit, OnDestroy {
 
       this.searchTerm = params['search'] || '';
       this.currentPage = 1;
+      this.recalcularFiltros();
 
       // Solo recargar si no hay slug en la ruta (evitar doble carga)
       if (!hasSlugInRoute) {
@@ -230,6 +231,7 @@ export class ShopComponent implements OnInit, OnDestroy {
     this.categoriasSub = this.productosService.obtenerCategoriasParaSidebar(this.marcaSeleccionada).subscribe({
       next: (categorias) => {
         this.categorias = categorias;
+        this.recalcularFiltros();
       },
       error: (error) => {
         console.error('Error al cargar categorías:', error);
@@ -242,6 +244,7 @@ export class ShopComponent implements OnInit, OnDestroy {
     this.marcasSub = this.almacenService.obtenerMarcasPublicas(this.categoriaSeleccionada).subscribe({
       next: (marcas) => {
         this.marcas = marcas;
+        this.recalcularFiltros();
       },
       error: (error) => {
         console.error('Error al cargar marcas:', error);
@@ -387,6 +390,7 @@ export class ShopComponent implements OnInit, OnDestroy {
     this.currentMinPrice = this.minPrice;
     this.currentMaxPrice = this.maxPrice;
     this.currentPage = 1;
+    this.recalcularFiltros();
     this.cargarProductos();
   }
 
@@ -396,6 +400,7 @@ export class ShopComponent implements OnInit, OnDestroy {
     this.maxPrice = undefined;
     this.currentMinPrice = undefined;
     this.currentMaxPrice = undefined;
+    this.recalcularFiltros();
     this.cargarProductos();
   }
 
@@ -421,73 +426,58 @@ export class ShopComponent implements OnInit, OnDestroy {
     this.seccionesAbiertas[seccion] = !this.seccionesAbiertas[seccion];
   }
 
-  /** Marcas que se ven: filtradas por el buscador y recortadas a 5 si no se
-   *  presionó "Ver más". Las ya marcadas se muestran siempre. */
-  get marcasVisibles(): MarcaProducto[] {
-    const encontradas = this.marcas.filter((m) =>
+  /* Las listas visibles y las fichas se calculan UNA vez cada vez que cambia
+     algo (datos, selección o búsqueda) y se guardan en estas propiedades.
+     Antes eran getters: Angular los ejecutaba en cada ciclo de detección de
+     cambios y, como devolvían objetos nuevos, el *ngFor rehacía el DOM sin
+     parar y el navegador se trababa al entrar al catálogo. */
+  marcasVisibles: MarcaProducto[] = [];
+  hayMasMarcas = false;
+  categoriasVisibles: CategoriaParaSidebar[] = [];
+  hayMasCategorias = false;
+  hayFiltrosActivos = false;
+  fichasFiltros: { etiqueta: string; tipo: 'marca' | 'categoria' | 'precio'; id?: number }[] = [];
+
+  /** Recalcula lo que muestra el panel de filtros. */
+  recalcularFiltros(): void {
+    // --- Marcas visibles: buscador + tope de 5 (las marcadas se ven siempre)
+    const marcasEncontradas = this.marcas.filter((m) =>
       this.coincide(m.nombre, this.busquedaMarca)
     );
-    if (this.verTodasMarcas || this.busquedaMarca) return encontradas;
-    const primeras = encontradas.slice(0, this.limiteOpciones);
-    const marcadasFuera = encontradas.filter(
-      (m) => this.marcasSeleccionadas.includes(m.id) && !primeras.includes(m)
-    );
-    return [...primeras, ...marcadasFuera];
-  }
+    this.hayMasMarcas =
+      !this.busquedaMarca && marcasEncontradas.length > this.limiteOpciones;
 
-  get hayMasMarcas(): boolean {
-    return (
-      !this.busquedaMarca &&
-      this.marcas.filter((m) => this.coincide(m.nombre, this.busquedaMarca))
-        .length > this.limiteOpciones
-    );
-  }
+    if (this.verTodasMarcas || this.busquedaMarca) {
+      this.marcasVisibles = marcasEncontradas;
+    } else {
+      const primeras = marcasEncontradas.slice(0, this.limiteOpciones);
+      const marcadasFuera = marcasEncontradas.filter(
+        (m) => this.marcasSeleccionadas.includes(m.id) && !primeras.includes(m)
+      );
+      this.marcasVisibles = [...primeras, ...marcadasFuera];
+    }
 
-  get categoriasVisibles(): CategoriaParaSidebar[] {
-    const encontradas = this.categorias.filter((c) =>
+    // --- Categorías visibles: igual que las marcas
+    const categoriasEncontradas = this.categorias.filter((c) =>
       this.coincide(c.nombre, this.busquedaCategoria)
     );
-    if (this.verTodasCategorias || this.busquedaCategoria) return encontradas;
-    const primeras = encontradas.slice(0, this.limiteOpciones);
-    const marcadasFuera = encontradas.filter(
-      (c) => this.categoriasSeleccionadas.includes(c.id) && !primeras.includes(c)
-    );
-    return [...primeras, ...marcadasFuera];
-  }
-
-  get hayMasCategorias(): boolean {
-    return (
+    this.hayMasCategorias =
       !this.busquedaCategoria &&
-      this.categorias.filter((c) =>
-        this.coincide(c.nombre, this.busquedaCategoria)
-      ).length > this.limiteOpciones
-    );
-  }
+      categoriasEncontradas.length > this.limiteOpciones;
 
-  /** Comparación sin tildes ni mayúsculas, para que "amplificador" encuentre
-   *  "Amplificación" igual que lo escriba el cliente. */
-  private coincide(texto: string, busqueda: string): boolean {
-    if (!busqueda) return true;
-    const normalizar = (t: string) =>
-      t
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(new RegExp('[\\u0300-\\u036f]', 'g'), '');
-    return normalizar(texto).includes(normalizar(busqueda));
-  }
+    if (this.verTodasCategorias || this.busquedaCategoria) {
+      this.categoriasVisibles = categoriasEncontradas;
+    } else {
+      const primeras = categoriasEncontradas.slice(0, this.limiteOpciones);
+      const marcadasFuera = categoriasEncontradas.filter(
+        (c) =>
+          this.categoriasSeleccionadas.includes(c.id) && !primeras.includes(c)
+      );
+      this.categoriasVisibles = [...primeras, ...marcadasFuera];
+    }
 
-  get hayFiltrosActivos(): boolean {
-    return (
-      this.categoriasSeleccionadas.length > 0 ||
-      this.marcasSeleccionadas.length > 0 ||
-      this.currentMinPrice !== undefined ||
-      this.currentMaxPrice !== undefined
-    );
-  }
-
-  /** Etiquetas de los filtros puestos, para las fichas de la cabecera. */
-  get fichasFiltros(): { etiqueta: string; tipo: 'marca' | 'categoria' | 'precio'; id?: number }[] {
-    const fichas: { etiqueta: string; tipo: 'marca' | 'categoria' | 'precio'; id?: number }[] = [];
+    // --- Fichas de los filtros puestos
+    const fichas: typeof this.fichasFiltros = [];
 
     this.marcasSeleccionadas.forEach((id) => {
       const marca = this.marcas.find((m) => m.id === id);
@@ -509,7 +499,31 @@ export class ShopComponent implements OnInit, OnDestroy {
       fichas.push({ etiqueta: `S/ ${desde} - S/ ${hasta}`, tipo: 'precio' });
     }
 
-    return fichas;
+    this.fichasFiltros = fichas;
+    this.hayFiltrosActivos =
+      this.categoriasSeleccionadas.length > 0 ||
+      this.marcasSeleccionadas.length > 0 ||
+      this.currentMinPrice !== undefined ||
+      this.currentMaxPrice !== undefined;
+  }
+
+  /** "Ver más / Ver menos" de cada lista. */
+  alternarVerTodas(lista: 'marca' | 'categoria'): void {
+    if (lista === 'marca') this.verTodasMarcas = !this.verTodasMarcas;
+    else this.verTodasCategorias = !this.verTodasCategorias;
+    this.recalcularFiltros();
+  }
+
+  /** Comparación sin tildes ni mayúsculas, para que "amplificador" encuentre
+   *  "Amplificación" igual que lo escriba el cliente. */
+  private coincide(texto: string, busqueda: string): boolean {
+    if (!busqueda) return true;
+    const normalizar = (t: string) =>
+      t
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(new RegExp('[\u0300-\u036f]', 'g'), '');
+    return normalizar(texto).includes(normalizar(busqueda));
   }
 
   quitarFicha(ficha: { tipo: 'marca' | 'categoria' | 'precio'; id?: number }): void {
@@ -535,6 +549,10 @@ export class ShopComponent implements OnInit, OnDestroy {
       this.maxPrice = intercambio;
     }
   }
+
+  trackPorId = (_: number, item: { id: number }) => item.id;
+  trackFicha = (_: number, ficha: { tipo: string; id?: number }) =>
+    `${ficha.tipo}-${ficha.id ?? ''}`;
 
   togglelistview(): void {
     this.listview = this.listview === 'grid' ? 'list' : 'grid';

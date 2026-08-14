@@ -286,8 +286,12 @@
     grid-template-rows: 0fr;
     transition: grid-template-rows 0.25s ease;
 
+    /* `min-height: 0` es imprescindible: por defecto un ítem de grid vale
+       `min-height: auto` y no baja del alto de su contenido, así que la
+       sección "cerrada" seguía dejando ver el buscador. */
     > * {
       overflow: hidden;
+      min-height: 0;
     }
 
     &.abierto {
