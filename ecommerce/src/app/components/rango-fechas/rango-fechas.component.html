@@ -14,6 +14,18 @@
     [style.top.px]="posicion.top"
     [style.left.px]="posicion.left"
   >
+    <!-- Atajos, como el filtro de reportes del ERP. -->
+    <div class="rango-fechas__atajos">
+      <button
+        type="button"
+        *ngFor="let atajo of atajos"
+        class="rango-fechas__atajo"
+        (click)="aplicarAtajo(atajo)"
+      >
+        {{ atajo.etiqueta }}
+      </button>
+    </div>
+
     <div class="rango-fechas__meses">
       <!-- Mes izquierdo -->
       <div class="rango-fechas__mes">

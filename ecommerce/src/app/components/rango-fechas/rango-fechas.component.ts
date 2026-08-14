@@ -62,6 +62,70 @@ export class RangoFechasComponent implements OnInit {
   /** La fecha final sí puede adelantarse, como mucho hasta fin de año. */
   private readonly finDeAnio = new Date(new Date().getFullYear(), 11, 31);
 
+  /**
+   * Atajos de rango, los mismos del filtro de reportes del ERP. El inicio
+   * nunca se va al futuro, así que "esta semana" y "este mes" terminan hoy.
+   */
+  readonly atajos = [
+    { etiqueta: 'Esta semana', rango: () => this.semanaActual() },
+    { etiqueta: 'Última semana', rango: () => this.semanaAnterior() },
+    { etiqueta: 'Este mes', rango: () => this.mesActual() },
+    { etiqueta: 'Último mes', rango: () => this.mesAnteriorCompleto() },
+    { etiqueta: 'Este año', rango: () => this.anioActual() },
+    { etiqueta: 'Último año', rango: () => this.anioAnterior() },
+  ];
+
+  aplicarAtajo(atajo: { rango: () => [Date, Date] }): void {
+    const [inicio, fin] = atajo.rango();
+    this.seleccionInicio = inicio;
+    this.seleccionFin = fin;
+    // El panel se posiciona en el mes del inicio, para que se vea el rango.
+    this.mesBase = new Date(inicio.getFullYear(), inicio.getMonth(), 1);
+    this.confirmar();
+  }
+
+  /** Lunes de la semana en curso hasta hoy. */
+  private semanaActual(): [Date, Date] {
+    return [this.lunesDe(this.hoy), this.hoy];
+  }
+
+  private semanaAnterior(): [Date, Date] {
+    const lunes = this.lunesDe(this.hoy);
+    lunes.setDate(lunes.getDate() - 7);
+    const domingo = new Date(lunes);
+    domingo.setDate(lunes.getDate() + 6);
+    return [lunes, domingo];
+  }
+
+  private mesActual(): [Date, Date] {
+    return [new Date(this.hoy.getFullYear(), this.hoy.getMonth(), 1), this.hoy];
+  }
+
+  private mesAnteriorCompleto(): [Date, Date] {
+    const inicio = new Date(this.hoy.getFullYear(), this.hoy.getMonth() - 1, 1);
+    const fin = new Date(this.hoy.getFullYear(), this.hoy.getMonth(), 0);
+    return [inicio, fin];
+  }
+
+  private anioActual(): [Date, Date] {
+    return [new Date(this.hoy.getFullYear(), 0, 1), this.hoy];
+  }
+
+  private anioAnterior(): [Date, Date] {
+    return [
+      new Date(this.hoy.getFullYear() - 1, 0, 1),
+      new Date(this.hoy.getFullYear() - 1, 11, 31),
+    ];
+  }
+
+  /** Lunes de la semana de una fecha (la semana arranca en lunes). */
+  private lunesDe(fecha: Date): Date {
+    const dia = fecha.getDay();
+    const lunes = new Date(fecha);
+    lunes.setDate(fecha.getDate() - (dia === 0 ? 6 : dia - 1));
+    return this.soloFecha(lunes);
+  }
+
   ngOnInit(): void {
     this.seleccionInicio = this.aFecha(this.desde);
     this.seleccionFin = this.aFecha(this.hasta);
