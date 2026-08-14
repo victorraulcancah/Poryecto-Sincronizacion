@@ -425,23 +425,37 @@ class ProductosController extends Controller
             });
         }
 
-        // Filtro por rango de precios (basado en precio_venta)
-        if ($request->has('minPrice')) {
-            $query->where('precio_venta', '>=', $request->minPrice);
-        }
-        if ($request->has('maxPrice')) {
-            $query->where('precio_venta', '<=', $request->maxPrice);
-        }
-
         // Filtro por categorías (string de IDs separados por comas)
-        if ($request->has('categoryIds')) {
-            $categoryIds = explode(',', $request->categoryIds);
+        if ($request->filled('categoryIds')) {
+            $categoryIds = array_filter(explode(',', $request->categoryIds));
             $query->whereIn('categoria_id', $categoryIds);
         }
 
         // Filtro por marca (marca_id)
         if ($request->has('brand')) {
             $query->where('marca_id', $request->brand);
+        }
+
+        // Filtro por varias marcas (string de IDs separados por comas), para el
+        // filtro del catálogo que permite marcar más de una a la vez.
+        if ($request->filled('brandIds')) {
+            $brandIds = array_filter(explode(',', $request->brandIds));
+            $query->whereIn('marca_id', $brandIds);
+        }
+
+        // Límites de precio del resultado ANTES de aplicar el rango de precio:
+        // son los topes del deslizador del filtro, así que no pueden depender
+        // del rango que el propio deslizador ya tenga puesto.
+        $limites = (clone $query)->reorder()
+            ->selectRaw('MIN(precio_venta) as minimo, MAX(precio_venta) as maximo')
+            ->first();
+
+        // Filtro por rango de precios (basado en precio_venta)
+        if ($request->has('minPrice')) {
+            $query->where('precio_venta', '>=', $request->minPrice);
+        }
+        if ($request->has('maxPrice')) {
+            $query->where('precio_venta', '<=', $request->maxPrice);
         }
 
         // Los agotados van al final, sea cual sea el orden elegido: el cliente
@@ -510,7 +524,10 @@ class ProductosController extends Controller
                     'last_page' => 1,
                     'per_page' => $productosTransformados->count(),
                     'total' => $productosTransformados->count()
-                ]
+                ],
+                // Topes para el deslizador de precio del filtro del catálogo.
+                'precio_min' => $limites?->minimo !== null ? (float) $limites->minimo : null,
+                'precio_max' => $limites?->maximo !== null ? (float) $limites->maximo : null,
             ]);
         }
 
@@ -554,7 +571,10 @@ class ProductosController extends Controller
                 'last_page' => $productos->lastPage(),
                 'per_page' => $productos->perPage(),
                 'total' => $productos->total()
-            ]
+            ],
+            // Topes para el deslizador de precio del filtro del catálogo.
+            'precio_min' => $limites?->minimo !== null ? (float) $limites->minimo : null,
+            'precio_max' => $limites?->maximo !== null ? (float) $limites->maximo : null,
         ]);
     }
 

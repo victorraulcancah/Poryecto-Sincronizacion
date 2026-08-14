@@ -176,3 +176,317 @@
     }
   }
 }
+
+/* ------------------------------------------------------------------------
+   Panel de filtros del catálogo (marca / categoría / rango de precio).
+   Usa el color de la empresa (`--main-600`) para acentos y botones, así que
+   sigue el tema de la tienda sin colores fijos.
+   ------------------------------------------------------------------------ */
+.filtros-panel {
+  --fp-borde: #e6e8ec;
+  --fp-acento: hsl(var(--main-600));
+
+  border: 1px solid var(--fp-borde);
+  border-radius: 10px;
+  background: #fff;
+  overflow: hidden;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px;
+    border-bottom: 1px solid var(--fp-borde);
+  }
+
+  &__titulo {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1f2733;
+  }
+
+  &__limpiar {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: 0;
+    background: none;
+    padding: 0;
+    font-size: 13px;
+    color: var(--fp-acento);
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  /* Fichas de los filtros puestos */
+  &__fichas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--fp-borde);
+  }
+
+  &__ficha {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    padding: 3px 8px;
+    border: 1px solid var(--fp-borde);
+    border-radius: 4px;
+    background: #f7f8fa;
+    font-size: 12px;
+    color: #48505c;
+    cursor: pointer;
+
+    i {
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    &:hover {
+      border-color: var(--fp-acento);
+      color: var(--fp-acento);
+    }
+  }
+
+  /* Secciones plegables */
+  &__seccion + &__seccion {
+    border-top: 1px solid var(--fp-borde);
+  }
+
+  &__seccion-head {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border: 0;
+    background: none;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1f2733;
+    cursor: pointer;
+
+    i {
+      font-size: 13px;
+      color: #7b8493;
+    }
+  }
+
+  /* Contenedor plegable animado: la fila del grid pasa de 0fr a 1fr, que es la
+     forma de animar "hasta el alto del contenido" sin fijar un alto a mano. */
+  &__colapsable {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.25s ease;
+
+    > * {
+      overflow: hidden;
+    }
+
+    &.abierto {
+      grid-template-rows: 1fr;
+    }
+  }
+
+  &__flecha {
+    transition: transform 0.25s ease;
+
+    &.abierta {
+      transform: rotate(180deg);
+    }
+  }
+
+  &__cuerpo {
+    padding: 0 16px 16px;
+  }
+
+  &__buscador {
+    position: relative;
+    margin-bottom: 12px;
+
+    i {
+      position: absolute;
+      inset-inline-start: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      color: #9aa2ae;
+    }
+
+    input {
+      width: 100%;
+      height: 34px;
+      padding: 0 10px 0 30px;
+      border: 1px solid var(--fp-borde);
+      border-radius: 6px;
+      font-size: 13px;
+      color: #1f2733;
+
+      &:focus {
+        outline: none;
+        border-color: var(--fp-acento);
+      }
+    }
+  }
+
+  /* Opción con casilla */
+  &__opcion {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 0;
+    font-size: 14px;
+    color: #3a424f;
+    cursor: pointer;
+
+    input[type='checkbox'] {
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
+      accent-color: var(--fp-acento);
+      cursor: pointer;
+    }
+
+    &:hover {
+      color: var(--fp-acento);
+    }
+  }
+
+  &__opcion-texto {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__conteo {
+    color: #9aa2ae;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  &__vacio {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: #9aa2ae;
+  }
+
+  &__vermas {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: 13px;
+    color: #48505c;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--fp-acento);
+    }
+  }
+
+  /* Rango de precio */
+  &__precio {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    input {
+      width: 100%;
+      min-width: 0;
+      height: 36px;
+      padding: 0 10px;
+      border: 1px solid var(--fp-borde);
+      border-radius: 6px;
+      font-size: 13px;
+
+      &:focus {
+        outline: none;
+        border-color: var(--fp-acento);
+      }
+    }
+  }
+
+  &__guion {
+    color: #9aa2ae;
+  }
+
+  /* Deslizador de dos topes: los dos <input type=range> van superpuestos y
+     solo se pueden agarrar por sus manijas (el track no recibe el clic). */
+  &__slider {
+    position: relative;
+    height: 24px;
+    margin: 16px 0 12px;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      inset-inline: 0;
+      height: 4px;
+      transform: translateY(-50%);
+      border-radius: 999px;
+      background: var(--fp-acento);
+    }
+
+    input[type='range'] {
+      position: absolute;
+      inset-inline: 0;
+      top: 0;
+      width: 100%;
+      height: 24px;
+      margin: 0;
+      background: none;
+      appearance: none;
+      pointer-events: none;
+
+      &::-webkit-slider-thumb {
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--fp-acento);
+        border: 2px solid #fff;
+        box-shadow: 0 0 0 1px var(--fp-acento);
+        pointer-events: auto;
+        cursor: pointer;
+      }
+
+      &::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--fp-acento);
+        border: 2px solid #fff;
+        pointer-events: auto;
+        cursor: pointer;
+      }
+    }
+  }
+
+  &__aplicar {
+    width: 100%;
+    margin-top: 4px;
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 6px;
+    background: var(--fp-acento);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover {
+      filter: brightness(1.1);
+    }
+  }
+}

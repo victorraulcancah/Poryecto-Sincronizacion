@@ -16,61 +16,137 @@
                         class="shop-sidebar__close d-lg-none d-flex w-32 h-32 flex-center border border-gray-100 rounded-circle hover-bg-main-600 position-absolute inset-inline-end-0 me-10 mt-8 hover-text-white hover-border-main-600">
                         <i class="ph ph-x"></i>
                     </button>
-                 <div class="shop-sidebar__box border border-gray-100 rounded-8 p-32 mb-32">
-    <h6 class="text-xl border-bottom border-gray-100 pb-24 mb-24">Categoría de producto</h6>
-    <ul class="max-h-540 overflow-y-auto scroll-sm">
-        <!-- Opción para todas las categorías -->
-        <li class="mb-24">
-            <div class="form-check common-check common-radio">
-                <input
-                    class="form-check-input"
-                    type="radio"
-                    name="categoria"
-                    id="categoria-todas"
-                    [checked]="!categoriaSeleccionada"
-                    (change)="limpiarFiltros()">
-                <label class="form-check-label" for="categoria-todas">Todas las categorías ({{ totalProductos }})</label>
-            </div>
-        </li>
+                    <!-- Panel de filtros: marca, categoría y rango de precio.
+                         Se puede marcar más de una marca y más de una categoría
+                         a la vez; los filtros puestos aparecen como fichas
+                         arriba y se quitan una por una. -->
+                    <div class="filtros-panel mb-32">
+                        <div class="filtros-panel__head">
+                            <h6 class="filtros-panel__titulo mb-0">Filtros</h6>
+                            <button *ngIf="hayFiltrosActivos" type="button" class="filtros-panel__limpiar"
+                                (click)="limpiarFiltros()">
+                                <i class="ph ph-x"></i> Limpiar filtros
+                            </button>
+                        </div>
 
-        <li class="mb-24" *ngFor="let categoria of categorias; let last = last"
-            [ngClass]="{ 'mb-0': last }">
-            <div class="form-check common-check common-radio">
-                <input
-                    class="form-check-input"
-                    type="radio"
-                    name="categoria"
-                    [id]="'categoria-' + categoria.id"
-                    [checked]="categoriaSeleccionada === categoria.id"
-                    (change)="seleccionarCategoria(categoria.id)">
-                <label class="form-check-label" [for]="'categoria-' + categoria.id">{{ categoria.nombre }} ({{ categoria.productos_count }})</label>
-            </div>
-        </li>
-    </ul>
-</div>
-                    <!-- Filtros usando componente reutilizable -->
-                    <app-product-filter 
-                        [categories]="categorias" 
-                        [marcas]="marcas" 
-                        (filtersApplied)="onFiltersApplied($event)">
-                    </app-product-filter>
-                 
-                    <div class="shop-sidebar__box border border-gray-100 rounded-8 p-32 mb-32">
-                        <h6 class="text-xl border-bottom border-gray-100 pb-24 mb-24">Filtrar por marca</h6>
-                        <ul class="max-h-540 overflow-y-auto scroll-sm">
-                            <li *ngFor="let marca of marcas" class="mb-24">
-                                <div class="form-check common-check common-radio">
-                                    <input
-                                        class="form-check-input"
-                                        type="radio"
-                                        name="marca"
-                                        [id]="'marca-' + marca.id"
-                                        [checked]="marcaSeleccionada === marca.id"
-                                        (change)="seleccionarMarca(marca.id)">
-                                    <label class="form-check-label" [for]="'marca-' + marca.id">{{ marca.nombre }} ({{ marca.productos_count || 0 }})</label>
+                        <!-- Fichas de lo que está filtrado -->
+                        <div class="filtros-panel__fichas" *ngIf="fichasFiltros.length">
+                            <button type="button" class="filtros-panel__ficha" *ngFor="let ficha of fichasFiltros"
+                                (click)="quitarFicha(ficha)" [title]="'Quitar ' + ficha.etiqueta">
+                                {{ ficha.etiqueta }}
+                                <i class="ph ph-x"></i>
+                            </button>
+                        </div>
+
+                        <!-- Marca -->
+                        <div class="filtros-panel__seccion">
+                            <button type="button" class="filtros-panel__seccion-head"
+                                (click)="alternarSeccion('marca')">
+                                <span>Marca</span>
+                                <i class="ph ph-caret-down filtros-panel__flecha"
+                                    [class.abierta]="seccionesAbiertas.marca"></i>
+                            </button>
+
+                            <div class="filtros-panel__colapsable" [class.abierto]="seccionesAbiertas.marca">
+                              <div class="filtros-panel__cuerpo">
+                                <div class="filtros-panel__buscador">
+                                    <i class="ph ph-magnifying-glass"></i>
+                                    <input type="text" placeholder="Buscar marca..." [(ngModel)]="busquedaMarca"
+                                        name="busquedaMarca" autocomplete="off" />
                                 </div>
-                            </li>
-                        </ul>
+
+                                <label class="filtros-panel__opcion" *ngFor="let marca of marcasVisibles">
+                                    <input type="checkbox" [checked]="marcasSeleccionadas.includes(marca.id)"
+                                        (change)="seleccionarMarca(marca.id)" />
+                                    <span class="filtros-panel__opcion-texto">{{ marca.nombre }}</span>
+                                    <span class="filtros-panel__conteo">({{ marca.productos_count || 0 }})</span>
+                                </label>
+
+                                <p class="filtros-panel__vacio" *ngIf="!marcasVisibles.length">Sin resultados</p>
+
+                                <button type="button" class="filtros-panel__vermas" *ngIf="hayMasMarcas"
+                                    (click)="verTodasMarcas = !verTodasMarcas">
+                                    {{ verTodasMarcas ? 'Ver menos' : 'Ver más' }}
+                                    <i class="ph" [ngClass]="verTodasMarcas ? 'ph-caret-up' : 'ph-caret-down'"></i>
+                                </button>
+                              </div>
+                            </div>
+                        </div>
+
+                        <!-- Categoría -->
+                        <div class="filtros-panel__seccion">
+                            <button type="button" class="filtros-panel__seccion-head"
+                                (click)="alternarSeccion('categoria')">
+                                <span>Categoría</span>
+                                <i class="ph ph-caret-down filtros-panel__flecha"
+                                    [class.abierta]="seccionesAbiertas.categoria"></i>
+                            </button>
+
+                            <div class="filtros-panel__colapsable" [class.abierto]="seccionesAbiertas.categoria">
+                              <div class="filtros-panel__cuerpo">
+                                <div class="filtros-panel__buscador">
+                                    <i class="ph ph-magnifying-glass"></i>
+                                    <input type="text" placeholder="Buscar categoría..."
+                                        [(ngModel)]="busquedaCategoria" name="busquedaCategoria" autocomplete="off" />
+                                </div>
+
+                                <label class="filtros-panel__opcion" *ngFor="let categoria of categoriasVisibles">
+                                    <input type="checkbox"
+                                        [checked]="categoriasSeleccionadas.includes(categoria.id)"
+                                        (change)="seleccionarCategoria(categoria.id)" />
+                                    <span class="filtros-panel__opcion-texto">{{ categoria.nombre }}</span>
+                                    <span class="filtros-panel__conteo">({{ categoria.productos_count }})</span>
+                                </label>
+
+                                <p class="filtros-panel__vacio" *ngIf="!categoriasVisibles.length">Sin resultados</p>
+
+                                <button type="button" class="filtros-panel__vermas" *ngIf="hayMasCategorias"
+                                    (click)="verTodasCategorias = !verTodasCategorias">
+                                    {{ verTodasCategorias ? 'Ver menos' : 'Ver más' }}
+                                    <i class="ph"
+                                        [ngClass]="verTodasCategorias ? 'ph-caret-up' : 'ph-caret-down'"></i>
+                                </button>
+                              </div>
+                            </div>
+                        </div>
+
+                        <!-- Rango de precio -->
+                        <div class="filtros-panel__seccion">
+                            <button type="button" class="filtros-panel__seccion-head"
+                                (click)="alternarSeccion('precio')">
+                                <span>Rango de precio</span>
+                                <i class="ph ph-caret-down filtros-panel__flecha"
+                                    [class.abierta]="seccionesAbiertas.precio"></i>
+                            </button>
+
+                            <div class="filtros-panel__colapsable" [class.abierto]="seccionesAbiertas.precio">
+                              <div class="filtros-panel__cuerpo">
+                                <div class="filtros-panel__precio">
+                                    <input type="number" min="0" placeholder="S/ Mínimo" [(ngModel)]="minPrice"
+                                        name="minPrice" />
+                                    <span class="filtros-panel__guion">-</span>
+                                    <input type="number" min="0" placeholder="S/ Máximo" [(ngModel)]="maxPrice"
+                                        name="maxPrice" />
+                                </div>
+
+                                <!-- Los topes del deslizador son el precio más bajo y más alto
+                                     del resultado actual; los calcula el backend. -->
+                                <div class="filtros-panel__slider" *ngIf="precioTopeMax > precioTopeMin">
+                                    <input type="range" [min]="precioTopeMin" [max]="precioTopeMax"
+                                        [ngModel]="minPrice ?? precioTopeMin"
+                                        (ngModelChange)="minPrice = +$event; onPrecioSlider()" name="sliderMin" />
+                                    <input type="range" [min]="precioTopeMin" [max]="precioTopeMax"
+                                        [ngModel]="maxPrice ?? precioTopeMax"
+                                        (ngModelChange)="maxPrice = +$event; onPrecioSlider()" name="sliderMax" />
+                                </div>
+
+                                <button type="button" class="filtros-panel__aplicar"
+                                    (click)="aplicarFiltroPrecio()">
+                                    Aplicar
+                                </button>
+                              </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- ✅ Banner dinámico del sidebar oculto con *ngIf="false" — no se borra por si se necesita revertir -->

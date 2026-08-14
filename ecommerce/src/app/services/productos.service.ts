@@ -90,6 +90,10 @@ export interface ProductosPublicosResponse {
     per_page: number;
     total: number;
   };
+  /** Precio más bajo y más alto del resultado, sin contar el rango de precio
+   *  elegido: son los topes del deslizador del filtro. */
+  precio_min?: number | null;
+  precio_max?: number | null;
 }
 
 export interface CategoriaParaSidebar {
@@ -238,6 +242,10 @@ export class ProductosService {
   obtenerProductosPublicos(filtros?: {
     categoria?: number;
     brand?: number;
+    /** IDs de categoría separados por coma (el filtro del catálogo permite varias). */
+    categoryIds?: string;
+    /** IDs de marca separados por coma. */
+    brandIds?: string;
     search?: string;
     page?: number;
     minPrice?: number;
@@ -250,6 +258,8 @@ export class ProductosService {
     if (filtros) {
       if (filtros.categoria) params = params.set('categoria', filtros.categoria.toString());
       if (filtros.brand) params = params.set('brand', filtros.brand.toString());
+      if (filtros.categoryIds) params = params.set('categoryIds', filtros.categoryIds);
+      if (filtros.brandIds) params = params.set('brandIds', filtros.brandIds);
       if (filtros.search) params = params.set('search', filtros.search);
       if (filtros.page) params = params.set('page', filtros.page.toString());
       if (filtros.minPrice) params = params.set('minPrice', filtros.minPrice.toString());

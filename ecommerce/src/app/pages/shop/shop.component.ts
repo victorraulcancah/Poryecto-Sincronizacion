@@ -5,7 +5,6 @@ import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { BreadcrumbComponent } from '../../component/breadcrumb/breadcrumb.component';
 import { ShippingComponent } from '../../component/shipping/shipping.component';
-import { ProductFilterComponent } from '../../component/product-filter/product-filter.component';
 import {
   ProductosService,
   ProductoPublico,
@@ -28,7 +27,6 @@ import Swal from 'sweetalert2';
     BreadcrumbComponent,
     ShippingComponent,
     FormsModule,
-    ProductFilterComponent,
     MonedaPipe,
   ],
   templateUrl: './shop.component.html',
@@ -42,9 +40,45 @@ export class ShopComponent implements OnInit, OnDestroy {
   marcas: MarcaProducto[] = []; // ✅ NUEVO: Marcas desde el backend
   bannerSidebar: Banner | null = null; // ✅ NUEVO: Banner sidebar
   isLoading = false;
-  categoriaSeleccionada?: number;
-  marcaSeleccionada?: number; // ✅ NUEVO
   searchTerm: string = '';
+
+  // ------------------------------------------------------------ filtros
+  /* El filtro permite marcar varias categorías y varias marcas a la vez; se
+     envían al backend como listas separadas por coma (categoryIds/brandIds) y
+     se reflejan en la URL igual (?categorias=1,2&marcas=3). */
+  categoriasSeleccionadas: number[] = [];
+  marcasSeleccionadas: number[] = [];
+
+  /* Los conteos cruzados del sidebar (cuántos productos de esta marca hay en
+     esta categoría) solo tienen sentido con UNA selección; con varias se
+     muestran los totales. */
+  get categoriaSeleccionada(): number | undefined {
+    return this.categoriasSeleccionadas.length === 1
+      ? this.categoriasSeleccionadas[0]
+      : undefined;
+  }
+
+  get marcaSeleccionada(): number | undefined {
+    return this.marcasSeleccionadas.length === 1
+      ? this.marcasSeleccionadas[0]
+      : undefined;
+  }
+
+  /** Cuántas opciones se ven antes de "Ver más". */
+  readonly limiteOpciones = 5;
+  busquedaMarca = '';
+  busquedaCategoria = '';
+  verTodasMarcas = false;
+  verTodasCategorias = false;
+  seccionesAbiertas: Record<'marca' | 'categoria' | 'precio', boolean> = {
+    marca: true,
+    categoria: true,
+    precio: true,
+  };
+
+  /** Topes del deslizador de precio (los devuelve el backend). */
+  precioTopeMin = 0;
+  precioTopeMax = 0;
 
   private productosSub?: any;
   private categoriasSub?: any;
@@ -128,18 +162,14 @@ export class ShopComponent implements OnInit, OnDestroy {
         this.route.snapshot.params['marcaSlug'];
 
       if (!hasSlugInRoute) {
-        // Si viene categoria por query param (compatibilidad con URLs antiguas)
-        if (params['categoria']) {
-          this.categoriaSeleccionada = +params['categoria'];
-        } else {
-          this.categoriaSeleccionada = undefined;
-        }
-
-        if (params['marca']) {
-          this.marcaSeleccionada = +params['marca'];
-        } else {
-          this.marcaSeleccionada = undefined;
-        }
+        // `categorias`/`marcas` son listas (filtro múltiple); `categoria`/`marca`
+        // en singular se mantienen por las URLs antiguas y los enlaces del menú.
+        this.categoriasSeleccionadas = this.leerLista(
+          params['categorias'] ?? params['categoria']
+        );
+        this.marcasSeleccionadas = this.leerLista(
+          params['marcas'] ?? params['marca']
+        );
       }
 
       this.searchTerm = params['search'] || '';
@@ -150,6 +180,15 @@ export class ShopComponent implements OnInit, OnDestroy {
         this.cargarProductos();
       }
     });
+  }
+
+  /** '3' o '3,7' -> [3, 7]; cualquier otra cosa -> []. */
+  private leerLista(valor: string | undefined): number[] {
+    if (!valor) return [];
+    return String(valor)
+      .split(',')
+      .map((v) => +v)
+      .filter((v) => !isNaN(v) && v > 0);
   }
 
   // ✅ NUEVO: Buscar categoría por slug
@@ -168,10 +207,10 @@ export class ShopComponent implements OnInit, OnDestroy {
           });
 
           if (categoria) {
-            this.categoriaSeleccionada = categoria.id;
+            this.categoriasSeleccionadas = [categoria.id];
           } else {
             console.warn(`Categoría no encontrada para slug: ${slug}`);
-            this.categoriaSeleccionada = undefined;
+            this.categoriasSeleccionadas = [];
           }
 
           // ✅ SOLUCIÓN: Cargar productos después de establecer la categoría
@@ -238,8 +277,8 @@ export class ShopComponent implements OnInit, OnDestroy {
     this.cargarMarcas();
 
     const filtros: any = {
-      categoria: this.categoriaSeleccionada,
-      brand: this.marcaSeleccionada,
+      categoryIds: this.categoriasSeleccionadas.join(','),
+      brandIds: this.marcasSeleccionadas.join(','),
       page: this.currentPage,
       search: this.searchTerm,
       minPrice: this.currentMinPrice,
@@ -269,6 +308,9 @@ export class ShopComponent implements OnInit, OnDestroy {
         this.currentPage = response.pagination.current_page;
         this.totalPages = response.pagination.last_page;
         this.totalProductos = response.pagination.total;
+        // Topes del deslizador de precio (vienen sin aplicar el rango elegido).
+        if (response.precio_min != null) this.precioTopeMin = Math.floor(response.precio_min);
+        if (response.precio_max != null) this.precioTopeMax = Math.ceil(response.precio_max);
         this.isLoading = false;
       },
       error: (error) => {
@@ -279,10 +321,10 @@ export class ShopComponent implements OnInit, OnDestroy {
     });
   }
 
+  // ✅ Combinable con marca: navega por query params en vez de la ruta SEO
+  // dedicada, así ambos filtros (categoría + marca) coexisten en la misma URL.
   seleccionarCategoria(categoriaId: number): void {
-    // ✅ Combinable con marca: navega por query params en vez de la ruta SEO dedicada,
-    // así ambos filtros (categoría + marca) pueden coexistir en la misma URL.
-    this.categoriaSeleccionada = categoriaId;
+    this.categoriasSeleccionadas = this.alternar(this.categoriasSeleccionadas, categoriaId);
     this.currentPage = 1;
     this.navegarConFiltrosActuales();
   }
@@ -301,10 +343,10 @@ export class ShopComponent implements OnInit, OnDestroy {
           });
 
           if (marca) {
-            this.marcaSeleccionada = marca.id;
+            this.marcasSeleccionadas = [marca.id];
           } else {
             console.warn(`Marca no encontrada para slug: ${slug}`);
-            this.marcaSeleccionada = undefined;
+            this.marcasSeleccionadas = [];
           }
 
           this.cargarProductos();
@@ -320,15 +362,22 @@ export class ShopComponent implements OnInit, OnDestroy {
   // ✅ Combinable con categoría: navega por query params en vez de la ruta SEO dedicada,
   // así ambos filtros (categoría + marca) pueden coexistir en la misma URL.
   seleccionarMarca(marcaId: number): void {
-    this.marcaSeleccionada = marcaId;
+    this.marcasSeleccionadas = this.alternar(this.marcasSeleccionadas, marcaId);
     this.currentPage = 1;
     this.navegarConFiltrosActuales();
   }
 
+  /** Marca/desmarca un id de una lista de selección. */
+  private alternar(lista: number[], id: number): number[] {
+    return lista.includes(id) ? lista.filter((x) => x !== id) : [...lista, id];
+  }
+
   private navegarConFiltrosActuales(): void {
     const queryParams: any = {};
-    if (this.categoriaSeleccionada) queryParams.categoria = this.categoriaSeleccionada;
-    if (this.marcaSeleccionada) queryParams.marca = this.marcaSeleccionada;
+    if (this.categoriasSeleccionadas.length)
+      queryParams.categorias = this.categoriasSeleccionadas.join(',');
+    if (this.marcasSeleccionadas.length)
+      queryParams.marcas = this.marcasSeleccionadas.join(',');
     if (this.searchTerm) queryParams.search = this.searchTerm;
     this.router.navigate(['/shop'], { queryParams });
   }
@@ -356,19 +405,135 @@ export class ShopComponent implements OnInit, OnDestroy {
     this.cargarProductos();
   }
 
-  // ✅ NUEVO: Manejar filtros del componente product-filter
-  onFiltersApplied(filters: any): void {
-    this.currentMinPrice = filters.minPrice;
-    this.currentMaxPrice = filters.maxPrice;
-    this.marcaSeleccionada = filters.brand;
-    this.sortBy = filters.sortBy;
-    this.currentPage = 1;
-    this.cargarProductos();
-  }
-
   limpiarFiltros(): void {
+    this.minPrice = undefined;
+    this.maxPrice = undefined;
+    this.currentMinPrice = undefined;
+    this.currentMaxPrice = undefined;
+    this.busquedaMarca = '';
+    this.busquedaCategoria = '';
     // ✅ MEJORADO: Navegar a shop sin parámetros ni slugs
     this.router.navigate(['/shop']);
+  }
+
+  // ------------------------------------------------- panel de filtros
+  alternarSeccion(seccion: 'marca' | 'categoria' | 'precio'): void {
+    this.seccionesAbiertas[seccion] = !this.seccionesAbiertas[seccion];
+  }
+
+  /** Marcas que se ven: filtradas por el buscador y recortadas a 5 si no se
+   *  presionó "Ver más". Las ya marcadas se muestran siempre. */
+  get marcasVisibles(): MarcaProducto[] {
+    const encontradas = this.marcas.filter((m) =>
+      this.coincide(m.nombre, this.busquedaMarca)
+    );
+    if (this.verTodasMarcas || this.busquedaMarca) return encontradas;
+    const primeras = encontradas.slice(0, this.limiteOpciones);
+    const marcadasFuera = encontradas.filter(
+      (m) => this.marcasSeleccionadas.includes(m.id) && !primeras.includes(m)
+    );
+    return [...primeras, ...marcadasFuera];
+  }
+
+  get hayMasMarcas(): boolean {
+    return (
+      !this.busquedaMarca &&
+      this.marcas.filter((m) => this.coincide(m.nombre, this.busquedaMarca))
+        .length > this.limiteOpciones
+    );
+  }
+
+  get categoriasVisibles(): CategoriaParaSidebar[] {
+    const encontradas = this.categorias.filter((c) =>
+      this.coincide(c.nombre, this.busquedaCategoria)
+    );
+    if (this.verTodasCategorias || this.busquedaCategoria) return encontradas;
+    const primeras = encontradas.slice(0, this.limiteOpciones);
+    const marcadasFuera = encontradas.filter(
+      (c) => this.categoriasSeleccionadas.includes(c.id) && !primeras.includes(c)
+    );
+    return [...primeras, ...marcadasFuera];
+  }
+
+  get hayMasCategorias(): boolean {
+    return (
+      !this.busquedaCategoria &&
+      this.categorias.filter((c) =>
+        this.coincide(c.nombre, this.busquedaCategoria)
+      ).length > this.limiteOpciones
+    );
+  }
+
+  /** Comparación sin tildes ni mayúsculas, para que "amplificador" encuentre
+   *  "Amplificación" igual que lo escriba el cliente. */
+  private coincide(texto: string, busqueda: string): boolean {
+    if (!busqueda) return true;
+    const normalizar = (t: string) =>
+      t
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(new RegExp('[\\u0300-\\u036f]', 'g'), '');
+    return normalizar(texto).includes(normalizar(busqueda));
+  }
+
+  get hayFiltrosActivos(): boolean {
+    return (
+      this.categoriasSeleccionadas.length > 0 ||
+      this.marcasSeleccionadas.length > 0 ||
+      this.currentMinPrice !== undefined ||
+      this.currentMaxPrice !== undefined
+    );
+  }
+
+  /** Etiquetas de los filtros puestos, para las fichas de la cabecera. */
+  get fichasFiltros(): { etiqueta: string; tipo: 'marca' | 'categoria' | 'precio'; id?: number }[] {
+    const fichas: { etiqueta: string; tipo: 'marca' | 'categoria' | 'precio'; id?: number }[] = [];
+
+    this.marcasSeleccionadas.forEach((id) => {
+      const marca = this.marcas.find((m) => m.id === id);
+      fichas.push({ etiqueta: marca?.nombre ?? `Marca ${id}`, tipo: 'marca', id });
+    });
+
+    this.categoriasSeleccionadas.forEach((id) => {
+      const categoria = this.categorias.find((c) => c.id === id);
+      fichas.push({
+        etiqueta: categoria?.nombre ?? `Categoría ${id}`,
+        tipo: 'categoria',
+        id,
+      });
+    });
+
+    if (this.currentMinPrice !== undefined || this.currentMaxPrice !== undefined) {
+      const desde = this.currentMinPrice ?? this.precioTopeMin;
+      const hasta = this.currentMaxPrice ?? this.precioTopeMax;
+      fichas.push({ etiqueta: `S/ ${desde} - S/ ${hasta}`, tipo: 'precio' });
+    }
+
+    return fichas;
+  }
+
+  quitarFicha(ficha: { tipo: 'marca' | 'categoria' | 'precio'; id?: number }): void {
+    if (ficha.tipo === 'marca' && ficha.id) this.seleccionarMarca(ficha.id);
+    else if (ficha.tipo === 'categoria' && ficha.id) this.seleccionarCategoria(ficha.id);
+    else if (ficha.tipo === 'precio') this.limpiarFiltroPrecio();
+  }
+
+  /** El deslizador y las cajas de texto escriben lo mismo; se ordena el par
+   *  para que el mínimo nunca quede por encima del máximo. */
+  onPrecioSlider(): void {
+    // Los <input> devuelven texto; sin convertir, la comparación de abajo
+    // sería alfabética ('900' > '1000').
+    if (this.minPrice !== undefined && this.minPrice !== null) this.minPrice = +this.minPrice;
+    if (this.maxPrice !== undefined && this.maxPrice !== null) this.maxPrice = +this.maxPrice;
+    if (
+      this.minPrice !== undefined &&
+      this.maxPrice !== undefined &&
+      this.minPrice > this.maxPrice
+    ) {
+      const intercambio = this.minPrice;
+      this.minPrice = this.maxPrice;
+      this.maxPrice = intercambio;
+    }
   }
 
   togglelistview(): void {
