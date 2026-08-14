@@ -6,7 +6,6 @@ import { Router } from '@angular/router';
 import { CotizacionesService, Cotizacion } from '../../../services/cotizaciones.service';
 import { CartService } from '../../../services/cart.service';
 import { ProductosService, ProductoSugerencia } from '../../../services/productos.service';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { MonedaPipe } from '../../../pipes/moneda.pipe';
 import Swal from 'sweetalert2';
 
@@ -32,8 +31,6 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
   cotizacionSeleccionada: Cotizacion | null = null;
 
   // Para la vista previa del PDF
-  pdfPreviewUrl: SafeResourceUrl | null = null;
-  loadingPdf = false;
 
   // ── Edición de cotización ─────────────────────────────────
   guardandoEdicion = false;
@@ -62,8 +59,7 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
     private cotizacionesService: CotizacionesService,
     private productosService: ProductosService,
     private cartService: CartService,
-    private router: Router,
-    private sanitizer: DomSanitizer
+    private router: Router
   ) { }
 
   ngOnInit(): void {
@@ -103,50 +99,6 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
 
   cerrarProductosCotizacion(): void {
     this.cotizacionDetalle = null;
-  }
-
-  verDetallesCotizacion(cotizacion: Cotizacion): void {
-    this.cotizacionSeleccionada = cotizacion;
-    this.loadingPdf = true;
-    this.pdfPreviewUrl = null;
-
-    // Obtener el blob del PDF desde el servicio
-    this.cotizacionesService.generarPDF(cotizacion.id).subscribe({
-      next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        // Añadir parámetros para el visor (ocultando panel de navegación/miniaturas)
-        this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url + '#toolbar=1&navpanes=0&scrollbar=1&view=FitH&pagemode=none');
-        this.loadingPdf = false;
-        
-        // Abrir el modal programáticamente (usando bootstrap nativo)
-        const modalElement = document.getElementById('previewPdfModalCot');
-        if (modalElement) {
-          const bootstrapModal = new (window as any).bootstrap.Modal(modalElement);
-          bootstrapModal.show();
-        }
-      },
-      error: (error) => {
-        console.error('Error generando vista previa:', error);
-        this.loadingPdf = false;
-        Swal.fire('Error', 'No se pudo generar la vista previa de la cotización', 'error');
-      }
-    });
-  }
-
-  descargarPdfActual(): void {
-    if (this.cotizacionSeleccionada) {
-      this.cotizacionesService.descargarPDF(
-        this.cotizacionSeleccionada.id,
-        `Cotizacion_${this.cotizacionSeleccionada.codigo_cotizacion}.pdf`
-      );
-    }
-  }
-
-  imprimirIframe(): void {
-    const iframe = document.querySelector('#pdfViewerCot') as HTMLIFrameElement;
-    if (iframe && iframe.contentWindow) {
-      iframe.contentWindow.print();
-    }
   }
 
   convertirACompra(cotizacion: Cotizacion): void {
