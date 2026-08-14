@@ -184,7 +184,12 @@
    ------------------------------------------------------------------------ */
 .filtros-panel {
   --fp-borde: #e6e8ec;
-  --fp-acento: hsl(var(--main-600));
+  /* Rojo fijo, no `hsl(var(--main-600))`: si el tema de la empresa reemplaza
+     esa variable por un color completo (#rrggbb), `hsl(#rrggbb)` es inválido y
+     la declaración se descarta — la línea del deslizador y el botón Aplicar
+     quedaban invisibles (fondo transparente con texto blanco). */
+  --fp-acento: #d32027;
+  --fp-acento-oscuro: #b01a20;
 
   border: 1px solid var(--fp-borde);
   border-radius: 10px;
@@ -432,7 +437,7 @@
   &__slider {
     position: relative;
     height: 24px;
-    margin: 16px 0 12px;
+    margin: 18px 0 14px;
 
     &::before {
       content: '';
@@ -453,10 +458,12 @@
       height: 24px;
       margin: 0;
       background: none;
+      -webkit-appearance: none;
       appearance: none;
       pointer-events: none;
 
       &::-webkit-slider-thumb {
+        -webkit-appearance: none;
         appearance: none;
         width: 16px;
         height: 16px;
@@ -481,6 +488,7 @@
   }
 
   &__aplicar {
+    display: block;
     width: 100%;
     margin-top: 4px;
     padding: 10px 16px;
@@ -493,7 +501,7 @@
     cursor: pointer;
 
     &:hover {
-      filter: brightness(1.1);
+      background: var(--fp-acento-oscuro);
     }
   }
 }
