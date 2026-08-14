@@ -196,12 +196,15 @@ export class RangoFechasComponent implements OnInit {
     }
   }
 
+  // Los días que se ven en el mes vecino (el 1 de agosto asomando en la
+  // grilla de julio) no se marcan: si no, la misma fecha aparece resaltada dos
+  // veces y parece que hay tres días elegidos.
   esInicio(dia: Dia): boolean {
-    return !!this.seleccionInicio && this.mismoDia(dia.fecha, this.seleccionInicio);
+    return dia.delMes && !!this.seleccionInicio && this.mismoDia(dia.fecha, this.seleccionInicio);
   }
 
   esFin(dia: Dia): boolean {
-    return !!this.seleccionFin && this.mismoDia(dia.fecha, this.seleccionFin);
+    return dia.delMes && !!this.seleccionFin && this.mismoDia(dia.fecha, this.seleccionFin);
   }
 
   /** Día intermedio del rango (ya elegido o en previsualización con el mouse). */
