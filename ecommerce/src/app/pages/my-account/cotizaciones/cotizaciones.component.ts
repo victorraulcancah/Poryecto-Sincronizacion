@@ -93,6 +93,18 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
       });
   }
 
+  /** Detalle de productos de la cotización, como el del pedido. */
+  /** Cotización cuyo detalle de productos se está viendo. */
+  cotizacionDetalle: Cotizacion | null = null;
+
+  verProductosCotizacion(cotizacion: Cotizacion): void {
+    this.cotizacionDetalle = cotizacion;
+  }
+
+  cerrarProductosCotizacion(): void {
+    this.cotizacionDetalle = null;
+  }
+
   verDetallesCotizacion(cotizacion: Cotizacion): void {
     this.cotizacionSeleccionada = cotizacion;
     this.loadingPdf = true;

@@ -58,12 +58,19 @@
           <!-- Acciones -->
           <div class="col-md-4">
             <div class="d-flex flex-wrap gap-6 justify-content-md-end justify-content-start">
+              <!-- Ver: el detalle de productos. El PDF va en su propio botón. -->
+              <button (click)="verProductosCotizacion(cotizacion)"
+                      class="btn bg-main-600 text-white btn-xs rounded-pill px-12 py-6 d-flex align-items-center gap-2 transition-2 hover:bg-main-400">
+                <i class="ph-bold ph-eye text-xs"></i>
+                <span class="text-xs">Ver</span>
+              </button>
+
               <button (click)="verDetallesCotizacion(cotizacion)"
                       [disabled]="loadingPdf && cotizacionSeleccionada?.id === cotizacion.id"
-                      class="btn bg-main-600 text-white btn-xs rounded-pill px-12 py-6 d-flex align-items-center gap-2 transition-2 hover:bg-main-400">
-                <i *ngIf="!(loadingPdf && cotizacionSeleccionada?.id === cotizacion.id)" class="ph-bold ph-eye text-xs"></i>
+                      class="btn btn-outline-main btn-xs rounded-pill px-12 py-6 d-flex align-items-center gap-2 transition-2">
+                <i *ngIf="!(loadingPdf && cotizacionSeleccionada?.id === cotizacion.id)" class="ph-bold ph-file-pdf text-xs"></i>
                 <i *ngIf="loadingPdf && cotizacionSeleccionada?.id === cotizacion.id" class="spinner-border spinner-border-sm"></i>
-                <span class="text-xs">Ver</span>
+                <span class="text-xs">PDF</span>
               </button>
 
               <button *ngIf="cotizacion.puede_convertir_compra"
@@ -374,6 +381,81 @@
           {{ guardandoEdicion ? 'Guardando...' : 'Guardar cambios' }}
         </button>
       </div>
+    </div>
+  </div>
+</div>
+<!-- Detalle de productos de la cotización: mismo diseño que el del pedido -->
+<div class="cot-overlay" *ngIf="cotizacionDetalle" (click)="cerrarProductosCotizacion()">
+  <div class="cot-modal" (click)="$event.stopPropagation()">
+    <div class="flex-between align-items-center gap-16 px-24 py-16 border-bottom border-gray-100">
+      <div>
+        <h6 class="mb-0 text-heading">Cotización {{ cotizacionDetalle.codigo_cotizacion }}</h6>
+        <p class="text-xs text-gray-500 mb-0">{{ formatearFecha(cotizacionDetalle.fecha_cotizacion) }}</p>
+      </div>
+      <button type="button" class="btn-close" (click)="cerrarProductosCotizacion()" aria-label="Cerrar"></button>
+    </div>
+
+    <div class="cot-modal__body">
+      <div class="cot-tabla">
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th class="ps-24">PRODUCTO</th>
+              <th class="text-center">CANT.</th>
+              <th class="text-end">PRECIO UNIT.</th>
+              <th class="text-end pe-24">TOTAL</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of cotizacionDetalle.productos">
+              <td class="ps-24">
+                <div class="cot-producto__nombre">{{ p.nombre }}</div>
+              </td>
+              <td class="text-center">
+                <span class="cot-cantidad">{{ p.cantidad }}</span>
+              </td>
+              <td class="text-end text-gray-500">
+                {{ (p.moneda || cotizacionDetalle.moneda || 's') | moneda }} {{ p.precio_unitario | number:'1.2-2' }}
+              </td>
+              <td class="text-end pe-24 fw-bold text-success-600">
+                {{ (p.moneda || cotizacionDetalle.moneda || 's') | moneda }} {{ p.subtotal | number:'1.2-2' }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="cot-totales">
+          <div class="cot-totales__fila" *ngIf="cotizacionDetalle.subtotal">
+            <span>Subtotal:</span>
+            <span>{{ (cotizacionDetalle.moneda || 's') | moneda }} {{ cotizacionDetalle.subtotal | number:'1.2-2' }}</span>
+          </div>
+          <div class="cot-totales__fila" *ngIf="cotizacionDetalle.igv">
+            <span>IGV (18%):</span>
+            <span>{{ (cotizacionDetalle.moneda || 's') | moneda }} {{ cotizacionDetalle.igv | number:'1.2-2' }}</span>
+          </div>
+          <div class="cot-totales__fila cot-totales__fila--total">
+            <span>Total:</span>
+            <span class="text-success-600">
+              {{ (cotizacionDetalle.moneda || 's') | moneda }} {{ cotizacionDetalle.total | number:'1.2-2' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <p class="text-sm text-gray-500 fst-italic mt-12 mb-0" *ngIf="cotizacionDetalle.observaciones">
+        {{ cotizacionDetalle.observaciones }}
+      </p>
+    </div>
+
+    <div class="flex-between align-items-center gap-16 px-24 py-16 border-top border-gray-100">
+      <button type="button" class="btn btn-outline-gray btn-sm rounded-8 px-20"
+              (click)="cerrarProductosCotizacion()">
+        Cerrar
+      </button>
+      <button type="button" class="btn btn-main btn-sm rounded-8 px-20 flex-align gap-8"
+              (click)="verDetallesCotizacion(cotizacionDetalle)">
+        <i class="ph-bold ph-file-pdf"></i> Ver PDF
+      </button>
     </div>
   </div>
 </div>
