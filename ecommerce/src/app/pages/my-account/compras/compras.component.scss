@@ -1,53 +1,34 @@
 // Estilos específicos para el componente de compras
 
-// Número de documento: abre el comprobante.
-.compra-documento {
-  display: inline-flex;
+// Detalle de productos de la compra, con el mismo diseño que el de cotizaciones.
+.compra-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1060;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 0;
-  border: 0;
-  background: none;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--heading-color, #131118);
-  cursor: pointer;
-
-  i {
-    color: var(--main-600, #9b1c1c);
-    font-size: 0.95rem;
-  }
-
-  &:hover {
-    color: var(--main-600, #9b1c1c);
-    text-decoration: underline;
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: default;
-  }
+  justify-content: center;
+  padding: 24px;
 }
 
-// Botón para desplegar el detalle.
-.compra-desplegar {
-  width: 36px;
-  height: 36px;
-  flex-shrink: 0;
-  border: 1px solid var(--gray-100, #eee);
-  border-radius: 50%;
+.compra-modal {
   background: #fff;
-  color: #6b7280;
-  cursor: pointer;
-  transition: all 0.2s;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 1100px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
 
-  &:hover {
-    background: var(--gray-50, #f8f9fa);
-    color: #111827;
+  &__body {
+    padding: 20px 24px;
+    overflow-y: auto;
   }
 }
 
-// Tabla del detalle: mismo diseño que la del detalle de pedido.
 .compra-tabla {
   border: 1px solid var(--gray-100, #eee);
   border-radius: 12px;
@@ -121,35 +102,4 @@
       margin-bottom: 0;
     }
   }
-}
-
-// Comprobante: modal sobre la misma página, como el visor del ERP.
-.comprobante-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1060;
-  background: rgba(15, 23, 42, 0.55);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-}
-
-.comprobante-modal {
-  background: #fff;
-  border-radius: 16px;
-  overflow: hidden;
-  width: 100%;
-  max-width: 900px;
-  // Alto fijo: el visor no debe cambiar de tamaño según el documento.
-  height: min(90vh, 1000px);
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
-}
-
-.comprobante-visor {
-  flex: 1;
-  width: 100%;
-  border: 0;
 }

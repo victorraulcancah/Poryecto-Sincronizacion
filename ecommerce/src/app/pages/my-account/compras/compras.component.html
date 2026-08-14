@@ -8,13 +8,13 @@
         </div>
         <div>
           <h4 class="mb-4 text-heading">Mis Compras</h4>
-          <p class="text-gray-500 mb-0 text-sm">Historial de compras y seguimiento de pedidos</p>
+          <p class="text-gray-500 mb-0 text-sm">Compras que hiciste en la tienda</p>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ══════════ COMPRAS EN TIENDA (ventas del ERP) ══════════ -->
+  <!-- Contenido -->
   <div class="p-24 p-md-32">
     <div *ngIf="cargandoComprasErp" class="text-center py-40">
       <div class="spinner-border text-success-600" role="status">
@@ -30,125 +30,134 @@
       <p class="text-gray-500 mb-0">Acá aparecen las compras que hiciste directamente en 7Power.</p>
     </div>
 
-    <div *ngFor="let compra of comprasErp"
-         class="border border-gray-100 hover-border-success-600 rounded-16 p-20 mb-16 transition-2">
-      <div class="flex-between align-items-center gap-16 flex-wrap">
-        <div class="flex-align gap-16">
-          <div class="w-40 h-40 rounded-circle flex-center"
-               [class.bg-success-50]="!compra.anulada" [class.text-success-600]="!compra.anulada"
-               [class.bg-danger-50]="compra.anulada" [class.text-danger-600]="compra.anulada">
-            <i class="ph-bold" [class.ph-receipt]="!compra.anulada" [class.ph-x-circle]="compra.anulada"></i>
-          </div>
-          <div>
-            <!-- El número de documento abre el comprobante. -->
-            <button type="button"
-                    class="compra-documento"
-                    [disabled]="descargando === compra.id"
-                    (click)="verComprobante(compra)">
-              {{ compra.documento }}
-              <i class="ph" [class.ph-file-pdf]="descargando !== compra.id"
-                 [class.ph-spinner]="descargando === compra.id"></i>
-            </button>
-            <p class="text-gray-500 mb-0 text-sm">{{ formatearFecha(compra.fecha) }}</p>
-          </div>
-        </div>
+    <!-- Lista de compras, con el mismo diseño que Mis Cotizaciones -->
+    <div *ngIf="!cargandoComprasErp && comprasErp.length > 0">
+      <div *ngFor="let compra of comprasErp"
+           class="border border-gray-100 hover-border-success-600 rounded-16 p-20 mb-16 transition-2 hover-shadow-sm">
 
-        <div class="flex-align gap-16">
-          <div class="text-end">
+        <div class="row align-items-center">
+          <!-- Documento y fecha -->
+          <div class="col-md-4">
+            <div class="flex-align gap-12 mb-8">
+              <div class="w-40 h-40 rounded-circle flex-center"
+                   [class.bg-success-50]="!compra.anulada" [class.text-success-600]="!compra.anulada"
+                   [class.bg-danger-50]="compra.anulada" [class.text-danger-600]="compra.anulada">
+                <i class="ph-bold" [class.ph-receipt]="!compra.anulada" [class.ph-x-circle]="compra.anulada"></i>
+              </div>
+              <div>
+                <h6 class="mb-2 text-heading">{{ compra.documento }}</h6>
+                <p class="text-xs text-gray-500 mb-0">{{ formatearFecha(compra.fecha) }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Estado y monto -->
+          <div class="col-md-4 text-center">
+            <span *ngIf="compra.anulada"
+                  class="badge bg-danger-50 text-danger-600 px-12 py-6 rounded-pill mb-8">
+              Anulada
+            </span>
+            <span *ngIf="!compra.anulada"
+                  class="badge bg-success-50 text-success-600 px-12 py-6 rounded-pill mb-8">
+              Emitida
+            </span>
             <!-- Una venta del ERP es siempre de una sola moneda. -->
-            <h6 class="mb-2" [class.text-heading]="!compra.anulada" [class.text-danger-600]="compra.anulada">
+            <h6 class="text-heading mb-0">
               {{ compra.moneda | moneda }} {{ formatearMonto(compra.total) }}
             </h6>
-            <span *ngIf="compra.anulada" class="badge bg-danger-50 text-danger-600 rounded-pill">Anulada</span>
-            <span *ngIf="!compra.anulada" class="text-gray-500 text-xs">
+            <p class="text-xs text-gray-500 mb-0">
               {{ compra.productos.length }} {{ compra.productos.length === 1 ? 'producto' : 'productos' }}
-            </span>
+            </p>
           </div>
 
-          <!-- Despliega el detalle de la compra. -->
-          <button type="button"
-                  class="compra-desplegar"
-                  [attr.aria-expanded]="compraErpAbierta?.id === compra.id"
-                  [title]="compraErpAbierta?.id === compra.id ? 'Ocultar detalle' : 'Ver detalle'"
-                  (click)="verDetalleCompraErp(compra)">
-            <i class="ph-bold"
-               [class.ph-caret-down]="compraErpAbierta?.id !== compra.id"
-               [class.ph-caret-up]="compraErpAbierta?.id === compra.id"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- Detalle desplegable: misma tabla que el detalle de pedido -->
-      <div *ngIf="compraErpAbierta?.id === compra.id" class="mt-16">
-        <div class="compra-tabla">
-          <table class="table mb-0">
-            <thead>
-              <tr>
-                <th class="ps-24">CÓDIGO</th>
-                <th>PRODUCTO</th>
-                <th class="text-center">CANT.</th>
-                <th class="text-end">PRECIO UNIT.</th>
-                <th class="text-end pe-24">TOTAL</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let p of compra.productos">
-                <td class="ps-24 text-gray-500">{{ p.codigo || '-' }}</td>
-                <td>
-                  <div class="compra-producto__nombre">{{ p.nombre || '-' }}</div>
-                </td>
-                <td class="text-center">
-                  <span class="compra-cantidad">{{ p.cantidad }}</span>
-                </td>
-                <td class="text-end text-gray-500">{{ p.moneda | moneda }} {{ formatearMonto(p.precio) }}</td>
-                <td class="text-end pe-24 fw-bold text-success-600">
-                  {{ p.moneda | moneda }} {{ formatearMonto(p.subtotal) }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          <!-- Totales, calculados desde las líneas -->
-          <div class="compra-totales">
-            <div class="compra-totales__fila">
-              <span>Subtotal:</span>
-              <span>{{ compra.moneda | moneda }} {{ formatearMonto(compra.total / 1.18) }}</span>
-            </div>
-            <div class="compra-totales__fila">
-              <span>IGV (18%):</span>
-              <span>{{ compra.moneda | moneda }} {{ formatearMonto(compra.total - compra.total / 1.18) }}</span>
-            </div>
-            <div class="compra-totales__fila compra-totales__fila--total">
-              <span>Total:</span>
-              <span class="text-success-600">{{ compra.moneda | moneda }} {{ formatearMonto(compra.total) }}</span>
+          <!-- Acciones -->
+          <div class="col-md-4">
+            <div class="d-flex flex-wrap gap-6 justify-content-md-end justify-content-start">
+              <button (click)="verDetalleCompraErp(compra)"
+                      class="btn bg-main-600 text-white btn-xs rounded-pill px-12 py-6 d-flex align-items-center gap-2 transition-2 hover:bg-main-400">
+                <i class="ph-bold ph-eye text-xs"></i>
+                <span class="text-xs">Ver</span>
+              </button>
             </div>
           </div>
         </div>
-
-        <p *ngIf="compra.observaciones" class="text-gray-500 text-sm mt-12 mb-0 fst-italic">
-          {{ compra.observaciones }}
-        </p>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Comprobante: se ve sobre la misma página, como en el ERP. -->
-<div class="comprobante-overlay" *ngIf="compraComprobante" (click)="cerrarComprobante()">
-  <div class="comprobante-modal" (click)="$event.stopPropagation()">
+<!-- Detalle de productos de la compra -->
+<div class="compra-overlay" *ngIf="compraErpAbierta" (click)="cerrarDetalleCompraErp()">
+  <div class="compra-modal" (click)="$event.stopPropagation()">
     <div class="flex-between align-items-center gap-16 px-24 py-16 border-bottom border-gray-100">
-      <h6 class="mb-0 text-heading">Venta Nro: {{ compraComprobante.documento }}</h6>
-      <div class="flex-align gap-8">
-        <button type="button" class="btn btn-main btn-sm rounded-pill flex-align gap-8"
-                (click)="descargarComprobante()">
-          <i class="ph-bold ph-download-simple"></i> PDF
-        </button>
-        <button type="button" class="btn btn-outline-gray btn-sm rounded-circle w-40 h-40 flex-center"
-                (click)="cerrarComprobante()" aria-label="Cerrar">
-          <i class="ph-bold ph-x"></i>
-        </button>
+      <div>
+        <h6 class="mb-0 text-heading">Compra {{ compraErpAbierta.documento }}</h6>
+        <p class="text-xs text-gray-500 mb-0">{{ formatearFecha(compraErpAbierta.fecha) }}</p>
       </div>
+      <button type="button" class="btn-close" (click)="cerrarDetalleCompraErp()" aria-label="Cerrar"></button>
     </div>
-    <iframe class="comprobante-visor" [src]="urlComprobante" title="Comprobante"></iframe>
+
+    <div class="compra-modal__body">
+      <div class="compra-tabla">
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th class="ps-24">CÓDIGO</th>
+              <th>PRODUCTO</th>
+              <th class="text-center">CANT.</th>
+              <th class="text-end">PRECIO UNIT.</th>
+              <th class="text-end pe-24">TOTAL</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of compraErpAbierta.productos">
+              <td class="ps-24 text-gray-500">{{ p.codigo || '-' }}</td>
+              <td>
+                <div class="compra-producto__nombre">{{ p.nombre || '-' }}</div>
+              </td>
+              <td class="text-center">
+                <span class="compra-cantidad">{{ p.cantidad }}</span>
+              </td>
+              <td class="text-end text-gray-500">{{ p.moneda | moneda }} {{ formatearMonto(p.precio) }}</td>
+              <td class="text-end pe-24 fw-bold text-success-600">
+                {{ p.moneda | moneda }} {{ formatearMonto(p.subtotal) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Totales: el ERP entrega los precios con IGV incluido. -->
+        <div class="compra-totales">
+          <div class="compra-totales__fila">
+            <span>Subtotal:</span>
+            <span>{{ compraErpAbierta.moneda | moneda }} {{ formatearMonto(compraErpAbierta.total / 1.18) }}</span>
+          </div>
+          <div class="compra-totales__fila">
+            <span>IGV (18%):</span>
+            <span>
+              {{ compraErpAbierta.moneda | moneda }}
+              {{ formatearMonto(compraErpAbierta.total - compraErpAbierta.total / 1.18) }}
+            </span>
+          </div>
+          <div class="compra-totales__fila compra-totales__fila--total">
+            <span>Total:</span>
+            <span class="text-success-600">
+              {{ compraErpAbierta.moneda | moneda }} {{ formatearMonto(compraErpAbierta.total) }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <p class="text-sm text-gray-500 fst-italic mt-12 mb-0" *ngIf="compraErpAbierta.observaciones">
+        {{ compraErpAbierta.observaciones }}
+      </p>
+    </div>
+
+    <div class="d-flex justify-content-end px-24 py-16 border-top border-gray-100">
+      <button type="button" class="btn btn-outline-gray btn-sm rounded-8 px-20"
+              (click)="cerrarDetalleCompraErp()">
+        Cerrar
+      </button>
+    </div>
   </div>
 </div>
