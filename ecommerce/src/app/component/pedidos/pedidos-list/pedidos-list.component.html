@@ -1199,6 +1199,24 @@
               Queda registrado en el historial del pedido junto con el cambio de estado.
             </p>
           </div>
+
+          <!-- Historial: cada cambio de estado con su comentario. -->
+          <div class="historial-estado" *ngIf="pedidoSeleccionado?.tracking?.length">
+            <h6 class="fw-bold text-heading mb-12">Historial</h6>
+            <div class="historial-estado__item" *ngFor="let paso of pedidoSeleccionado?.tracking">
+              <div class="flex-between align-items-center gap-12 mb-4">
+                <span class="status-badge" [ngClass]="getEstadoBadgeClass(paso.estado_pedido?.nombre_estado)">
+                  {{ paso.estado_pedido?.nombre_estado || 'Sin estado' }}
+                </span>
+                <span class="text-xs text-gray-500">
+                  {{ paso.fecha_cambio || paso.created_at | date:'dd/MM/yyyy HH:mm' }}
+                  <span *ngIf="paso.usuario?.name"> · {{ paso.usuario?.name }}</span>
+                </span>
+              </div>
+              <p class="text-sm text-gray-600 mb-0" *ngIf="paso.comentario">{{ paso.comentario }}</p>
+              <p class="text-sm text-gray-400 fst-italic mb-0" *ngIf="!paso.comentario">Sin comentario</p>
+            </div>
+          </div>
         </div>
       </div>
 

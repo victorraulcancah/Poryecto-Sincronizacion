@@ -29,7 +29,11 @@ class PedidosController extends Controller
                 'userCliente',
                 'estadoPedido',
                 'detalles.producto',
-                'metodosPago'
+                'metodosPago',
+                // Historial de cambios de estado con su comentario, que el
+                // detalle muestra en la pestaña de estado.
+                'tracking.estadoPedido',
+                'tracking.usuario:id,name',
             ]);
 
             // Por defecto la pantalla es una bandeja de trabajo: solo lo que
@@ -149,6 +153,7 @@ class PedidosController extends Controller
                     'cliente' => $pedido->cliente,
                     'user_cliente' => $pedido->userCliente,
                     'estado_pedido' => $pedido->estadoPedido,
+                    'tracking' => $pedido->tracking,
                     'detalles' => $pedido->detalles->map(function ($detalle) use ($pedido) {
                         return [
                             'id' => $detalle->id,
