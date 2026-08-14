@@ -453,6 +453,11 @@
                         <i class="ph metodo-pago-card__icon" [ngClass]="tipo.icono || 'ph-wallet'"></i>
                         <span class="metodo-pago-card__nombre">{{ tipo.nombre }}</span>
                         <span class="metodo-pago-card__desc" *ngIf="tipo.descripcion">{{ tipo.descripcion }}</span>
+                        <!-- En el crédito se muestra cuánto tiene aprobado: es
+                             el tope de lo que puede poner en ese método. -->
+                        <span class="metodo-pago-card__credito" *ngIf="esMetodoCredito(tipo)">
+                          Disponible: S/ {{ formatPrice(creditoDisponible) }}
+                        </span>
 
                         <div class="metodo-pago-card__input" (click)="$event.stopPropagation()">
                           <label class="text-xs text-gray-500 d-block mb-2">{{ monedaPagoSeleccionada | moneda }}</label>

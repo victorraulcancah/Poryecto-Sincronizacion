@@ -427,6 +427,15 @@
     margin-top: 2px;
   }
 
+  // Crédito aprobado del cliente: es el tope de ese método.
+  &__credito {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--bs-success-600, #198754);
+  }
+
   &__input {
     // `auto` empuja el campo al pie de la tarjeta, así todos quedan alineados.
     margin-top: auto;
