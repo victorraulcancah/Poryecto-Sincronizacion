@@ -1,0 +1,6 @@
+/* Las tarjetas se estiran a la altura de la más alta de la fila.
+   Sin esto, la de "Envío Gratis" (con menos texto) quedaba más baja que las
+   otras tres y la fila se veía despareja. */
+.shipping-item {
+  height: 100%;
+}
