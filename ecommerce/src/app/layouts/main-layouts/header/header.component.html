@@ -180,18 +180,8 @@
         <div
           class="search-category select-style-one d-flex select-border-end-0 search-form d-sm-flex d-none text-heading-two text-sm w-100"
         >
-          <!-- Select2 Category Dropdown -->
-          <ng-container *ngIf="isBrowser">
-            <ng-select2
-              class="js-example-basic-single border border-neutral-40 border-end-0 bg-white"
-              [data]="categories"
-              [(ngModel)]="selectedCategory"
-              name="category"
-              placeholder="Todas las categorias"
-              (ngModelChange)="onCategoryChange()"
-            >
-            </ng-select2>
-          </ng-container>
+          <!-- El selector de categorías del buscador se quitó: la búsqueda ya
+               sugiere productos, categorías y marcas por sí sola. -->
 
           <!-- ✅ NUEVO: Search Input con autocompletado -->
           <div

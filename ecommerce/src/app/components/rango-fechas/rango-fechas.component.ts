@@ -54,7 +54,7 @@ export class RangoFechasComponent implements OnInit {
   ];
 
   /** Ancho aproximado del panel, para no dejarlo salir de la pantalla. */
-  private readonly anchoPanel = 546;
+  private readonly anchoPanel = 690;
 
   /** La fecha inicial no puede ser futura: no hay movimientos por venir. */
   private readonly hoy = this.soloFecha(new Date());

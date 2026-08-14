@@ -88,6 +88,9 @@
     display: flex;
     align-items: center;
     gap: 2px;
+    /* Ancho fijo (dos flechas) para que el título quede centrado también en el
+       mes que no lleva flechas de ese lado. */
+    min-width: 54px;
 
     &--oculto {
       visibility: hidden;
@@ -266,6 +269,22 @@
 /* En pantallas chicas se muestra un mes debajo del otro para que el panel
    entre sin desbordar. */
 @media (max-width: 640px) {
+  .rango-fechas__panel {
+    flex-direction: column;
+  }
+
+  .rango-fechas__atajos {
+    flex-direction: row;
+    flex-wrap: wrap;
+    min-width: 0;
+    border-right: 0;
+    border-bottom: 1px solid #eef2f7;
+  }
+
+  .rango-fechas__atajo {
+    width: auto;
+  }
+
   .rango-fechas__meses {
     flex-direction: column;
     gap: 16px;

@@ -209,7 +209,10 @@ export class IndexComponent implements OnInit, OnDestroy, AfterViewInit {
     slidesToScroll: 1,
     autoplay: true,
     autoplaySpeed: 2000,
-    speed: 1500,
+    // Duración de la transición. Estaba en 1500ms: al presionar "siguiente" el
+    // carrusel tardaba más de un segundo en llegar a la próxima categoría.
+    speed: 350,
+    cssEase: 'ease-out',
     dots: false,
     pauseOnHover: true,
     arrows: false, // Deshabilitado porque usamos botones personalizados
