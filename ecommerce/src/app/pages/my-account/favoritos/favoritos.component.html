@@ -64,26 +64,27 @@
               </a>
             </h6>
 
-            <!-- Precio -->
+            <!-- Precio: lo resuelve el backend con la lista del cliente
+                 (`precio_venta` es el costo base y salía siempre en 0). -->
             <div class="product-card__price mb-12 d-flex align-items-center gap-8">
-              <span class="text-heading text-lg fw-semibold">
-                S/ {{ favorito.producto?.precio_venta | number:'1.2-2' }}
+              <span class="text-heading text-lg fw-semibold"
+                    *ngIf="favorito.producto?.precio_visible !== false">
+                {{ favorito.producto?.moneda | moneda }} {{ favorito.producto?.precio | number:'1.2-2' }}
               </span>
-              <span *ngIf="favorito.producto?.precio_oferta" 
-                    class="text-gray-400 text-sm fw-semibold text-decoration-line-through">
-                S/ {{ favorito.producto?.precio_oferta | number:'1.2-2' }}
+              <span class="text-gray-500 text-sm fw-medium"
+                    *ngIf="favorito.producto?.precio_visible === false">
+                <i class="ph ph-lock-key me-4"></i>Precio solo para clientes
               </span>
             </div>
 
-            <!-- Stock -->
+            <!-- Stock: mismo formato que las tarjetas del catálogo -->
             <div class="mb-12">
-              <span *ngIf="favorito.producto?.stock > 0" class="text-xs text-success-600 fw-medium">
-                <i class="ph ph-check-circle me-4"></i>
-                Stock disponible: {{ favorito.producto?.stock }}
-              </span>
-              <span *ngIf="favorito.producto?.stock <= 0" class="text-xs text-danger-600 fw-medium">
-                <i class="ph ph-x-circle me-4"></i>
-                Sin stock
+              <span class="text-xs fw-medium"
+                    [class.text-success-600]="favorito.producto?.stock > 10"
+                    [class.text-warning-600]="favorito.producto?.stock > 0 && favorito.producto?.stock <= 10"
+                    [class.text-danger-600]="!favorito.producto?.stock">
+                <i class="ph-fill ph-package me-4"></i>
+                {{ etiquetaStock(favorito.producto?.stock || 0) }}
               </span>
             </div>
 

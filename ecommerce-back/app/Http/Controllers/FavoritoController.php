@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\Log;
 
 class FavoritoController extends Controller
 {
+    // El precio del favorito tiene que salir de la lista del cliente, igual que
+    // en el catálogo; `precio_venta` es el costo base y no lo que se le cobra.
+    use \App\Http\Controllers\Concerns\ResuelvePreciosPorMoneda;
+
     /**
      * Obtener todos los favoritos del usuario autenticado
      */
@@ -29,7 +33,7 @@ class FavoritoController extends Controller
 
             $favoritos = Favorito::where('user_cliente_id', $user->id)
                 ->with(['producto' => function($query) {
-                    $query->select('id', 'nombre', 'codigo_producto', 'precio_venta', 'precio_compra', 'imagen', 'stock', 'activo')
+                    $query->select('id', 'nombre', 'codigo_producto', 'precio_venta', 'precio_compra', 'imagen', 'stock', 'activo', 'mostrar_igv')
                           ->where('activo', 1);
                 }])
                 ->orderBy('created_at', 'desc')
@@ -37,11 +41,25 @@ class FavoritoController extends Controller
 
             Log::info('Favoritos encontrados: ' . $favoritos->count());
 
-            // Agregar URL completa de la imagen
-            $favoritos->each(function($favorito) {
-                if ($favorito->producto && $favorito->producto->imagen) {
+            // Precio e imagen, con el mismo criterio que el catálogo público.
+            $listas = $this->listasPrecioAplicables();
+            $precioVisible = !empty($listas);
+
+            $favoritos->each(function ($favorito) use ($listas, $precioVisible) {
+                if (! $favorito->producto) {
+                    return;
+                }
+
+                if ($favorito->producto->imagen) {
                     $favorito->producto->imagen_url = url('storage/productos/' . $favorito->producto->imagen);
                 }
+
+                $favorito->producto->load('precios');
+                $pm = $this->precioYMonedaProducto($favorito->producto, $listas);
+
+                $favorito->producto->precio = $precioVisible ? $pm['precio'] : null;
+                $favorito->producto->moneda = $pm['moneda'];
+                $favorito->producto->precio_visible = $precioVisible;
             });
 
             return response()->json([

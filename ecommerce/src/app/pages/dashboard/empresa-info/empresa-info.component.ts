@@ -200,7 +200,6 @@ import Swal from 'sweetalert2';
                     type="tel"
                     class="form-control px-16 py-12 border rounded-8"
                     formControlName="telefono"
-                    placeholder="(01) 234-5678"
                   />
                 </div>
 
@@ -356,7 +355,6 @@ import Swal from 'sweetalert2';
                     type="tel"
                     class="form-control px-16 py-12 border rounded-8"
                     formControlName="whatsapp"
-                    placeholder="987654321"
                   />
                 </div>
               </div>

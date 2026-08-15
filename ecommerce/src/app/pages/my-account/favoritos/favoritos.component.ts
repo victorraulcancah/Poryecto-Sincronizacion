@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { FavoritosService } from '../../../services/favoritos.service';
+import { MonedaPipe } from '../../../pipes/moneda.pipe';
 import { CartService } from '../../../services/cart.service';
 import { CartNotificationService } from '../../../services/cart-notification.service';
 import Swal from 'sweetalert2';
@@ -10,13 +11,20 @@ import Swal from 'sweetalert2';
 @Component({
   selector: 'app-favoritos',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, MonedaPipe],
   templateUrl: './favoritos.component.html',
   styleUrl: './favoritos.component.scss'
 })
 export class FavoritosComponent implements OnInit {
   favoritos: any[] = [];
   isLoading = true;
+
+  /** Mismo formato de stock que las tarjetas del catálogo. */
+  etiquetaStock(stock: number): string {
+    if (stock > 10) return 'Stock: +10 unidades';
+    if (stock > 0) return `Stock: ${stock} unidades`;
+    return 'Agotado';
+  }
 
   constructor(
     private favoritosService: FavoritosService,
@@ -103,7 +111,7 @@ export class FavoritosComponent implements OnInit {
         
         this.cartNotificationService.showProductAddedNotification(
           producto.nombre,
-          Number(producto.precio_venta || producto.precio || 0),
+          Number(producto.precio ?? 0),
           productImage,
           1,
           [],

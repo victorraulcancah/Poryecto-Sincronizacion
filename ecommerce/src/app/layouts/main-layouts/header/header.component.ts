@@ -26,6 +26,8 @@ interface FavoritoItem {
   nombre: string;
   imagen_url: string;
   precio: number;
+  /** false para invitados o si no hay lista de precio aplicable. */
+  precio_visible?: boolean;
   moneda?: string; // 's' = soles, 'd' = dólares (default 's' en el pipe)
   stock_disponible: number;
   codigo_producto: string;
@@ -229,6 +231,16 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // ✅ NUEVO: Cargar favoritos inicialmente
     this.cargarFavoritosHeader();
+
+    // El número del corazón se actualiza solo: antes había que recargar la
+    // página porque solo se leía al abrir el desplegable.
+    this.favoritosService.favoritos$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((ids) => {
+        this.favoritosCount = ids.length;
+        // Si el desplegable está abierto, se refresca la lista también.
+        if (this.showFavoritosDropdown) this.cargarFavoritosHeader();
+      });
 
     // ✅ NUEVO: Configurar búsqueda con autocompletado
     this.setupSearchSubscription();
@@ -722,7 +734,11 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
             producto_id: fav.producto_id,
             nombre: fav.producto?.nombre || 'Producto',
             imagen_url: fav.producto?.imagen_url || fav.producto?.imagen_principal || 'assets/images/thumbs/product-default.png',
-            precio: Number(fav.producto?.precio_venta || fav.producto?.precio || 0),
+            // `precio` lo resuelve el backend con la lista del cliente;
+            // `precio_venta` es el costo base y salía siempre en 0.
+            precio: Number(fav.producto?.precio ?? 0),
+            precio_visible: fav.producto?.precio_visible !== false,
+            moneda: fav.producto?.moneda || 's',
             stock_disponible: Number(fav.producto?.stock || 0),
             codigo_producto: fav.producto?.codigo_producto || `PROD-${fav.producto_id}`,
             categoria: fav.producto?.categoria?.nombre || fav.producto?.categoria || '',
@@ -853,6 +869,13 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
         });
       }
     });
+  }
+
+  /** Mismo formato de stock que las tarjetas del catálogo. */
+  etiquetaStock(stock: number): string {
+    if (stock > 10) return 'Stock: +10 unidades';
+    if (stock > 0) return `Stock: ${stock} unidades`;
+    return 'Agotado';
   }
 
   formatPrice(price: number | string | null | undefined): string {

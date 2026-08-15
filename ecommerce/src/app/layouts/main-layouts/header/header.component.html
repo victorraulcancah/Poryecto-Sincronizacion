@@ -373,8 +373,11 @@
                       >
                         {{ item.nombre }}
                       </p>
-                      <p class="text-lg fw-bold text-main-600 mb-8">
-                        S/ {{ formatPrice(item.precio) }}
+                      <p class="text-lg fw-bold text-main-600 mb-8" *ngIf="item.precio_visible !== false">
+                        {{ item.moneda | moneda }} {{ formatPrice(item.precio) }}
+                      </p>
+                      <p class="text-sm text-gray-500 mb-8" *ngIf="item.precio_visible === false">
+                        <i class="ph ph-lock-key me-4"></i>Precio solo para clientes
                       </p>
                       
                       <!-- Stock info -->
@@ -388,8 +391,9 @@
                           }"
                         >
                           <i class="ph ph-package me-4"></i>
-                          <span *ngIf="item.stock_disponible > 0">Stock: {{ item.stock_disponible }}</span>
-                          <span *ngIf="item.stock_disponible <= 0">Sin stock</span>
+                          <!-- Mismo formato que las tarjetas del catálogo: no se
+                               muestra el stock real. -->
+                          <span>{{ etiquetaStock(item.stock_disponible) }}</span>
                         </span>
                       </div>
 
