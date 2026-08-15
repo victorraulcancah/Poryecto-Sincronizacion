@@ -181,71 +181,30 @@
   </div>
 </div>
 
-<!-- Modal de detalle / edición -->
+<!-- Modal de detalle. Los mensajes se leen y, si ya no sirven, se eliminan:
+     no se editan, porque son lo que escribió el cliente. -->
 <div class="modal-fondo" *ngIf="seleccionado" (click)="cerrarModal()">
   <div class="modal-caja" (click)="$event.stopPropagation()">
     <div class="modal-caja__head">
       <div>
-        <h6 class="mb-0">{{ modoEdicion ? 'Editar mensaje' : seleccionado.asunto }}</h6>
-        <span class="text-xs text-gray-500" *ngIf="!modoEdicion">
-          {{ seleccionado.created_at | date: 'dd/MM/yyyy HH:mm' }}
-        </span>
+        <h6 class="mb-0">{{ seleccionado.asunto }}</h6>
+        <span class="text-xs text-gray-500">{{ seleccionado.created_at | date: 'dd/MM/yyyy HH:mm' }}</span>
       </div>
       <button type="button" class="btn-cerrar" (click)="cerrarModal()"><i class="ph ph-x"></i></button>
     </div>
 
     <div class="modal-caja__cuerpo">
-      <!-- Lectura -->
-      <ng-container *ngIf="!modoEdicion">
-        <div class="dato"><span>Nombre</span><strong>{{ seleccionado.nombre }}</strong></div>
-        <div class="dato"><span>Correo</span><strong>{{ seleccionado.email }}</strong></div>
-        <div class="dato"><span>Teléfono</span><strong>{{ seleccionado.telefono || '—' }}</strong></div>
-        <div class="mensaje-texto">{{ seleccionado.mensaje }}</div>
-      </ng-container>
-
-      <!-- Edición -->
-      <ng-container *ngIf="modoEdicion">
-        <label class="campo">
-          <span>Nombre</span>
-          <input type="text" class="form-control" [(ngModel)]="edicion.nombre" name="edNombre" />
-        </label>
-        <label class="campo">
-          <span>Correo</span>
-          <input type="email" class="form-control" [(ngModel)]="edicion.email" name="edEmail" />
-        </label>
-        <label class="campo">
-          <span>Teléfono</span>
-          <input type="text" class="form-control" [(ngModel)]="edicion.telefono" name="edTelefono" />
-        </label>
-        <label class="campo">
-          <span>Asunto</span>
-          <input type="text" class="form-control" [(ngModel)]="edicion.asunto" name="edAsunto" />
-        </label>
-        <label class="campo">
-          <span>Mensaje</span>
-          <textarea rows="5" class="form-control" [(ngModel)]="edicion.mensaje" name="edMensaje"></textarea>
-        </label>
-      </ng-container>
+      <div class="dato"><span>Nombre</span><strong>{{ seleccionado.nombre }}</strong></div>
+      <div class="dato"><span>Correo</span><strong>{{ seleccionado.email }}</strong></div>
+      <div class="dato"><span>Teléfono</span><strong>{{ seleccionado.telefono || '—' }}</strong></div>
+      <div class="mensaje-texto">{{ seleccionado.mensaje }}</div>
     </div>
 
     <div class="modal-caja__pie">
       <button type="button" class="btn btn-outline-danger me-auto" (click)="eliminar(seleccionado)">
         <i class="ph ph-trash"></i> Eliminar
       </button>
-
-      <ng-container *ngIf="!modoEdicion">
-        <button type="button" class="btn btn-light border" (click)="responderPorCorreo(seleccionado)">
-          <i class="ph ph-envelope-simple"></i> Responder
-        </button>
-        <button type="button" class="btn btn-primary" (click)="modoEdicion = true">Editar</button>
-      </ng-container>
-
-      <ng-container *ngIf="modoEdicion">
-        <button type="button" class="btn btn-light border" (click)="modoEdicion = false">Cancelar</button>
-        <button type="button" class="btn btn-primary" [disabled]="guardando" (click)="guardar()">
-          {{ guardando ? 'Guardando...' : 'Guardar' }}
-        </button>
-      </ng-container>
+      <button type="button" class="btn btn-primary" (click)="cerrarModal()">Cerrar</button>
     </div>
   </div>
 </div>

@@ -24,7 +24,6 @@ export class MensajesContactoComponent implements OnInit, OnDestroy {
 
   mensajes: MensajeContacto[] = [];
   isLoading = false;
-  guardando = false;
 
   /** Búsqueda por nombre, correo o asunto (se filtra en el cliente). */
   busqueda = '';
@@ -34,10 +33,8 @@ export class MensajesContactoComponent implements OnInit, OnDestroy {
   totalPages = 1;
   total = 0;
 
-  /** Mensaje abierto en el modal; `edicion` es la copia que se edita. */
+  /** Mensaje abierto en el modal (solo lectura). */
   seleccionado: MensajeContacto | null = null;
-  edicion: Partial<MensajeContacto> = {};
-  modoEdicion = false;
 
   constructor(private contactoService: ContactoService) {}
 
@@ -89,8 +86,6 @@ export class MensajesContactoComponent implements OnInit, OnDestroy {
   // ------------------------------------------------------------- acciones
   ver(mensaje: MensajeContacto): void {
     this.seleccionado = mensaje;
-    this.edicion = { ...mensaje };
-    this.modoEdicion = false;
 
     // Abrirlo cuenta como leerlo.
     if (!mensaje.leido) this.marcarLeido(mensaje, true, false);
@@ -98,7 +93,6 @@ export class MensajesContactoComponent implements OnInit, OnDestroy {
 
   cerrarModal(): void {
     this.seleccionado = null;
-    this.modoEdicion = false;
   }
 
   marcarLeido(mensaje: MensajeContacto, leido: boolean, avisar = true): void {
@@ -115,37 +109,6 @@ export class MensajesContactoComponent implements OnInit, OnDestroy {
           if (avisar) {
             Swal.fire('Error', 'No se pudo cambiar el estado del mensaje', 'error');
           }
-        },
-      });
-  }
-
-  guardar(): void {
-    if (!this.seleccionado || this.guardando) return;
-    this.guardando = true;
-
-    this.contactoService
-      .actualizar(this.seleccionado.id, {
-        nombre: this.edicion.nombre,
-        email: this.edicion.email,
-        telefono: this.edicion.telefono,
-        asunto: this.edicion.asunto,
-        mensaje: this.edicion.mensaje,
-      })
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (actualizado) => {
-          this.guardando = false;
-          this.mensajes = this.mensajes.map((m) =>
-            m.id === actualizado.id ? actualizado : m
-          );
-          this.seleccionado = actualizado;
-          this.modoEdicion = false;
-          Swal.fire('Guardado', 'El mensaje se actualizó', 'success');
-        },
-        error: (error) => {
-          this.guardando = false;
-          console.error('Error al guardar el mensaje:', error);
-          Swal.fire('Error', 'No se pudo guardar el mensaje', 'error');
         },
       });
   }
@@ -178,11 +141,6 @@ export class MensajesContactoComponent implements OnInit, OnDestroy {
           },
         });
     });
-  }
-
-  responderPorCorreo(mensaje: MensajeContacto): void {
-    const asunto = encodeURIComponent(`Re: ${mensaje.asunto}`);
-    window.location.href = `mailto:${mensaje.email}?subject=${asunto}`;
   }
 
   /** Iniciales para el círculo de la columna Cliente (como en Pedidos). */
