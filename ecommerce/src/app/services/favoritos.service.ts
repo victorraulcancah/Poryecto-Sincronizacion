@@ -68,6 +68,15 @@ export class FavoritosService {
     );
   }
 
+  /**
+   * Deja la lista de ids tal cual la devolvió el backend. La usa el header,
+   * que ya pide los favoritos completos para el desplegable, para no hacer una
+   * segunda consulta solo por el contador.
+   */
+  establecerFavoritos(ids: number[]): void {
+    this.favoritosSubject.next(ids);
+  }
+
   esFavorito(productoId: number): boolean {
     return this.favoritosSubject.value.includes(productoId);
   }

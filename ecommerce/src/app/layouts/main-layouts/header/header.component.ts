@@ -232,15 +232,18 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
     // ✅ NUEVO: Cargar favoritos inicialmente
     this.cargarFavoritosHeader();
 
-    // El número del corazón se actualiza solo: antes había que recargar la
-    // página porque solo se leía al abrir el desplegable.
+    // El número del corazón sale de la lista compartida del servicio, que es
+    // la que actualizan las tarjetas de producto al marcar/desmarcar. Antes el
+    // contador solo se leía al abrir el desplegable y había que recargar.
     this.favoritosService.favoritos$
       .pipe(takeUntil(this.destroy$))
-      .subscribe((ids) => {
-        this.favoritosCount = ids.length;
-        // Si el desplegable está abierto, se refresca la lista también.
-        if (this.showFavoritosDropdown) this.cargarFavoritosHeader();
-      });
+      .subscribe((ids) => (this.favoritosCount = ids.length));
+
+    // Al iniciar sesión (o cerrarla) se vuelven a pedir: en la primera carga el
+    // usuario todavía puede no estar resuelto y el contador quedaba en 0.
+    this.authService.currentUser
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.cargarFavoritosHeader());
 
     // ✅ NUEVO: Configurar búsqueda con autocompletado
     this.setupSearchSubscription();
@@ -715,7 +718,7 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
     // Solo cargar favoritos si el usuario está autenticado
     if (!this.authService.isLoggedIn()) {
       this.favoritosItems = [];
-      this.favoritosCount = 0;
+      this.favoritosService.establecerFavoritos([]);
       this.isLoadingFavoritos = false;
       return;
     }
@@ -746,13 +749,16 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
             mostrar_igv: Boolean(fav.producto?.mostrar_igv)
           }));
 
-          this.favoritosCount = favoritos.length;
+          // La lista compartida se llena aquí: así el contador del corazón ya
+          // está bien desde que carga la página, sin abrir el desplegable.
+          this.favoritosService.establecerFavoritos(
+            favoritos.map((f: any) => f.producto_id)
+          );
           this.isLoadingFavoritos = false;
         },
         error: (error) => {
           console.error('Error al cargar favoritos en header:', error);
           this.favoritosItems = [];
-          this.favoritosCount = 0;
           this.isLoadingFavoritos = false;
         }
       });
