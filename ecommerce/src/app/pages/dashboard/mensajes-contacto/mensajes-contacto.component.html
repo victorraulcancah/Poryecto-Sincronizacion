@@ -10,15 +10,17 @@
     </div>
 
     <div class="d-flex align-items-center gap-12 flex-wrap">
-      <input type="text" class="form-control" style="max-width: 260px" placeholder="Buscar por nombre, correo o asunto"
-        [(ngModel)]="busqueda" name="busqueda" />
+      <div class="mc-buscador">
+        <i class="ph ph-magnifying-glass"></i>
+        <input type="text" placeholder="Buscar por nombre, correo o asunto" [(ngModel)]="busqueda" name="busqueda" />
+      </div>
 
-      <label class="d-flex align-items-center gap-8 text-sm mb-0" style="cursor: pointer">
+      <label class="mc-check">
         <input type="checkbox" [(ngModel)]="soloNoLeidos" name="soloNoLeidos" (change)="cargar(1)" />
         Solo sin leer
       </label>
 
-      <button type="button" class="btn btn-outline-secondary" (click)="cargar(currentPage)">
+      <button type="button" class="mc-btn mc-btn--primario" (click)="cargar(currentPage)">
         <i class="ph ph-arrows-clockwise"></i> Actualizar
       </button>
     </div>
@@ -58,15 +60,14 @@
             <td class="text-truncate" style="max-width: 260px">{{ mensaje.asunto }}</td>
             <td class="text-nowrap">{{ mensaje.created_at | date: 'dd/MM/yyyy HH:mm' }}</td>
             <td class="text-end text-nowrap">
-              <button type="button" class="btn btn-sm btn-outline-primary me-4" (click)="ver(mensaje)" title="Ver">
+              <button type="button" class="mc-icono" (click)="ver(mensaje)" title="Ver">
                 <i class="ph ph-eye"></i>
               </button>
-              <button type="button" class="btn btn-sm btn-outline-secondary me-4"
-                (click)="marcarLeido(mensaje, !mensaje.leido)"
+              <button type="button" class="mc-icono" (click)="marcarLeido(mensaje, !mensaje.leido)"
                 [title]="mensaje.leido ? 'Marcar como no leído' : 'Marcar como leído'">
                 <i class="ph" [ngClass]="mensaje.leido ? 'ph-envelope' : 'ph-envelope-open'"></i>
               </button>
-              <button type="button" class="btn btn-sm btn-outline-danger" (click)="eliminar(mensaje)" title="Eliminar">
+              <button type="button" class="mc-icono mc-icono--peligro" (click)="eliminar(mensaje)" title="Eliminar">
                 <i class="ph ph-trash"></i>
               </button>
             </td>
@@ -78,12 +79,12 @@
 
   <!-- Paginación -->
   <div class="d-flex justify-content-center align-items-center gap-12 mt-24" *ngIf="totalPages > 1">
-    <button type="button" class="btn btn-sm btn-outline-secondary" [disabled]="currentPage === 1"
+    <button type="button" class="mc-btn mc-btn--suave" [disabled]="currentPage === 1"
       (click)="cambiarPagina(currentPage - 1)">
       Anterior
     </button>
     <span class="text-sm text-gray-600">Página {{ currentPage }} de {{ totalPages }}</span>
-    <button type="button" class="btn btn-sm btn-outline-secondary" [disabled]="currentPage === totalPages"
+    <button type="button" class="mc-btn mc-btn--suave" [disabled]="currentPage === totalPages"
       (click)="cambiarPagina(currentPage + 1)">
       Siguiente
     </button>
@@ -114,42 +115,42 @@
       <ng-container *ngIf="modoEdicion">
         <label class="campo">
           <span>Nombre</span>
-          <input type="text" class="form-control" [(ngModel)]="edicion.nombre" name="edNombre" />
+          <input type="text" class="mc-campo" [(ngModel)]="edicion.nombre" name="edNombre" />
         </label>
         <label class="campo">
           <span>Correo</span>
-          <input type="email" class="form-control" [(ngModel)]="edicion.email" name="edEmail" />
+          <input type="email" class="mc-campo" [(ngModel)]="edicion.email" name="edEmail" />
         </label>
         <label class="campo">
           <span>Teléfono</span>
-          <input type="text" class="form-control" [(ngModel)]="edicion.telefono" name="edTelefono" />
+          <input type="text" class="mc-campo" [(ngModel)]="edicion.telefono" name="edTelefono" />
         </label>
         <label class="campo">
           <span>Asunto</span>
-          <input type="text" class="form-control" [(ngModel)]="edicion.asunto" name="edAsunto" />
+          <input type="text" class="mc-campo" [(ngModel)]="edicion.asunto" name="edAsunto" />
         </label>
         <label class="campo">
           <span>Mensaje</span>
-          <textarea rows="5" class="form-control" [(ngModel)]="edicion.mensaje" name="edMensaje"></textarea>
+          <textarea rows="5" class="mc-campo" [(ngModel)]="edicion.mensaje" name="edMensaje"></textarea>
         </label>
       </ng-container>
     </div>
 
     <div class="modal-caja__pie">
-      <button type="button" class="btn btn-outline-danger me-auto" (click)="eliminar(seleccionado)">
+      <button type="button" class="mc-btn mc-btn--peligro me-auto" (click)="eliminar(seleccionado)">
         <i class="ph ph-trash"></i> Eliminar
       </button>
 
       <ng-container *ngIf="!modoEdicion">
-        <button type="button" class="btn btn-outline-secondary" (click)="responderPorCorreo(seleccionado)">
+        <button type="button" class="mc-btn mc-btn--suave" (click)="responderPorCorreo(seleccionado)">
           <i class="ph ph-envelope-simple"></i> Responder
         </button>
-        <button type="button" class="btn btn-primary" (click)="modoEdicion = true">Editar</button>
+        <button type="button" class="mc-btn mc-btn--primario" (click)="modoEdicion = true">Editar</button>
       </ng-container>
 
       <ng-container *ngIf="modoEdicion">
-        <button type="button" class="btn btn-outline-secondary" (click)="modoEdicion = false">Cancelar</button>
-        <button type="button" class="btn btn-primary" [disabled]="guardando" (click)="guardar()">
+        <button type="button" class="mc-btn mc-btn--suave" (click)="modoEdicion = false">Cancelar</button>
+        <button type="button" class="mc-btn mc-btn--primario" [disabled]="guardando" (click)="guardar()">
           {{ guardando ? 'Guardando...' : 'Guardar' }}
         </button>
       </ng-container>
