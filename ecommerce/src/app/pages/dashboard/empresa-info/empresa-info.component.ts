@@ -100,7 +100,6 @@ import Swal from 'sweetalert2';
                       empresaForm.get('nombre_empresa')?.touched
                     "
                     formControlName="nombre_empresa"
-                    placeholder="Ej: MAGUS TEC S.A.C."
                   />
                   <div
                     class="invalid-feedback"
@@ -125,7 +124,6 @@ import Swal from 'sweetalert2';
                       empresaForm.get('ruc')?.touched
                     "
                     formControlName="ruc"
-                    placeholder="20123456789"
                     maxlength="11"
                   />
                   <div
@@ -152,7 +150,6 @@ import Swal from 'sweetalert2';
                     empresaForm.get('razon_social')?.touched
                   "
                   formControlName="razon_social"
-                  placeholder="MAGUS TECNOLOGIA SOCIEDAD ANONIMA CERRADA"
                 />
                 <div
                   class="invalid-feedback"
@@ -177,7 +174,6 @@ import Swal from 'sweetalert2';
                     empresaForm.get('direccion')?.touched
                   "
                   formControlName="direccion"
-                  placeholder="Av. Principal 123, Distrito, Provincia, Departamento"
                 ></textarea>
                 <div
                   class="invalid-feedback"
@@ -211,7 +207,6 @@ import Swal from 'sweetalert2';
                     type="tel"
                     class="form-control px-16 py-12 border rounded-8"
                     formControlName="celular"
-                    placeholder="987 654 321"
                   />
                 </div>
               </div>
@@ -229,7 +224,6 @@ import Swal from 'sweetalert2';
                       empresaForm.get('email')?.touched
                     "
                     formControlName="email"
-                    placeholder="contacto@magustec.com"
                   />
                   <div
                     class="invalid-feedback"
@@ -254,7 +248,6 @@ import Swal from 'sweetalert2';
                       empresaForm.get('website')?.touched
                     "
                     formControlName="website"
-                    placeholder="https://www.magustec.com"
                   />
                   <div
                     class="invalid-feedback"
@@ -276,7 +269,6 @@ import Swal from 'sweetalert2';
                   class="form-control px-16 py-12 border rounded-8"
                   rows="2"
                   formControlName="horario_atencion"
-                  placeholder="Lunes a Viernes: 8:00 AM - 6:00 PM&#10;Sábados: 8:00 AM - 1:00 PM"
                 ></textarea>
               </div>
 
@@ -291,7 +283,6 @@ import Swal from 'sweetalert2';
                     type="url"
                     class="form-control px-16 py-12 border rounded-8"
                     formControlName="facebook"
-                    placeholder="https://facebook.com/magustec"
                   />
                 </div>
 
@@ -303,7 +294,6 @@ import Swal from 'sweetalert2';
                     type="url"
                     class="form-control px-16 py-12 border rounded-8"
                     formControlName="instagram"
-                    placeholder="https://instagram.com/magustec"
                   />
                 </div>
               </div>
@@ -317,7 +307,6 @@ import Swal from 'sweetalert2';
                     type="url"
                     class="form-control px-16 py-12 border rounded-8"
                     formControlName="twitter"
-                    placeholder="https://twitter.com/magustec"
                   />
                 </div>
 
@@ -329,7 +318,6 @@ import Swal from 'sweetalert2';
                     type="url"
                     class="form-control px-16 py-12 border rounded-8"
                     formControlName="youtube"
-                    placeholder="https://youtube.com/@magustec"
                   />
                 </div>
               </div>
@@ -343,7 +331,6 @@ import Swal from 'sweetalert2';
                     type="url"
                     class="form-control px-16 py-12 border rounded-8"
                     formControlName="tiktok"
-                    placeholder="https://tiktok.com/@magustec"
                   />
                 </div>
 
@@ -431,7 +418,6 @@ import Swal from 'sweetalert2';
                     type="text"
                     class="form-control px-16 py-12 border rounded-8"
                     formControlName="color_navbar"
-                    placeholder="#9B1C1C"
                     maxlength="7"
                   />
                 </div>
@@ -466,7 +452,6 @@ import Swal from 'sweetalert2';
                     type="text"
                     class="form-control px-16 py-12 border rounded-8"
                     formControlName="color_sidebar"
-                    placeholder="#9B1C1C"
                     maxlength="7"
                   />
                 </div>
@@ -494,7 +479,6 @@ import Swal from 'sweetalert2';
                   type="text"
                   class="form-control px-16 py-12 border rounded-8"
                   formControlName="splash_texto"
-                  placeholder="Cargando 7 Power..."
                   maxlength="255"
                 />
 
@@ -512,7 +496,6 @@ import Swal from 'sweetalert2';
                     type="text"
                     class="form-control px-16 py-12 border rounded-8"
                     formControlName="splash_color_fondo"
-                    placeholder="#c22026"
                     maxlength="7"
                   />
                 </div>

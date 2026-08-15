@@ -229,9 +229,6 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
         this.cartItemCount = summary.cantidad_items;
       });
 
-    // ✅ NUEVO: Cargar favoritos inicialmente
-    this.cargarFavoritosHeader();
-
     // El número del corazón sale de la lista compartida del servicio, que es
     // la que actualizan las tarjetas de producto al marcar/desmarcar. Antes el
     // contador solo se leía al abrir el desplegable y había que recargar.
