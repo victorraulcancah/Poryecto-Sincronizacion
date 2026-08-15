@@ -550,50 +550,6 @@
                   </div>
                 </div>
 
-                <!-- Términos y Condiciones -->
-                <div class="mb-20">
-                  <div class="form-check">
-                    <input
-                      class="form-check-input"
-                      type="checkbox"
-                      formControlName="aceptaTerminos"
-                      id="aceptaTerminos"
-                    />
-                    <label
-                      class="form-check-label text-sm"
-                      for="aceptaTerminos"
-                    >
-                      He leído y acepto los
-                      <!-- Botones y no enlaces: antes eran href="#" y el clic
-                           sacaba al cliente del checkout. -->
-                      <button
-                        type="button"
-                        class="btn btn-link p-0 align-baseline text-main-600 text-decoration-underline text-sm"
-                        (click)="abrirLegal('terminos')"
-                      >
-                        términos y condiciones
-                      </button>
-                      y las
-                      <button
-                        type="button"
-                        class="btn btn-link p-0 align-baseline text-main-600 text-decoration-underline text-sm"
-                        (click)="abrirLegal('privacidad')"
-                      >
-                        políticas de privacidad
-                      </button>
-                    </label>
-                  </div>
-                  <div
-                    class="text-danger text-sm mt-4"
-                    *ngIf="
-                      checkoutForm.get('aceptaTerminos')?.invalid &&
-                      checkoutForm.get('aceptaTerminos')?.touched
-                    "
-                  >
-                    Debe aceptar los términos y condiciones
-                  </div>
-                </div>
-
                 <!-- Información Adicional -->
                 <div class="mb-0">
                   <h6 class="text-heading fw-semibold mb-16">
@@ -772,6 +728,39 @@
                 Contáctese por WhatsApp con el número de pedido que se asignará
                 a su pedido, para procesar su compra
               </p>
+
+              <!-- Términos y políticas: van aquí, junto al botón que cierra la
+                   compra, para que se acepten justo antes de generarla. -->
+              <!-- La tarjeta está fuera del <form>, así que se vuelve a
+                   enlazar el mismo FormGroup para poder usar formControlName. -->
+              <div class="mb-16" [formGroup]="checkoutForm">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" formControlName="aceptaTerminos"
+                    id="aceptaTerminos" />
+                  <label class="form-check-label text-sm" for="aceptaTerminos">
+                    He leído y acepto los
+                    <!-- Botones y no enlaces: antes eran href="#" y el clic
+                         sacaba al cliente del checkout. -->
+                    <button type="button"
+                      class="btn btn-link p-0 align-baseline text-main-600 text-decoration-underline text-sm"
+                      (click)="abrirLegal('terminos')">
+                      términos y condiciones
+                    </button>
+                    y las
+                    <button type="button"
+                      class="btn btn-link p-0 align-baseline text-main-600 text-decoration-underline text-sm"
+                      (click)="abrirLegal('privacidad')">
+                      políticas de privacidad
+                    </button>
+                  </label>
+                </div>
+                <div class="text-danger text-sm mt-4" *ngIf="
+                    checkoutForm.get('aceptaTerminos')?.invalid &&
+                    checkoutForm.get('aceptaTerminos')?.touched
+                  ">
+                  Debe aceptar los términos y condiciones
+                </div>
+              </div>
 
               <!-- Botones de Acción -->
               <div class="d-grid gap-12">

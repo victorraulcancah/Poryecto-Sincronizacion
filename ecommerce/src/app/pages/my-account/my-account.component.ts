@@ -8,6 +8,10 @@ import { User } from '../../models/user.model';
 import { ModalFotoComponent } from '../../component/modal-foto/modal-foto.component';
 import { BreadcrumbComponent } from 'src/app/component/breadcrumb/breadcrumb.component';
 import { environment } from '../../../environments/environment';
+import {
+  ClientePortalService,
+  TitularCheckout,
+} from '../../services/cliente-portal.service';
 @Component({
   selector: 'app-my-account',
   standalone: true,
@@ -22,13 +26,38 @@ export class MyAccountComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private photoUrlCache: string | null = null;
 
+  /** Cliente de 7Power al que está vinculada la cuenta (null si no lo está). */
+  titular: TitularCheckout | null = null;
+
   constructor(
     public authService: AuthService, // ✅ Hacer público para usar en template
-    private router: Router
+    private router: Router,
+    private clientePortalService: ClientePortalService
   ) {}
 
   ngOnInit(): void {
     this.loadUserData();
+    this.cargarTitular();
+  }
+
+  /**
+   * Datos de la empresa o persona a nombre de quien se factura. Solo salen si
+   * la cuenta está vinculada a un cliente del ERP.
+   */
+  private cargarTitular(): void {
+    this.clientePortalService
+      .getTitular()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => (this.titular = res?.vinculado ? res : null),
+        // Si falla la consulta, la tarjeta se queda como estaba.
+        error: () => (this.titular = null),
+      });
+  }
+
+  /** RUC para empresas, DNI para personas. */
+  get etiquetaDocumento(): string {
+    return this.titular?.es_empresa ? 'RUC' : 'DNI';
   }
 
   ngOnDestroy(): void {

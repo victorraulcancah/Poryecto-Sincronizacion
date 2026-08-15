@@ -147,14 +147,13 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Cotización que se está rehaciendo desde "Editar": vuelve lo que el cliente
-   * ya había cargado (observaciones y los montos por método de pago) para no
-   * pedírselo de nuevo. La deja el listado de cotizaciones en sessionStorage.
+   * Cotización que se está rehaciendo desde "Editar": vuelven las
+   * observaciones que el cliente ya había escrito. El método de pago NO se
+   * repone a propósito: el paso 2 arranca vacío para que se elija de nuevo.
+   * La deja el listado de cotizaciones en sessionStorage.
    */
   private cotizacionEditando: {
     observaciones?: string;
-    metodo_pago_preferido?: string;
-    metodos_pago?: { tipo: string; moneda: string; monto: number }[];
   } | null = null;
 
   private loadCotizacionEditando(): void {
@@ -170,22 +169,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
     this.checkoutForm.patchValue({
       observaciones: this.cotizacionEditando?.observaciones || '',
-      tipoPago: this.cotizacionEditando?.metodo_pago_preferido || '',
     });
-  }
-
-  /** Rearma los montos por método; necesita los tipos de pago ya cargados. */
-  private reponerPagosDeLaEdicion(): void {
-    const pagos = this.cotizacionEditando?.metodos_pago;
-    if (!pagos?.length || !this.tiposPago.length) return;
-
-    for (const pago of pagos) {
-      const tipo = this.tiposPago.find(t => t.codigo === pago.tipo);
-      if (!tipo?.id) continue;
-
-      this.montosPorMetodo[`${pago.moneda}_${tipo.id}`] = Number(pago.monto) || 0;
-      this.metodosPagoSeleccionados.add(tipo.id);
-    }
   }
 
   private loadCuponAplicado(): void {
@@ -330,7 +314,6 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     this.tipoPagoService.obtenerActivos().subscribe({
       next: (response) => {
         this.tiposPago = response.tipos_pago;
-        this.reponerPagosDeLaEdicion();
       },
       error: (error) => {
         console.error('Error cargando tipos de pago:', error);

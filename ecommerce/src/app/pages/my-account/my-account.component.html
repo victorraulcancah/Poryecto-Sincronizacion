@@ -50,6 +50,30 @@
             <h5 class="mb-8 text-heading">Hola, {{ getUserName() }}</h5>
             <!-- Email del usuario -->
             <p class="text-sm text-gray-600 mb-12">{{ getUserEmail() }}</p>
+
+            <!-- Cliente de 7Power vinculado: es a nombre de quien se emiten los
+                 comprobantes, así que se muestran sus datos. -->
+            <div *ngIf="titular" class="text-start border-top border-gray-100 pt-16 mt-4">
+              <span class="badge bg-main-50 text-main-600 rounded-pill mb-8 d-inline-flex align-items-center gap-4">
+                <i class="ph ph-link"></i>
+                Cuenta vinculada
+                <ng-container *ngIf="titular.codigo_erp">· {{ titular.codigo_erp }}</ng-container>
+              </span>
+
+              <p class="fw-semibold text-heading text-sm mb-4">{{ titular.nombre }}</p>
+
+              <p class="text-xs text-gray-600 mb-4" *ngIf="titular.documento">
+                {{ etiquetaDocumento }}: {{ titular.documento }}
+              </p>
+
+              <p class="text-xs text-gray-600 mb-4" *ngIf="titular.telefono">
+                <i class="ph ph-phone me-4"></i>{{ titular.telefono }}
+              </p>
+
+              <p class="text-xs text-gray-600 mb-0" *ngIf="titular.direccion">
+                <i class="ph ph-map-pin me-4"></i>{{ titular.direccion }}
+              </p>
+            </div>
             <!-- Tipo de usuario dinámico -->
             <!-- <span class="text-sm px-12 py-4 rounded-pill d-inline-block fw-medium" [ngClass]="getUserTypeClass()">
               {{ getUserType() }}

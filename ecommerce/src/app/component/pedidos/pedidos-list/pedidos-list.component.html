@@ -938,8 +938,7 @@
             <table class="table modern-table modern-table--productos mb-0">
               <thead>
                 <tr>
-                  <th class="ps-24">IMAGEN</th>
-                  <th>PRODUCTO</th>
+                  <th class="ps-24">PRODUCTO</th>
                   <th class="text-center">CANT.</th>
                   <th class="text-end">PRECIO UNIT.</th>
                   <th class="text-end pe-24">TOTAL</th>
@@ -947,15 +946,10 @@
               </thead>
               <tbody>
                 <tr *ngFor="let detalle of productosDeMoneda(pedidoSeleccionado, monedaDetalle)" class="align-middle">
+                  <!-- Sin columna de imagen: muchos productos no la tienen y
+                       dejaba un recuadro vacío. Mismo formato que el modal de
+                       cotización. -->
                   <td class="ps-24">
-                    <div class="product-thumb">
-                      <img *ngIf="detalle.imagen_url"
-                           [src]="detalle.imagen_url"
-                           [alt]="detalle.nombre_producto"
-                           (error)="ocultarImagen($event)" />
-                    </div>
-                  </td>
-                  <td>
                     <div class="product-name">{{ detalle.nombre_producto }}</div>
                     <div class="product-sku">SKU: {{ detalle.codigo_producto || 'N/A' }}</div>
                   </td>
