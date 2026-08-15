@@ -264,6 +264,22 @@ $rojo-dark: #a01a1f;
   border-radius: 12px;
   overflow: hidden;
 
+  /* Miniatura del producto, del mismo tamaño que la del detalle del pedido. */
+  .cot-producto__foto {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--gray-100, #eee);
+    background: #f8f8f8;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+  }
+
   thead {
     background: var(--gray-50, #f8f9fa);
 

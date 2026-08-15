@@ -357,7 +357,8 @@
         <table class="table mb-0">
           <thead>
             <tr>
-              <th class="ps-24">PRODUCTO</th>
+              <th class="ps-24">IMAGEN</th>
+              <th>PRODUCTO</th>
               <th class="text-center">CANT.</th>
               <th class="text-end">PRECIO UNIT.</th>
               <th class="text-end pe-24">TOTAL</th>
@@ -365,7 +366,15 @@
           </thead>
           <tbody>
             <tr *ngFor="let p of cotizacionDetalle.productos">
+              <!-- Si el producto no tiene foto se usa el placeholder, para que
+                   la celda no quede vacía. -->
               <td class="ps-24">
+                <div class="cot-producto__foto">
+                  <img [src]="p.imagen || 'assets/images/placeholder.svg'" [alt]="p.nombre"
+                    (error)="onImagenProductoError($event)" />
+                </div>
+              </td>
+              <td>
                 <div class="cot-producto__nombre">{{ p.nombre }}</div>
               </td>
               <td class="text-center">

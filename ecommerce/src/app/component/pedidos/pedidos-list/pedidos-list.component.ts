@@ -412,6 +412,17 @@ export class PedidosListComponent implements OnInit {
     (evento.target as HTMLImageElement).style.display = 'none';
   }
 
+  /**
+   * Si la foto del producto no carga se cambia por el placeholder. La marca
+   * `dataset` evita el bucle infinito si el placeholder tampoco existe.
+   */
+  onImagenProductoError(evento: Event): void {
+    const img = evento.target as HTMLImageElement;
+    if (img.dataset['fallback']) return;
+    img.dataset['fallback'] = '1';
+    img.src = 'assets/images/placeholder.svg';
+  }
+
   private normalizar(texto?: string | null): string {
     return (texto || '').trim().toUpperCase();
   }
