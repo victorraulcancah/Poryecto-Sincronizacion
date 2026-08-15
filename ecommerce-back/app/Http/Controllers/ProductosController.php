@@ -450,7 +450,17 @@ class ProductosController extends Controller
             $sizes = array_filter(explode(',', $request->sizes));
             $query->where(function ($q) use ($sizes) {
                 foreach ($sizes as $size) {
+                    // 1) La medida con la marca de pulgadas: "6.5''", '10"'.
                     $q->orWhereRaw('nombre REGEXP ?', [$this->regexTamano($size)]);
+
+                    // 2) La medida al principio del nombre y sin marca
+                    //    ("6.5 PARLANTE 2 VIAS"). Solo cuenta si el nombre es de
+                    //    un producto que se mide en pulgadas: si no, "4 SENSORES
+                    //    DE RETROCESO" o "3.30 M ... RCA" saldrían como medidas.
+                    $q->orWhere(function ($qq) use ($size) {
+                        $qq->whereRaw('nombre REGEXP ?', [$this->regexTamanoAlInicio($size)])
+                            ->whereRaw('nombre REGEXP ?', [self::PALABRAS_MEDIDA_SQL]);
+                    });
                 }
             });
         }
@@ -603,11 +613,28 @@ class ProductosController extends Controller
      */
     private function regexTamano(string $size): string
     {
-        $numero = str_replace('.', '[.]', preg_replace('/[^0-9.]/', '', $size));
-
         // La marca de pulgadas se escribe como dos apóstrofes o comilla doble.
-        return "(^|[^0-9.])" . $numero . "[[:space:]]*(''|\"|”|″)";
+        return "(^|[^0-9.])" . $this->numeroRegex($size) . "[[:space:]]*(''|\"|”|″)";
     }
+
+    /** La medida escrita al principio del nombre, sin marca de pulgadas. */
+    private function regexTamanoAlInicio(string $size): string
+    {
+        return "^[[:space:]]*" . $this->numeroRegex($size) . "[[:space:]]";
+    }
+
+    private function numeroRegex(string $size): string
+    {
+        return str_replace('.', '[.]', preg_replace('/[^0-9.]/', '', $size));
+    }
+
+    /**
+     * Productos cuya medida se da en pulgadas. Sirve para no confundir el
+     * número inicial del nombre con metros, centímetros o cantidades.
+     */
+    private const PALABRAS_MEDIDA = '/(PARLANTE|SUBWOOFER|SUB WOOFER|TWEETER|DRIVER|WOOFER|MEDIO RANGO|MID ?BASS|MIDRANGE|COMPONENTE|CORNETA|BOCINA|PANTALLA|RECEPTOR|MONITOR)/iu';
+
+    private const PALABRAS_MEDIDA_SQL = '(PARLANTE|SUBWOOFER|SUB WOOFER|TWEETER|DRIVER|WOOFER|MEDIO RANGO|MID ?BASS|MIDRANGE|COMPONENTE|CORNETA|BOCINA|PANTALLA|RECEPTOR|MONITOR)';
 
     /**
      * Medidas (en pulgadas) que aparecen escritas en los nombres de los
@@ -619,13 +646,26 @@ class ProductosController extends Controller
 
         $conteo = [];
         foreach ($nombres as $nombre) {
-            // Cada medida del nombre: número seguido de '' o " (pulgadas).
-            if (! preg_match_all("/(?<![0-9.])([0-9]+(?:[.,][0-9]+)?)\s*(?:''|\"|”|″)/u", $nombre, $coincidencias)) {
-                continue;
+            $medidas = [];
+
+            // 1) Número con marca de pulgadas: "6.5''", '10"'.
+            if (preg_match_all("/(?<![0-9.])([0-9]+(?:[.,][0-9]+)?)[[:space:]]*(?:''|\"|”|″)/u", $nombre, $coincidencias)) {
+                $medidas = $coincidencias[1];
             }
 
-            foreach (array_unique($coincidencias[1]) as $medida) {
-                $medida = rtrim(rtrim(str_replace(',', '.', $medida), '0'), '.');
+            // 2) Número al principio y sin marca ("6.5 PARLANTE 2 VIAS"), solo
+            //    en productos que se miden en pulgadas.
+            if (preg_match('/^\s*([0-9]+(?:[.,][0-9]+)?)\s/u', $nombre, $inicio)
+                && preg_match(self::PALABRAS_MEDIDA, $nombre)) {
+                $medidas[] = $inicio[1];
+            }
+
+            foreach (array_unique($medidas) as $medida) {
+                $medida = str_replace(',', '.', $medida);
+                // "5.20" y "5.2" son la misma medida.
+                if (str_contains($medida, '.')) {
+                    $medida = rtrim(rtrim($medida, '0'), '.');
+                }
                 if ($medida === '') {
                     continue;
                 }
