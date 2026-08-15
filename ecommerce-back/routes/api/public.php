@@ -57,6 +57,8 @@ Route::get('ubigeo-chain/{ubigeoId}', [UbigeoController::class, 'getUbigeoChain'
 // ============================================
 Route::get('/categorias/publicas', [CategoriasController::class, 'categoriasPublicas']);
 Route::get('/categorias-sidebar', [ProductosController::class, 'categoriasParaSidebar']);
+// Medidas en pulgadas que aparecen en los nombres de los productos (filtro del catálogo).
+Route::get('/productos/tamanos', [ProductosController::class, 'tamanosPublicos']);
 Route::get('/arma-pc/categorias', [CategoriasController::class, 'categoriasArmaPc']);
 Route::get('/categorias/{id}/compatibles', [CategoriasController::class, 'getCategoriasCompatibles']);
 

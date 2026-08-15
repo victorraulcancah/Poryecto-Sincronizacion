@@ -113,6 +113,29 @@
                             </div>
                         </div>
 
+                        <!-- Tamaño / Pulgadas: la medida no es un campo del
+                             producto, se lee del nombre (ej. "6.5''"). -->
+                        <div class="filtros-panel__seccion" *ngIf="tamanos.length">
+                            <button type="button" class="filtros-panel__seccion-head"
+                                (click)="alternarSeccion('tamano')">
+                                <span>Tamaño / Pulgadas</span>
+                                <i class="ph ph-caret-down filtros-panel__flecha"
+                                    [class.abierta]="seccionesAbiertas.tamano"></i>
+                            </button>
+
+                            <div class="filtros-panel__colapsable" [class.abierto]="seccionesAbiertas.tamano">
+                              <div class="filtros-panel__cuerpo">
+                                <label class="filtros-panel__opcion" *ngFor="let tamano of tamanos">
+                                    <input type="checkbox"
+                                        [checked]="tamanosSeleccionados.includes(tamano.valor)"
+                                        (change)="seleccionarTamano(tamano.valor)" />
+                                    <span class="filtros-panel__opcion-texto">{{ tamano.etiqueta }}</span>
+                                    <span class="filtros-panel__conteo">({{ tamano.productos_count }})</span>
+                                </label>
+                              </div>
+                            </div>
+                        </div>
+
                         <!-- Rango de precio: siempre visible, no se pliega. -->
                         <div class="filtros-panel__seccion">
                             <div class="filtros-panel__seccion-head filtros-panel__seccion-head--fija">

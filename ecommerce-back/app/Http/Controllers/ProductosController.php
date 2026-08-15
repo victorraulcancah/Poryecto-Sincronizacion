@@ -443,6 +443,18 @@ class ProductosController extends Controller
             $query->whereIn('marca_id', $brandIds);
         }
 
+        // Filtro por tamaño (pulgadas). No hay columna: la medida se escribe a
+        // mano dentro del nombre del producto (ej. "6.5'' MEDIO RANGO"), así
+        // que se busca ahí con una expresión regular.
+        if ($request->filled('sizes')) {
+            $sizes = array_filter(explode(',', $request->sizes));
+            $query->where(function ($q) use ($sizes) {
+                foreach ($sizes as $size) {
+                    $q->orWhereRaw('nombre REGEXP ?', [$this->regexTamano($size)]);
+                }
+            });
+        }
+
         // Límites de precio del resultado ANTES de aplicar el rango de precio:
         // son los topes del deslizador del filtro, así que no pueden depender
         // del rango que el propio deslizador ya tenga puesto.
@@ -580,6 +592,60 @@ class ProductosController extends Controller
             'precio_min' => $limites?->minimo !== null ? (float) $limites->minimo : null,
             'precio_max' => $limites?->maximo !== null ? (float) $limites->maximo : null,
         ]);
+    }
+
+    /**
+     * Expresión para encontrar una medida dentro del nombre del producto.
+     *
+     * El "1.5" tiene que ir precedido de algo que no sea número ni punto (si
+     * no, "11.5" también daría positivo) y seguido de la marca de pulgadas,
+     * que en los nombres aparece como dos apóstrofes o como comilla doble.
+     */
+    private function regexTamano(string $size): string
+    {
+        $numero = str_replace('.', '[.]', preg_replace('/[^0-9.]/', '', $size));
+
+        // La marca de pulgadas se escribe como dos apóstrofes o comilla doble.
+        return "(^|[^0-9.])" . $numero . "[[:space:]]*(''|\"|”|″)";
+    }
+
+    /**
+     * Medidas (en pulgadas) que aparecen escritas en los nombres de los
+     * productos activos, para armar el filtro del catálogo.
+     */
+    public function tamanosPublicos()
+    {
+        $nombres = Producto::where('activo', true)->pluck('nombre');
+
+        $conteo = [];
+        foreach ($nombres as $nombre) {
+            // Cada medida del nombre: número seguido de '' o " (pulgadas).
+            if (! preg_match_all("/(?<![0-9.])([0-9]+(?:[.,][0-9]+)?)\s*(?:''|\"|”|″)/u", $nombre, $coincidencias)) {
+                continue;
+            }
+
+            foreach (array_unique($coincidencias[1]) as $medida) {
+                $medida = rtrim(rtrim(str_replace(',', '.', $medida), '0'), '.');
+                if ($medida === '') {
+                    continue;
+                }
+                $conteo[$medida] = ($conteo[$medida] ?? 0) + 1;
+            }
+        }
+
+        // De menor a mayor, que es como se leen en una lista de tallas.
+        uksort($conteo, fn ($a, $b) => (float) $a <=> (float) $b);
+
+        $tamanos = [];
+        foreach ($conteo as $medida => $total) {
+            $tamanos[] = [
+                'valor' => $medida,
+                'etiqueta' => $medida . '"',
+                'productos_count' => $total,
+            ];
+        }
+
+        return response()->json($tamanos);
     }
 
     // ✅ NUEVO MÉTODO PARA OBTENER CATEGORÍAS PARA EL SIDEBAR

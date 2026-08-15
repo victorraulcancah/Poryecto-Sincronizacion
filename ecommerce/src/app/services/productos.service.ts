@@ -100,6 +100,13 @@ export interface ProductosPublicosResponse {
   precio_max?: number | null;
 }
 
+/** Medida en pulgadas que aparece escrita en el nombre de los productos. */
+export interface TamanoProducto {
+  valor: string;
+  etiqueta: string;
+  productos_count: number;
+}
+
 export interface CategoriaParaSidebar {
   id: number;
   nombre: string;
@@ -228,6 +235,11 @@ export class ProductosService {
     return this.http.post<any>(`${this.apiUrl}/categorias`, categoria);
   }
 
+  /** Medidas disponibles para el filtro del catálogo. */
+  obtenerTamanosPublicos(): Observable<TamanoProducto[]> {
+    return this.http.get<TamanoProducto[]>(`${this.apiUrl}/productos/tamanos`);
+  }
+
   obtenerCategoriasParaSidebar(marcaId?: number): Observable<CategoriaParaSidebar[]> {
     let params = new HttpParams();
     if (marcaId) params = params.set('marca_id', marcaId.toString());
@@ -250,6 +262,8 @@ export class ProductosService {
     categoryIds?: string;
     /** IDs de marca separados por coma. */
     brandIds?: string;
+    /** Medidas en pulgadas separadas por coma (ej. "6.5,10"). */
+    sizes?: string;
     search?: string;
     page?: number;
     minPrice?: number;
@@ -264,6 +278,7 @@ export class ProductosService {
       if (filtros.brand) params = params.set('brand', filtros.brand.toString());
       if (filtros.categoryIds) params = params.set('categoryIds', filtros.categoryIds);
       if (filtros.brandIds) params = params.set('brandIds', filtros.brandIds);
+      if (filtros.sizes) params = params.set('sizes', filtros.sizes);
       if (filtros.search) params = params.set('search', filtros.search);
       if (filtros.page) params = params.set('page', filtros.page.toString());
       if (filtros.minPrice) params = params.set('minPrice', filtros.minPrice.toString());

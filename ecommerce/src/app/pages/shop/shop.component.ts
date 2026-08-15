@@ -9,6 +9,7 @@ import {
   ProductosService,
   ProductoPublico,
   type CategoriaParaSidebar,
+  type TamanoProducto,
 } from '../../services/productos.service';
 import { CartService } from '../../services/cart.service';
 import { CartNotificationService } from '../../services/cart-notification.service';
@@ -48,6 +49,10 @@ export class ShopComponent implements OnInit, OnDestroy {
      se reflejan en la URL igual (?categorias=1,2&marcas=3). */
   categoriasSeleccionadas: number[] = [];
   marcasSeleccionadas: number[] = [];
+  /* El tamaño no es una columna: se escribe a mano dentro del nombre del
+     producto (ej. "6.5'' MEDIO RANGO"), y el backend lo busca ahí. */
+  tamanos: TamanoProducto[] = [];
+  tamanosSeleccionados: string[] = [];
 
   /* Los conteos cruzados del sidebar (cuántos productos de esta marca hay en
      esta categoría) solo tienen sentido con UNA selección; con varias se
@@ -70,9 +75,10 @@ export class ShopComponent implements OnInit, OnDestroy {
   busquedaCategoria = '';
   verTodasMarcas = false;
   verTodasCategorias = false;
-  seccionesAbiertas: Record<'marca' | 'categoria' | 'precio', boolean> = {
+  seccionesAbiertas: Record<'marca' | 'categoria' | 'tamano' | 'precio', boolean> = {
     marca: true,
     categoria: true,
+    tamano: true,
     precio: true,
   };
 
@@ -136,6 +142,7 @@ export class ShopComponent implements OnInit, OnDestroy {
     // Cargar categorías para el sidebar
     this.cargarCategorias();
     this.cargarMarcas(); // ✅ NUEVO: Cargar marcas desde el backend
+    this.cargarTamanos();
     this.cargarBannerSidebar(); // ✅ NUEVO: Cargar banner del sidebar
 
     // ✅ NUEVO: Escuchar cambios en los parámetros de ruta (para slug de categoría y marca)
@@ -170,6 +177,9 @@ export class ShopComponent implements OnInit, OnDestroy {
         this.marcasSeleccionadas = this.leerLista(
           params['marcas'] ?? params['marca']
         );
+        this.tamanosSeleccionados = (params['tamanos'] || '')
+          .split(',')
+          .filter((t: string) => !!t);
       }
 
       this.searchTerm = params['search'] || '';
@@ -252,6 +262,14 @@ export class ShopComponent implements OnInit, OnDestroy {
     });
   }
 
+  /** Medidas que existen en los nombres de los productos activos. */
+  cargarTamanos(): void {
+    this.productosService.obtenerTamanosPublicos().subscribe({
+      next: (tamanos) => (this.tamanos = tamanos),
+      error: (error) => console.error('Error al cargar tamaños:', error),
+    });
+  }
+
   // ✅ NUEVO: Cargar banner del sidebar
   cargarBannerSidebar(): void {
     this.bannersService.obtenerBannerSidebarShop().subscribe({
@@ -282,6 +300,7 @@ export class ShopComponent implements OnInit, OnDestroy {
     const filtros: any = {
       categoryIds: this.categoriasSeleccionadas.join(','),
       brandIds: this.marcasSeleccionadas.join(','),
+      sizes: this.tamanosSeleccionados.join(','),
       page: this.currentPage,
       search: this.searchTerm,
       minPrice: this.currentMinPrice,
@@ -375,6 +394,15 @@ export class ShopComponent implements OnInit, OnDestroy {
     this.navegarConFiltrosActuales();
   }
 
+  /** Marca/desmarca una medida (viene del nombre del producto). */
+  seleccionarTamano(valor: string): void {
+    this.tamanosSeleccionados = this.tamanosSeleccionados.includes(valor)
+      ? this.tamanosSeleccionados.filter((t) => t !== valor)
+      : [...this.tamanosSeleccionados, valor];
+    this.currentPage = 1;
+    this.navegarConFiltrosActuales();
+  }
+
   /** Marca/desmarca un id de una lista de selección. */
   private alternar(lista: number[], id: number): number[] {
     return lista.includes(id) ? lista.filter((x) => x !== id) : [...lista, id];
@@ -386,6 +414,8 @@ export class ShopComponent implements OnInit, OnDestroy {
       queryParams.categorias = this.categoriasSeleccionadas.join(',');
     if (this.marcasSeleccionadas.length)
       queryParams.marcas = this.marcasSeleccionadas.join(',');
+    if (this.tamanosSeleccionados.length)
+      queryParams.tamanos = this.tamanosSeleccionados.join(',');
     if (this.searchTerm) queryParams.search = this.searchTerm;
     this.router.navigate(['/shop'], { queryParams });
   }
@@ -416,6 +446,7 @@ export class ShopComponent implements OnInit, OnDestroy {
   }
 
   limpiarFiltros(): void {
+    this.tamanosSeleccionados = [];
     this.minPrice = undefined;
     this.maxPrice = undefined;
     this.currentMinPrice = undefined;
@@ -427,7 +458,7 @@ export class ShopComponent implements OnInit, OnDestroy {
   }
 
   // ------------------------------------------------- panel de filtros
-  alternarSeccion(seccion: 'marca' | 'categoria' | 'precio'): void {
+  alternarSeccion(seccion: 'marca' | 'categoria' | 'tamano' | 'precio'): void {
     this.seccionesAbiertas[seccion] = !this.seccionesAbiertas[seccion];
   }
 
@@ -441,7 +472,7 @@ export class ShopComponent implements OnInit, OnDestroy {
   categoriasVisibles: CategoriaParaSidebar[] = [];
   hayMasCategorias = false;
   hayFiltrosActivos = false;
-  fichasFiltros: { etiqueta: string; tipo: 'marca' | 'categoria' | 'precio'; id?: number }[] = [];
+  fichasFiltros: { etiqueta: string; tipo: 'marca' | 'categoria' | 'tamano' | 'precio'; id?: number }[] = [];
 
   /** Recalcula lo que muestra el panel de filtros. */
   recalcularFiltros(): void {
@@ -498,6 +529,10 @@ export class ShopComponent implements OnInit, OnDestroy {
       });
     });
 
+    this.tamanosSeleccionados.forEach((valor) => {
+      fichas.push({ etiqueta: `${valor}"`, tipo: 'tamano' });
+    });
+
     if (this.currentMinPrice !== undefined || this.currentMaxPrice !== undefined) {
       const desde = this.currentMinPrice ?? this.precioTopeMin;
       const hasta = this.currentMaxPrice ?? this.precioTopeMax;
@@ -508,6 +543,7 @@ export class ShopComponent implements OnInit, OnDestroy {
     this.hayFiltrosActivos =
       this.categoriasSeleccionadas.length > 0 ||
       this.marcasSeleccionadas.length > 0 ||
+      this.tamanosSeleccionados.length > 0 ||
       this.currentMinPrice !== undefined ||
       this.currentMaxPrice !== undefined;
   }
@@ -531,9 +567,15 @@ export class ShopComponent implements OnInit, OnDestroy {
     return normalizar(texto).includes(normalizar(busqueda));
   }
 
-  quitarFicha(ficha: { tipo: 'marca' | 'categoria' | 'precio'; id?: number }): void {
+  quitarFicha(ficha: {
+    tipo: 'marca' | 'categoria' | 'tamano' | 'precio';
+    id?: number;
+    etiqueta?: string;
+  }): void {
     if (ficha.tipo === 'marca' && ficha.id) this.seleccionarMarca(ficha.id);
     else if (ficha.tipo === 'categoria' && ficha.id) this.seleccionarCategoria(ficha.id);
+    else if (ficha.tipo === 'tamano' && ficha.etiqueta)
+      this.seleccionarTamano(ficha.etiqueta.replace('"', ''));
     else if (ficha.tipo === 'precio') this.limpiarFiltroPrecio();
   }
 
