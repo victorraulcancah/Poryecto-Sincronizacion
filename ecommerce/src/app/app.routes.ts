@@ -223,6 +223,13 @@ export const routes: Routes = [
           import('./pages/shop/shop.component').then((m) => m.ShopComponent),
         title: 'Shop',
       },
+      // Página pública con los logos de todas las marcas.
+      {
+        path: 'marcas',
+        loadComponent: () =>
+          import('./pages/marcas/marcas.component').then((m) => m.MarcasComponent),
+        title: 'Marcas',
+      },
       // ✅ NUEVO: Ruta SEO-friendly para marcas con slug
       {
         path: 'shop/marca/:marcaSlug',

@@ -1,0 +1,92 @@
+.marcas {
+  --mk-rojo: #d32027;
+
+  &__titulo h4 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #1f2733;
+  }
+
+  /* Subtítulo con una línea roja a cada lado, como en la propuesta. */
+  &__subtitulo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+
+    .linea {
+      display: block;
+      width: 90px;
+      height: 1px;
+      background: var(--mk-rojo);
+    }
+  }
+
+  &__grilla {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 24px;
+    justify-items: center;
+  }
+
+  /* Cada logo es un botón: lleva al catálogo filtrado por esa marca. */
+  &__item {
+    width: 100%;
+    max-width: 260px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 24px 16px;
+    border: 1px solid transparent;
+    border-radius: 16px;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+
+    img {
+      max-width: 100%;
+      max-height: 72px;
+      object-fit: contain;
+    }
+
+    &:hover {
+      border-color: #eef0f3;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      transform: translateY(-2px);
+
+      .marcas__nombre {
+        color: var(--mk-rojo);
+      }
+    }
+  }
+
+  &__nombre {
+    font-size: 13px;
+    font-weight: 600;
+    color: #48505c;
+    transition: color 0.2s;
+  }
+
+  &__conteo {
+    font-weight: 400;
+    color: #9aa2ae;
+  }
+}
+
+@media (max-width: 576px) {
+  .marcas__grilla {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .marcas__item {
+    padding: 16px 8px;
+
+    img {
+      max-height: 52px;
+    }
+  }
+}

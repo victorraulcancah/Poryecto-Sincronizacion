@@ -1,0 +1,50 @@
+<app-breadcrumb title="Marcas" subtitle="Marcas"></app-breadcrumb>
+
+<section class="marcas py-80">
+  <div class="container container-lg">
+    <!-- Título con las líneas a los costados -->
+    <div class="marcas__titulo text-center mb-48">
+      <h4 class="mb-8 text-uppercase">Trabajamos con las mejores marcas del mundo</h4>
+      <div class="marcas__subtitulo">
+        <span class="linea"></span>
+        <p class="mb-0 text-gray-600 text-sm">
+          Productos originales, garantía y respaldo de las marcas líderes en el mundo
+        </p>
+        <span class="linea"></span>
+      </div>
+    </div>
+
+    <!-- Cargando -->
+    <div *ngIf="isLoading" class="text-center py-40">
+      <div class="spinner-border text-main-600" role="status">
+        <span class="visually-hidden">Cargando marcas...</span>
+      </div>
+      <p class="text-gray-500 mt-12 mb-0">Cargando marcas...</p>
+    </div>
+
+    <!-- Grilla de logos -->
+    <div class="marcas__grilla" *ngIf="!isLoading && marcas.length > 0">
+      <button type="button" class="marcas__item" *ngFor="let marca of marcas; trackBy: trackPorId"
+        (click)="irAMarca(marca)" [title]="'Ver productos de ' + marca.nombre">
+        <img [src]="marca.imagen_url" [alt]="marca.nombre" (error)="onImagenError($event, marca)" loading="lazy" />
+        <span class="marcas__nombre">
+          {{ marca.nombre }}
+          <span class="marcas__conteo" *ngIf="marca.productos_count">
+            · {{ marca.productos_count }} productos
+          </span>
+        </span>
+      </button>
+    </div>
+
+    <!-- Sin marcas -->
+    <div *ngIf="!isLoading && marcas.length === 0" class="text-center py-40">
+      <i class="ph ph-storefront text-4xl text-gray-300 mb-16"></i>
+      <h6 class="text-gray-500 mb-8 fw-semibold">No hay marcas para mostrar</h6>
+      <p class="text-gray-400 text-sm mb-0">
+        Las marcas aparecen aquí cuando tienen un logo cargado desde el panel.
+      </p>
+    </div>
+  </div>
+</section>
+
+<app-shipping></app-shipping>
