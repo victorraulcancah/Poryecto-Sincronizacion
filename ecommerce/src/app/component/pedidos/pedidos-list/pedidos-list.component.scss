@@ -483,6 +483,13 @@
   table-layout: fixed;
   width: 100%;
 
+  // Filas más compactas: la tabla es lo único de la pestaña y así entran más
+  // productos sin scroll.
+  td {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
   th:nth-child(2), td:nth-child(2) { width: 70px; }   // cantidad
   th:nth-child(3), td:nth-child(3) { width: 120px; }  // precio unitario
   th:nth-child(4), td:nth-child(4) { width: 140px; }  // total
