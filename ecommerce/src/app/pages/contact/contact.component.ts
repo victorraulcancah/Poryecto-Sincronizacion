@@ -4,7 +4,9 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BreadcrumbComponent } from '../../component/breadcrumb/breadcrumb.component';
 import { EmpresaInfoService } from '../../services/empresa-info.service';
+import { ContactoService } from '../../services/contacto.service';
 import { Subject, takeUntil } from 'rxjs';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-contact',
@@ -27,9 +29,13 @@ export class ContactComponent implements OnInit, OnDestroy {
     mensaje: ''
   };
 
+  /** El formulario se bloquea mientras se envía. */
+  enviando = false;
+
   constructor(
     @Inject(PLATFORM_ID) private platformId: any,
-    private empresaInfoService: EmpresaInfoService
+    private empresaInfoService: EmpresaInfoService,
+    private contactoService: ContactoService
   ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
   }
@@ -65,21 +71,46 @@ export class ContactComponent implements OnInit, OnDestroy {
 
   onSubmit(): void {
     // Validar formulario
-    if (!this.contactForm.nombre || !this.contactForm.email || 
-        !this.contactForm.telefono || !this.contactForm.asunto || 
+    if (!this.contactForm.nombre || !this.contactForm.email ||
+        !this.contactForm.telefono || !this.contactForm.asunto ||
         !this.contactForm.mensaje) {
-      alert('Por favor, complete todos los campos obligatorios.');
+      Swal.fire({
+        title: 'Faltan datos',
+        text: 'Por favor, complete todos los campos obligatorios.',
+        icon: 'warning',
+      });
       return;
     }
 
-    // Aquí puedes implementar el envío del formulario
-    console.log('Formulario enviado:', this.contactForm);
-    
-    // Simular envío exitoso
-    alert('¡Mensaje enviado exitosamente! Nos pondremos en contacto contigo pronto.');
-    
-    // Limpiar formulario
-    this.resetForm();
+    if (this.enviando) return;
+    this.enviando = true;
+
+    // El mensaje se guarda en el backend y se avisa por correo a la empresa.
+    this.contactoService
+      .enviar(this.contactForm)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.enviando = false;
+          Swal.fire({
+            title: '¡Mensaje enviado!',
+            text: 'Nos pondremos en contacto contigo pronto.',
+            icon: 'success',
+          });
+          this.resetForm();
+        },
+        error: (error) => {
+          this.enviando = false;
+          console.error('Error al enviar el mensaje de contacto:', error);
+          Swal.fire({
+            title: 'No se pudo enviar',
+            text:
+              error?.error?.message ||
+              'Ocurrió un problema al enviar tu mensaje. Inténtalo de nuevo en unos minutos.',
+            icon: 'error',
+          });
+        },
+      });
   }
 
   private resetForm(): void {

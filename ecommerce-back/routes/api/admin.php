@@ -31,6 +31,13 @@ Route::middleware('auth:sanctum')->group(function () {
     // ============================================
     // AUTENTICACIÓN Y SESIÓNs
     // ============================================
+    // Mensajes del formulario público de contacto
+    Route::get('/contacto/mensajes', [\App\Http\Controllers\ContactoController::class, 'index']);
+    Route::get('/contacto/mensajes/{id}', [\App\Http\Controllers\ContactoController::class, 'show']);
+    Route::put('/contacto/mensajes/{id}', [\App\Http\Controllers\ContactoController::class, 'update']);
+    Route::put('/contacto/mensajes/{id}/leido', [\App\Http\Controllers\ContactoController::class, 'marcarLeido']);
+    Route::delete('/contacto/mensajes/{id}', [\App\Http\Controllers\ContactoController::class, 'destroy']);
+
     Route::get('/user', [AdminController::class, 'user']);
     Route::get('/refresh-permissions', [AdminController::class, 'refreshPermissions']);
     Route::post('/logout', [AdminController::class, 'logout']);

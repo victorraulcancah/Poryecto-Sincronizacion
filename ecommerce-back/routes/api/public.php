@@ -107,6 +107,9 @@ Route::get('/empresa-info/publica', [EmpresaInfoController::class, 'obtenerInfoP
 Route::get('/sobre-nosotros/publico', [EmpresaInfoController::class, 'obtenerSobreNosotrosPublico']);
 Route::get('/asesores/disponibles', [HorariosController::class, 'asesorDisponibles']);
 
+// Formulario público de "Contáctanos": guarda el mensaje y avisa por correo.
+Route::post('/contacto', [\App\Http\Controllers\ContactoController::class, 'store']);
+
 // ============================================
 // COOKIES Y MENÚS PÚBLICOS
 // ============================================

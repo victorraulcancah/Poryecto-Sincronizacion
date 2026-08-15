@@ -870,6 +870,18 @@ export const routes: Routes = [
         data: { permission: 'reclamos.ver' },
       },
       {
+        // Bandeja del formulario público "Contáctanos". Sin `permissionGuard`
+        // porque todavía no existe el permiso `contacto.ver` en la base; basta
+        // con estar autenticado en el panel.
+        path: 'mensajes-contacto',
+        loadComponent: () =>
+          import('./pages/dashboard/mensajes-contacto/mensajes-contacto.component').then(
+            (m) => m.MensajesContactoComponent
+          ),
+        title: 'Mensajes de Contacto',
+        canActivate: [authGuard],
+      },
+      {
         path: 'motorizados',
         loadComponent: () =>
           import('./pages/dashboard/motorizados/motorizados-list/motorizados-list.component').then(

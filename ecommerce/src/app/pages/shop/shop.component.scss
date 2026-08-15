@@ -362,12 +362,12 @@
       width: 15px;
       height: 15px;
       flex-shrink: 0;
-      accent-color: #1f2733;
+      accent-color: var(--fp-acento);
       cursor: pointer;
     }
 
     &:hover {
-      color: #1f2733;
+      color: var(--fp-acento);
     }
   }
 

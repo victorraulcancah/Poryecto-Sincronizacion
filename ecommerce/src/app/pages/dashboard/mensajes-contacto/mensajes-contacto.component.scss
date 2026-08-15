@@ -1,0 +1,124 @@
+.mensajes-contacto {
+  /* Punto que marca los mensajes todavía sin leer. */
+  .punto-no-leido {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #d32027;
+  }
+
+  .card {
+    border: 1px solid #e6e8ec;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+  }
+
+  table {
+    th {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #7b8493;
+      background: #f7f8fa;
+      white-space: nowrap;
+    }
+
+    td {
+      font-size: 14px;
+      color: #3a424f;
+    }
+  }
+}
+
+/* Modal de detalle: el panel no tiene un componente de modal propio, así que
+   se arma aquí con el mismo aspecto que el resto de las tarjetas. */
+.modal-fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 1060;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.modal-caja {
+  width: 100%;
+  max-width: 620px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e6e8ec;
+  }
+
+  &__cuerpo {
+    padding: 20px;
+    overflow-y: auto;
+  }
+
+  &__pie {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 14px 20px;
+    border-top: 1px solid #e6e8ec;
+  }
+
+  .btn-cerrar {
+    border: 0;
+    background: none;
+    font-size: 18px;
+    line-height: 1;
+    color: #7b8493;
+    cursor: pointer;
+  }
+
+  .dato {
+    display: flex;
+    gap: 12px;
+    padding: 6px 0;
+    font-size: 14px;
+
+    span {
+      min-width: 90px;
+      color: #7b8493;
+    }
+  }
+
+  .mensaje-texto {
+    margin-top: 14px;
+    padding: 14px;
+    border: 1px solid #e6e8ec;
+    border-radius: 8px;
+    background: #f7f8fa;
+    font-size: 14px;
+    color: #3a424f;
+    white-space: pre-wrap;
+  }
+
+  .campo {
+    display: block;
+    margin-bottom: 12px;
+
+    span {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 13px;
+      color: #7b8493;
+    }
+  }
+}

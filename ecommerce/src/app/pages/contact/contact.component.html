@@ -87,8 +87,8 @@
                                 <button 
                                     type="submit" 
                                     class="btn btn-main py-18 px-32 rounded-8"
-                                    [disabled]="!contactFormRef.form.valid">
-                                    Obtener una cotización
+                                    [disabled]="!contactFormRef.form.valid || enviando">
+                                    {{ enviando ? 'Enviando...' : 'Obtener una cotización' }}
                                 </button>
                             </div>
                         </div>
