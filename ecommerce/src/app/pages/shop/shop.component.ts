@@ -75,12 +75,17 @@ export class ShopComponent implements OnInit, OnDestroy {
   busquedaCategoria = '';
   verTodasMarcas = false;
   verTodasCategorias = false;
+  /* Entrando al catálogo las secciones vienen plegadas; solo se abre la que
+     ya trae algo marcado en la URL (ej. /shop?categorias=41). */
   seccionesAbiertas: Record<'marca' | 'categoria' | 'tamano' | 'precio', boolean> = {
-    marca: true,
-    categoria: true,
-    tamano: true,
+    marca: false,
+    categoria: false,
+    tamano: false,
     precio: true,
   };
+
+  /** Para abrir las secciones con filtro solo en la primera carga. */
+  private primeraLecturaFiltros = true;
 
   /** Topes del deslizador de precio (los devuelve el backend). */
   precioTopeMin = 0;
@@ -185,6 +190,13 @@ export class ShopComponent implements OnInit, OnDestroy {
       this.searchTerm = params['search'] || '';
       this.currentPage = 1;
       this.recalcularFiltros();
+
+      if (this.primeraLecturaFiltros) {
+        this.primeraLecturaFiltros = false;
+        this.seccionesAbiertas.marca = this.marcasSeleccionadas.length > 0;
+        this.seccionesAbiertas.categoria = this.categoriasSeleccionadas.length > 0;
+        this.seccionesAbiertas.tamano = this.tamanosSeleccionados.length > 0;
+      }
 
       // Solo recargar si no hay slug en la ruta (evitar doble carga)
       if (!hasSlugInRoute) {
