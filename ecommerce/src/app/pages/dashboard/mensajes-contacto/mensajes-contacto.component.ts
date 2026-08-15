@@ -185,6 +185,21 @@ export class MensajesContactoComponent implements OnInit, OnDestroy {
     window.location.href = `mailto:${mensaje.email}?subject=${asunto}`;
   }
 
+  /** Iniciales para el círculo de la columna Cliente (como en Pedidos). */
+  iniciales(nombre: string): string {
+    return (nombre || '?')
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((p) => p.charAt(0).toUpperCase())
+      .join('');
+  }
+
+  /** Números de página que muestra la paginación. */
+  get paginas(): number[] {
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
+
   cambiarPagina(pagina: number): void {
     if (pagina >= 1 && pagina <= this.totalPages) this.cargar(pagina);
   }

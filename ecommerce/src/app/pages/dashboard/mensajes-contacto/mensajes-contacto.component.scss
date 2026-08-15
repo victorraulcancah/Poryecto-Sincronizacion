@@ -1,39 +1,7 @@
-.mensajes-contacto {
-  /* Punto que marca los mensajes todavía sin leer. */
-  .punto-no-leido {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #d32027;
-  }
-
-  .card {
-    border: 1px solid #e6e8ec;
-    border-radius: 10px;
-    overflow: hidden;
-    background: #fff;
-  }
-
-  table {
-    th {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      color: #7b8493;
-      background: #f7f8fa;
-      white-space: nowrap;
-    }
-
-    td {
-      font-size: 14px;
-      color: #3a424f;
-    }
-  }
-}
-
-/* Modal de detalle: el panel no tiene un componente de modal propio, así que
-   se arma aquí con el mismo aspecto que el resto de las tarjetas. */
+/* La tabla, la paginación, los botones de acción y el estado vacío salen de
+   los estilos globales `assets/sass/components/_data-table.scss` (los mismos
+   que usa "Gestión de Pedidos"). Aquí solo queda el modal de detalle, que no
+   existe como componente compartido. */
 .modal-fondo {
   position: fixed;
   inset: 0;
@@ -52,20 +20,20 @@
   display: flex;
   flex-direction: column;
   background: #fff;
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
 
   &__head {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
-    padding: 16px 20px;
-    border-bottom: 1px solid #e6e8ec;
+    padding: 20px 24px;
+    border-bottom: 1px solid #eef0f3;
   }
 
   &__cuerpo {
-    padding: 20px;
+    padding: 20px 24px;
     overflow-y: auto;
   }
 
@@ -74,8 +42,8 @@
     align-items: center;
     justify-content: flex-end;
     gap: 8px;
-    padding: 14px 20px;
-    border-top: 1px solid #e6e8ec;
+    padding: 16px 24px;
+    border-top: 1px solid #eef0f3;
   }
 
   .btn-cerrar {
@@ -102,9 +70,9 @@
   .mensaje-texto {
     margin-top: 14px;
     padding: 14px;
-    border: 1px solid #e6e8ec;
-    border-radius: 8px;
-    background: #f7f8fa;
+    border: 1px solid #eef0f3;
+    border-radius: 12px;
+    background: #f8f9fb;
     font-size: 14px;
     color: #3a424f;
     white-space: pre-wrap;
@@ -119,194 +87,6 @@
       margin-bottom: 4px;
       font-size: 13px;
       color: #7b8493;
-    }
-  }
-}
-
-/* ------------------------------------------------------------------------
-   Controles propios de la vista. No se usan las clases `btn`/`form-control`
-   del tema porque en el panel quedan sin fondo (el botón "Actualizar" se veía
-   blanco sobre blanco); estos colores son fijos.
-   ------------------------------------------------------------------------ */
-.mensajes-contacto {
-  --mc-rojo: #d32027;
-  --mc-rojo-oscuro: #b01a20;
-  --mc-borde: #e6e8ec;
-
-  .mc-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    height: 38px;
-    padding: 0 16px;
-    border: 1px solid transparent;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  }
-
-  .mc-btn--primario {
-    background: var(--mc-rojo);
-    color: #fff;
-
-    &:hover:not(:disabled) {
-      background: var(--mc-rojo-oscuro);
-    }
-  }
-
-  .mc-btn--suave {
-    background: #fff;
-    border-color: var(--mc-borde);
-    color: #3a424f;
-
-    &:hover:not(:disabled) {
-      background: #f7f8fa;
-      border-color: #cbd2da;
-    }
-  }
-
-  .mc-buscador {
-    position: relative;
-
-    i {
-      position: absolute;
-      inset-inline-start: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 15px;
-      color: #9aa2ae;
-    }
-
-    input {
-      width: 280px;
-      max-width: 100%;
-      height: 38px;
-      padding: 0 12px 0 34px;
-      border: 1px solid var(--mc-borde);
-      border-radius: 8px;
-      font-size: 14px;
-      color: #1f2733;
-
-      &:focus {
-        outline: none;
-        border-color: #9aa2ae;
-      }
-    }
-  }
-
-  .mc-check {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0;
-    font-size: 14px;
-    color: #3a424f;
-    cursor: pointer;
-
-    input {
-      width: 16px;
-      height: 16px;
-      accent-color: var(--mc-rojo);
-      cursor: pointer;
-    }
-  }
-
-  /* Botones de acción de cada fila */
-  .mc-icono {
-    width: 32px;
-    height: 32px;
-    margin-inline-start: 4px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--mc-borde);
-    border-radius: 8px;
-    background: #fff;
-    color: #48505c;
-    font-size: 15px;
-    cursor: pointer;
-
-    &:hover {
-      background: #f7f8fa;
-      color: #1f2733;
-    }
-  }
-
-  .mc-icono--peligro:hover {
-    background: #fdecec;
-    border-color: #f3bcbc;
-    color: var(--mc-rojo);
-  }
-}
-
-/* Los mismos controles dentro del modal (queda fuera del contenedor). */
-.modal-caja {
-  .mc-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    height: 38px;
-    padding: 0 16px;
-    border: 1px solid transparent;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  }
-
-  .mc-btn--primario {
-    background: #d32027;
-    color: #fff;
-
-    &:hover:not(:disabled) {
-      background: #b01a20;
-    }
-  }
-
-  .mc-btn--suave {
-    background: #fff;
-    border-color: #e6e8ec;
-    color: #3a424f;
-
-    &:hover:not(:disabled) {
-      background: #f7f8fa;
-    }
-  }
-
-  .mc-btn--peligro {
-    background: #fff;
-    border-color: #f3bcbc;
-    color: #d32027;
-
-    &:hover {
-      background: #fdecec;
-    }
-  }
-
-  .mc-campo {
-    width: 100%;
-    min-height: 38px;
-    padding: 8px 12px;
-    border: 1px solid #e6e8ec;
-    border-radius: 8px;
-    font-size: 14px;
-    color: #1f2733;
-
-    &:focus {
-      outline: none;
-      border-color: #9aa2ae;
     }
   }
 }

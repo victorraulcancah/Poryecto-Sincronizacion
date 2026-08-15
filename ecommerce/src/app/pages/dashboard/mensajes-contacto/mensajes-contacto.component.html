@@ -1,93 +1,183 @@
-<div class="mensajes-contacto p-24">
-  <!-- Cabecera -->
-  <div class="d-flex flex-wrap align-items-center justify-content-between gap-16 mb-24">
-    <div>
-      <h5 class="mb-4">Mensajes de contacto</h5>
-      <p class="text-gray-500 mb-0 text-sm">
-        {{ total }} mensaje(s) recibido(s) desde el formulario de la tienda
-        <span *ngIf="noLeidos" class="badge bg-danger ms-8">{{ noLeidos }} sin leer</span>
-      </p>
-    </div>
-
-    <div class="d-flex align-items-center gap-12 flex-wrap">
-      <div class="mc-buscador">
-        <i class="ph ph-magnifying-glass"></i>
-        <input type="text" placeholder="Buscar por nombre, correo o asunto" [(ngModel)]="busqueda" name="busqueda" />
+<!-- Mismo armado que "Gestión de Pedidos": tarjeta con cabecera, barra de
+     filtros y la tabla `modern-data-table` (estilos globales de
+     assets/sass/components/_data-table.scss). -->
+<div class="border border-gray-100 rounded-16 overflow-hidden bg-white">
+  <!-- Header -->
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <div class="flex-between align-items-center gap-16 flex-wrap">
+      <div>
+        <h4 class="mb-4 text-heading">Mensajes de Contacto</h4>
+        <p class="text-gray-500 mb-0 text-sm">
+          Consultas enviadas desde el formulario de la tienda
+        </p>
       </div>
+      <div class="d-flex align-items-center gap-12">
+        <button class="btn btn-primary d-flex align-items-center gap-8" (click)="cargar(currentPage)">
+          <i class="ph ph-arrows-clockwise"></i>
+          Actualizar
+        </button>
+      </div>
+    </div>
+  </div>
 
-      <label class="mc-check">
-        <input type="checkbox" [(ngModel)]="soloNoLeidos" name="soloNoLeidos" (change)="cargar(1)" />
-        Solo sin leer
-      </label>
-
-      <button type="button" class="mc-btn mc-btn--primario" (click)="cargar(currentPage)">
-        <i class="ph ph-arrows-clockwise"></i> Actualizar
-      </button>
+  <!-- Filtros y Estadísticas -->
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <div class="row g-16">
+      <div class="col-12 col-md-6 col-lg-7">
+        <div class="position-relative">
+          <i class="ph ph-magnifying-glass position-absolute start-0 top-50 translate-middle-y ms-12 text-gray-400"></i>
+          <input type="text" class="form-control ps-40" placeholder="Buscar por nombre, correo o asunto..."
+            [(ngModel)]="busqueda" name="busqueda" />
+        </div>
+      </div>
+      <div class="col-12 col-md-6 col-lg-5">
+        <div class="d-flex align-items-center justify-content-start justify-content-md-end flex-wrap gap-8">
+          <div class="d-flex align-items-center gap-4">
+            <span class="text-sm fw-medium text-dark">Total:</span>
+            <span class="badge bg-main-50 text-main-600">{{ total }}</span>
+          </div>
+          <div class="d-flex align-items-center gap-4">
+            <span class="text-sm fw-medium text-dark">Sin leer:</span>
+            <span class="badge bg-warning-50 text-warning-600">{{ noLeidos }}</span>
+          </div>
+          <div class="form-check d-flex align-items-center gap-8 mb-0">
+            <input class="form-check-input mt-0" type="checkbox" id="soloNoLeidos" [(ngModel)]="soloNoLeidos"
+              name="soloNoLeidos" (change)="cargar(1)" />
+            <label class="form-check-label text-sm fw-medium text-dark" for="soloNoLeidos">Solo sin leer</label>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- Tabla -->
-  <div class="card">
-    <div class="table-responsive">
-      <table class="table align-middle mb-0">
+  <div class="modern-data-table mx-16 mb-24">
+    <div class="modern-data-table__header" *ngIf="!isLoading && mensajesFiltrados.length > 0">
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="table-info">{{ mensajesFiltrados.length }} mensaje(s) en esta página</span>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="isLoading" class="modern-data-table__loading">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="loading-text">Cargando mensajes...</p>
+    </div>
+
+    <!-- Tabla -->
+    <div class="modern-data-table__container" *ngIf="!isLoading && mensajesFiltrados.length > 0">
+      <table class="table table-borderless mb-0">
         <thead>
           <tr>
-            <th style="width: 40px"></th>
-            <th>Nombre</th>
-            <th>Correo</th>
-            <th>Teléfono</th>
-            <th>Asunto</th>
-            <th>Recibido</th>
-            <th class="text-end">Acciones</th>
+            <th>CLIENTE</th>
+            <th class="d-none d-lg-table-cell">TELÉFONO</th>
+            <th>ASUNTO</th>
+            <th class="d-none d-md-table-cell">RECIBIDO</th>
+            <th class="d-none d-md-table-cell">ESTADO</th>
+            <th class="text-end">ACCIONES</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngIf="isLoading">
-            <td colspan="7" class="text-center py-32 text-gray-500">Cargando mensajes...</td>
-          </tr>
-
-          <tr *ngIf="!isLoading && mensajesFiltrados.length === 0">
-            <td colspan="7" class="text-center py-32 text-gray-500">No hay mensajes</td>
-          </tr>
-
-          <tr *ngFor="let mensaje of mensajesFiltrados; trackBy: trackPorId" [class.fw-semibold]="!mensaje.leido">
+          <tr *ngFor="let mensaje of mensajesFiltrados; trackBy: trackPorId">
+            <!-- Cliente -->
             <td>
-              <span class="punto-no-leido" *ngIf="!mensaje.leido" title="Sin leer"></span>
+              <div class="d-flex align-items-center gap-12">
+                <div class="table-avatar__circle" style="background-color: var(--main-600);">
+                  {{ iniciales(mensaje.nombre) }}
+                </div>
+                <div>
+                  <div class="client-info__name">{{ mensaje.nombre }}</div>
+                  <div class="client-info__subtitle">{{ mensaje.email }}</div>
+                </div>
+              </div>
             </td>
-            <td>{{ mensaje.nombre }}</td>
-            <td>{{ mensaje.email }}</td>
-            <td>{{ mensaje.telefono || '-' }}</td>
-            <td class="text-truncate" style="max-width: 260px">{{ mensaje.asunto }}</td>
-            <td class="text-nowrap">{{ mensaje.created_at | date: 'dd/MM/yyyy HH:mm' }}</td>
-            <td class="text-end text-nowrap">
-              <button type="button" class="mc-icono" (click)="ver(mensaje)" title="Ver">
-                <i class="ph ph-eye"></i>
-              </button>
-              <button type="button" class="mc-icono" (click)="marcarLeido(mensaje, !mensaje.leido)"
-                [title]="mensaje.leido ? 'Marcar como no leído' : 'Marcar como leído'">
-                <i class="ph" [ngClass]="mensaje.leido ? 'ph-envelope' : 'ph-envelope-open'"></i>
-              </button>
-              <button type="button" class="mc-icono mc-icono--peligro" (click)="eliminar(mensaje)" title="Eliminar">
-                <i class="ph ph-trash"></i>
-              </button>
+
+            <!-- Teléfono -->
+            <td class="d-none d-lg-table-cell">
+              <div class="client-info__name">{{ mensaje.telefono || '—' }}</div>
+            </td>
+
+            <!-- Asunto -->
+            <td>
+              <div class="client-info__name text-truncate" style="max-width: 260px">{{ mensaje.asunto }}</div>
+              <div class="client-info__subtitle text-truncate" style="max-width: 260px">{{ mensaje.mensaje }}</div>
+            </td>
+
+            <!-- Recibido -->
+            <td class="d-none d-md-table-cell">
+              <div class="date-info__main">{{ mensaje.created_at | date: 'dd/MM/yyyy' }}</div>
+              <div class="date-info__relative">{{ mensaje.created_at | date: 'HH:mm' }}</div>
+            </td>
+
+            <!-- Estado -->
+            <td class="d-none d-md-table-cell">
+              <span class="status-badge" [ngClass]="mensaje.leido ? 'status-badge--active' : 'status-badge--inactive'">
+                {{ mensaje.leido ? 'Leído' : 'Sin leer' }}
+              </span>
+            </td>
+
+            <!-- Acciones -->
+            <td class="text-end">
+              <div class="action-buttons">
+                <button class="action-buttons__btn action-buttons__btn--view" (click)="ver(mensaje)"
+                  title="Ver mensaje">
+                  <i class="ph ph-eye"></i>
+                </button>
+                <button class="action-buttons__btn action-buttons__btn--edit"
+                  (click)="marcarLeido(mensaje, !mensaje.leido)"
+                  [title]="mensaje.leido ? 'Marcar como no leído' : 'Marcar como leído'">
+                  <i class="ph" [ngClass]="mensaje.leido ? 'ph-envelope' : 'ph-envelope-open'"></i>
+                </button>
+                <button class="action-buttons__btn action-buttons__btn--delete" (click)="eliminar(mensaje)"
+                  title="Eliminar">
+                  <i class="ph ph-trash"></i>
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
-  </div>
 
-  <!-- Paginación -->
-  <div class="d-flex justify-content-center align-items-center gap-12 mt-24" *ngIf="totalPages > 1">
-    <button type="button" class="mc-btn mc-btn--suave" [disabled]="currentPage === 1"
-      (click)="cambiarPagina(currentPage - 1)">
-      Anterior
-    </button>
-    <span class="text-sm text-gray-600">Página {{ currentPage }} de {{ totalPages }}</span>
-    <button type="button" class="mc-btn mc-btn--suave" [disabled]="currentPage === totalPages"
-      (click)="cambiarPagina(currentPage + 1)">
-      Siguiente
-    </button>
+    <!-- Paginación -->
+    <div class="modern-data-table__pagination" *ngIf="!isLoading && totalPages > 1">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="pagination-info">Página {{ currentPage }} de {{ totalPages }} · {{ total }} registros</div>
+        <nav>
+          <ul class="pagination-controls">
+            <li [class.disabled]="currentPage === 1">
+              <button (click)="cambiarPagina(currentPage - 1)" [disabled]="currentPage === 1">
+                <i class="ph ph-caret-left"></i>
+              </button>
+            </li>
+            <li *ngFor="let page of paginas" [class.active]="page === currentPage">
+              <button (click)="cambiarPagina(page)">{{ page }}</button>
+            </li>
+            <li [class.disabled]="currentPage === totalPages">
+              <button (click)="cambiarPagina(currentPage + 1)" [disabled]="currentPage === totalPages">
+                <i class="ph ph-caret-right"></i>
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Estado vacío -->
+    <div *ngIf="!isLoading && mensajes.length === 0" class="empty-state">
+      <div class="empty-state__icon"><i class="ph ph-envelope-simple"></i></div>
+      <h5 class="empty-state__title">No hay mensajes</h5>
+      <p class="empty-state__description">Todavía nadie ha escrito desde el formulario de contacto.</p>
+    </div>
+
+    <!-- Sin resultados de búsqueda -->
+    <div *ngIf="!isLoading && mensajes.length > 0 && mensajesFiltrados.length === 0" class="empty-state">
+      <div class="empty-state__icon"><i class="ph ph-magnifying-glass"></i></div>
+      <h5 class="empty-state__title">No se encontraron resultados</h5>
+      <p class="empty-state__description">Prueba con otro nombre, correo o asunto.</p>
+    </div>
   </div>
 </div>
 
@@ -95,7 +185,12 @@
 <div class="modal-fondo" *ngIf="seleccionado" (click)="cerrarModal()">
   <div class="modal-caja" (click)="$event.stopPropagation()">
     <div class="modal-caja__head">
-      <h6 class="mb-0">{{ modoEdicion ? 'Editar mensaje' : seleccionado.asunto }}</h6>
+      <div>
+        <h6 class="mb-0">{{ modoEdicion ? 'Editar mensaje' : seleccionado.asunto }}</h6>
+        <span class="text-xs text-gray-500" *ngIf="!modoEdicion">
+          {{ seleccionado.created_at | date: 'dd/MM/yyyy HH:mm' }}
+        </span>
+      </div>
       <button type="button" class="btn-cerrar" (click)="cerrarModal()"><i class="ph ph-x"></i></button>
     </div>
 
@@ -104,10 +199,7 @@
       <ng-container *ngIf="!modoEdicion">
         <div class="dato"><span>Nombre</span><strong>{{ seleccionado.nombre }}</strong></div>
         <div class="dato"><span>Correo</span><strong>{{ seleccionado.email }}</strong></div>
-        <div class="dato"><span>Teléfono</span><strong>{{ seleccionado.telefono || '-' }}</strong></div>
-        <div class="dato">
-          <span>Recibido</span><strong>{{ seleccionado.created_at | date: 'dd/MM/yyyy HH:mm' }}</strong>
-        </div>
+        <div class="dato"><span>Teléfono</span><strong>{{ seleccionado.telefono || '—' }}</strong></div>
         <div class="mensaje-texto">{{ seleccionado.mensaje }}</div>
       </ng-container>
 
@@ -115,42 +207,42 @@
       <ng-container *ngIf="modoEdicion">
         <label class="campo">
           <span>Nombre</span>
-          <input type="text" class="mc-campo" [(ngModel)]="edicion.nombre" name="edNombre" />
+          <input type="text" class="form-control" [(ngModel)]="edicion.nombre" name="edNombre" />
         </label>
         <label class="campo">
           <span>Correo</span>
-          <input type="email" class="mc-campo" [(ngModel)]="edicion.email" name="edEmail" />
+          <input type="email" class="form-control" [(ngModel)]="edicion.email" name="edEmail" />
         </label>
         <label class="campo">
           <span>Teléfono</span>
-          <input type="text" class="mc-campo" [(ngModel)]="edicion.telefono" name="edTelefono" />
+          <input type="text" class="form-control" [(ngModel)]="edicion.telefono" name="edTelefono" />
         </label>
         <label class="campo">
           <span>Asunto</span>
-          <input type="text" class="mc-campo" [(ngModel)]="edicion.asunto" name="edAsunto" />
+          <input type="text" class="form-control" [(ngModel)]="edicion.asunto" name="edAsunto" />
         </label>
         <label class="campo">
           <span>Mensaje</span>
-          <textarea rows="5" class="mc-campo" [(ngModel)]="edicion.mensaje" name="edMensaje"></textarea>
+          <textarea rows="5" class="form-control" [(ngModel)]="edicion.mensaje" name="edMensaje"></textarea>
         </label>
       </ng-container>
     </div>
 
     <div class="modal-caja__pie">
-      <button type="button" class="mc-btn mc-btn--peligro me-auto" (click)="eliminar(seleccionado)">
+      <button type="button" class="btn btn-outline-danger me-auto" (click)="eliminar(seleccionado)">
         <i class="ph ph-trash"></i> Eliminar
       </button>
 
       <ng-container *ngIf="!modoEdicion">
-        <button type="button" class="mc-btn mc-btn--suave" (click)="responderPorCorreo(seleccionado)">
+        <button type="button" class="btn btn-light border" (click)="responderPorCorreo(seleccionado)">
           <i class="ph ph-envelope-simple"></i> Responder
         </button>
-        <button type="button" class="mc-btn mc-btn--primario" (click)="modoEdicion = true">Editar</button>
+        <button type="button" class="btn btn-primary" (click)="modoEdicion = true">Editar</button>
       </ng-container>
 
       <ng-container *ngIf="modoEdicion">
-        <button type="button" class="mc-btn mc-btn--suave" (click)="modoEdicion = false">Cancelar</button>
-        <button type="button" class="mc-btn mc-btn--primario" [disabled]="guardando" (click)="guardar()">
+        <button type="button" class="btn btn-light border" (click)="modoEdicion = false">Cancelar</button>
+        <button type="button" class="btn btn-primary" [disabled]="guardando" (click)="guardar()">
           {{ guardando ? 'Guardando...' : 'Guardar' }}
         </button>
       </ng-container>
