@@ -311,8 +311,8 @@
                 <i class="ph ph-heart"></i>
                 <span
                   *ngIf="favoritosCount > 0"
-                  class="w-16 h-16 flex-center rounded-circle bg-danger-10 text-white text-xs position-absolute top-n6 end-n4"
-                  >{{ favoritosCount }}</span
+                  class="contador-badge flex-center rounded-pill bg-danger-10 text-white position-absolute top-n6 end-n4"
+                  >{{ favoritosCount > 99 ? '99+' : favoritosCount }}</span
                 >
               </span>
               <span class="text-md item-hover__text d-none d-lg-flex text-white"
@@ -461,8 +461,8 @@
             >
               <i class="ph ph-shopping-cart-simple"></i>
               <span
-                class="w-16 h-16 flex-center rounded-circle bg-danger-10 text-white text-xs position-absolute top-n6 end-n4"
-                >{{ cartItemCount }}</span
+                class="contador-badge flex-center rounded-pill bg-danger-10 text-white position-absolute top-n6 end-n4"
+                >{{ cartItemCount > 99 ? '99+' : cartItemCount }}</span
               >
             </span>
             <span class="text-md item-hover__text d-none d-lg-flex text-white"

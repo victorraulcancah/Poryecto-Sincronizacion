@@ -80,3 +80,16 @@
     display: none;
   }
 }
+
+/* Contador del carrito y de favoritos.
+   Antes era un círculo de 16px fijo: con tres cifras (ej. 746) el número se
+   cortaba. Ahora crece a lo ancho y se queda redondo cuando es de una cifra. */
+.contador-badge {
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
