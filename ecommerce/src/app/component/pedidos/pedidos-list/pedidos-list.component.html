@@ -1034,6 +1034,16 @@
                     </span>
                   </div>
 
+                  <!-- Referencia de la dirección: se guarda en 7Power, así que
+                       solo sale si la cuenta está vinculada. -->
+                  <div class="info-item mb-20" *ngIf="pedidoSeleccionado?.cliente_erp?.indicaciones">
+                    <span class="info-item__label">Indicaciones</span>
+                    <span class="info-item__value mt-4 d-block bg-gray-50 p-12 rounded-8 border border-gray-100 text-dark">
+                      <i class="ph ph-note me-6 text-gray-400"></i>
+                      {{ pedidoSeleccionado?.cliente_erp?.indicaciones }}
+                    </span>
+                  </div>
+
                   <div class="p-12 rounded-12 border border-gray-100" style="background-color: #f8f9fa;">
                     <div class="row g-12">
                       <div class="col-4">
