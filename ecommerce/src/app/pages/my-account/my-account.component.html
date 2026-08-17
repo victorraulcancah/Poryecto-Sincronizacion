@@ -60,8 +60,8 @@
                 <ng-container *ngIf="titular.codigo_erp">· {{ titular.codigo_erp }}</ng-container>
               </span>
 
-              <p class="fw-semibold text-heading text-sm mb-4">{{ titular.nombre }}</p>
-
+              <!-- El nombre ya sale arriba en el saludo: aquí van los datos
+                   que solo existen en 7Power. -->
               <p class="text-xs text-gray-600 mb-4" *ngIf="titular.documento">
                 {{ etiquetaDocumento }}: {{ titular.documento }}
               </p>

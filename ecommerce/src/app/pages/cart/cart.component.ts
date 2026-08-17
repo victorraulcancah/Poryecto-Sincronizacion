@@ -84,9 +84,11 @@ export class CartComponent implements OnInit, OnDestroy {
     this.isUpdating = true;
     this.cartService.updateQuantity(item, newQuantity).subscribe({
       error: (err) => {
+        // Sin decir cuántas unidades quedan: el stock real no se muestra al
+        // cliente en ninguna parte de la tienda.
         Swal.fire({ 
           title: 'Stock insuficiente', 
-          text: `Solo hay ${item.stock_disponible || 0} unidades disponibles`, 
+          text: 'No hay stock suficiente para la cantidad que pediste.', 
           icon: 'warning', 
           confirmButtonColor: '#dc3545' 
         });
@@ -101,7 +103,7 @@ export class CartComponent implements OnInit, OnDestroy {
       if ((item.cantidad + 1) > (item.stock_disponible || 0)) {
         Swal.fire({
           title: 'Stock insuficiente',
-          text: `Solo hay ${item.stock_disponible || 0} unidades disponibles`,
+          text: 'No hay stock suficiente para la cantidad que pediste.',
           icon: 'warning',
           confirmButtonColor: '#dc3545'
         });

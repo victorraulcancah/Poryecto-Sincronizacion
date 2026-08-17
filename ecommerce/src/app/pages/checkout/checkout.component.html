@@ -374,9 +374,17 @@
                           <span class="text-gray-500 text-xs d-block">Correo</span>
                           <span class="fw-medium">{{ titular?.email || checkoutForm.get('email')?.value || '—' }}</span>
                         </div>
-                        <div class="col-12" *ngIf="titular?.direccion">
-                          <span class="text-gray-500 text-xs d-block">Dirección</span>
-                          <span class="fw-medium">{{ titular?.direccion }}</span>
+                        <!-- La dirección de ENTREGA elegida en el paso 1, no la
+                             del cliente de 7Power: son cosas distintas. -->
+                        <div class="col-12" *ngIf="direccionEntregaResumen">
+                          <span class="text-gray-500 text-xs d-block">
+                            Dirección de entrega
+                            <span *ngIf="usandoDireccionErp"
+                              class="badge bg-main-50 text-main-600 rounded-pill ms-4" style="font-size: 10px;">
+                              <i class="ph ph-link me-2"></i>7POWER
+                            </span>
+                          </span>
+                          <span class="fw-medium">{{ direccionEntregaResumen }}</span>
                         </div>
                       </div>
 

@@ -1276,6 +1276,19 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       .join(', ');
   }
 
+  /**
+   * La dirección a la que se va a entregar, según lo elegido en el paso 1.
+   * El resumen del paso de pago mostraba la del cliente de 7Power aunque se
+   * hubiera elegido una dirección propia.
+   */
+  get direccionEntregaResumen(): string {
+    if (this.usandoDireccionErp) return this.direccionErpEnUnaLinea;
+    if (this.direccionSeleccionada)
+      return this.direccionEnUnaLinea(this.direccionSeleccionada);
+
+    return this.checkoutForm.get('direccion')?.value || '';
+  }
+
   /** Una dirección guardada en un solo renglón, con su ubigeo. */
   direccionEnUnaLinea(direccion: Direccion): string {
     return [

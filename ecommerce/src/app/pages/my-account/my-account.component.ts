@@ -109,6 +109,10 @@ export class MyAccountComponent implements OnInit, OnDestroy {
 
   // Métodos auxiliares para obtener información del usuario
   getUserName(): string {
+    // Con la cuenta vinculada manda el cliente de 7Power: es a nombre de quien
+    // se emiten los comprobantes, así que es el dato que el cliente espera ver.
+    if (this.titular?.nombre) return this.titular.nombre;
+
     if (!this.currentUser) return 'Usuario';
     
     // Si es un cliente e-commerce, extraer solo los nombres
@@ -127,6 +131,9 @@ export class MyAccountComponent implements OnInit, OnDestroy {
   }
 
   getUserEmail(): string {
+    // El correo del cliente vinculado si lo tiene registrado en 7Power.
+    if (this.titular?.email) return this.titular.email;
+
     return this.currentUser?.email || '';
   }
 

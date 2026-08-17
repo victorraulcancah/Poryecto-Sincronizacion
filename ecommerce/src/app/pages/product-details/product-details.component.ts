@@ -645,7 +645,8 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
       return;
     }
     if (this.cantidad > this.producto.stock) {
-      Swal.fire({ title: "Stock insuficiente", text: `Solo hay ${this.producto.stock} unidades disponibles`, icon: "warning", confirmButtonColor: "#dc3545" });
+      // Igual que en el carrito: no se revela el stock real.
+      Swal.fire({ title: "Stock insuficiente", text: "No hay stock suficiente para la cantidad que pediste.", icon: "warning", confirmButtonColor: "#dc3545" });
       return;
     }
 
