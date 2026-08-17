@@ -75,14 +75,18 @@ export class CartComponent implements OnInit, OnDestroy {
   }
 
   updateQuantity(item: CartItem, newQuantity: number): void {
-    if (!item || newQuantity < 1) {
-      if (item) {
-        this.removeProduct(item.id);
-      }
+    if (!item) return;
+
+    const cantidad = Math.floor(Number(newQuantity));
+
+    // Escribir 0 (o vaciar la caja) ya no borra el producto: vuelve a 1. Para
+    // quitarlo del carrito está el botón de eliminar.
+    if (!cantidad || cantidad < 1) {
+      item.cantidad = 1;
       return;
     }
     this.isUpdating = true;
-    this.cartService.updateQuantity(item, newQuantity).subscribe({
+    this.cartService.updateQuantity(item, cantidad).subscribe({
       error: (err) => {
         // Sin decir cuántas unidades quedan: el stock real no se muestra al
         // cliente en ninguna parte de la tienda.
