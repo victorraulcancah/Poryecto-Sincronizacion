@@ -419,3 +419,10 @@ $rojo-dark: #a01a1f;
     }
   }
 }
+
+/* Caja del desglose de totales, igual que en el modal del panel. */
+.total-summary-box {
+  background: var(--gray-50, #f7f8fa);
+  padding: 20px;
+  border-radius: 12px;
+}

@@ -498,41 +498,90 @@
         </div>
       </div>
 
-      <!-- Detalle de pago: mismas tarjetas que el modal del panel. -->
+      <!-- Detalle de pago: las dos tarjetas del modal del panel. -->
       <div *ngIf="activeTabDetalle === 'pago'">
-        <div class="detail-card">
-          <div class="detail-card__header">
-            <h6 class="mb-0 fw-bold"><i class="ph ph-credit-card me-8 text-main-600"></i>Método de Pago</h6>
+        <div class="row g-24">
+          <div class="col-md-6">
+            <div class="detail-card h-100">
+              <div class="detail-card__header">
+                <h6 class="mb-0 fw-bold"><i class="ph ph-credit-card me-8 text-main-600"></i>Método de Pago</h6>
+              </div>
+              <div class="detail-card__body">
+                <div class="d-flex justify-content-between align-items-center mb-8">
+                  <span class="text-uppercase text-gray-500 fw-semibold" style="font-size: 11px; letter-spacing: .04em;">
+                    {{ nombreMoneda(cotizacionDetalle.moneda) }}
+                  </span>
+                  <span class="text-gray-400" style="font-size: 11px;">
+                    {{ (cotizacionDetalle.metodos_pago || []).length }}
+                    {{ (cotizacionDetalle.metodos_pago || []).length === 1 ? 'método' : 'métodos' }}
+                  </span>
+                </div>
+
+                <div *ngFor="let m of cotizacionDetalle.metodos_pago"
+                     class="d-flex justify-content-between align-items-center p-12 mb-8 rounded-12 border border-gray-100 bg-main-50">
+                  <span class="fw-semibold text-dark">
+                    <i class="ph-bold ph-wallet me-8 text-main-600"></i>{{ formatMetodoPago(m.tipo) }}
+                  </span>
+                  <span class="fw-bold text-main-600">
+                    {{ (m.moneda || cotizacionDetalle.moneda || 's') | moneda }} {{ m.monto | number:'1.2-2' }}
+                  </span>
+                </div>
+
+                <p class="text-sm text-gray-500 mb-0" *ngIf="!cotizacionDetalle.metodos_pago?.length">
+                  {{ cotizacionDetalle.metodo_pago_preferido
+                      ? formatMetodoPago(cotizacionDetalle.metodo_pago_preferido)
+                      : 'No se registró método de pago.' }}
+                </p>
+
+                <div class="d-flex justify-content-between align-items-center px-12 pt-8 border-top"
+                     *ngIf="cotizacionDetalle.metodos_pago?.length">
+                  <span class="fw-semibold text-gray-600">
+                    Total en {{ nombreMoneda(cotizacionDetalle.moneda).toLowerCase() }}
+                  </span>
+                  <span class="fw-bold text-heading">
+                    {{ (cotizacionDetalle.moneda || 's') | moneda }} {{ cotizacionDetalle.total | number:'1.2-2' }}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="detail-card__body">
-            <div class="info-item mb-16" *ngIf="cotizacionDetalle.metodo_pago_preferido">
-              <span class="info-item__label">Método preferido</span>
-              <span class="info-item__value fw-semibold text-dark">
-                {{ formatMetodoPago(cotizacionDetalle.metodo_pago_preferido) }}
-              </span>
-            </div>
 
-            <!-- Desglose tal como se registró al cotizar. -->
-            <div *ngFor="let m of cotizacionDetalle.metodos_pago"
-                 class="d-flex justify-content-between align-items-center p-12 mb-8 rounded-12 border border-gray-100 bg-main-50">
-              <span class="fw-semibold text-dark">
-                <i class="ph-bold ph-wallet me-8 text-main-600"></i>{{ formatMetodoPago(m.tipo) }}
-              </span>
-              <span class="fw-bold text-main-600">
-                {{ (m.moneda || 's') | moneda }} {{ m.monto | number:'1.2-2' }}
-              </span>
-            </div>
-
-            <p class="text-sm text-gray-500 mb-0"
-               *ngIf="!cotizacionDetalle.metodos_pago?.length && !cotizacionDetalle.metodo_pago_preferido">
-              No se registró método de pago.
-            </p>
-
-            <div class="d-flex justify-content-between align-items-center px-12 pt-12 border-top mt-8">
-              <span class="fw-semibold text-gray-600">Total</span>
-              <span class="fw-bold text-heading">
-                {{ (cotizacionDetalle.moneda || 's') | moneda }} {{ cotizacionDetalle.total | number:'1.2-2' }}
-              </span>
+          <div class="col-md-6">
+            <div class="detail-card h-100">
+              <div class="detail-card__header">
+                <h6 class="mb-0 fw-bold"><i class="ph ph-receipt me-8 text-main-600"></i>Desglose del Total</h6>
+              </div>
+              <div class="detail-card__body">
+                <div class="total-summary-box">
+                  <div class="text-uppercase text-gray-500 fw-semibold mb-8" style="font-size: 11px; letter-spacing: .04em;">
+                    {{ nombreMoneda(cotizacionDetalle.moneda) }}
+                  </div>
+                  <div class="d-flex justify-content-between mb-8">
+                    <span class="text-gray-500">Subtotal</span>
+                    <span class="fw-semibold">
+                      {{ (cotizacionDetalle.moneda || 's') | moneda }} {{ (cotizacionDetalle.subtotal || 0) | number:'1.2-2' }}
+                    </span>
+                  </div>
+                  <div class="d-flex justify-content-between mb-8">
+                    <span class="text-gray-500">IGV (18%)</span>
+                    <span class="fw-semibold">
+                      {{ (cotizacionDetalle.moneda || 's') | moneda }} {{ (cotizacionDetalle.igv || 0) | number:'1.2-2' }}
+                    </span>
+                  </div>
+                  <div class="d-flex justify-content-between mb-12">
+                    <span class="text-gray-500">Envío</span>
+                    <span class="fw-semibold">
+                      {{ (cotizacionDetalle.moneda || 's') | moneda }} {{ (cotizacionDetalle.costo_envio || 0) | number:'1.2-2' }}
+                    </span>
+                  </div>
+                  <div class="d-flex justify-content-between pt-12 border-top">
+                    <span class="fw-bold text-heading">TOTAL</span>
+                    <span class="fw-bold text-success-600 fs-5">
+                      {{ (cotizacionDetalle.moneda || 's') | moneda }} {{ cotizacionDetalle.total | number:'1.2-2' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

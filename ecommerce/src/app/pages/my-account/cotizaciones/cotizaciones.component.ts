@@ -234,6 +234,11 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
   /** Pestaña abierta en el modal de "Ver". */
   activeTabDetalle: 'productos' | 'envio' | 'pago' = 'productos';
 
+  /** "Soles" / "Dólares", para encabezar el desglose. */
+  nombreMoneda(moneda: string | null | undefined): string {
+    return (moneda || 's') === 'd' ? 'Dólares' : 'Soles';
+  }
+
   /** Nombre legible de la forma de envío guardada. */
   formatFormaEnvio(forma: string | null | undefined): string {
     if (!forma) return 'No especificada';
