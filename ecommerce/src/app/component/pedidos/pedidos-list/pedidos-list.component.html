@@ -718,8 +718,8 @@
             <i class="ph-bold ph-package text-xl"></i>
           </div>
           <div>
-            <h5 class="modal-title fw-bold text-heading">Pedido {{ pedidoSeleccionado?.codigo_pedido }}</h5>
-            <p class="text-gray-500 text-sm mb-0">Detalle completo y seguimiento del pedido</p>
+            <h5 class="modal-title fw-bold text-heading">Cotización {{ pedidoSeleccionado?.codigo_pedido }}</h5>
+            <p class="text-gray-500 text-sm mb-0">Detalle completo y seguimiento de la cotización</p>
           </div>
         </div>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -1034,14 +1034,6 @@
                     </span>
                   </div>
 
-                  <!-- La del ERP como referencia, cuando eligió otra. -->
-                  <div class="info-item mb-20" *ngIf="otraDireccionDelErp(pedidoSeleccionado)">
-                    <span class="info-item__label">Dirección registrada en 7Power</span>
-                    <span class="info-item__value mt-4 d-block text-gray-600">
-                      <i class="ph ph-map-pin me-6 text-gray-400"></i>
-                      {{ otraDireccionDelErp(pedidoSeleccionado) }}
-                    </span>
-                  </div>
                   <div class="p-12 rounded-12 border border-gray-100" style="background-color: #f8f9fa;">
                     <div class="row g-12">
                       <div class="col-4">
@@ -1160,16 +1152,6 @@
 
         <!-- TAB: CAMBIAR ESTADO -->
         <div *ngIf="activeTabDetalle === 'estado'" class="estado-tab animate__animated animate__fadeIn">
-          <!-- Alerta provincia especial -->
-          <div *ngIf="pedidoSeleccionado && esEnvioAProvincia(pedidoSeleccionado)"
-               class="alert alert-danger bg-danger-50 border-danger-100 d-flex align-items-center mb-24 rounded-16 p-16">
-            <i class="ph-bold ph-info text-danger-600 fs-4 me-12"></i>
-            <div class="text-sm text-danger-700">
-              <strong>Flujo de Provincia:</strong> Sigue el orden:
-              <span class="fw-bold">Pendiente → En Recepción → Enviado a Provincia → Entregado</span>
-            </div>
-          </div>
-
           <div class="d-flex align-items-center gap-12 mb-20">
             <h6 class="fw-bold text-heading mb-0">Seleccione el Nuevo Estado</h6>
             <span class="status-badge" [ngClass]="getEstadoBadgeClass(pedidoSeleccionado?.estado_pedido?.nombre_estado)">
@@ -1303,16 +1285,6 @@
                 </span>
               </div>
             </div>
-          </div>
-        </div>
-
-        <!-- Alerta provincia especial -->
-        <div *ngIf="pedidoSeleccionado && esEnvioAProvincia(pedidoSeleccionado)"
-             class="alert alert-danger bg-danger-50 border-danger-100 d-flex align-items-center mb-24 rounded-16 p-16">
-          <i class="ph-bold ph-info text-danger-600 fs-4 me-12"></i>
-          <div class="text-sm text-danger-700">
-            <strong>Flujo de Provincia:</strong> Sigue el orden:
-            <span class="fw-bold">Pendiente → En Recepción → Enviado a Provincia → Entregado</span>
           </div>
         </div>
 

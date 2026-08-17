@@ -94,6 +94,7 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
   cotizacionDetalle: Cotizacion | null = null;
 
   verProductosCotizacion(cotizacion: Cotizacion): void {
+    this.activeTabDetalle = 'productos';
     this.cotizacionDetalle = cotizacion;
   }
 
@@ -229,6 +230,34 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
     });
   }
 
+
+  /** Pestaña abierta en el modal de "Ver". */
+  activeTabDetalle: 'productos' | 'envio' | 'pago' = 'productos';
+
+  /** Nombre legible de la forma de envío guardada. */
+  formatFormaEnvio(forma: string | null | undefined): string {
+    if (!forma) return 'No especificada';
+    switch (forma.toLowerCase()) {
+      case 'delivery':        return 'Delivery';
+      case 'recojo_tienda':   return 'Recojo en tienda';
+      case 'envio_provincia': return 'Envío a provincia';
+      default:
+        return forma.replace(/_/g, ' ').charAt(0).toUpperCase() + forma.slice(1);
+    }
+  }
+
+  /** Nombre legible del método de pago guardado. */
+  formatMetodoPago(metodo: string | null | undefined): string {
+    if (!metodo) return 'No especificado';
+    switch (metodo.toLowerCase()) {
+      case 'efectivo':      return 'Efectivo';
+      case 'tarjeta':       return 'Tarjeta de crédito/débito';
+      case 'transferencia': return 'Transferencia bancaria';
+      case 'yape':          return 'Yape';
+      case 'plin':          return 'Plin';
+      default: return metodo.charAt(0).toUpperCase() + metodo.slice(1);
+    }
+  }
 
   formatearFecha(fecha: string | undefined): string {
     if (!fecha) return '-';

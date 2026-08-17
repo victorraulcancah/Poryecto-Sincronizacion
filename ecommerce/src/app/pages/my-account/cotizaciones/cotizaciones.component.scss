@@ -348,3 +348,37 @@ $rojo-dark: #a01a1f;
     }
   }
 }
+
+/* Datos de las pestañas Envío y Detalle de Pago del modal de "Ver". */
+.cot-datos {
+  border: 1px solid var(--gray-100, #eee);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.cot-dato {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  font-size: 14px;
+
+  & + & {
+    border-top: 1px solid var(--gray-100, #eee);
+  }
+
+  span {
+    color: #7b8493;
+  }
+
+  strong {
+    color: #1f2733;
+    text-align: right;
+  }
+
+  &--total {
+    background: #f8f9fb;
+    font-size: 15px;
+  }
+}
