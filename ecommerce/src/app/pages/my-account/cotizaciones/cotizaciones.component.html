@@ -344,28 +344,45 @@
 <!-- Detalle de productos de la cotización: mismo diseño que el del pedido -->
 <div class="cot-overlay" *ngIf="cotizacionDetalle" (click)="cerrarProductosCotizacion()">
   <div class="cot-modal" (click)="$event.stopPropagation()">
-    <div class="flex-between align-items-center gap-16 px-24 py-16 border-bottom border-gray-100">
-      <div>
-        <h6 class="mb-0 text-heading">Cotización {{ cotizacionDetalle.codigo_cotizacion }}</h6>
-        <p class="text-xs text-gray-500 mb-0">{{ formatearFecha(cotizacionDetalle.fecha_cotizacion) }}</p>
+    <!-- Cabecera con el mismo formato del modal del panel. -->
+    <div class="flex-between align-items-center gap-16 px-24 py-16 bg-main-50">
+      <div class="d-flex align-items-center gap-16">
+        <div class="w-48 h-48 bg-main-600 text-white rounded-circle flex-center shadow-sm">
+          <i class="ph-bold ph-file-text text-xl"></i>
+        </div>
+        <div>
+          <h5 class="fw-bold text-heading mb-0">Cotización {{ cotizacionDetalle.codigo_cotizacion }}</h5>
+          <p class="text-gray-500 text-sm mb-0">{{ formatearFecha(cotizacionDetalle.fecha_cotizacion) }}</p>
+        </div>
       </div>
       <button type="button" class="btn-close" (click)="cerrarProductosCotizacion()" aria-label="Cerrar"></button>
     </div>
 
-    <!-- Pestañas: los mismos datos que muestra el modal del pedido. -->
-    <div class="d-flex gap-8 px-24 pt-16">
-      <button class="edit-tab" [class.edit-tab--active]="activeTabDetalle === 'productos'"
-              (click)="activeTabDetalle = 'productos'">
-        <i class="ph-bold ph-shopping-cart me-6"></i>Productos
-      </button>
-      <button class="edit-tab" [class.edit-tab--active]="activeTabDetalle === 'envio'"
-              (click)="activeTabDetalle = 'envio'">
-        <i class="ph-bold ph-truck me-6"></i>Envío
-      </button>
-      <button class="edit-tab" [class.edit-tab--active]="activeTabDetalle === 'pago'"
-              (click)="activeTabDetalle = 'pago'">
-        <i class="ph-bold ph-credit-card me-6"></i>Detalle de Pago
-      </button>
+    <!-- Pestañas: mismos datos y mismo estilo que el modal del panel. -->
+    <div class="px-24 bg-main-50 border-bottom border-gray-100">
+      <ul class="nav nav-tabs border-bottom-0 gap-8 mb-0">
+        <li class="nav-item">
+          <button class="nav-link cot-tab" [class.active]="activeTabDetalle === 'productos'"
+                  (click)="activeTabDetalle = 'productos'">
+            <i class="ph ph-shopping-cart me-8"></i>Productos
+            <span class="badge bg-main-600 text-white rounded-pill ms-8" style="font-size: 10px;">
+              {{ cotizacionDetalle.productos.length }}
+            </span>
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link cot-tab" [class.active]="activeTabDetalle === 'envio'"
+                  (click)="activeTabDetalle = 'envio'">
+            <i class="ph ph-truck me-8"></i>Envío
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link cot-tab" [class.active]="activeTabDetalle === 'pago'"
+                  (click)="activeTabDetalle = 'pago'">
+            <i class="ph ph-credit-card me-8"></i>Detalle de Pago
+          </button>
+        </li>
+      </ul>
     </div>
 
     <div class="cot-modal__body">
