@@ -873,7 +873,10 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       cliente_nombre: formData.cliente,
       cliente_email: formData.email,
       direccion_envio: formData.direccion,
-      telefono_contacto: formData.celular,
+      // El paso de entrega ya no pide celular: el teléfono sale del titular
+      // (el cliente de 7Power si la cuenta está vinculada, o la cuenta misma),
+      // que es el que se muestra en "Datos del Titular".
+      telefono_contacto: this.titular?.telefono || formData.celular || '',
       forma_envio: formaEnvioStr,
       observaciones: formData.observaciones || '',
       metodo_pago_preferido: formData.tipoPago,
