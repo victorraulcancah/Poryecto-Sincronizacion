@@ -446,52 +446,95 @@
         {{ cotizacionDetalle.observaciones }}
       </p>
 
-      <!-- Envío -->
-      <div class="cot-datos" *ngIf="activeTabDetalle === 'envio'">
-        <div class="cot-dato">
-          <span>Forma de envío</span>
-          <strong>{{ formatFormaEnvio(cotizacionDetalle.forma_envio) }}</strong>
-        </div>
-        <div class="cot-dato">
-          <span>Dirección de entrega</span>
-          <strong>{{ cotizacionDetalle.direccion_envio || '—' }}</strong>
-        </div>
-        <div class="cot-dato" *ngIf="cotizacionDetalle.telefono_contacto">
-          <span>Teléfono de contacto</span>
-          <strong>{{ cotizacionDetalle.telefono_contacto }}</strong>
-        </div>
-        <div class="cot-dato">
-          <span>Costo de envío</span>
-          <strong>
-            {{ (cotizacionDetalle.moneda || 's') | moneda }}
-            {{ (cotizacionDetalle.costo_envio || 0) | number:'1.2-2' }}
-          </strong>
+      <!-- Envío: mismas tarjetas que el modal del panel. -->
+      <div *ngIf="activeTabDetalle === 'envio'">
+        <div class="detail-card">
+          <div class="detail-card__header">
+            <h6 class="mb-0 fw-bold"><i class="ph ph-truck me-8 text-main-600"></i>Logística de Envío</h6>
+          </div>
+          <div class="detail-card__body">
+            <div class="info-item mb-16">
+              <span class="info-item__label">Forma de Envío</span>
+              <div class="d-flex align-items-center gap-8 mt-4">
+                <div class="w-32 h-32 bg-main-50 text-main-600 rounded-circle flex-center">
+                  <i class="ph ph-truck"></i>
+                </div>
+                <span class="info-item__value fw-semibold text-dark">
+                  {{ formatFormaEnvio(cotizacionDetalle.forma_envio) }}
+                </span>
+              </div>
+            </div>
+
+            <div class="info-item mb-20">
+              <span class="info-item__label">Dirección Completa</span>
+              <span class="info-item__value mt-4 d-block bg-gray-50 p-12 rounded-8 border border-gray-100 text-dark">
+                <i class="ph ph-map-pin me-6 text-danger-600"></i>
+                {{ cotizacionDetalle.direccion_envio || '—' }}
+              </span>
+            </div>
+
+            <div class="p-12 rounded-12 border border-gray-100" style="background-color: #f8f9fa;">
+              <div class="row g-12">
+                <div class="col-6">
+                  <div class="info-item">
+                    <span class="info-item__label" style="font-size: 10px;">Teléfono de contacto</span>
+                    <span class="info-item__value d-block mt-4 fw-bold text-dark" style="font-size: 13px;">
+                      {{ cotizacionDetalle.telefono_contacto || '—' }}
+                    </span>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="info-item border-start ps-12">
+                    <span class="info-item__label" style="font-size: 10px;">Costo de envío</span>
+                    <span class="info-item__value d-block mt-4 fw-bold text-dark" style="font-size: 13px;">
+                      {{ (cotizacionDetalle.moneda || 's') | moneda }}
+                      {{ (cotizacionDetalle.costo_envio || 0) | number:'1.2-2' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Detalle de pago -->
-      <div class="cot-datos" *ngIf="activeTabDetalle === 'pago'">
-        <div class="cot-dato" *ngIf="cotizacionDetalle.metodo_pago_preferido">
-          <span>Método preferido</span>
-          <strong>{{ formatMetodoPago(cotizacionDetalle.metodo_pago_preferido) }}</strong>
-        </div>
+      <!-- Detalle de pago: mismas tarjetas que el modal del panel. -->
+      <div *ngIf="activeTabDetalle === 'pago'">
+        <div class="detail-card">
+          <div class="detail-card__header">
+            <h6 class="mb-0 fw-bold"><i class="ph ph-credit-card me-8 text-main-600"></i>Método de Pago</h6>
+          </div>
+          <div class="detail-card__body">
+            <div class="info-item mb-16" *ngIf="cotizacionDetalle.metodo_pago_preferido">
+              <span class="info-item__label">Método preferido</span>
+              <span class="info-item__value fw-semibold text-dark">
+                {{ formatMetodoPago(cotizacionDetalle.metodo_pago_preferido) }}
+              </span>
+            </div>
 
-        <!-- Desglose por método, tal como se registró al cotizar. -->
-        <div class="cot-dato" *ngFor="let m of cotizacionDetalle.metodos_pago">
-          <span>{{ formatMetodoPago(m.tipo) }}</span>
-          <strong>{{ (m.moneda || 's') | moneda }} {{ m.monto | number:'1.2-2' }}</strong>
-        </div>
+            <!-- Desglose tal como se registró al cotizar. -->
+            <div *ngFor="let m of cotizacionDetalle.metodos_pago"
+                 class="d-flex justify-content-between align-items-center p-12 mb-8 rounded-12 border border-gray-100 bg-main-50">
+              <span class="fw-semibold text-dark">
+                <i class="ph-bold ph-wallet me-8 text-main-600"></i>{{ formatMetodoPago(m.tipo) }}
+              </span>
+              <span class="fw-bold text-main-600">
+                {{ (m.moneda || 's') | moneda }} {{ m.monto | number:'1.2-2' }}
+              </span>
+            </div>
 
-        <p class="text-sm text-gray-500 mb-0"
-           *ngIf="!cotizacionDetalle.metodos_pago?.length && !cotizacionDetalle.metodo_pago_preferido">
-          No se registró método de pago.
-        </p>
+            <p class="text-sm text-gray-500 mb-0"
+               *ngIf="!cotizacionDetalle.metodos_pago?.length && !cotizacionDetalle.metodo_pago_preferido">
+              No se registró método de pago.
+            </p>
 
-        <div class="cot-dato cot-dato--total">
-          <span>Total</span>
-          <strong class="text-success-600">
-            {{ (cotizacionDetalle.moneda || 's') | moneda }} {{ cotizacionDetalle.total | number:'1.2-2' }}
-          </strong>
+            <div class="d-flex justify-content-between align-items-center px-12 pt-12 border-top mt-8">
+              <span class="fw-semibold text-gray-600">Total</span>
+              <span class="fw-bold text-heading">
+                {{ (cotizacionDetalle.moneda || 's') | moneda }} {{ cotizacionDetalle.total | number:'1.2-2' }}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
