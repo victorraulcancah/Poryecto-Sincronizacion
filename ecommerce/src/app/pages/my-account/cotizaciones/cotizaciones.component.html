@@ -473,24 +473,59 @@
               </span>
             </div>
 
+            <!-- Referencia de la dirección: se guarda en 7Power, así que solo
+                 sale si la cuenta está vinculada. -->
+            <div class="info-item mb-20" *ngIf="cotizacionDetalle.indicaciones">
+              <span class="info-item__label">Indicaciones</span>
+              <span class="info-item__value mt-4 d-block bg-gray-50 p-12 rounded-8 border border-gray-100 text-dark">
+                <i class="ph ph-note me-6 text-gray-400"></i>
+                {{ cotizacionDetalle.indicaciones }}
+              </span>
+            </div>
+
             <div class="p-12 rounded-12 border border-gray-100" style="background-color: #f8f9fa;">
               <div class="row g-12">
-                <div class="col-6">
+                <div class="col-4">
                   <div class="info-item">
-                    <span class="info-item__label" style="font-size: 10px;">Teléfono de contacto</span>
-                    <span class="info-item__value d-block mt-4 fw-bold text-dark" style="font-size: 13px;">
-                      {{ cotizacionDetalle.telefono_contacto || '—' }}
+                    <span class="info-item__label" style="font-size: 10px;">Distrito</span>
+                    <span class="info-item__value d-block mt-4 fw-bold text-dark text-uppercase" style="font-size: 13px;">
+                      {{ cotizacionDetalle.distrito_nombre || '—' }}
                     </span>
                   </div>
                 </div>
-                <div class="col-6">
+                <div class="col-4">
                   <div class="info-item border-start ps-12">
-                    <span class="info-item__label" style="font-size: 10px;">Costo de envío</span>
-                    <span class="info-item__value d-block mt-4 fw-bold text-dark" style="font-size: 13px;">
-                      {{ (cotizacionDetalle.moneda || 's') | moneda }}
-                      {{ (cotizacionDetalle.costo_envio || 0) | number:'1.2-2' }}
+                    <span class="info-item__label" style="font-size: 10px;">Provincia</span>
+                    <span class="info-item__value d-block mt-4 fw-bold text-dark text-uppercase" style="font-size: 13px;">
+                      {{ cotizacionDetalle.provincia_nombre || '—' }}
                     </span>
                   </div>
+                </div>
+                <div class="col-4">
+                  <div class="info-item border-start ps-12">
+                    <span class="info-item__label" style="font-size: 10px;">Departamento</span>
+                    <span class="info-item__value d-block mt-4 fw-bold text-dark text-uppercase" style="font-size: 13px;">
+                      {{ cotizacionDetalle.departamento_nombre || '—' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-12 mt-4">
+              <div class="col-6">
+                <div class="info-item">
+                  <span class="info-item__label">Teléfono de contacto</span>
+                  <span class="info-item__value">{{ cotizacionDetalle.telefono_contacto || '—' }}</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="info-item">
+                  <span class="info-item__label">Costo de envío</span>
+                  <span class="info-item__value">
+                    {{ (cotizacionDetalle.moneda || 's') | moneda }}
+                    {{ (cotizacionDetalle.costo_envio || 0) | number:'1.2-2' }}
+                  </span>
                 </div>
               </div>
             </div>

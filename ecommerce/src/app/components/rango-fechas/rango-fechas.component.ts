@@ -67,6 +67,7 @@ export class RangoFechasComponent implements OnInit {
    * nunca se va al futuro, así que "esta semana" y "este mes" terminan hoy.
    */
   readonly atajos = [
+    { etiqueta: 'Hoy', rango: () => this.hoyMismo() },
     { etiqueta: 'Esta semana', rango: () => this.semanaActual() },
     { etiqueta: 'Última semana', rango: () => this.semanaAnterior() },
     { etiqueta: 'Este mes', rango: () => this.mesActual() },
@@ -82,6 +83,11 @@ export class RangoFechasComponent implements OnInit {
     // El panel se posiciona en el mes del inicio, para que se vea el rango.
     this.mesBase = new Date(inicio.getFullYear(), inicio.getMonth(), 1);
     this.confirmar();
+  }
+
+  /** Solo el día de hoy. */
+  private hoyMismo(): [Date, Date] {
+    return [this.hoy, this.hoy];
   }
 
   /** Lunes de la semana en curso hasta hoy. */

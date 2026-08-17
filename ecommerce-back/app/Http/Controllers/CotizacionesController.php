@@ -611,9 +611,15 @@ class CotizacionesController extends Controller
                 fn ($pedido) => $pedido->estado_pedido_id
             );
 
+            // Las indicaciones de la dirección se guardan en 7Power, no en la
+            // cotización: si la cuenta está vinculada se traen de ahí para
+            // mostrarlas en el detalle del envío.
+            $clienteErp = app(\App\Services\ClienteErpService::class)
+                ->porCodigo($userCliente->codigo_erp ?? null);
+
             return response()->json([
                 'status' => 'success',
-                'cotizaciones' => $cotizaciones->map(function($cotizacion) use ($estadoPedidoPorCotizacion, $pedidosPorCotizacion) {
+                'cotizaciones' => $cotizaciones->map(function($cotizacion) use ($estadoPedidoPorCotizacion, $pedidosPorCotizacion, $clienteErp) {
                     return [
                         'id' => $cotizacion->id,
                         'codigo_cotizacion' => $cotizacion->codigo_cotizacion,
@@ -635,6 +641,11 @@ class CotizacionesController extends Controller
                             === Pedido::ESTADO_EN_ESPERA,
                         'forma_envio' => $cotizacion->forma_envio,
                         'direccion_envio' => $cotizacion->direccion_envio,
+                        'departamento_nombre' => $cotizacion->departamento_nombre,
+                        'provincia_nombre' => $cotizacion->provincia_nombre,
+                        'distrito_nombre' => $cotizacion->distrito_nombre,
+                        'ubicacion_completa' => $cotizacion->ubicacion_completa,
+                        'indicaciones' => $clienteErp['indicaciones'] ?? null,
                         'observaciones' => $cotizacion->observaciones,
                         'cliente_nombre' => $cotizacion->cliente_nombre,
                         'cliente_email' => $cotizacion->cliente_email,

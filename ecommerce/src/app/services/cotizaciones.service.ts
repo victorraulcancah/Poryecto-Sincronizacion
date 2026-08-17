@@ -29,6 +29,12 @@ export interface Cotizacion {
   editable: boolean;
   forma_envio: string;
   direccion_envio: string;
+  departamento_nombre?: string | null;
+  provincia_nombre?: string | null;
+  distrito_nombre?: string | null;
+  ubicacion_completa?: string | null;
+  /** Referencia de la dirección; vive en 7Power, no en la cotización. */
+  indicaciones?: string | null;
   observaciones?: string;
   puede_convertir_compra: boolean;
   esta_vencida: boolean;
