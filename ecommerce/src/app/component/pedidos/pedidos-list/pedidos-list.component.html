@@ -91,56 +91,64 @@
             <span class="text-sm fw-medium text-dark">Entregados:</span>
             <span class="badge bg-success-50 text-success-600">{{ getEstadisticaEstado("entregado") }}</span>
           </div>
+          <div class="d-flex align-items-center gap-4">
+            <span class="text-sm fw-medium text-dark">Cancelados:</span>
+            <span class="badge bg-danger-50 text-danger-600">{{ getEstadisticaEstado("cancelado") }}</span>
+          </div>
         </div>
       </div>
 
-      <!-- Filtros: se aplican sobre los pedidos ya cargados. -->
-      <div class="col-6 col-md-4 col-lg-2">
-        <label class="text-xs text-gray-500 mb-4 d-block">Desde</label>
-        <input type="date" class="form-control" [(ngModel)]="fechaDesde" (ngModelChange)="aplicarFiltros()" />
-      </div>
-      <div class="col-6 col-md-4 col-lg-2">
-        <label class="text-xs text-gray-500 mb-4 d-block">Hasta</label>
-        <input type="date" class="form-control" [(ngModel)]="fechaHasta" (ngModelChange)="aplicarFiltros()" />
-      </div>
-      <div class="col-12 col-md-4 col-lg-2">
-        <label class="text-xs text-gray-500 mb-4 d-block">Estado</label>
-        <select class="form-select" [(ngModel)]="filtroEstado" (ngModelChange)="aplicarFiltros()">
-          <option value="">Todos</option>
-          <option *ngFor="let e of estadosParaFiltro" [value]="e">{{ e }}</option>
-        </select>
-      </div>
-      <div class="col-12 col-md-4 col-lg-2">
-        <label class="text-xs text-gray-500 mb-4 d-block">Departamento</label>
-        <select class="form-select" [(ngModel)]="filtroDepartamento" (ngModelChange)="aplicarFiltros()">
-          <option value="">Todos</option>
-          <option *ngFor="let d of departamentosDisponibles" [value]="d">{{ d }}</option>
-        </select>
-      </div>
-      <div class="col-12 col-md-4 col-lg-2">
-        <label class="text-xs text-gray-500 mb-4 d-block">Cliente</label>
-        <select class="form-select" [(ngModel)]="filtroCliente" (ngModelChange)="aplicarFiltros()">
-          <option value="">Todos</option>
-          <option *ngFor="let c of clientesDisponibles" [value]="c">{{ c }}</option>
-        </select>
-      </div>
-      <div class="col-12 col-md-4 col-lg-2">
-        <label class="text-xs text-gray-500 mb-4 d-block">Vendedor</label>
-        <select class="form-select" [(ngModel)]="filtroVendedor" (ngModelChange)="aplicarFiltros()">
-          <option value="">Todos</option>
-          <option *ngFor="let v of vendedoresDisponibles" [value]="v">{{ v }}</option>
-        </select>
-      </div>
-
-      <div class="col-12" *ngIf="hayFiltrosActivos">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-8">
-          <span class="text-sm text-gray-500">
-            {{ pedidosFiltrados.length }} de {{ pedidos.length }} pedidos
-          </span>
-          <button type="button" class="btn btn-sm btn-light border" (click)="limpiarFiltros()">
-            <i class="ph ph-x me-4"></i>Limpiar filtros
-          </button>
+      <!-- Filtros: se aplican sobre los pedidos ya cargados. Van todos en una
+           fila, con el botón de limpiar al final. -->
+      <div class="col-12">
+        <div class="row g-12 align-items-end">
+          <div class="col-6 col-md-4 col-lg">
+            <label class="text-xs text-gray-500 mb-4 d-block">Desde</label>
+            <input type="date" class="form-control" [(ngModel)]="fechaDesde" (ngModelChange)="aplicarFiltros()" />
+          </div>
+          <div class="col-6 col-md-4 col-lg">
+            <label class="text-xs text-gray-500 mb-4 d-block">Hasta</label>
+            <input type="date" class="form-control" [(ngModel)]="fechaHasta" (ngModelChange)="aplicarFiltros()" />
+          </div>
+          <div class="col-6 col-md-4 col-lg">
+            <label class="text-xs text-gray-500 mb-4 d-block">Estado</label>
+            <select class="form-select" [(ngModel)]="filtroEstado" (ngModelChange)="aplicarFiltros()">
+              <option value="">Todos</option>
+              <option *ngFor="let e of estadosParaFiltro" [value]="e">{{ e }}</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-4 col-lg">
+            <label class="text-xs text-gray-500 mb-4 d-block">Departamento</label>
+            <select class="form-select" [(ngModel)]="filtroDepartamento" (ngModelChange)="aplicarFiltros()">
+              <option value="">Todos</option>
+              <option *ngFor="let d of departamentosDisponibles" [value]="d">{{ d }}</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-4 col-lg">
+            <label class="text-xs text-gray-500 mb-4 d-block">Cliente</label>
+            <select class="form-select" [(ngModel)]="filtroCliente" (ngModelChange)="aplicarFiltros()">
+              <option value="">Todos</option>
+              <option *ngFor="let c of clientesDisponibles" [value]="c">{{ c }}</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-4 col-lg">
+            <label class="text-xs text-gray-500 mb-4 d-block">Vendedor</label>
+            <select class="form-select" [(ngModel)]="filtroVendedor" (ngModelChange)="aplicarFiltros()">
+              <option value="">Todos</option>
+              <option *ngFor="let v of vendedoresDisponibles" [value]="v">{{ v }}</option>
+            </select>
+          </div>
+          <div class="col-12 col-lg-auto">
+            <button type="button" class="btn btn-light border w-100 text-nowrap"
+                    [disabled]="!hayFiltrosActivos" (click)="limpiarFiltros()">
+              <i class="ph ph-x me-4"></i>Limpiar
+            </button>
+          </div>
         </div>
+
+        <p class="text-sm text-gray-500 mb-0 mt-8" *ngIf="hayFiltrosActivos">
+          {{ pedidosFiltrados.length }} de {{ pedidos.length }} pedidos
+        </p>
       </div>
     </div>
   </div>

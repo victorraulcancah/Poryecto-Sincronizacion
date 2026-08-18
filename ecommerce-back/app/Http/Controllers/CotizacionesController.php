@@ -947,7 +947,13 @@ class CotizacionesController extends Controller
 
             DB::beginTransaction();
 
-            $pedido->update(['estado_pedido_id' => Pedido::ESTADO_CANCELADO]);
+            // `atendido_at` marca el pedido como movido: sin esto la bandeja
+            // del vendedor (que muestra los "En espera" de hoy y los atendidos
+            // hoy) dejaba de listarlo y el cancelado desaparecía.
+            $pedido->update([
+                'estado_pedido_id' => Pedido::ESTADO_CANCELADO,
+                'atendido_at' => now(),
+            ]);
 
             PedidoTracking::create([
                 'pedido_id' => $pedido->id,
