@@ -67,7 +67,7 @@ export class RangoFechasComponent implements OnInit {
    * nunca se va al futuro, así que "esta semana" y "este mes" terminan hoy.
    */
   readonly atajos = [
-    { etiqueta: 'Un solo día', rango: () => this.unSoloDia() },
+    { etiqueta: 'Hoy', rango: () => this.unSoloDia() },
     { etiqueta: 'Esta semana', rango: () => this.semanaActual() },
     { etiqueta: 'Última semana', rango: () => this.semanaAnterior() },
     { etiqueta: 'Este mes', rango: () => this.mesActual() },
