@@ -360,6 +360,7 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
     // Lo que ya había cargado el cliente (observaciones, dirección y los
     // montos por método de pago) viaja al checkout para no volver a pedirlo.
     sessionStorage.setItem('cotizacion_editando', JSON.stringify({
+      id: cotizacion.id,
       observaciones: cotizacion.observaciones || '',
       direccion_envio: cotizacion.direccion_envio || '',
       metodo_pago_preferido: cotizacion.metodo_pago_preferido || '',
@@ -372,27 +373,15 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
       didOpen: () => Swal.showLoading()
     });
 
-    // Primero se borra la cotización: si eso falla, el carrito queda intacto y
-    // el cliente no pierde nada.
-    this.cotizacionesService.eliminarCotizacion(cotizacion.id)
+    // La cotización NO se borra acá. Antes se eliminaba de entrada, así que si
+    // el cliente abandonaba la edición a medio camino desaparecía sola, sin
+    // que nadie la cancelara. Ahora la reemplaza el checkout recién cuando se
+    // crea la nueva.
+    this.cartService.clearCart()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: () => {
-          this.cartService.clearCart()
-            .pipe(takeUntil(this.destroy$))
-            .subscribe({
-              next: () => this.agregarProductosAlCarrito(productos),
-              error: () => this.agregarProductosAlCarrito(productos)
-            });
-        },
-        error: () => {
-          Swal.fire({
-            title: 'No se pudo editar',
-            text: 'No fue posible liberar la cotización. Intenta nuevamente.',
-            icon: 'error',
-            confirmButtonColor: '#dc3545'
-          });
-        }
+        next: () => this.agregarProductosAlCarrito(productos),
+        error: () => this.agregarProductosAlCarrito(productos)
       });
   }
 

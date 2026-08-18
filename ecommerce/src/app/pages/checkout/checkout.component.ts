@@ -153,8 +153,12 @@ export class CheckoutComponent implements OnInit, OnDestroy {
    * La deja el listado de cotizaciones en sessionStorage.
    */
   private cotizacionEditando: {
+    id?: number;
     observaciones?: string;
   } | null = null;
+
+  /** Id de la cotización que se está reemplazando (si se entró por "Editar"). */
+  private cotizacionEditandoId: number | null = null;
 
   private loadCotizacionEditando(): void {
     const guardada = sessionStorage.getItem('cotizacion_editando');
@@ -166,6 +170,12 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       this.cotizacionEditando = null;
       return;
     }
+
+    this.cotizacionEditandoId = this.cotizacionEditando?.id ?? null;
+
+    // Se consume de una vez: si el cliente abandona el checkout, este dato no
+    // puede seguir vivo y borrar una cotización en una compra posterior.
+    sessionStorage.removeItem('cotizacion_editando');
 
     this.checkoutForm.patchValue({
       observaciones: this.cotizacionEditando?.observaciones || '',
@@ -903,8 +913,18 @@ export class CheckoutComponent implements OnInit, OnDestroy {
           // Se marca antes de vaciar: al quedar el carrito en cero se dispara
           // redirectIfCartIsEmpty(), y acá el vaciado es intencional.
           this.cotizacionGenerada = true;
-          // Ya se usó lo que venía de la cotización que se estaba editando.
-          sessionStorage.removeItem('cotizacion_editando');
+
+          // Recién ahora se elimina la que se estaba editando: ya existe la
+          // nueva que la reemplaza. Si esto falla, el cliente ve las dos, que
+          // es mejor que perder la original.
+          if (this.cotizacionEditandoId) {
+            const idAnterior = this.cotizacionEditandoId;
+            this.cotizacionEditandoId = null;
+            this.cotizacionesService.eliminarCotizacion(idAnterior).subscribe({
+              error: (err) =>
+                console.error('No se pudo eliminar la cotización editada:', err),
+            });
+          }
 
           // clearCart() devuelve un Observable frío: sin suscribirse la
           // petición nunca sale y el carrito del cliente quedaba con los
