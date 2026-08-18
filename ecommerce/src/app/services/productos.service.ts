@@ -81,6 +81,10 @@ export interface ProductoSugerencia {
   precio: number;
   categoria: string;
   categoria_id: number;
+  /** Datos extra que muestra la lista del buscador. */
+  marca?: string | null;
+  codigo_producto?: string | null;
+  stock?: number;
   imagen_url?: string;
   url: string;
   moneda?: string;

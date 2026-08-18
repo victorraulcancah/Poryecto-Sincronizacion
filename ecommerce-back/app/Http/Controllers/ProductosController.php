@@ -758,15 +758,20 @@ class ProductosController extends Controller
                 return response()->json([]);
             }
 
-            $query = Producto::with(['categoria'])
+            $query = Producto::with(['categoria', 'marca'])
                 ->where('activo', true)
                 ->where('stock', '>', 0);
 
             if ($hayTermino) {
+                // También busca por marca y por categoría: escribir "pioneer"
+                // o "amplificador" tiene que traer sus productos aunque el
+                // nombre del producto no incluya esa palabra.
                 $query->where(function ($query) use ($termino) {
                     $query->where('nombre', 'LIKE', "%{$termino}%")
                         ->orWhere('descripcion', 'LIKE', "%{$termino}%")
-                        ->orWhere('codigo_producto', 'LIKE', "%{$termino}%");
+                        ->orWhere('codigo_producto', 'LIKE', "%{$termino}%")
+                        ->orWhereHas('marca', fn ($q) => $q->where('nombre', 'LIKE', "%{$termino}%"))
+                        ->orWhereHas('categoria', fn ($q) => $q->where('nombre', 'LIKE', "%{$termino}%"));
                 });
             }
 
@@ -812,6 +817,10 @@ class ProductosController extends Controller
                         'moneda' => $pm['moneda'],
                         'categoria' => $producto->categoria?->nombre,
                         'categoria_id' => $producto->categoria_id,
+                        // Datos extra para la lista de sugerencias del buscador.
+                        'marca' => $producto->marca?->nombre,
+                        'codigo_producto' => $producto->codigo_producto,
+                        'stock' => $producto->stock,
                         'imagen_url' => $producto->imagen ? asset('storage/productos/' . $producto->imagen) : null,
                         'url' => route('producto.detalle', $producto->id) // Asumiendo que tienes esta ruta
                     ];

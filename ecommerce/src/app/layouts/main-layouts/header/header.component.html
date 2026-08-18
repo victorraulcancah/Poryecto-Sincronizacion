@@ -234,19 +234,30 @@
                   />
                 </div>
 
-                <!-- Información del producto -->
-                <div class="suggestion-content product-info flex-grow-1 text-truncate" style="min-width: 0;">
-                  <div class="suggestion-title product-name fw-medium text-truncate">
+                <!-- Información del producto: el nombre completo en dos
+                     líneas y debajo marca, categoría y código. -->
+                <div class="suggestion-content product-info flex-grow-1" style="min-width: 0;">
+                  <div class="suggestion-title product-name fw-medium">
                     {{ producto.nombre }}
                   </div>
-                  <div class="suggestion-category seller small text-truncate">
-                    {{ producto.categoria }}
+                  <div class="suggestion-meta small">
+                    <span class="suggestion-marca" *ngIf="producto.marca">{{ producto.marca }}</span>
+                    <span class="suggestion-sep" *ngIf="producto.marca && producto.categoria">·</span>
+                    <span *ngIf="producto.categoria">{{ producto.categoria }}</span>
+                    <span class="suggestion-sep" *ngIf="producto.codigo_producto">·</span>
+                    <span *ngIf="producto.codigo_producto">Cód. {{ producto.codigo_producto }}</span>
                   </div>
                 </div>
 
-                <!-- Precio -->
-                <div class="suggestion-price price fw-bold me-2 flex-shrink-0">
-                  {{ (producto.moneda || 's') | moneda }} {{ producto.precio | number : "1.2-2" }}
+                <!-- Precio y disponibilidad -->
+                <div class="suggestion-price-box me-2 flex-shrink-0 text-end">
+                  <div class="suggestion-price price fw-bold">
+                    {{ (producto.moneda || 's') | moneda }} {{ producto.precio | number : "1.2-2" }}
+                  </div>
+                  <!-- Mismo formato que las tarjetas: no se revela el stock real. -->
+                  <div class="suggestion-stock small" *ngIf="producto.stock !== undefined">
+                    {{ etiquetaStock(producto.stock) }}
+                  </div>
                 </div>
 
                 <!-- Icono -->
