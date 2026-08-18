@@ -465,21 +465,47 @@ class ProductosController extends Controller
             });
         }
 
-        // Límites de precio del resultado ANTES de aplicar el rango de precio:
-        // son los topes del deslizador del filtro, así que no pueden depender
-        // del rango que el propio deslizador ya tenga puesto.
-        // `toBase()` evita que Eloquent hidrate un modelo y dispare los eager
-        // loads (categoria, precios) sobre una fila que solo trae dos números.
-        $limites = (clone $query)->reorder()->toBase()
-            ->selectRaw('MIN(precio_venta) as minimo, MAX(precio_venta) as maximo')
-            ->first();
+        // El precio que ve el cliente sale de su lista de precios, no de la
+        // columna `precio_venta` (que en este catálogo está en 0 para todos).
+        // Por eso tanto los topes del deslizador como el filtro trabajan sobre
+        // `producto_precios`, limitado a las listas que le aplican.
+        $idsListas = array_column($listas, 'tipo_precio_id');
 
-        // Filtro por rango de precios (basado en precio_venta)
-        if ($request->has('minPrice')) {
-            $query->where('precio_venta', '>=', $request->minPrice);
+        // Límites del resultado ANTES de aplicar el rango elegido: son los
+        // topes del deslizador, así que no pueden depender de él.
+        $limites = null;
+        if (! empty($idsListas)) {
+            $limites = (clone $query)->reorder()->toBase()
+                ->joinSub(
+                    \DB::table('producto_precios')
+                        ->select('producto_id')
+                        ->selectRaw('MIN(precio) as minimo, MAX(precio) as maximo')
+                        ->whereIn('tipo_precio_id', $idsListas)
+                        ->where('precio', '>', 0)
+                        ->groupBy('producto_id'),
+                    'pp',
+                    'pp.producto_id',
+                    '=',
+                    'productos.id'
+                )
+                ->selectRaw('MIN(pp.minimo) as minimo, MAX(pp.maximo) as maximo')
+                ->first();
         }
-        if ($request->has('maxPrice')) {
-            $query->where('precio_venta', '<=', $request->maxPrice);
+
+        // Filtro por rango de precios sobre la lista del cliente.
+        if (! empty($idsListas) && ($request->filled('minPrice') || $request->filled('maxPrice'))) {
+            $min = $request->filled('minPrice') ? (float) $request->minPrice : null;
+            $max = $request->filled('maxPrice') ? (float) $request->maxPrice : null;
+
+            $query->whereHas('precios', function ($q) use ($idsListas, $min, $max) {
+                $q->whereIn('tipo_precio_id', $idsListas)->where('precio', '>', 0);
+                if ($min !== null) {
+                    $q->where('precio', '>=', $min);
+                }
+                if ($max !== null) {
+                    $q->where('precio', '<=', $max);
+                }
+            });
         }
 
         // Los agotados van al final, sea cual sea el orden elegido: el cliente

@@ -947,12 +947,14 @@ export class CheckoutComponent implements OnInit, OnDestroy {
             `,
             icon: 'success',
             confirmButtonColor: '#198754',
-            confirmButtonText: 'Ver mis cotizaciones'
+            confirmButtonText: 'Ver mis cotizaciones',
+            // La X cierra el aviso y deja al cliente en la página principal.
+            showCloseButton: true
           }).then((result) => {
             if (result.isConfirmed) {
               this.router.navigate(['/my-account']);
             } else {
-              this.router.navigate(['/shop']);
+              this.router.navigate(['/']);
             }
           });
         }
