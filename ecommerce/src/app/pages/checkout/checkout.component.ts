@@ -952,7 +952,8 @@ export class CheckoutComponent implements OnInit, OnDestroy {
             showCloseButton: true
           }).then((result) => {
             if (result.isConfirmed) {
-              this.router.navigate(['/my-account']);
+              // Directo al listado de cotizaciones, no al resumen de la cuenta.
+              this.router.navigate(['/my-account/cotizaciones']);
             } else {
               this.router.navigate(['/']);
             }
