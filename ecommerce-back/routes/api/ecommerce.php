@@ -76,6 +76,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}/tracking', [CotizacionesController::class, 'getTracking']);
         Route::post('/{id}/convertir-compra', [CotizacionesController::class, 'convertirACompra']);
         Route::post('/{id}/pedir', [CotizacionesController::class, 'pedirCotizacion']);
+        // El cliente cancela su cotización: cambia el estado del pedido a
+        // "Cancelado", no borra nada. Mismo grupo sin `permission:` que la
+        // eliminación, porque UserCliente no maneja roles de Spatie.
+        Route::post('/{id}/cancelar', [CotizacionesController::class, 'cancelar']);
         // El cliente elimina su propia cotización mientras siga "En espera".
         // Va acá y no en el grupo con `permission:`, porque ese middleware es
         // de Spatie y UserCliente no maneja roles: reventaba antes de llegar al

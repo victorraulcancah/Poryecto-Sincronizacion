@@ -156,12 +156,17 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
   // El boton "Pedir" desaparecio: la cotizacion genera su pedido al crearse
   // desde el checkout, asi que ya no hay un segundo paso que solicitar.
 
-  eliminarCotizacion(cotizacion: Cotizacion): void {
+  /**
+   * El cliente cancela su cotización. No se borra nada: el pedido pasa a
+   * "Cancelado", así el vendedor lo sigue viendo en su bandeja y la cotización
+   * deja de ser editable.
+   */
+  cancelarCotizacion(cotizacion: Cotizacion): void {
     // Misma ventana que la edición: se cierra cuando el vendedor toma el
     // pedido. El backend también lo rechaza; esto evita abrir el diálogo.
     if (!cotizacion.editable) {
       Swal.fire({
-        title: 'Ya no se puede eliminar',
+        title: 'Ya no se puede cancelar',
         text: 'Un vendedor ya está atendiendo tu pedido, así que la cotización quedó cerrada.',
         icon: 'info',
         confirmButtonColor: '#0dcaf0'
@@ -170,14 +175,14 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
     }
 
     Swal.fire({
-      title: '¿Eliminar cotización?',
+      title: '¿Cancelar cotización?',
       html: `
         <div class="text-start">
           <p><strong>Cotización:</strong> ${cotizacion.codigo_cotizacion}</p>
           <p><strong>Total:</strong> S/ ${cotizacion.total}</p>
           <p class="text-warning mt-3">
             <i class="ph ph-warning-circle"></i>
-            Esta acción no se puede deshacer y se perderán todos los datos de la cotización.
+            La cotización quedará cancelada y ya no podrás editarla.
           </p>
         </div>
       `,
@@ -185,51 +190,42 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
       showCancelButton: true,
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar',
+      confirmButtonText: 'Sí, cancelar',
+      cancelButtonText: 'Volver',
       reverseButtons: true
     }).then((result) => {
-      if (result.isConfirmed) {
-        console.log('Eliminando cotización:', cotizacion);
+      if (!result.isConfirmed) return;
 
-        // Mostrar loading
-        Swal.fire({
-          title: 'Eliminando...',
-          text: 'Por favor espera mientras eliminamos tu cotización',
-          allowOutsideClick: false,
-          allowEscapeKey: false,
-          showConfirmButton: false,
-          didOpen: () => {
-            Swal.showLoading();
-          }
-        });
+      Swal.fire({
+        title: 'Cancelando...',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => Swal.showLoading()
+      });
 
-        this.cotizacionesService.eliminarCotizacion(cotizacion.id).subscribe({
-          next: (response) => {
-            if (response.status === 'success') {
-              Swal.fire({
-                title: '¡Eliminada!',
-                text: 'La cotización ha sido eliminada exitosamente',
-                icon: 'success',
-                confirmButtonColor: '#198754'
-              });
-              this.cargarCotizaciones(); // Recargar la lista
-            }
-          },
-          error: (error) => {
-            console.error('Error eliminando cotización:', error);
-            Swal.fire({
-              title: 'Error',
-              text: 'Error al eliminar la cotización. Inténtalo de nuevo.',
-              icon: 'error',
-              confirmButtonColor: '#dc3545'
-            });
-          }
-        });
-      }
+      this.cotizacionesService.cancelarCotizacion(cotizacion.id).subscribe({
+        next: () => {
+          Swal.fire({
+            title: 'Cotización cancelada',
+            text: 'Tu cotización quedó cancelada.',
+            icon: 'success',
+            confirmButtonColor: '#198754'
+          });
+          this.cargarCotizaciones();
+        },
+        error: (error) => {
+          console.error('Error cancelando cotización:', error);
+          Swal.fire({
+            title: 'Error',
+            text: error.error?.message || 'No se pudo cancelar la cotización. Inténtalo de nuevo.',
+            icon: 'error',
+            confirmButtonColor: '#dc3545'
+          });
+        }
+      });
     });
   }
-
 
   /** Pestaña abierta en el modal de "Ver". */
   activeTabDetalle: 'productos' | 'envio' | 'pago' = 'productos';

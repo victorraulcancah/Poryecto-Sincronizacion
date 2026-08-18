@@ -12,6 +12,7 @@ use App\Models\TipoPrecio;
 use App\Models\Compra;
 use App\Models\Pedido;
 use App\Models\PedidoDetalle;
+use App\Models\PedidoTracking;
 use App\Models\EmpresaInfo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -909,6 +910,70 @@ class CotizacionesController extends Controller
     /**
      * Eliminar una cotización
      */
+    /**
+     * El cliente cancela su cotización: no se borra nada, solo pasa a estado
+     * "Cancelado". Así el vendedor la sigue viendo en su bandeja con el motivo,
+     * y el cliente ya no puede editarla (editar exige que siga "En espera").
+     */
+    public function cancelar(Request $request, $id)
+    {
+        try {
+            $cotizacion = Cotizacion::findOrFail($id);
+            $user = $request->user();
+
+            if ($user instanceof UserCliente && $cotizacion->user_cliente_id !== $user->id) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No tienes permisos para cancelar esta cotización',
+                ], 403);
+            }
+
+            $pedido = $this->pedidoDeCotizacion($cotizacion);
+
+            if (! $pedido) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'La cotización no tiene un pedido asociado.',
+                ], 422);
+            }
+
+            // Misma ventana que editar: mientras el vendedor no la haya tomado.
+            if ($user instanceof UserCliente && ! $pedido->esEditablePorCliente()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Un vendedor ya está atendiendo tu pedido, así que no se puede cancelar.',
+                ], 422);
+            }
+
+            DB::beginTransaction();
+
+            $pedido->update(['estado_pedido_id' => Pedido::ESTADO_CANCELADO]);
+
+            PedidoTracking::create([
+                'pedido_id' => $pedido->id,
+                'estado_pedido_id' => Pedido::ESTADO_CANCELADO,
+                'comentario' => $request->input('motivo') ?: 'Cancelado por el cliente desde la tienda',
+                'usuario_id' => null,
+                'fecha_cambio' => now(),
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'La cotización quedó cancelada.',
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No se pudo cancelar la cotización.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function destroy($id)
     {
         try {

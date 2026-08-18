@@ -254,6 +254,14 @@ export class CotizacionesService {
   /**
    * Eliminar cotización
    */
+  /** El cliente cancela su cotización: cambia de estado, no se borra. */
+  cancelarCotizacion(id: number, motivo?: string): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(
+      `${this.apiUrl}/cotizaciones/${id}/cancelar`,
+      { motivo }
+    );
+  }
+
   eliminarCotizacion(id: number): Observable<ApiResponse<any>> {
     return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/cotizaciones/${id}`)
       .pipe(

@@ -24,6 +24,12 @@ export class PedidosListComponent implements OnInit {
 
   terminoBusqueda: string = '';
   filtroEstado: string = '';
+  // Filtros de la barra superior. Se aplican sobre la lista ya cargada.
+  filtroDepartamento: string = '';
+  filtroCliente: string = '';
+  filtroVendedor: string = '';
+  fechaDesde: string = '';
+  fechaHasta: string = '';
 
   estadosDisponibles: any[] = [];
   estadoSeleccionado: number | null = null;
@@ -227,8 +233,98 @@ export class PedidosListComponent implements OnInit {
       );
     }
 
+    if (this.filtroDepartamento) {
+      resultado = resultado.filter(
+        p => (p.departamento_nombre || '') === this.filtroDepartamento
+      );
+    }
+
+    if (this.filtroCliente) {
+      resultado = resultado.filter(
+        p => this.nombreCliente(p) === this.filtroCliente
+      );
+    }
+
+    if (this.filtroVendedor) {
+      resultado = resultado.filter(
+        p => this.vendedorDelPedido(p) === this.filtroVendedor
+      );
+    }
+
+    // Rango de fechas sobre la fecha del pedido (solo el día, sin la hora).
+    if (this.fechaDesde) {
+      resultado = resultado.filter(p => this.soloFecha(p.fecha_pedido) >= this.fechaDesde);
+    }
+    if (this.fechaHasta) {
+      resultado = resultado.filter(p => this.soloFecha(p.fecha_pedido) <= this.fechaHasta);
+    }
+
     this.pedidosFiltrados = resultado;
     this.currentPage = 1;
+  }
+
+  /** 'YYYY-MM-DD' de la fecha del pedido, para comparar con los inputs date. */
+  private soloFecha(fecha: string | null | undefined): string {
+    return fecha ? String(fecha).substring(0, 10) : '';
+  }
+
+  /**
+   * Quién atendió el pedido: el último usuario que le movió el estado. Los
+   * pedidos que nadie tocó todavía quedan como "Sin atender".
+   */
+  vendedorDelPedido(pedido: any): string {
+    const conUsuario = (pedido?.tracking || []).filter((t: any) => t?.usuario?.name);
+    if (!conUsuario.length) return 'Sin atender';
+    return conUsuario[conUsuario.length - 1].usuario.name;
+  }
+
+  /** Opciones de cada filtro, sacadas de los pedidos cargados. */
+  private opcionesDe(valor: (p: any) => string): string[] {
+    const vistos = new Set<string>();
+    this.pedidos.forEach(p => {
+      const v = valor(p);
+      if (v) vistos.add(v);
+    });
+    return Array.from(vistos).sort((a, b) => a.localeCompare(b));
+  }
+
+  get departamentosDisponibles(): string[] {
+    return this.opcionesDe(p => p.departamento_nombre || '');
+  }
+
+  get clientesDisponibles(): string[] {
+    return this.opcionesDe(p => this.nombreCliente(p));
+  }
+
+  get vendedoresDisponibles(): string[] {
+    return this.opcionesDe(p => this.vendedorDelPedido(p));
+  }
+
+  get estadosParaFiltro(): string[] {
+    return this.opcionesDe(p => p.estado_pedido?.nombre_estado || '');
+  }
+
+  get hayFiltrosActivos(): boolean {
+    return !!(
+      this.terminoBusqueda ||
+      this.filtroEstado ||
+      this.filtroDepartamento ||
+      this.filtroCliente ||
+      this.filtroVendedor ||
+      this.fechaDesde ||
+      this.fechaHasta
+    );
+  }
+
+  limpiarFiltros(): void {
+    this.terminoBusqueda = '';
+    this.filtroEstado = '';
+    this.filtroDepartamento = '';
+    this.filtroCliente = '';
+    this.filtroVendedor = '';
+    this.fechaDesde = '';
+    this.fechaHasta = '';
+    this.aplicarFiltros();
   }
 
   /**
