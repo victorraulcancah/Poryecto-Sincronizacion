@@ -67,7 +67,7 @@ export class RangoFechasComponent implements OnInit {
    * nunca se va al futuro, así que "esta semana" y "este mes" terminan hoy.
    */
   readonly atajos = [
-    { etiqueta: 'Hoy', rango: () => this.hoyMismo() },
+    { etiqueta: 'Un solo día', rango: () => this.unSoloDia() },
     { etiqueta: 'Esta semana', rango: () => this.semanaActual() },
     { etiqueta: 'Última semana', rango: () => this.semanaAnterior() },
     { etiqueta: 'Este mes', rango: () => this.mesActual() },
@@ -85,9 +85,14 @@ export class RangoFechasComponent implements OnInit {
     this.confirmar();
   }
 
-  /** Solo el día de hoy. */
-  private hoyMismo(): [Date, Date] {
-    return [this.hoy, this.hoy];
+  /**
+   * Un solo día: copia la fecha inicial al otro extremo. Si el cliente ya
+   * eligió un día en el calendario (ej. 20/05), el rango queda 20/05 - 20/05;
+   * si no eligió nada, se toma hoy.
+   */
+  private unSoloDia(): [Date, Date] {
+    const dia = this.seleccionInicio ?? this.hoy;
+    return [dia, dia];
   }
 
   /** Lunes de la semana en curso hasta hoy. */
