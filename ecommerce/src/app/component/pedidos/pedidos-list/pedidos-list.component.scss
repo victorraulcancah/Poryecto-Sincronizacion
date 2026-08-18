@@ -931,3 +931,32 @@
     }
   }
 }
+/* Botón de limpiar filtros: color fijo, sin transiciones ni cambios al pasar
+   el mouse (el `btn` del tema traía animación de fondo). */
+.btn-limpiar-filtros {
+  height: 38px;
+  padding: 0 16px;
+  border: 1px solid #e6e8ec;
+  border-radius: 8px;
+  background: #fff;
+  color: #3a424f;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: none;
+
+  &:hover,
+  &:focus,
+  &:active {
+    background: #fff;
+    border-color: #e6e8ec;
+    color: #3a424f;
+    box-shadow: none;
+    transform: none;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
