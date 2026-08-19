@@ -85,13 +85,36 @@ export class RangoFechasComponent implements OnInit {
     this.confirmar();
   }
 
+  /** El día que estaba puesto antes de saltar a hoy, para poder volver a él. */
+  private diaPrevioDelAtajo: Date | null = null;
+
   /**
-   * Un solo día: copia la fecha inicial al otro extremo. Si el cliente ya
-   * eligió un día en el calendario (ej. 20/05), el rango queda 20/05 - 20/05;
-   * si no eligió nada, se toma hoy.
+   * Un solo día: copia al otro extremo la fecha que el cliente ya eligió (si
+   * marcó el 20/05, el rango queda 20/05 - 20/05). Presionándolo otra vez
+   * salta al día de hoy, y una vez más vuelve al día elegido. Si no hay nada
+   * marcado, toma hoy.
    */
   private unSoloDia(): [Date, Date] {
-    const dia = this.seleccionInicio ?? this.hoy;
+    const marcada = this.seleccionInicio;
+    const yaEsUnSoloDia =
+      !!marcada && !!this.seleccionFin && this.mismoDia(marcada, this.seleccionFin);
+
+    if (yaEsUnSoloDia && marcada) {
+      // Segunda pulsación: salta al día de hoy.
+      if (!this.mismoDia(marcada, this.hoy)) {
+        this.diaPrevioDelAtajo = marcada;
+        return [this.hoy, this.hoy];
+      }
+
+      // Tercera: vuelve al día que el cliente había elegido.
+      if (this.diaPrevioDelAtajo) {
+        const previo = this.diaPrevioDelAtajo;
+        this.diaPrevioDelAtajo = null;
+        return [previo, previo];
+      }
+    }
+
+    const dia = marcada ?? this.hoy;
     return [dia, dia];
   }
 
