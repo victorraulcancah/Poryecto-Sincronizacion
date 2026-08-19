@@ -74,7 +74,11 @@ class CotizacionesController extends Controller
                 });
             }
 
-            $cotizaciones = $query->orderBy('fecha_cotizacion', 'desc')->get();
+            // El `id` desempata las creadas en el mismo instante (una compra
+            // con soles y dólares genera dos cotizaciones a la vez).
+            $cotizaciones = $query->orderBy('fecha_cotizacion', 'desc')
+                ->orderBy('id', 'desc')
+                ->get();
 
             return response()->json([
                 'status' => 'success',
@@ -597,6 +601,7 @@ class CotizacionesController extends Controller
             ])
             ->where('user_cliente_id', $userCliente->id)
             ->orderBy('fecha_cotizacion', 'desc')
+            ->orderBy('id', 'desc')
             ->get();
 
             // Estado del pedido de cada cotizacion, en una sola consulta. Es el

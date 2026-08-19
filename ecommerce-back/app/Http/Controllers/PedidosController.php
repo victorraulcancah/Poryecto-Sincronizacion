@@ -76,7 +76,12 @@ class PedidosController extends Controller
                 });
             }
 
-            $pedidos = $query->orderBy('fecha_pedido', 'desc')->get();
+            // El `id` desempata: dos pedidos creados en el mismo instante (la
+            // compra con soles y dólares genera dos) salían en orden aleatorio
+            // y la numeración se veía saltada (33, 34, 32...).
+            $pedidos = $query->orderBy('fecha_pedido', 'desc')
+                ->orderBy('id', 'desc')
+                ->get();
 
             // Datos de los clientes vinculados tal como estan en el ERP, en una
             // sola consulta para toda la lista: el detalle del pedido muestra
@@ -584,6 +589,7 @@ class PedidosController extends Controller
             ])
             ->where('user_cliente_id', $userCliente->id)
             ->orderBy('fecha_pedido', 'desc')
+            ->orderBy('id', 'desc')
             ->get();
             
             return response()->json([
@@ -774,6 +780,7 @@ class PedidosController extends Controller
             ])
             ->where('user_cliente_id', $userId)
             ->orderBy('fecha_pedido', 'desc')
+            ->orderBy('id', 'desc')
             ->get();
 
             // Transformar los pedidos para incluir información adicional
