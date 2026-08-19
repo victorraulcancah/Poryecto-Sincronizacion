@@ -758,9 +758,11 @@ class ProductosController extends Controller
                 return response()->json([]);
             }
 
+            // Se listan también los agotados (igual que el catálogo, que los
+            // marca como "Agotado" en vez de esconderlos); van al final.
             $query = Producto::with(['categoria', 'marca'])
                 ->where('activo', true)
-                ->where('stock', '>', 0);
+                ->orderByRaw('CASE WHEN stock > 0 THEN 0 ELSE 1 END');
 
             if ($hayTermino) {
                 // También busca por marca y por categoría: escribir "pioneer"
