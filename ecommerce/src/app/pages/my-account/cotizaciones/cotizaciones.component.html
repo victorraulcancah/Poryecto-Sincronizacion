@@ -65,7 +65,7 @@
                 <span class="text-xs">Ver</span>
               </button>
 
-              <button *ngIf="cotizacion.puede_convertir_compra"
+              <button *ngIf="cotizacion.puede_convertir_compra && !estaCancelada(cotizacion)"
                       (click)="convertirACompra(cotizacion)"
                       class="btn btn-success btn-xs rounded-pill px-12 py-6 d-flex align-items-center gap-2 transition-2">
                 <i class="ph-bold ph-shopping-cart text-xs"></i>
@@ -74,7 +74,7 @@
 
               <!-- Se puede editar mientras el vendedor no haya entrado a atender
                    el pedido; el backend manda `editable` con esa condicion. -->
-              <button *ngIf="cotizacion.editable"
+              <button *ngIf="cotizacion.editable && !estaCancelada(cotizacion)"
                       (click)="abrirEdicion(cotizacion)"
                       class="btn btn-outline-main btn-xs rounded-pill px-12 py-6 d-flex align-items-center gap-2 transition-2"
                       title="Editar datos y productos de la cotización">
@@ -84,7 +84,7 @@
 
               <!-- Aviso de que ya no se puede editar, en lugar del boton "Pedir":
                    la cotizacion se envia sola al crearse. -->
-              <span *ngIf="!cotizacion.editable"
+              <span *ngIf="!cotizacion.editable && !estaCancelada(cotizacion)"
                     class="badge bg-gray-50 text-gray-600 rounded-pill px-12 py-6 d-flex align-items-center gap-2 fw-normal"
                     title="Un vendedor ya está atendiendo tu pedido">
                 <i class="ph-bold ph-lock-simple text-xs"></i>
@@ -93,7 +93,7 @@
 
               <!-- Cancelar (no borra): misma condición que editar, solo
                    mientras el vendedor no haya tomado el pedido. -->
-              <button *ngIf="cotizacion.editable"
+              <button *ngIf="cotizacion.editable && !estaCancelada(cotizacion)"
                       (click)="cancelarCotizacion(cotizacion)"
                       class="btn btn-danger btn-xs rounded-pill px-12 py-6 d-flex align-items-center gap-2 transition-2 hover:bg-danger-600"
                       title="Cancelar cotización">

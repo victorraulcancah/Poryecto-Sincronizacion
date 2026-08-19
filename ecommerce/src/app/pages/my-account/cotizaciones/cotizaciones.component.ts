@@ -227,6 +227,12 @@ export class CotizacionesComponent implements OnInit, OnDestroy {
     });
   }
 
+  /** La cotización quedó cancelada: solo se puede mirar. */
+  estaCancelada(cotizacion: Cotizacion): boolean {
+    const estado = cotizacion.estado_pedido?.nombre_estado || '';
+    return estado.toLowerCase().includes('cancel');
+  }
+
   /** Pestaña abierta en el modal de "Ver". */
   activeTabDetalle: 'productos' | 'envio' | 'pago' = 'productos';
 
