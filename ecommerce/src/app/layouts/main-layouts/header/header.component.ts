@@ -470,7 +470,8 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // ✅ NUEVO: Seleccionar una sugerencia
   selectSuggestion(producto: ProductoSugerencia): void {
-    this.searchTerm = producto.nombre;
+    // Se va al detalle del producto: la caja queda vacía para la próxima.
+    this.searchTerm = '';
     this.hideSuggestions();
     // Navegar al detalle del producto
     this.router.navigate(['/product-details', producto.id]);
@@ -492,9 +493,11 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
       this.categoryDropdownVisible = false;
     }
 
-    // Ocultar sugerencias de búsqueda
+    // Ocultar sugerencias de búsqueda. Al salir del buscador también se
+    // limpia lo escrito: si no, el término quedaba en la caja al volver.
     if (!target.closest('.search-form__wrapper')) {
       this.hideSuggestions();
+      this.searchTerm = '';
     }
 
     // ✅ NUEVO: Ocultar dropdown de favoritos
