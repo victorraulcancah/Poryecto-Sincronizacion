@@ -102,13 +102,14 @@
            fila, con el botón de limpiar al final. -->
       <div class="col-12">
         <div class="row g-12 align-items-end">
-          <div class="col-6 col-md-4 col-lg">
-            <label class="text-xs text-gray-500 mb-4 d-block">Desde</label>
-            <input type="date" class="form-control" [(ngModel)]="fechaDesde" (ngModelChange)="aplicarFiltros()" />
-          </div>
-          <div class="col-6 col-md-4 col-lg">
-            <label class="text-xs text-gray-500 mb-4 d-block">Hasta</label>
-            <input type="date" class="form-control" [(ngModel)]="fechaHasta" (ngModelChange)="aplicarFiltros()" />
+          <!-- Un solo control para el rango, el mismo del estado de cuenta. -->
+          <div class="col-12 col-md-6 col-lg-auto">
+            <label class="text-xs text-gray-500 mb-4 d-block">Fechas</label>
+            <app-rango-fechas
+              [desde]="fechaDesde"
+              [hasta]="fechaHasta"
+              (aplicar)="cambiarRangoFechas($event)"
+            ></app-rango-fechas>
           </div>
           <div class="col-6 col-md-4 col-lg">
             <label class="text-xs text-gray-500 mb-4 d-block">Estado</label>

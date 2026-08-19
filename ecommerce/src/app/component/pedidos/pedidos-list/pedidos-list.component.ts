@@ -7,13 +7,14 @@ import { PedidosService } from '../../../services/pedidos.service';
 import { ProductosService } from '../../../services/productos.service';
 import { ReniecService } from '../../../services/reniec.service';
 import { MonedaPipe } from '../../../pipes/moneda.pipe';
+import { RangoFechasComponent } from '../../../components/rango-fechas/rango-fechas.component';
 import Swal from 'sweetalert2';
 import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-pedidos-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, MonedaPipe],
+  imports: [CommonModule, RouterModule, FormsModule, MonedaPipe, RangoFechasComponent],
   templateUrl: "./pedidos-list.component.html",
   styleUrl: "./pedidos-list.component.scss"
 })
@@ -314,6 +315,13 @@ export class PedidosListComponent implements OnInit {
       this.fechaDesde ||
       this.fechaHasta
     );
+  }
+
+  /** El selector de rango de fechas devuelve las dos fechas de una vez. */
+  cambiarRangoFechas(rango: { desde: string; hasta: string }): void {
+    this.fechaDesde = rango.desde;
+    this.fechaHasta = rango.hasta;
+    this.aplicarFiltros();
   }
 
   limpiarFiltros(): void {

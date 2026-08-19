@@ -196,12 +196,10 @@ class Pedido extends Model
         $hoy = now()->toDateString();
 
         return $query->where(function ($q) use ($hoy) {
-            // En espera: solo los del día. A medianoche salen de la bandeja
-            // aunque nadie los haya atendido.
-            $q->where(function ($q) use ($hoy) {
-                $q->where('estado_pedido_id', self::ESTADO_EN_ESPERA)
-                    ->whereDate('fecha_pedido', $hoy);
-            })
+            // En espera: se quedan hasta que alguien los atienda o los cancele,
+            // sin importar de qué día sean. Antes salían de la bandeja a
+            // medianoche y se perdía de vista un pedido que nadie tocó.
+            $q->where('estado_pedido_id', self::ESTADO_EN_ESPERA)
                 // Ya atendidos: se quedan hasta el cierre del día en que se
                 // atendieron.
                 ->orWhere(function ($q) use ($hoy) {
