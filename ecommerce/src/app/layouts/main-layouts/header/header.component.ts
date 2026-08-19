@@ -205,6 +205,11 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
       filter((event): event is NavigationEnd => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
       this.updateRouteFlags(event.urlAfterRedirects);
+
+      // Al cambiar de página el buscador queda limpio: antes el término se
+      // quedaba escrito en la caja aunque el cliente se fuera a otra vista.
+      this.searchTerm = '';
+      this.hideSuggestions();
     });
   }
 
