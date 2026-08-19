@@ -101,10 +101,14 @@
   align-items: center;
 
   .suggestion-title {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    /* La clase global `.product-name` corta a una linea con `nowrap` y
+       `max-width: 200px`; aca el nombre se muestra completo, en varias lineas
+       si hace falta. */
+    display: block;
+    white-space: normal;
+    max-width: none;
+    overflow: visible;
+    text-overflow: clip;
     line-height: 1.25;
     font-size: 14px;
     color: #1f2733;

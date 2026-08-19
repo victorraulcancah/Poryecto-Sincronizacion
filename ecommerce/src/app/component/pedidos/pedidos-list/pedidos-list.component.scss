@@ -960,3 +960,24 @@
     cursor: not-allowed;
   }
 }
+
+/* El selector de rango de fechas viene con su propio botón chico; acá tiene
+   que verse igual que los demás filtros de la barra. */
+app-rango-fechas {
+  display: block;
+  width: 100%;
+
+  ::ng-deep .rango-fechas {
+    display: block;
+    width: 100%;
+  }
+
+  ::ng-deep .rango-fechas__trigger {
+    width: 100%;
+    height: 38px;
+    padding: 0 12px;
+    font-size: 14px;
+    border-radius: 8px;
+    justify-content: space-between;
+  }
+}
