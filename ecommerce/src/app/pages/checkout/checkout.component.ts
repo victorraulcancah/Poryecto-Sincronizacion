@@ -1061,7 +1061,10 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     const monedas = new Set(
       this.cartItems.filter(item => !item.guardado_para_despues).map(item => item.moneda || 's')
     );
-    return Array.from(monedas);
+
+    // Soles siempre primero y dólares después, sin importar en qué orden
+    // vengan los productos del carrito.
+    return Array.from(monedas).sort((a, b) => (a === 's' ? -1 : b === 's' ? 1 : 0));
   }
 
   getTotalPorMoneda(moneda: string): number {

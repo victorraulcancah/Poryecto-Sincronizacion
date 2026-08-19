@@ -203,7 +203,9 @@
             <!-- Cliente: si la cuenta está vinculada manda el cliente de
                  7Power, que es a nombre de quién se emite el comprobante. -->
             <td>
-              <div class="d-flex align-items-center gap-12">
+              <!-- Centrado: la columna es ancha y el bloque quedaba pegado a la
+                   izquierda, lejos del encabezado. -->
+              <div class="d-flex align-items-center justify-content-center gap-12 text-center">
                 <div class="table-avatar__circle" style="background-color: var(--main-600);">
                   {{ getInitials(nombreCliente(pedido)) }}
                 </div>

@@ -138,3 +138,20 @@
     color: #16a34a;
   }
 }
+
+/* Buscador del header: esquinas redondeadas. Antes el input y su contenedor
+   quedaban en ángulo recto (el borde redondeado lo daba el selector de
+   categorías que se quitó). */
+.search-form__wrapper {
+  border-radius: 12px;
+  overflow: hidden;
+
+  .common-input {
+    border-radius: 12px;
+  }
+}
+
+.search-suggestions {
+  border-radius: 12px;
+  overflow: hidden;
+}
