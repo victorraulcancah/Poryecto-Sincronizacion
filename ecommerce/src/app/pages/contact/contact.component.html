@@ -88,7 +88,7 @@
                                     type="submit" 
                                     class="btn btn-main py-18 px-32 rounded-8"
                                     [disabled]="!contactFormRef.form.valid || enviando">
-                                    {{ enviando ? 'Enviando...' : 'Obtener una cotización' }}
+                                    {{ enviando ? 'Enviando...' : 'Enviar' }}
                                 </button>
                             </div>
                         </div>
@@ -165,27 +165,6 @@
                     </div>
                 </div>
 
-                <!-- Botones de acción -->
-                <div class="mt-24 flex-align flex-wrap gap-16">
-                    <button
-                        type="button"
-                        (click)="abrirWhatsApp()"
-                        class="bg-success-600 hover-bg-success-700 rounded-8 p-10 px-16 flex-between flex-wrap gap-8 flex-grow-1 border-0">
-                        <span class="text-white fw-medium">Obtener soporte por WhatsApp</span>
-                        <span class="w-36 h-36 bg-success-700 rounded-8 flex-center text-xl text-white">
-                            <i class="ph ph-whatsapp-logo"></i>
-                        </span>
-                    </button>
-                    <button
-                        type="button"
-                        (click)="abrirMaps()"
-                        class="bg-neutral-600 hover-bg-main-600 rounded-8 p-10 px-16 flex-between flex-wrap gap-8 flex-grow-1 border-0">
-                        <span class="text-white fw-medium">Obtener dirección</span>
-                        <span class="w-36 h-36 bg-main-600 rounded-8 flex-center text-xl text-white">
-                            <i class="ph ph-map-pin"></i>
-                        </span>
-                    </button>
-                </div>
             </div>
         </div>
     </div>
