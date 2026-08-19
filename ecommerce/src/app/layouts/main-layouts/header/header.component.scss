@@ -144,7 +144,8 @@
    categorías que se quitó). */
 .search-form__wrapper {
   border-radius: 12px;
-  overflow: hidden;
+  /* Sin `overflow: hidden`: el desplegable de sugerencias cuelga por debajo
+     del wrapper y recortarlo lo hacia desaparecer. */
 
   .common-input {
     border-radius: 12px;
