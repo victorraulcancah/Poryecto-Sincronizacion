@@ -75,6 +75,11 @@ export class ReclamosService {
     return this.http.post<ReclamoResponse>(`${this.apiUrl}/crear`, reclamo);
   }
 
+  /** Igual que `crearReclamo`, pero con los archivos adjuntos del formulario. */
+  crearReclamoConAdjuntos(datos: FormData): Observable<ReclamoResponse> {
+    return this.http.post<ReclamoResponse>(`${this.apiUrl}/crear`, datos);
+  }
+
   // Obtener reclamos del usuario autenticado
   obtenerMisReclamos(): Observable<ReclamoResponse> {
     return this.http.get<ReclamoResponse>(`${this.apiUrl}/mis-reclamos`);

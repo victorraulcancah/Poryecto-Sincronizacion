@@ -96,7 +96,25 @@ class ReclamosController extends Controller
                 // Detalle de la reclamación
                 'tipo_solicitud' => 'required|in:reclamo,queja',
                 'detalle_reclamo' => 'required|string|min:20',
-                'pedido_consumidor' => 'required|string|min:10'
+                'pedido_consumidor' => 'required|string|min:10',
+
+                // Información de la compra: todo opcional.
+                'tipo_documento' => 'nullable|string|max:20',
+                'tipo_comprobante' => 'nullable|string|max:30',
+                'numero_comprobante' => 'nullable|string|max:50',
+                'fecha_compra' => 'nullable|date',
+                'codigo_pedido' => 'nullable|string|max:50',
+                'codigo_producto' => 'nullable|string|max:50',
+                'nombre_producto' => 'nullable|string|max:255',
+                'marca' => 'nullable|string|max:100',
+                'modelo' => 'nullable|string|max:100',
+                'solucion_esperada' => 'nullable|string|max:60',
+                'otra_solucion' => 'nullable|string|max:255',
+
+                // Adjuntos, con los topes del formulario.
+                'foto' => 'nullable|image|mimes:jpeg,jpg,png|max:5120',
+                'factura' => 'nullable|file|mimes:pdf,jpeg,jpg,png|max:5120',
+                'video' => 'nullable|file|mimes:mp4|max:20480',
             ];
 
             // Agregar validaciones del apoderado solo si es menor de edad
@@ -135,8 +153,8 @@ class ReclamosController extends Controller
             // Generar número único de reclamo
             $numeroReclamo = $this->generarNumeroReclamo();
 
-            // Calcular fecha límite de respuesta (30 días calendario)
-            $fechaLimiteRespuesta = Carbon::now()->addDays(30);
+            // Fecha límite: 15 días hábiles, como manda el Código del Consumidor.
+            $fechaLimiteRespuesta = Carbon::now()->addWeekdays(15);
 
             // Preparar datos del reclamo
             $esMenorEdad = $request->get('es_menor_edad', false);
@@ -176,6 +194,28 @@ class ReclamosController extends Controller
                 'detalle_reclamo' => $request->detalle_reclamo,
                 'pedido_consumidor' => $request->pedido_consumidor,
                 
+                // Información de la compra
+                'tipo_documento' => $request->input('tipo_documento', 'DNI'),
+                'tipo_comprobante' => $request->tipo_comprobante,
+                'numero_comprobante' => $request->numero_comprobante,
+                'fecha_compra' => $request->fecha_compra,
+                'codigo_pedido' => $request->codigo_pedido,
+                'codigo_producto' => $request->codigo_producto,
+                'nombre_producto' => $request->nombre_producto,
+                'marca' => $request->marca,
+                'modelo' => $request->modelo,
+
+                // Qué solución espera
+                'solucion_esperada' => $request->solucion_esperada,
+                'otra_solucion' => $request->otra_solucion,
+
+                // Adjuntos y trazabilidad
+                'foto' => $this->guardarAdjunto($request, 'foto'),
+                'factura' => $this->guardarAdjunto($request, 'factura'),
+                'video' => $this->guardarAdjunto($request, 'video'),
+                'canal' => 'Web - 7power.pe',
+                'ip' => $request->ip(),
+
                 // Estados
                 'estado' => 'pendiente',
                 'fecha_limite_respuesta' => $fechaLimiteRespuesta
@@ -513,13 +553,41 @@ class ReclamosController extends Controller
      */
     private function generarNumeroReclamo()
     {
+        // Correlativo por año: LR-2026-000001.
+        $year = date('Y');
+
         do {
-            $year = date('Y');
-            $month = date('m');
-            $random = str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
-            $numero = "REC-{$year}{$month}-{$random}";
+            $ultimo = Reclamo::where('numero_reclamo', 'LIKE', "LR-{$year}-%")
+                ->orderByDesc('id')
+                ->value('numero_reclamo');
+
+            $siguiente = $ultimo ? ((int) substr($ultimo, -6)) + 1 : 1;
+            $numero = sprintf('LR-%s-%06d', $year, $siguiente);
         } while (Reclamo::where('numero_reclamo', $numero)->exists());
 
         return $numero;
+    }
+
+    /**
+     * Guarda un archivo del formulario y devuelve su ruta pública, o null si no
+     * se envió. Mismo patrón que las imágenes de producto.
+     */
+    private function guardarAdjunto(Request $request, string $campo): ?string
+    {
+        if (! $request->hasFile($campo)) {
+            return null;
+        }
+
+        $archivo = $request->file($campo);
+        $nombre = time() . '_' . uniqid() . '.' . $archivo->getClientOriginalExtension();
+        $destino = public_path('storage/reclamos');
+
+        if (! file_exists($destino)) {
+            mkdir($destino, 0755, true);
+        }
+
+        $archivo->move($destino, $nombre);
+
+        return 'storage/reclamos/' . $nombre;
     }
 }

@@ -1,19 +1,20 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { BreadcrumbComponent } from '../../component/breadcrumb/breadcrumb.component';
-import { ShippingComponent } from '../../component/shipping/shipping.component';
 import { ReclamosService, Reclamo } from '../../services/reclamos.service';
+import { AuthService } from '../../services/auth.service';
+import { ClientePortalService } from '../../services/cliente-portal.service';
+import { Subject, takeUntil } from 'rxjs';
 import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-claimbook',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, BreadcrumbComponent, ShippingComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './claimbook.component.html',
   styleUrl: './claimbook.component.scss'
 })
-export class ClaimbookComponent implements OnInit {
+export class ClaimbookComponent implements OnInit, OnDestroy {
   claimbookForm!: FormGroup;
   isSubmitting = false;
   currentDate = new Date().toLocaleDateString('es-PE');
@@ -27,13 +28,75 @@ export class ClaimbookComponent implements OnInit {
     store: 'Tienda Virtual - E-commerce'
   };
 
+  private destroy$ = new Subject<void>();
+
+  /** Se avisa en pantalla cuando los datos vienen de la cuenta. */
+  datosPrecargados = false;
+
   constructor(
     private fb: FormBuilder,
-    private reclamosService: ReclamosService
+    private reclamosService: ReclamosService,
+    private authService: AuthService,
+    private clientePortalService: ClientePortalService
   ) {}
 
   ngOnInit(): void {
     this.initializeForm();
+    this.precargarDatosDelCliente();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  /**
+   * El libro es público, pero si el visitante tiene sesión se le adelantan sus
+   * datos: los del cliente de 7Power cuando la cuenta está vinculada y, si no,
+   * los de la propia cuenta. Todo queda editable antes de enviar.
+   */
+  private precargarDatosDelCliente(): void {
+    const usuario = this.authService.getCurrentUser?.() ?? null;
+
+    if (usuario) {
+      this.claimbookForm.patchValue({
+        consumidor_nombre: usuario.nombre_completo || usuario.name || '',
+        consumidor_dni: usuario.numero_documento || '',
+        consumidor_telefono: this.soloDigitos(usuario.telefono),
+        consumidor_email: usuario.email || '',
+      });
+      this.datosPrecargados = true;
+    }
+
+    if (!this.authService.isLoggedIn()) return;
+
+    this.clientePortalService
+      .getTitular()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (titular) => {
+          if (!titular?.vinculado) return;
+
+          // Manda el cliente de 7Power: es a nombre de quien se factura.
+          this.claimbookForm.patchValue({
+            consumidor_nombre: titular.nombre || this.claimbookForm.value.consumidor_nombre,
+            consumidor_dni: titular.documento || this.claimbookForm.value.consumidor_dni,
+            consumidor_telefono:
+              this.soloDigitos(titular.telefono) || this.claimbookForm.value.consumidor_telefono,
+            consumidor_email: titular.email || this.claimbookForm.value.consumidor_email,
+            consumidor_direccion: titular.direccion || this.claimbookForm.value.consumidor_direccion,
+          });
+          this.datosPrecargados = true;
+        },
+        // Si falla la consulta el formulario queda como estaba.
+        error: () => {},
+      });
+  }
+
+  /** El teléfono se guarda con 9 dígitos; los datos del ERP traen "+51 ...". */
+  private soloDigitos(valor: string | null | undefined): string {
+    const digitos = (valor || '').replace(/\D/g, '');
+    return digitos.length > 9 ? digitos.slice(-9) : digitos;
   }
 
   private initializeForm(): void {
@@ -41,7 +104,7 @@ export class ClaimbookComponent implements OnInit {
       // Datos del consumidor
       consumidor_nombre: ['', [Validators.required, Validators.minLength(2)]],
       consumidor_direccion: ['', [Validators.required]],
-      consumidor_dni: ['', [Validators.required, Validators.pattern(/^\d{8}$/)]],
+      consumidor_dni: ['', [Validators.required, Validators.pattern(/^\d{6,12}$/)]],
       consumidor_telefono: ['', [Validators.required, Validators.pattern(/^\d{9}$/)]],
       consumidor_email: ['', [Validators.required, Validators.email]],
       es_menor_edad: [false],
@@ -53,6 +116,23 @@ export class ClaimbookComponent implements OnInit {
       apoderado_telefono: [''],
       apoderado_email: [''],
       
+      // Tipo de documento del consumidor (el PDF ya no asume DNI siempre)
+      tipo_documento: ['DNI', Validators.required],
+
+      // Información de la compra (opcional)
+      tipo_comprobante: [''],
+      numero_comprobante: [''],
+      fecha_compra: [''],
+      codigo_pedido: [''],
+      codigo_producto: [''],
+      nombre_producto: [''],
+      marca: [''],
+      modelo: [''],
+
+      // Qué solución espera
+      solucion_esperada: [''],
+      otra_solucion: [''],
+
       // Identificación del bien contratado
       tipo_bien: ['producto', Validators.required], // producto o servicio
       monto_reclamado: ['', [Validators.required, Validators.min(0)]],
@@ -67,8 +147,10 @@ export class ClaimbookComponent implements OnInit {
       respuesta_proveedor: [''],
       fecha_respuesta: [''],
       
-      // Términos y condiciones
-      acceptTerms: [false, Validators.requiredTrue]
+      // Confirmación (las tres casillas del formato)
+      acceptTerms: [false, Validators.requiredTrue],
+      aceptaDatos: [false, Validators.requiredTrue],
+      conformeContenido: [false, Validators.requiredTrue]
     });
 
     // Validaciones condicionales para menor de edad
@@ -100,6 +182,66 @@ export class ClaimbookComponent implements OnInit {
     });
   }
 
+  /** Opciones del desplegable "¿Qué solución espera?". */
+  readonly solucionesEsperadas = [
+    'Cambio de producto',
+    'Devolución del dinero',
+    'Reparación',
+    'Cumplimiento del servicio',
+    'Otro',
+  ];
+
+  readonly tiposDocumento = ['DNI', 'RUC', 'Carné de extranjería', 'Pasaporte'];
+  readonly tiposComprobante = ['Boleta', 'Factura', 'Nota de venta', 'Otro'];
+
+  /** Archivos elegidos en el bloque 5; viajan como multipart al backend. */
+  adjuntos: { foto: File | null; factura: File | null; video: File | null } = {
+    foto: null,
+    factura: null,
+    video: null,
+  };
+
+  onArchivoSeleccionado(campo: 'foto' | 'factura' | 'video', evento: Event): void {
+    const input = evento.target as HTMLInputElement;
+    const archivo = input.files?.[0] ?? null;
+    if (!archivo) return;
+
+    // Los mismos topes que valida el backend.
+    const topeMb = campo === 'video' ? 20 : 5;
+    if (archivo.size > topeMb * 1024 * 1024) {
+      Swal.fire({
+        title: 'Archivo muy pesado',
+        text: `El archivo no puede pasar de ${topeMb} MB.`,
+        icon: 'warning',
+        confirmButtonColor: '#dc3545',
+      });
+      input.value = '';
+      return;
+    }
+
+    this.adjuntos[campo] = archivo;
+  }
+
+  quitarAdjunto(campo: 'foto' | 'factura' | 'video'): void {
+    this.adjuntos[campo] = null;
+  }
+
+  /** Pasa el reclamo y sus archivos a `FormData`. */
+  private armarFormData(reclamo: Reclamo): FormData {
+    const datos = new FormData();
+
+    Object.entries(reclamo as unknown as Record<string, unknown>).forEach(([clave, valor]) => {
+      if (valor === null || valor === undefined || valor === '') return;
+      datos.append(clave, typeof valor === 'boolean' ? (valor ? '1' : '0') : String(valor));
+    });
+
+    if (this.adjuntos.foto) datos.append('foto', this.adjuntos.foto);
+    if (this.adjuntos.factura) datos.append('factura', this.adjuntos.factura);
+    if (this.adjuntos.video) datos.append('video', this.adjuntos.video);
+
+    return datos;
+  }
+
   private generateClaimNumber(): string {
     const year = new Date().getFullYear();
     const randomNum = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
@@ -118,6 +260,8 @@ export class ClaimbookComponent implements OnInit {
       
       // Eliminar el campo acceptTerms ya que no es parte del modelo
       delete (reclamoData as any).acceptTerms;
+      delete (reclamoData as any).aceptaDatos;
+      delete (reclamoData as any).conformeContenido;
       
       // Si no es menor de edad, limpiar campos del apoderado
       if (!reclamoData.es_menor_edad) {
@@ -128,7 +272,13 @@ export class ClaimbookComponent implements OnInit {
         reclamoData.apoderado_email = undefined;
       }
       
-      this.reclamosService.crearReclamo(reclamoData).subscribe({
+      // Con adjuntos el envío va como multipart; sin ellos, JSON como siempre.
+      const hayAdjuntos = !!(this.adjuntos.foto || this.adjuntos.factura || this.adjuntos.video);
+      const envio = hayAdjuntos
+        ? this.reclamosService.crearReclamoConAdjuntos(this.armarFormData(reclamoData))
+        : this.reclamosService.crearReclamo(reclamoData);
+
+      envio.subscribe({
         next: (response) => {
           this.isSubmitting = false;
           
@@ -202,12 +352,19 @@ export class ClaimbookComponent implements OnInit {
   private resetForm(): void {
     this.claimbookForm.reset();
     this.claimbookForm.patchValue({
+      tipo_documento: 'DNI',
       tipo_bien: 'producto',
       tipo_solicitud: 'reclamo',
       es_menor_edad: false,
-      acceptTerms: false
+      acceptTerms: false,
+      aceptaDatos: false,
+      conformeContenido: false
     });
+    this.adjuntos = { foto: null, factura: null, video: null };
     this.claimNumber = this.generateClaimNumber();
+    // Si hay sesión, el formulario vuelve a quedar con los datos de la cuenta.
+    this.datosPrecargados = false;
+    this.precargarDatosDelCliente();
   }
 
   // Métodos de validación para el template

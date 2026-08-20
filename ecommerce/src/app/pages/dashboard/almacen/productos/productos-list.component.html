@@ -207,8 +207,6 @@
             <th>PRODUCTO</th>
             <th class="d-none d-lg-table-cell">CATEGORÍA</th>
             <th class="d-none d-lg-table-cell">MARCA</th>
-            <th>PRECIOS</th>
-            <th class="d-none d-md-table-cell">STOCK</th>
             <th>ESTADO</th>
             <th class="text-end">ACCIONES</th>
           </tr>
@@ -280,31 +278,6 @@
               <span class="text-gray-400" *ngIf="!producto.marca"
                 >Sin marca</span
               >
-            </td>
-
-            <!-- Precios -->
-            <td>
-              <div class="product-price-info">
-                <div class="price-sale">S/ {{ producto.precio_venta }}</div>
-                <div class="price-buy">
-                  Compra: S/ {{ producto.precio_compra }}
-                </div>
-              </div>
-            </td>
-
-            <!-- Stock (hidden on mobile) -->
-            <td class="d-none d-md-table-cell">
-              <div class="product-stock-info">
-                <div
-                  class="stock-current"
-                  [ngClass]="
-                    producto.stock <= producto.stock_minimo ? 'stock-low' : ''
-                  "
-                >
-                  {{ producto.stock }} und.
-                </div>
-                <div class="stock-min">Mín: {{ producto.stock_minimo }}</div>
-              </div>
             </td>
 
             <!-- Estado -->

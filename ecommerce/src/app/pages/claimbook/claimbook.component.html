@@ -1,509 +1,399 @@
-<!-- Breadcrumb -->
-<app-breadcrumb title="Libro de Reclamaciones" subtitle="Formulario de Reclamos"></app-breadcrumb>
-
-<!-- Claimbook Section -->
-<section class="claimbook py-80">
+<!-- Libro de Reclamaciones. La estructura sigue la propuesta: formulario en
+     seis bloques numerados a la izquierda y, a la derecha, la información que
+     llena el sistema más los avisos de plazo y contacto. -->
+<section class="libro py-40">
   <div class="container container-lg">
-    
-    <!-- Header del formulario -->
-    <div class="row justify-content-center mb-40">
-      <div class="col-lg-10">
-        <div class="claimbook-header bg-main-600 text-white p-24 rounded-12 text-center">
-          <h2 class="text-white fw-bold mb-16">{{ companyInfo.name }}</h2>
-          <p class="mb-8">RUC N°: {{ companyInfo.ruc }}</p>
-          <p class="mb-16">{{ companyInfo.address }}</p>
-          <div class="row">
-            <div class="col-md-6">
-              <div class="bg-white bg-opacity-20 p-16 rounded-8">
-                <h5 class="text-main-600 fw-semibold mb-8">LIBRO DE RECLAMACIONES</h5>
-                <p class="text-main-600 text-sm mb-0">FECHA: {{ currentDate }}</p>
+    <!-- Cabecera -->
+    <div class="libro__cabecera">
+      <div class="libro__marca">
+        <img [src]="'assets/images/logo/logo.svg'" alt="Logo" class="libro__logo" />
+      </div>
+
+      <div class="libro__titulo">
+        <h3 class="mb-0">
+          <i class="ph ph-clipboard-text"></i>
+          LIBRO DE RECLAMACIONES
+        </h3>
+        <p class="text-gray-600 mb-0">
+          Registra tu reclamo o queja y te daremos una respuesta.
+        </p>
+      </div>
+
+      <div class="libro__normativa">
+        <i class="ph ph-shield-check"></i>
+        <span>
+          Cumplimos con la normativa del Código de Protección y Defensa del
+          Consumidor (Indecopi).
+        </span>
+      </div>
+    </div>
+
+    <form [formGroup]="claimbookForm" (ngSubmit)="onSubmit()">
+      <div class="row g-24">
+        <!-- ══════════ Columna del formulario ══════════ -->
+        <div class="col-lg-8">
+          <!-- 1. Datos del consumidor -->
+          <div class="libro__bloque">
+            <div class="libro__bloque-titulo">
+              <span class="libro__numero">1</span>
+              <h6 class="mb-0">DATOS DEL CONSUMIDOR</h6>
+            </div>
+
+            <p class="libro__aviso" *ngIf="datosPrecargados">
+              <i class="ph ph-user-check"></i>
+              Completamos tus datos con los de tu cuenta; puedes corregirlos.
+            </p>
+
+            <div class="row g-16">
+              <div class="col-md-6">
+                <label class="libro__label">Nombres y apellidos <span>*</span></label>
+                <input type="text" class="libro__input" formControlName="consumidor_nombre"
+                  placeholder="Ej.: Juan Carlos Pérez López" />
+              </div>
+              <div class="col-md-6">
+                <label class="libro__label">Tipo de documento <span>*</span></label>
+                <select class="libro__input" formControlName="tipo_documento">
+                  <option *ngFor="let t of tiposDocumento" [value]="t">{{ t }}</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="libro__label">Número de documento <span>*</span></label>
+                <input type="text" class="libro__input" formControlName="consumidor_dni"
+                  placeholder="Ej.: 12345678" />
+              </div>
+              <div class="col-md-6">
+                <label class="libro__label">Teléfono <span>*</span></label>
+                <div class="libro__input-icono">
+                  <input type="text" class="libro__input" formControlName="consumidor_telefono"
+                    placeholder="Ej.: 987 654 321" />
+                  <i class="ph ph-whatsapp-logo"></i>
+                </div>
+              </div>
+              <div class="col-12">
+                <label class="libro__label">Correo electrónico <span>*</span></label>
+                <input type="email" class="libro__input" formControlName="consumidor_email"
+                  placeholder="Ej.: correo@ejemplo.com" />
+              </div>
+              <div class="col-12">
+                <label class="libro__label">Dirección <span>*</span></label>
+                <input type="text" class="libro__input" formControlName="consumidor_direccion"
+                  placeholder="Ej.: Av. Los Próceres 123, Surco, Lima" />
+              </div>
+
+              <!-- Menor de edad: lo exige Indecopi y ya estaba en el sistema. -->
+              <div class="col-12">
+                <label class="libro__check">
+                  <input type="checkbox" formControlName="es_menor_edad" />
+                  El consumidor es menor de edad (se piden los datos del apoderado)
+                </label>
               </div>
             </div>
-            <div class="col-md-6">
-              <div class="bg-white bg-opacity-20 p-16 rounded-8">
-                <h5 class="text-main-600 fw-semibold mb-8">HOJA DE RECLAMACIÓN</h5>
-                <p class="text-main-600 text-sm mb-0">N°: {{ claimNumber }}</p>
+
+            <div class="row g-16 mt-4" *ngIf="claimbookForm.get('es_menor_edad')?.value">
+              <div class="col-md-6">
+                <label class="libro__label">Nombre del apoderado <span>*</span></label>
+                <input type="text" class="libro__input" formControlName="apoderado_nombre" />
               </div>
+              <div class="col-md-6">
+                <label class="libro__label">DNI del apoderado <span>*</span></label>
+                <input type="text" class="libro__input" formControlName="apoderado_dni" />
+              </div>
+              <div class="col-md-6">
+                <label class="libro__label">Teléfono del apoderado <span>*</span></label>
+                <input type="text" class="libro__input" formControlName="apoderado_telefono" />
+              </div>
+              <div class="col-md-6">
+                <label class="libro__label">Correo del apoderado <span>*</span></label>
+                <input type="email" class="libro__input" formControlName="apoderado_email" />
+              </div>
+              <div class="col-12">
+                <label class="libro__label">Dirección del apoderado <span>*</span></label>
+                <input type="text" class="libro__input" formControlName="apoderado_direccion" />
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Información de la compra -->
+          <div class="libro__bloque">
+            <div class="libro__bloque-titulo">
+              <span class="libro__numero">2</span>
+              <h6 class="mb-0">INFORMACIÓN DE LA COMPRA <small>(OPCIONAL)</small></h6>
+            </div>
+
+            <div class="row g-16">
+              <div class="col-md-4">
+                <label class="libro__label">Tipo de comprobante</label>
+                <select class="libro__input" formControlName="tipo_comprobante">
+                  <option value="">Seleccionar</option>
+                  <option *ngFor="let t of tiposComprobante" [value]="t">{{ t }}</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="libro__label">Número de comprobante</label>
+                <input type="text" class="libro__input" formControlName="numero_comprobante"
+                  placeholder="Ej.: F001-00012345" />
+              </div>
+              <div class="col-md-4">
+                <label class="libro__label">Fecha de compra</label>
+                <input type="date" class="libro__input" formControlName="fecha_compra" />
+              </div>
+              <div class="col-md-4">
+                <label class="libro__label">Número de pedido (web)</label>
+                <input type="text" class="libro__input" formControlName="codigo_pedido"
+                  placeholder="Ej.: 7P000123" />
+              </div>
+              <div class="col-md-4">
+                <label class="libro__label">Código del producto</label>
+                <input type="text" class="libro__input" formControlName="codigo_producto"
+                  placeholder="Ej.: 7P-TEC-001" />
+              </div>
+              <div class="col-md-4">
+                <label class="libro__label">Nombre del producto</label>
+                <input type="text" class="libro__input" formControlName="nombre_producto"
+                  placeholder="Ej.: Audífonos Bluetooth 7Power" />
+              </div>
+              <div class="col-md-6">
+                <label class="libro__label">Marca</label>
+                <input type="text" class="libro__input" formControlName="marca" placeholder="Ej.: 7Power" />
+              </div>
+              <div class="col-md-6">
+                <label class="libro__label">Modelo</label>
+                <input type="text" class="libro__input" formControlName="modelo" placeholder="Ej.: Sport X1" />
+              </div>
+              <div class="col-md-6">
+                <label class="libro__label">Tipo de bien <span>*</span></label>
+                <select class="libro__input" formControlName="tipo_bien">
+                  <option value="producto">Producto</option>
+                  <option value="servicio">Servicio</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="libro__label">Monto reclamado (S/) <span>*</span></label>
+                <input type="number" class="libro__input" formControlName="monto_reclamado" step="0.01"
+                  min="0" placeholder="0.00" />
+              </div>
+              <div class="col-12">
+                <label class="libro__label">Descripción del producto o servicio <span>*</span></label>
+                <input type="text" class="libro__input" formControlName="descripcion_bien"
+                  placeholder="Describe brevemente qué compraste" />
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Tipo de registro -->
+          <div class="libro__bloque">
+            <div class="libro__bloque-titulo">
+              <span class="libro__numero">3</span>
+              <h6 class="mb-0">TIPO DE REGISTRO</h6>
+            </div>
+
+            <div class="row g-16">
+              <div class="col-md-6">
+                <label class="libro__opcion" [class.libro__opcion--activa]="claimbookForm.get('tipo_solicitud')?.value === 'reclamo'">
+                  <input type="radio" formControlName="tipo_solicitud" value="reclamo" />
+                  <span class="libro__opcion-texto">
+                    <strong>Reclamo</strong>
+                    Disconformidad relacionada con el producto o servicio.
+                  </span>
+                  <i class="ph ph-package"></i>
+                </label>
+              </div>
+              <div class="col-md-6">
+                <label class="libro__opcion" [class.libro__opcion--activa]="claimbookForm.get('tipo_solicitud')?.value === 'queja'">
+                  <input type="radio" formControlName="tipo_solicitud" value="queja" />
+                  <span class="libro__opcion-texto">
+                    <strong>Queja</strong>
+                    Disconformidad relacionada con la atención recibida.
+                  </span>
+                  <i class="ph ph-user-circle"></i>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Detalle -->
+          <div class="libro__bloque">
+            <div class="libro__bloque-titulo">
+              <span class="libro__numero">4</span>
+              <h6 class="mb-0">DETALLE</h6>
+            </div>
+
+            <label class="libro__label">Detalle del reclamo o queja <span>*</span></label>
+            <textarea rows="4" class="libro__input" formControlName="detalle_reclamo"
+              placeholder="Describe aquí tu reclamo o queja con el mayor detalle posible..."></textarea>
+
+            <div class="row g-16 mt-4">
+              <div class="col-md-6">
+                <label class="libro__label">¿Qué solución espera?</label>
+                <select class="libro__input" formControlName="solucion_esperada">
+                  <option value="">Seleccionar solución esperada</option>
+                  <option *ngFor="let s of solucionesEsperadas" [value]="s">{{ s }}</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="libro__label">Otra solución (especifique)</label>
+                <input type="text" class="libro__input" formControlName="otra_solucion"
+                  placeholder="Escribe aquí la solución que esperas" />
+              </div>
+              <div class="col-12">
+                <label class="libro__label">Pedido concreto del consumidor <span>*</span></label>
+                <textarea rows="2" class="libro__input" formControlName="pedido_consumidor"
+                  placeholder="Indica qué solicitas a la empresa"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. Información adicional -->
+          <div class="libro__bloque">
+            <div class="libro__bloque-titulo">
+              <span class="libro__numero">5</span>
+              <h6 class="mb-0">INFORMACIÓN ADICIONAL <small>(OPCIONAL)</small></h6>
+            </div>
+            <p class="text-sm text-gray-500 mb-16">
+              Puedes adjuntar archivos que nos ayuden a entender mejor tu caso.
+            </p>
+
+            <div class="row g-16">
+              <div class="col-md-4">
+                <label class="libro__adjunto">
+                  <input type="file" accept="image/jpeg,image/png" hidden
+                    (change)="onArchivoSeleccionado('foto', $event)" />
+                  <i class="ph ph-image"></i>
+                  <strong>Adjuntar fotografías</strong>
+                  <small>JPG, PNG (máx. 5 MB)</small>
+                </label>
+                <p class="libro__archivo" *ngIf="adjuntos.foto">
+                  {{ adjuntos.foto.name }}
+                  <button type="button" (click)="quitarAdjunto('foto')"><i class="ph ph-x"></i></button>
+                </p>
+              </div>
+              <div class="col-md-4">
+                <label class="libro__adjunto">
+                  <input type="file" accept="application/pdf,image/jpeg,image/png" hidden
+                    (change)="onArchivoSeleccionado('factura', $event)" />
+                  <i class="ph ph-file-text"></i>
+                  <strong>Adjuntar factura</strong>
+                  <small>PDF, JPG, PNG (máx. 5 MB)</small>
+                </label>
+                <p class="libro__archivo" *ngIf="adjuntos.factura">
+                  {{ adjuntos.factura.name }}
+                  <button type="button" (click)="quitarAdjunto('factura')"><i class="ph ph-x"></i></button>
+                </p>
+              </div>
+              <div class="col-md-4">
+                <label class="libro__adjunto">
+                  <input type="file" accept="video/mp4" hidden
+                    (change)="onArchivoSeleccionado('video', $event)" />
+                  <i class="ph ph-video-camera"></i>
+                  <strong>Adjuntar video</strong>
+                  <small>MP4 (máx. 20 MB)</small>
+                </label>
+                <p class="libro__archivo" *ngIf="adjuntos.video">
+                  {{ adjuntos.video.name }}
+                  <button type="button" (click)="quitarAdjunto('video')"><i class="ph ph-x"></i></button>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 6. Confirmación -->
+          <div class="libro__bloque">
+            <div class="libro__bloque-titulo">
+              <span class="libro__numero">6</span>
+              <h6 class="mb-0">CONFIRMACIÓN</h6>
+            </div>
+
+            <label class="libro__check">
+              <input type="checkbox" formControlName="acceptTerms" />
+              Declaro que la información proporcionada es verdadera.
+            </label>
+            <label class="libro__check">
+              <input type="checkbox" formControlName="aceptaDatos" />
+              Acepto el tratamiento de mis datos personales de acuerdo con la Ley
+              de Protección de Datos Personales.
+            </label>
+            <label class="libro__check">
+              <input type="checkbox" formControlName="conformeContenido" />
+              He leído y estoy conforme con el contenido de mi reclamo.
+            </label>
+
+            <div class="libro__acciones">
+              <button type="submit" class="libro__enviar" [disabled]="claimbookForm.invalid || isSubmitting">
+                <i class="ph ph-paper-plane-tilt"></i>
+                {{ isSubmitting ? 'Enviando...' : 'ENVIAR RECLAMO' }}
+              </button>
+              <button type="button" class="libro__limpiar" (click)="clearForm()">
+                <i class="ph ph-trash"></i>
+                LIMPIAR FORMULARIO
+              </button>
             </div>
           </div>
         </div>
+
+        <!-- ══════════ Columna de la derecha ══════════ -->
+        <div class="col-lg-4">
+          <!-- Lo que llena el sistema -->
+          <div class="libro__panel">
+            <div class="libro__panel-titulo">
+              <i class="ph ph-gear"></i>
+              <h6 class="mb-0">INFORMACIÓN AUTOMÁTICA</h6>
+            </div>
+            <p class="text-sm text-gray-500">
+              Estos datos son registrados automáticamente por el sistema.
+            </p>
+
+            <div class="libro__dato">
+              <span>N.º de reclamación</span>
+              <strong>Se asigna al enviar</strong>
+            </div>
+            <div class="libro__dato">
+              <span>Fecha y hora</span>
+              <strong>{{ currentDate }}</strong>
+            </div>
+            <div class="libro__dato">
+              <span>Canal</span>
+              <strong>Web - 7power.pe</strong>
+            </div>
+            <div class="libro__dato">
+              <span>Estado</span>
+              <strong class="libro__estado">Pendiente</strong>
+            </div>
+            <div class="libro__dato">
+              <span>Responsable asignado</span>
+              <strong>Por asignar</strong>
+            </div>
+            <div class="libro__dato">
+              <span>Fecha límite de respuesta</span>
+              <strong>15 días hábiles</strong>
+            </div>
+          </div>
+
+          <!-- Avisos -->
+          <div class="libro__panel libro__panel--aviso">
+            <div class="libro__panel-titulo">
+              <i class="ph ph-warning-circle"></i>
+              <h6 class="mb-0">IMPORTANTE</h6>
+            </div>
+            <ul>
+              <li>El plazo máximo de respuesta es de 15 días hábiles.</li>
+              <li>Te notificaremos la respuesta en el correo electrónico registrado.</li>
+              <li>Puedes hacer seguimiento de tu reclamo usando el número de reclamación.</li>
+            </ul>
+          </div>
+
+          <!-- Contacto -->
+          <div class="libro__panel libro__panel--ayuda">
+            <div class="libro__panel-titulo">
+              <i class="ph ph-headset"></i>
+              <h6 class="mb-0">¿NECESITAS AYUDA?</h6>
+            </div>
+            <p class="text-sm text-gray-600">Si tienes dudas, contáctanos:</p>
+            <p class="libro__contacto"><i class="ph ph-whatsapp-logo"></i> WhatsApp: 970 305 170</p>
+            <p class="libro__contacto"><i class="ph ph-envelope"></i> Correo: hola&#64;7power.pe</p>
+            <p class="libro__contacto"><i class="ph ph-clock"></i> Horario: Lun - Sáb 9:00 am - 7:00 pm</p>
+          </div>
+        </div>
       </div>
-    </div>
-
-    <!-- Formulario -->
-    <div class="row justify-content-center">
-      <div class="col-lg-10">
-        <form [formGroup]="claimbookForm" (ngSubmit)="onSubmit()" class="claimbook-form">
-          
-          <!-- Información de la empresa -->
-          <div class="form-section bg-gray-50 p-24 rounded-12 mb-32">
-            <div class="row">
-              <div class="col-md-6">
-                <div class="mb-16">
-                  <label class="form-label fw-semibold text-heading">NEGOCIO:</label>
-                  <input type="text" class="form-control" [value]="companyInfo.name" readonly>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-16">
-                  <label class="form-label fw-semibold text-heading">TIENDA:</label>
-                  <input type="text" class="form-control" [value]="companyInfo.store" readonly>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 1. Identificación del consumidor reclamante -->
-          <div class="form-section border border-gray-200 p-24 rounded-12 mb-32">
-            <h4 class="section-title text-heading fw-bold mb-24">
-              <span class="badge bg-main-600 text-white me-12">1</span>
-              IDENTIFICACIÓN DEL CONSUMIDOR RECLAMANTE
-            </h4>
-            
-            <div class="row">
-              <div class="col-md-6">
-                <div class="mb-20">
-                  <label class="form-label fw-semibold text-heading">NOMBRE: <span class="text-danger">*</span></label>
-                  <input 
-                    type="text" 
-                    class="form-control"
-                    formControlName="consumidor_nombre"
-                    [class.is-invalid]="isFieldInvalid('consumidor_nombre')"
-                    placeholder="Ingrese su nombre completo">
-                  <div class="invalid-feedback" *ngIf="isFieldInvalid('consumidor_nombre')">
-                    {{ getFieldError('consumidor_nombre') }}
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-20">
-                  <label class="form-label fw-semibold text-heading">DNI / CE: <span class="text-danger">*</span></label>
-                  <input 
-                    type="text" 
-                    class="form-control"
-                    formControlName="consumidor_dni"
-                    [class.is-invalid]="isFieldInvalid('consumidor_dni')"
-                    placeholder="12345678"
-                    maxlength="8">
-                  <div class="invalid-feedback" *ngIf="isFieldInvalid('consumidor_dni')">
-                    {{ getFieldError('consumidor_dni') }}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="col-12">
-                <div class="mb-20">
-                  <label class="form-label fw-semibold text-heading">DOMICILIO: <span class="text-danger">*</span></label>
-                  <input 
-                    type="text" 
-                    class="form-control"
-                    formControlName="consumidor_direccion"
-                    [class.is-invalid]="isFieldInvalid('consumidor_direccion')"
-                    placeholder="Ingrese su dirección completa">
-                  <div class="invalid-feedback" *ngIf="isFieldInvalid('consumidor_direccion')">
-                    {{ getFieldError('consumidor_direccion') }}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="col-md-6">
-                <div class="mb-20">
-                  <label class="form-label fw-semibold text-heading">TELÉFONO: <span class="text-danger">*</span></label>
-                  <input 
-                    type="text" 
-                    class="form-control"
-                    formControlName="consumidor_telefono"
-                    [class.is-invalid]="isFieldInvalid('consumidor_telefono')"
-                    placeholder="987654321"
-                    maxlength="9">
-                  <div class="invalid-feedback" *ngIf="isFieldInvalid('consumidor_telefono')">
-                    {{ getFieldError('consumidor_telefono') }}
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-20">
-                  <label class="form-label fw-semibold text-heading">EMAIL: <span class="text-danger">*</span></label>
-                  <input 
-                    type="email" 
-                    class="form-control"
-                    formControlName="consumidor_email"
-                    [class.is-invalid]="isFieldInvalid('consumidor_email')"
-                    placeholder="ejemplo@correo.com">
-                  <div class="invalid-feedback" *ngIf="isFieldInvalid('consumidor_email')">
-                    {{ getFieldError('consumidor_email') }}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Menor de edad -->
-            <div class="row">
-              <div class="col-12">
-                <div class="form-check mb-20">
-                  <input 
-                    class="form-check-input" 
-                    type="checkbox" 
-                    formControlName="es_menor_edad"
-                    id="isMinor">
-                  <label class="form-check-label fw-medium" for="isMinor">
-                    MENOR DE EDAD (LLENAR INFORMACIÓN DEL APODERADO)
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <!-- Datos del apoderado (si es menor de edad) -->
-            <div *ngIf="claimbookForm.get('es_menor_edad')?.value" class="guardian-section bg-warning-50 p-20 rounded-8">
-              <h6 class="text-warning-700 fw-semibold mb-16">DATOS DEL APODERADO</h6>
-              
-              <div class="row">
-                <div class="col-md-6">
-                  <div class="mb-20">
-                    <label class="form-label fw-semibold text-heading">NOMBRE: <span class="text-danger">*</span></label>
-                    <input 
-                      type="text" 
-                      class="form-control"
-                      formControlName="apoderado_nombre"
-                      [class.is-invalid]="isFieldInvalid('apoderado_nombre')"
-                      placeholder="Nombre del apoderado">
-                    <div class="invalid-feedback" *ngIf="isFieldInvalid('apoderado_nombre')">
-                      {{ getFieldError('apoderado_nombre') }}
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="mb-20">
-                    <label class="form-label fw-semibold text-heading">DNI / CE: <span class="text-danger">*</span></label>
-                    <input 
-                      type="text" 
-                      class="form-control"
-                      formControlName="apoderado_dni"
-                      [class.is-invalid]="isFieldInvalid('apoderado_dni')"
-                      placeholder="12345678"
-                      maxlength="8">
-                    <div class="invalid-feedback" *ngIf="isFieldInvalid('apoderado_dni')">
-                      {{ getFieldError('apoderado_dni') }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="row">
-                <div class="col-12">
-                  <div class="mb-20">
-                    <label class="form-label fw-semibold text-heading">DOMICILIO: <span class="text-danger">*</span></label>
-                    <input 
-                      type="text" 
-                      class="form-control"
-                      formControlName="apoderado_direccion"
-                      [class.is-invalid]="isFieldInvalid('apoderado_direccion')"
-                      placeholder="Dirección del apoderado">
-                    <div class="invalid-feedback" *ngIf="isFieldInvalid('apoderado_direccion')">
-                      {{ getFieldError('apoderado_direccion') }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="row">
-                <div class="col-md-6">
-                  <div class="mb-20">
-                    <label class="form-label fw-semibold text-heading">TELÉFONO: <span class="text-danger">*</span></label>
-                    <input 
-                      type="text" 
-                      class="form-control"
-                      formControlName="apoderado_telefono"
-                      [class.is-invalid]="isFieldInvalid('apoderado_telefono')"
-                      placeholder="987654321"
-                      maxlength="9">
-                    <div class="invalid-feedback" *ngIf="isFieldInvalid('apoderado_telefono')">
-                      {{ getFieldError('apoderado_telefono') }}
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="mb-20">
-                    <label class="form-label fw-semibold text-heading">EMAIL: <span class="text-danger">*</span></label>
-                    <input 
-                      type="email" 
-                      class="form-control"
-                      formControlName="apoderado_email"
-                      [class.is-invalid]="isFieldInvalid('apoderado_email')"
-                      placeholder="apoderado@correo.com">
-                    <div class="invalid-feedback" *ngIf="isFieldInvalid('apoderado_email')">
-                      {{ getFieldError('apoderado_email') }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 2. Identificación del bien contratado -->
-          <div class="form-section border border-gray-200 p-24 rounded-12 mb-32">
-            <h4 class="section-title text-heading fw-bold mb-24">
-              <span class="badge bg-main-600 text-white me-12">2</span>
-              IDENTIFICACIÓN DEL BIEN CONTRATADO
-            </h4>
-
-            <div class="row">
-              <div class="col-md-6">
-                <div class="mb-20">
-                  <label class="form-label fw-semibold text-heading">TIPO: <span class="text-danger">*</span></label>
-                  <div class="d-flex gap-24">
-                    <div class="form-check">
-                      <input 
-                        class="form-check-input" 
-                        type="radio" 
-                        formControlName="tipo_bien"
-                        value="producto"
-                        id="producto">
-                      <label class="form-check-label" for="producto">
-                        PRODUCTO
-                      </label>
-                    </div>
-                    <div class="form-check">
-                      <input 
-                        class="form-check-input" 
-                        type="radio" 
-                        formControlName="tipo_bien"
-                        value="servicio"
-                        id="servicio">
-                      <label class="form-check-label" for="servicio">
-                        SERVICIO
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-20">
-                  <label class="form-label fw-semibold text-heading">MONTO RECLAMADO: <span class="text-danger">*</span></label>
-                  <div class="input-group">
-                    <span class="input-group-text">S/</span>
-                    <input 
-                      type="number" 
-                      class="form-control"
-                      formControlName="monto_reclamado"
-                      [class.is-invalid]="isFieldInvalid('monto_reclamado')"
-                      placeholder="0.00"
-                      min="0"
-                      step="0.01">
-                    <div class="invalid-feedback" *ngIf="isFieldInvalid('monto_reclamado')">
-                      {{ getFieldError('monto_reclamado') }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="col-12">
-                <div class="mb-20">
-                  <label class="form-label fw-semibold text-heading">DESCRIPCIÓN: <span class="text-danger">*</span></label>
-                  <textarea 
-                    class="form-control"
-                    formControlName="descripcion_bien"
-                    [class.is-invalid]="isFieldInvalid('descripcion_bien')"
-                    rows="3"
-                    placeholder="Describa detalladamente el producto o servicio objeto del reclamo"></textarea>
-                  <div class="invalid-feedback" *ngIf="isFieldInvalid('descripcion_bien')">
-                    {{ getFieldError('descripcion_bien') }}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 3. Detalle de la reclamación -->
-          <div class="form-section border border-gray-200 p-24 rounded-12 mb-32">
-            <h4 class="section-title text-heading fw-bold mb-24">
-              <span class="badge bg-main-600 text-white me-12">3</span>
-              DETALLE DE LA RECLAMACIÓN Y PEDIDO DEL CONSUMIDOR
-            </h4>
-
-            <div class="row">
-              <div class="col-12">
-                <div class="mb-20">
-                  <label class="form-label fw-semibold text-heading">TIPO DE SOLICITUD: <span class="text-danger">*</span></label>
-                  <div class="d-flex gap-24">
-                    <div class="form-check">
-                      <input 
-                        class="form-check-input" 
-                        type="radio" 
-                        formControlName="tipo_solicitud"
-                        value="reclamo"
-                        id="reclamo">
-                      <label class="form-check-label" for="reclamo">
-                        <strong>RECLAMO</strong>
-                      </label>
-                    </div>
-                    <div class="form-check">
-                      <input 
-                        class="form-check-input" 
-                        type="radio" 
-                        formControlName="tipo_solicitud"
-                        value="queja"
-                        id="queja">
-                      <label class="form-check-label" for="queja">
-                        <strong>QUEJA</strong>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="col-12">
-                <div class="mb-20">
-                  <label class="form-label fw-semibold text-heading">DETALLE: <span class="text-danger">*</span></label>
-                  <textarea 
-                    class="form-control"
-                    formControlName="detalle_reclamo"
-                    [class.is-invalid]="isFieldInvalid('detalle_reclamo')"
-                    rows="4"
-                    placeholder="Describa detalladamente su reclamo o queja"></textarea>
-                  <div class="invalid-feedback" *ngIf="isFieldInvalid('detalle_reclamo')">
-                    {{ getFieldError('detalle_reclamo') }}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="col-12">
-                <div class="mb-20">
-                  <label class="form-label fw-semibold text-heading">PEDIDO DEL CONSUMIDOR: <span class="text-danger">*</span></label>
-                  <textarea 
-                    class="form-control"
-                    formControlName="pedido_consumidor"
-                    [class.is-invalid]="isFieldInvalid('pedido_consumidor')"
-                    rows="3"
-                    placeholder="Indique qué solicita como solución a su reclamo"></textarea>
-                  <div class="invalid-feedback" *ngIf="isFieldInvalid('pedido_consumidor')">
-                    {{ getFieldError('pedido_consumidor') }}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 4. Observaciones del proveedor -->
-          <div class="form-section border border-gray-200 p-24 rounded-12 mb-32">
-            <h4 class="section-title text-heading fw-bold mb-24">
-              <span class="badge bg-secondary text-white me-12">4</span>
-              OBSERVACIONES Y ACCIONES ADOPTADAS POR EL PROVEEDOR
-            </h4>
-
-            <div class="row">
-              <div class="col-md-6">
-                <div class="mb-20">
-                  <label class="form-label fw-semibold text-heading">FECHA DE COMUNICACIÓN DE LA RESPUESTA:</label>
-                  <input 
-                    type="date" 
-                    class="form-control"
-                    formControlName="fecha_respuesta"
-                    placeholder="dd/mm/aaaa">
-                </div>
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="col-12">
-                <div class="mb-20">
-                  <label class="form-label fw-semibold text-heading">RESPUESTA:</label>
-                  <textarea 
-                    class="form-control bg-gray-50"
-                    formControlName="respuesta_proveedor"
-                    rows="4"
-                    placeholder="Este campo será completado por el proveedor"
-                    readonly></textarea>
-                </div>
-              </div>
-            </div>
-
-            <!-- Información legal -->
-            <div class="legal-info bg-info-50 p-16 rounded-8">
-              <div class="row">
-                <div class="col-md-6">
-                  <p class="text-sm text-info-700 mb-8">
-                    <strong>RECLAMO:</strong> Disconformidad relacionada a los productos o servicios.
-                  </p>
-                </div>
-                <div class="col-md-6">
-                  <p class="text-sm text-info-700 mb-8">
-                    <strong>QUEJA:</strong> Disconformidad no relacionada a los productos o servicios, o malestar o descontento respecto a la atención al público.
-                  </p>
-                </div>
-              </div>
-              <hr class="my-12">
-              <p class="text-xs text-info-600 mb-8">
-                * La formulación del reclamo no impide acudir a otras vías de solución de controversias ni es requisito previo para interponer una denuncia ante el INDECOPI.
-              </p>
-              <p class="text-xs text-info-600 mb-0">
-                * El proveedor deberá dar respuesta a los reclamos y las quejas que se consignen en un plazo no mayor a quince (30) días calendario, improrrogables.
-              </p>
-            </div>
-          </div>
-
-          <!-- Términos y condiciones -->
-          <div class="form-section border border-gray-200 p-24 rounded-12 mb-32">
-            <div class="form-check">
-              <input 
-                class="form-check-input" 
-                type="checkbox" 
-                formControlName="acceptTerms"
-                [class.is-invalid]="isFieldInvalid('acceptTerms')"
-                id="acceptTerms">
-              <label class="form-check-label" for="acceptTerms">
-                <span class="text-danger">*</span> Acepto que la información proporcionada es veraz y autorizo el tratamiento de mis datos personales para el procesamiento de este reclamo, de acuerdo con la Ley de Protección de Datos Personales.
-              </label>
-              <div class="invalid-feedback" *ngIf="isFieldInvalid('acceptTerms')">
-                Debe aceptar los términos y condiciones
-              </div>
-            </div>
-          </div>
-
-          <!-- Botones de acción -->
-          <div class="form-actions d-flex justify-content-center gap-16 flex-wrap">
-            <button 
-              type="button" 
-              class="btn bg-gray-100 hover-bg-gray-200 text-gray-700 px-32 py-12 rounded-8"
-              (click)="clearForm()"
-              [disabled]="isSubmitting">
-              <i class="ph ph-eraser me-8"></i>
-              Limpiar
-            </button>
-            
-            <button 
-              type="button" 
-              class="btn bg-info-100 hover-bg-info-200 text-info-700 px-32 py-12 rounded-8"
-              (click)="printForm()"
-              [disabled]="isSubmitting">
-              <i class="ph ph-printer me-8"></i>
-              Imprimir
-            </button>
-            
-            <button 
-              type="submit" 
-              class="btn btn-main px-32 py-12 rounded-8"
-              [disabled]="isSubmitting || claimbookForm.invalid">
-              <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-8"></span>
-              <i *ngIf="!isSubmitting" class="ph ph-paper-plane-tilt me-8"></i>
-              {{ isSubmitting ? 'Enviando...' : 'Enviar Reclamo' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    </form>
   </div>
 </section>
-
-<!-- Shipping Section -->
-<app-shipping></app-shipping>

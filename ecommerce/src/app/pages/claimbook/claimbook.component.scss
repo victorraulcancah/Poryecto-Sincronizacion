@@ -1,0 +1,522 @@
+/* Libro de Reclamaciones — estilos de la propuesta:
+   bloques numerados en rojo institucional y panel lateral informativo. */
+
+$rojo: #d32027;
+$rojo-suave: #fdecec;
+$borde: #e5e7eb;
+$texto: #1f2937;
+$texto-suave: #6b7280;
+
+.libro {
+  background: #f6f7f9;
+
+  /* ── Cabecera ───────────────────────────────────────────── */
+  &__cabecera {
+    background: #fff;
+    border: 1px solid $borde;
+    border-top: 4px solid $rojo;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  /* El logo trae el texto "POWER" en blanco (está pensado para la barra roja),
+     así que se muestra sobre el mismo fondo rojo para que se lea. */
+  &__marca {
+    background: $rojo;
+    border-radius: 10px;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+  }
+
+  &__logo {
+    height: 34px;
+    width: auto;
+  }
+
+  &__titulo {
+    flex: 1 1 320px;
+
+    h3 {
+      font-size: 22px;
+      font-weight: 700;
+      color: $texto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      i {
+        color: $rojo;
+        font-size: 26px;
+      }
+    }
+
+    p {
+      font-size: 14px;
+      margin-top: 4px;
+    }
+  }
+
+  &__normativa {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    max-width: 320px;
+    background: $rojo-suave;
+    border: 1px solid rgba($rojo, 0.25);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #7f1d1d;
+
+    i {
+      color: $rojo;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+  }
+
+  /* ── Bloques del formulario ─────────────────────────────── */
+  &__bloque {
+    background: #fff;
+    border: 1px solid $borde;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  &__bloque-titulo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 14px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid $rojo-suave;
+
+    h6 {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      color: $texto;
+
+      small {
+        font-weight: 500;
+        color: $texto-suave;
+        letter-spacing: 0;
+      }
+    }
+  }
+
+  &__numero {
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: $rojo;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__aviso {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: #1e40af;
+
+    i {
+      font-size: 16px;
+    }
+  }
+
+  /* ── Campos ─────────────────────────────────────────────── */
+  &__label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: $texto;
+    margin-bottom: 6px;
+
+    span {
+      color: $rojo;
+    }
+  }
+
+  &__input {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    color: $texto;
+    background: #fff;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+    &::placeholder {
+      color: #9ca3af;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: $rojo;
+      box-shadow: 0 0 0 3px rgba($rojo, 0.12);
+    }
+  }
+
+  textarea.libro__input {
+    resize: vertical;
+    min-height: 96px;
+  }
+
+  &__input-icono {
+    position: relative;
+
+    .libro__input {
+      padding-right: 40px;
+    }
+
+    i {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #22c55e;
+      font-size: 18px;
+      pointer-events: none;
+    }
+  }
+
+  /* ── Casillas ───────────────────────────────────────────── */
+  &__check {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13.5px;
+    color: #374151;
+    line-height: 1.5;
+    margin-bottom: 12px;
+    cursor: pointer;
+
+    input {
+      width: 17px;
+      height: 17px;
+      margin-top: 2px;
+      flex-shrink: 0;
+      accent-color: $rojo;
+      cursor: pointer;
+    }
+  }
+
+  /* ── Reclamo / Queja ────────────────────────────────────── */
+  &__opcion {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 100%;
+    border: 2px solid $borde;
+    border-radius: 10px;
+    padding: 16px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+
+    input {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      accent-color: $rojo;
+      cursor: pointer;
+    }
+
+    i {
+      margin-left: auto;
+      font-size: 24px;
+      color: #cbd5e1;
+    }
+
+    &:hover {
+      border-color: rgba($rojo, 0.45);
+    }
+
+    &--activa {
+      border-color: $rojo;
+      background: $rojo-suave;
+
+      i {
+        color: $rojo;
+      }
+    }
+  }
+
+  &__opcion-texto {
+    display: flex;
+    flex-direction: column;
+    font-size: 12.5px;
+    color: $texto-suave;
+    line-height: 1.4;
+
+    strong {
+      font-size: 14px;
+      color: $texto;
+      margin-bottom: 2px;
+    }
+  }
+
+  /* ── Adjuntos ───────────────────────────────────────────── */
+  &__adjunto {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 130px;
+    border: 2px dashed #d1d5db;
+    border-radius: 10px;
+    background: #fafafa;
+    text-align: center;
+    padding: 12px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+
+    i {
+      font-size: 26px;
+      color: $rojo;
+    }
+
+    strong {
+      font-size: 13px;
+      color: $texto;
+    }
+
+    small {
+      font-size: 11.5px;
+      color: $texto-suave;
+    }
+
+    &:hover {
+      border-color: $rojo;
+      background: $rojo-suave;
+    }
+  }
+
+  &__archivo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #166534;
+    word-break: break-all;
+
+    button {
+      border: none;
+      background: transparent;
+      color: $rojo;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0;
+    }
+  }
+
+  /* ── Botones ────────────────────────────────────────────── */
+  &__acciones {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid $borde;
+  }
+
+  &__enviar,
+  &__limpiar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 8px;
+    padding: 13px 28px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+
+    i {
+      font-size: 18px;
+    }
+  }
+
+  &__enviar {
+    flex: 1 1 240px;
+    border: none;
+    background: $rojo;
+    color: #fff;
+
+    &:hover:not(:disabled) {
+      background: #b01a20;
+    }
+
+    &:disabled {
+      background: #e5a3a5;
+      cursor: not-allowed;
+    }
+  }
+
+  &__limpiar {
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #4b5563;
+
+    &:hover {
+      background: #f3f4f6;
+    }
+  }
+
+  /* ── Panel lateral ──────────────────────────────────────── */
+  &__panel {
+    background: #fff;
+    border: 1px solid $borde;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+
+    p:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  &__panel-titulo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+
+    h6 {
+      font-size: 13.5px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      color: $texto;
+    }
+
+    i {
+      font-size: 18px;
+      color: $rojo;
+    }
+  }
+
+  &__dato {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px dashed $borde;
+    font-size: 12.5px;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    span {
+      color: $texto-suave;
+    }
+
+    strong {
+      color: $texto;
+      text-align: right;
+    }
+  }
+
+  &__estado {
+    background: #fef3c7;
+    color: #92400e;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 11.5px;
+  }
+
+  &__panel--aviso {
+    background: #fffbeb;
+    border-color: #fde68a;
+
+    .libro__panel-titulo i {
+      color: #d97706;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 18px;
+
+      li {
+        font-size: 12.5px;
+        color: #78350f;
+        line-height: 1.6;
+        margin-bottom: 6px;
+      }
+    }
+  }
+
+  &__panel--ayuda {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+
+    .libro__panel-titulo i {
+      color: #1d4ed8;
+    }
+  }
+
+  &__contacto {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    color: #1e3a8a;
+    margin-bottom: 8px;
+
+    i {
+      font-size: 16px;
+    }
+  }
+}
+
+/* El panel lateral acompaña al formulario mientras se hace scroll. */
+@media (min-width: 992px) {
+  .libro .col-lg-4 {
+    position: sticky;
+    top: 90px;
+    align-self: flex-start;
+  }
+}
+
+@media (max-width: 575px) {
+  .libro {
+    &__bloque,
+    &__cabecera {
+      padding: 18px;
+    }
+
+    &__acciones {
+      flex-direction: column;
+
+      button {
+        width: 100%;
+      }
+    }
+  }
+}

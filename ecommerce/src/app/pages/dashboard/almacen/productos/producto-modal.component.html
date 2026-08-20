@@ -61,30 +61,8 @@
                 <!-- Información básica -->
                 <div class="col-md-8">
                   <div class="row">
-                    <div class="col-md-6 mb-16">
-                      <label class="form-label text-heading fw-medium mb-8"
-                        >Nombre del Producto *</label
-                      >
-                      <input
-                        type="text"
-                        class="form-control px-16 py-12 border rounded-8"
-                        [class.is-invalid]="
-                          productoForm.get('nombre')?.invalid &&
-                          productoForm.get('nombre')?.touched
-                        "
-                        formControlName="nombre"
-                        placeholder="Ej: iPhone 15 Pro Max"
-                      />
-                      <div
-                        class="invalid-feedback"
-                        *ngIf="
-                          productoForm.get('nombre')?.invalid &&
-                          productoForm.get('nombre')?.touched
-                        "
-                      >
-                        El nombre es requerido (mínimo 3 caracteres)
-                      </div>
-                    </div>
+                    <!-- "Nombre del Producto" queda oculto: el control sigue en
+                         el formulario para no perder el valor al guardar. -->
 
                     <div class="col-md-6 mb-16">
                       <label class="form-label text-heading fw-medium mb-8"
@@ -176,126 +154,10 @@
                     </div>
                   </div>
 
-                  <!-- Precios y Stock -->
-                  <div class="row">
-                    <div class="col-md-6 mb-16">
-                      <label class="form-label text-heading fw-medium mb-8"
-                        >Precio de Compra *</label
-                      >
-                      <div class="input-group">
-                        <span class="input-group-text bg-gray-50 border-end-0"
-                          >S/</span
-                        >
-                        <input
-                          type="number"
-                          class="form-control px-16 py-12 border-start-0"
-                          [class.is-invalid]="
-                            productoForm.get('precio_compra')?.invalid &&
-                            productoForm.get('precio_compra')?.touched
-                          "
-                          formControlName="precio_compra"
-                          step="0.01"
-                          min="0"
-                          placeholder="0.00"
-                        />
-                      </div>
-                      <div
-                        class="invalid-feedback"
-                        *ngIf="
-                          productoForm.get('precio_compra')?.invalid &&
-                          productoForm.get('precio_compra')?.touched
-                        "
-                      >
-                        El precio de compra es requerido
-                      </div>
-                    </div>
-
-                    <div class="col-md-6 mb-16">
-                      <label class="form-label text-heading fw-medium mb-8"
-                        >Precio de Venta *</label
-                      >
-                      <div class="input-group">
-                        <span class="input-group-text bg-gray-50 border-end-0"
-                          >S/</span
-                        >
-                        <input
-                          type="number"
-                          class="form-control px-16 py-12 border-start-0"
-                          [class.is-invalid]="
-                            productoForm.get('precio_venta')?.invalid &&
-                            productoForm.get('precio_venta')?.touched
-                          "
-                          formControlName="precio_venta"
-                          step="0.01"
-                          min="0"
-                          placeholder="0.00"
-                        />
-                      </div>
-                      <div
-                        class="invalid-feedback"
-                        *ngIf="
-                          productoForm.get('precio_venta')?.invalid &&
-                          productoForm.get('precio_venta')?.touched
-                        "
-                      >
-                        El precio de venta es requerido
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="row">
-                    <div class="col-md-6 mb-16">
-                      <label class="form-label text-heading fw-medium mb-8"
-                        >Stock Actual *</label
-                      >
-                      <input
-                        type="number"
-                        class="form-control px-16 py-12 border rounded-8"
-                        [class.is-invalid]="
-                          productoForm.get('stock')?.invalid &&
-                          productoForm.get('stock')?.touched
-                        "
-                        formControlName="stock"
-                        min="0"
-                        placeholder="0"
-                      />
-                      <div
-                        class="invalid-feedback"
-                        *ngIf="
-                          productoForm.get('stock')?.invalid &&
-                          productoForm.get('stock')?.touched
-                        "
-                      >
-                        El stock es requerido
-                      </div>
-                    </div>
-
-                    <div class="col-md-6 mb-16">
-                      <label class="form-label text-heading fw-medium mb-8"
-                        >Stock Mínimo *</label
-                      >
-                      <input
-                        type="number"
-                        class="form-control px-16 py-12 border rounded-8"
-                        [class.is-invalid]="
-                          productoForm.get('stock_minimo')?.invalid &&
-                          productoForm.get('stock_minimo')?.touched
-                        "
-                        formControlName="stock_minimo"
-                        min="0"
-                        placeholder="5"
-                      />
-                      <div
-                        class="invalid-feedback"
-                        *ngIf="
-                          productoForm.get('stock_minimo')?.invalid &&
-                          productoForm.get('stock_minimo')?.touched
-                        "
-                      >
-                        El stock mínimo es requerido
-                      </div>
-                    </div>
-                  </div>
+                  <!-- Precios y stock ya no se editan desde acá: los
+                       administra el ERP (7Power) y se sincronizan solos. Los
+                       controles siguen en el formulario para no perder los
+                       valores al guardar. -->
 
                 </div>
 

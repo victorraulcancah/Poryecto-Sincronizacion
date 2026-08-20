@@ -45,6 +45,29 @@ class Reclamo extends Model
         'respuesta_proveedor',
         'fecha_respuesta',
         
+        // Información de la compra (nuevo formato del libro)
+        'tipo_documento',
+        'tipo_comprobante',
+        'numero_comprobante',
+        'fecha_compra',
+        'codigo_pedido',
+        'codigo_producto',
+        'nombre_producto',
+        'marca',
+        'modelo',
+
+        // Qué solución espera y adjuntos
+        'solucion_esperada',
+        'otra_solucion',
+        'foto',
+        'factura',
+        'video',
+
+        // Trazabilidad
+        'canal',
+        'ip',
+        'responsable_id',
+
         // Estados del reclamo
         'estado',
         'fecha_limite_respuesta'
