@@ -18,11 +18,18 @@ export interface CaptchaImagen {
 }
 
 /** Opciones de dificultad y la cuadrícula que le corresponde a cada una. */
-export const OPCIONES_PIEZAS: { valor: number; etiqueta: string; columnas: number; filas: number }[] = [
-  { valor: 2, etiqueta: '2 piezas (2 × 1)', columnas: 2, filas: 1 },
-  { valor: 4, etiqueta: '4 piezas (2 × 2)', columnas: 2, filas: 2 },
-  { valor: 6, etiqueta: '6 piezas (3 × 2)', columnas: 3, filas: 2 },
-  { valor: 8, etiqueta: '8 piezas (4 × 2)', columnas: 4, filas: 2 },
+export const OPCIONES_PIEZAS: {
+  valor: number;
+  etiqueta: string;
+  /** Versión corta, para el select angosto de la tarjeta. */
+  corta: string;
+  columnas: number;
+  filas: number;
+}[] = [
+  { valor: 2, etiqueta: '2 piezas (2 × 1)', corta: '2 · 2×1', columnas: 2, filas: 1 },
+  { valor: 4, etiqueta: '4 piezas (2 × 2)', corta: '4 · 2×2', columnas: 2, filas: 2 },
+  { valor: 6, etiqueta: '6 piezas (3 × 2)', corta: '6 · 3×2', columnas: 3, filas: 2 },
+  { valor: 8, etiqueta: '8 piezas (4 × 2)', corta: '8 · 4×2', columnas: 4, filas: 2 },
 ];
 
 /** Desafío que arma el servidor para el registro. */

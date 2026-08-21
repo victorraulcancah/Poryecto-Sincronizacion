@@ -52,6 +52,26 @@ export class CaptchaComponent implements OnInit, OnDestroy {
     return Array.from({ length: piezas || 4 }, (_, i) => i);
   }
 
+  /**
+   * Es la única activa que queda. Se usa para bloquear el interruptor en vez
+   * de dejar pulsarlo y devolver un error del servidor.
+   */
+  esUltimaActiva(imagen: CaptchaImagen): boolean {
+    return imagen.activo && this.activas <= 1;
+  }
+
+  /** Abre la imagen completa, para revisarla antes de dejarla activa. */
+  verImagen(imagen: CaptchaImagen): void {
+    Swal.fire({
+      title: imagen.nombre,
+      imageUrl: this.urlImagen(imagen.ruta),
+      imageAlt: imagen.nombre,
+      imageWidth: 420,
+      confirmButtonText: 'Cerrar',
+      confirmButtonColor: '#d32027',
+    });
+  }
+
   constructor(private captchaService: CaptchaService) {}
 
   ngOnInit(): void {

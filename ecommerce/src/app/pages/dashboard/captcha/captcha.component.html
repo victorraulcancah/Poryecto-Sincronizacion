@@ -61,34 +61,49 @@
           [style.grid-template-rows]="'repeat(' + cuadricula(img.piezas).filas + ', 1fr)'">
           <span *ngFor="let c of celdas(img.piezas)"></span>
         </div>
-        <span class="tarjeta__estado" [class.tarjeta__estado--activo]="img.activo">
-          {{ img.activo ? 'Activa' : 'Inactiva' }}
-        </span>
       </div>
 
-      <!-- En cuántas piezas se parte -->
-      <div class="tarjeta__piezas">
-        <label>Se arma en</label>
-        <select class="form-select form-select-sm" [ngModel]="img.piezas"
-          (ngModelChange)="cambiarPiezas(img, $event)">
-          <option *ngFor="let o of opcionesPiezas" [ngValue]="o.valor">{{ o.etiqueta }}</option>
-        </select>
+      <div class="tarjeta__cuerpo">
+        <div class="tarjeta__nombre" [title]="img.nombre">{{ img.nombre }}</div>
+
+        <!-- En cuántas piezas se parte -->
+        <div class="campo">
+          <label>Se arma en</label>
+          <select class="form-select" [ngModel]="img.piezas"
+            (ngModelChange)="cambiarPiezas(img, $event)">
+            <option *ngFor="let o of opcionesPiezas" [ngValue]="o.valor">{{ o.corta }}</option>
+          </select>
+        </div>
+
+        <!-- Activa / inactiva: interruptor con su texto, no un icono a adivinar -->
+        <label class="interruptor"
+          [class.interruptor--bloqueado]="esUltimaActiva(img)"
+          [title]="esUltimaActiva(img)
+            ? 'No se puede desactivar: debe quedar al menos una imagen activa.'
+            : (img.activo ? 'Desactivar esta imagen' : 'Activar esta imagen')">
+          <input type="checkbox" [checked]="img.activo" [disabled]="esUltimaActiva(img)"
+            (change)="alternarActivo(img)">
+          <span class="interruptor__pista"></span>
+          <span class="interruptor__texto">{{ img.activo ? 'Activa' : 'Inactiva' }}</span>
+        </label>
+
+        <p class="tarjeta__nota" *ngIf="esUltimaActiva(img)">
+          <i class="ph ph-info"></i>
+          Es la única activa; sube otra para poder desactivarla.
+        </p>
       </div>
 
       <div class="tarjeta__pie">
-        <div class="tarjeta__nombre" [title]="img.nombre">{{ img.nombre }}</div>
-        <div class="tarjeta__acciones">
-          <button type="button" class="btn-accion"
-            [class.btn-accion--on]="img.activo"
-            [title]="img.activo ? 'Desactivar' : 'Activar'"
-            (click)="alternarActivo(img)">
-            <i class="ph" [class.ph-eye]="img.activo" [class.ph-eye-slash]="!img.activo"></i>
-          </button>
-          <button type="button" class="btn-accion btn-accion--eliminar" title="Eliminar"
-            (click)="eliminar(img)">
-            <i class="ph ph-trash"></i>
-          </button>
-        </div>
+        <button type="button" class="btn-accion" title="Ver la imagen completa"
+          (click)="verImagen(img)">
+          <i class="ph ph-magnifying-glass-plus"></i>
+          Ver
+        </button>
+        <button type="button" class="btn-accion btn-accion--eliminar" title="Eliminar la imagen"
+          (click)="eliminar(img)">
+          <i class="ph ph-trash"></i>
+          Eliminar
+        </button>
       </div>
     </div>
   </div>
