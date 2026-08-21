@@ -160,7 +160,11 @@
               </div>
               <div class="col-md-4">
                 <label class="libro__label">Fecha de compra</label>
-                <input type="date" class="libro__input" formControlName="fecha_compra" />
+                <input type="date" class="libro__input" formControlName="fecha_compra"
+                  [class.libro__input--error]="isFieldInvalid('fecha_compra')" />
+                <p class="libro__ayuda libro__ayuda--error" *ngIf="isFieldInvalid('fecha_compra')">
+                  {{ getFieldError('fecha_compra') }}
+                </p>
               </div>
               <div class="col-md-4">
                 <label class="libro__label">Número de pedido (web)</label>
@@ -270,9 +274,16 @@
                 </select>
               </div>
               <div class="col-md-6">
-                <label class="libro__label">Otra solución (especifique)</label>
+                <label class="libro__label">
+                  Otra solución (especifique)
+                  <span *ngIf="claimbookForm.get('solucion_esperada')?.value === 'Otro'">*</span>
+                </label>
                 <input type="text" class="libro__input" formControlName="otra_solucion"
-                  placeholder="Escribe aquí la solución que esperas" />
+                  [class.libro__input--error]="isFieldInvalid('otra_solucion')"
+                  maxlength="255" placeholder="Escribe aquí la solución que esperas" />
+                <p class="libro__ayuda libro__ayuda--error" *ngIf="isFieldInvalid('otra_solucion')">
+                  Elegiste "Otro": indica qué solución esperas.
+                </p>
               </div>
               <div class="col-12">
                 <label class="libro__label">Pedido concreto del consumidor <span>*</span></label>

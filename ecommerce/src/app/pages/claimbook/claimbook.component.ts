@@ -167,6 +167,27 @@ export class ClaimbookComponent implements OnInit, OnDestroy {
       conformeContenido: [false, Validators.requiredTrue]
     });
 
+    // No se puede reclamar por una compra que todavía no ocurrió.
+    this.claimbookForm.get('fecha_compra')?.setValidators([
+      (control) => {
+        if (!control.value) return null;
+        const hoy = new Date();
+        hoy.setHours(23, 59, 59, 999);
+        return new Date(control.value) > hoy ? { fechaFutura: true } : null;
+      },
+    ]);
+
+    // Si elige "Otro" como solución esperada, tiene que decir cuál.
+    this.claimbookForm.get('solucion_esperada')?.valueChanges.subscribe(valor => {
+      const otra = this.claimbookForm.get('otra_solucion');
+      if (!otra) return;
+
+      if (valor === 'Otro') otra.setValidators([Validators.required, Validators.maxLength(255)]);
+      else otra.setValidators([Validators.maxLength(255)]);
+
+      otra.updateValueAndValidity();
+    });
+
     // El número de documento se valida según el tipo elegido.
     this.aplicarReglaDeDocumento(this.claimbookForm.get('tipo_documento')?.value);
     this.claimbookForm
@@ -421,6 +442,8 @@ export class ClaimbookComponent implements OnInit, OnDestroy {
     tipo_solicitud: 'Tipo de registro',
     detalle_reclamo: 'Detalle del reclamo o queja',
     pedido_consumidor: 'Pedido concreto del consumidor',
+    fecha_compra: 'Fecha de compra',
+    otra_solucion: 'Otra solución (especifique)',
     acceptTerms: 'Declarar que la información es verdadera',
     aceptaDatos: 'Aceptar el tratamiento de datos personales',
     conformeContenido: 'Confirmar conformidad con el contenido',
