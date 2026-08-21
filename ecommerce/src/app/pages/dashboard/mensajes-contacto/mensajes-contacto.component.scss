@@ -4,7 +4,6 @@
    existe como componente compartido. */
 
 $rojo: #d32027;
-$rojo-oscuro: #b01a20;
 $borde: #e5e7eb;
 $texto: #111827;
 $tenue: #6b7280;
@@ -260,22 +259,6 @@ $tenue: #6b7280;
   font-weight: 600;
   transition: none;
   text-decoration: none;
-}
-
-.btn-eliminar {
-  background: #fff;
-  border: 1px solid $rojo;
-  color: $rojo;
-
-  &:hover { background: rgba($rojo, 0.08); color: $rojo; }
-}
-
-.btn-responder {
-  background: $rojo;
-  border: 1px solid $rojo;
-  color: #fff;
-
-  &:hover { background: $rojo-oscuro; border-color: $rojo-oscuro; color: #fff; }
 }
 
 .btn-cerrar-pie {

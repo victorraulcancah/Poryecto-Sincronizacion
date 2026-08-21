@@ -102,12 +102,24 @@ export class ClaimbookComponent implements OnInit, OnDestroy {
   private initializeForm(): void {
     this.claimbookForm = this.fb.group({
       // Datos del consumidor
-      consumidor_nombre: ['', [Validators.required, Validators.minLength(2)]],
-      consumidor_direccion: ['', [Validators.required]],
+      consumidor_nombre: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(255)]],
+      // El backend exige 10 caracteres: con solo `required` el formulario
+      // dejaba enviar y el reclamo rebotaba con un 422 sin explicación.
+      consumidor_direccion: ['', [Validators.required, Validators.minLength(10)]],
       // El formato depende del tipo de documento (ver `aplicarReglaDeDocumento`).
       consumidor_dni: ['', [Validators.required]],
-      consumidor_telefono: ['', [Validators.required, Validators.pattern(/^\d{9}$/)]],
-      consumidor_email: ['', [Validators.required, Validators.email]],
+      // Celular peruano: 9 dígitos empezando en 9.
+      consumidor_telefono: ['', [Validators.required, Validators.pattern(/^9\d{8}$/)]],
+      // `Validators.email` acepta "a@b"; se exige un dominio de verdad.
+      consumidor_email: [
+        '',
+        [
+          Validators.required,
+          Validators.email,
+          Validators.pattern(/^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/),
+          Validators.maxLength(255),
+        ],
+      ],
       es_menor_edad: [false],
       
       // Datos del apoderado (si es menor de edad)
@@ -136,7 +148,8 @@ export class ClaimbookComponent implements OnInit, OnDestroy {
 
       // Identificación del bien contratado
       tipo_bien: ['producto', Validators.required], // producto o servicio
-      monto_reclamado: ['', [Validators.required, Validators.min(0)]],
+      // El backend exige mayor a 0; con `min(0)` un 0 pasaba y rebotaba.
+      monto_reclamado: ['', [Validators.required, Validators.min(0.01)]],
       descripcion_bien: ['', [Validators.required, Validators.minLength(10)]],
       
       // Detalle de la reclamación
@@ -368,14 +381,68 @@ export class ClaimbookComponent implements OnInit, OnDestroy {
         }
       });
     } else {
+      // El botón ya no se deshabilita: se marca todo, se muestran los errores
+      // bajo cada campo y se lleva al primero que falta. Antes el usuario veía
+      // un botón apagado y no había forma de saber qué le faltaba.
       this.markFormGroupTouched();
+
+      const faltantes = this.camposFaltantes();
       Swal.fire({
-        title: 'Formulario incompleto',
-        text: 'Por favor complete todos los campos requeridos',
+        title: 'Faltan datos',
+        html: faltantes.length
+          ? `Revisa estos campos:<ul class="text-start mt-2 mb-0">${faltantes
+              .map(c => `<li>${c}</li>`)
+              .join('')}</ul>`
+          : 'Revisa los campos marcados en rojo.',
         icon: 'warning',
-        confirmButtonColor: '#dc3545'
+        confirmButtonColor: '#d32027'
       });
+
+      this.enfocarPrimerCampoInvalido();
     }
+  }
+
+  /** Nombres legibles de cada control, para el aviso de "faltan datos". */
+  private static readonly ETIQUETAS: Record<string, string> = {
+    consumidor_nombre: 'Nombres y apellidos',
+    tipo_documento: 'Tipo de documento',
+    consumidor_dni: 'Número de documento',
+    consumidor_telefono: 'Teléfono',
+    consumidor_email: 'Correo electrónico',
+    consumidor_direccion: 'Dirección',
+    apoderado_nombre: 'Nombre del apoderado',
+    apoderado_dni: 'DNI del apoderado',
+    apoderado_telefono: 'Teléfono del apoderado',
+    apoderado_email: 'Correo del apoderado',
+    apoderado_direccion: 'Dirección del apoderado',
+    tipo_bien: 'Tipo de bien',
+    monto_reclamado: 'Monto reclamado',
+    descripcion_bien: 'Descripción del producto o servicio',
+    tipo_solicitud: 'Tipo de registro',
+    detalle_reclamo: 'Detalle del reclamo o queja',
+    pedido_consumidor: 'Pedido concreto del consumidor',
+    acceptTerms: 'Declarar que la información es verdadera',
+    aceptaDatos: 'Aceptar el tratamiento de datos personales',
+    conformeContenido: 'Confirmar conformidad con el contenido',
+  };
+
+  private camposFaltantes(): string[] {
+    return Object.keys(this.claimbookForm.controls)
+      .filter(campo => this.claimbookForm.get(campo)?.invalid)
+      .map(campo => ClaimbookComponent.ETIQUETAS[campo] ?? campo);
+  }
+
+  private enfocarPrimerCampoInvalido(): void {
+    const primero = Object.keys(this.claimbookForm.controls).find(
+      campo => this.claimbookForm.get(campo)?.invalid
+    );
+    if (!primero) return;
+
+    const elemento = document.querySelector<HTMLElement>(`[formControlName="${primero}"]`);
+    if (!elemento) return;
+
+    elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => elemento.focus({ preventScroll: true }), 300);
   }
 
   private markFormGroupTouched(): void {
@@ -411,17 +478,30 @@ export class ClaimbookComponent implements OnInit, OnDestroy {
 
   getFieldError(fieldName: string): string {
     const field = this.claimbookForm.get(fieldName);
-    if (field?.errors) {
-      if (field.errors['required']) return 'Este campo es requerido';
-      if (field.errors['email']) return 'Ingrese un email válido';
-      if (field.errors['pattern']) {
-        if (fieldName.includes('Dni')) return 'DNI debe tener 8 dígitos';
-        if (fieldName.includes('Phone')) return 'Teléfono debe tener 9 dígitos';
-      }
-      if (field.errors['minlength']) return `Mínimo ${field.errors['minlength'].requiredLength} caracteres`;
-      if (field.errors['min']) return 'El monto debe ser mayor a 0';
+    if (!field?.errors) return '';
+
+    if (field.errors['required'] || field.errors['requiredTrue']) {
+      return 'Este campo es obligatorio.';
     }
-    return '';
+    if (field.errors['email'] || (field.errors['pattern'] && fieldName.includes('email'))) {
+      return 'Escribe un correo válido, por ejemplo nombre@dominio.com.';
+    }
+    if (field.errors['pattern']) {
+      if (fieldName === 'consumidor_dni') return this.reglaDocumento.ayuda;
+      if (fieldName === 'apoderado_dni') return 'El DNI del apoderado debe tener 8 dígitos.';
+      if (fieldName.includes('telefono')) return 'El teléfono debe tener 9 dígitos y empezar en 9.';
+      return 'El formato no es válido.';
+    }
+    if (field.errors['minlength']) {
+      return `Escribe al menos ${field.errors['minlength'].requiredLength} caracteres.`;
+    }
+    if (field.errors['maxlength']) {
+      return `No puede pasar de ${field.errors['maxlength'].requiredLength} caracteres.`;
+    }
+    if (field.errors['min']) return 'El monto debe ser mayor a 0.';
+    if (field.errors['fechaFutura']) return 'La fecha de compra no puede ser futura.';
+
+    return 'Revisa este dato.';
   }
 
   // Método para imprimir el formulario

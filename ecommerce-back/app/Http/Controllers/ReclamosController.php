@@ -74,6 +74,43 @@ class ReclamosController extends Controller
      * Crear un nuevo reclamo (público)
      */
     /**
+     * Tope real de subida del servidor, en KB.
+     *
+     * Si el archivo pasa de `upload_max_filesize` o `post_max_size`, PHP lo
+     * descarta antes de que llegue a Laravel y la validación solo dice "The
+     * video failed to upload", sin explicar por qué. Conociendo el tope se
+     * puede avisar con un mensaje que se entienda.
+     */
+    private function topeDeSubidaKb(): int
+    {
+        $aKb = function ($valor): int {
+            $valor = trim((string) $valor);
+            if ($valor === '') return 0;
+
+            $numero = (int) $valor;
+            return match (strtolower(substr($valor, -1))) {
+                'g' => $numero * 1024 * 1024,
+                'm' => $numero * 1024,
+                'k' => $numero,
+                default => (int) ($numero / 1024), // venía en bytes
+            };
+        };
+
+        $limites = array_filter([
+            $aKb(ini_get('upload_max_filesize')),
+            $aKb(ini_get('post_max_size')),
+        ]);
+
+        return $limites ? (int) min($limites) : 20480;
+    }
+
+    /** Máximo que se le permite al video: el menor entre 20 MB y el del servidor. */
+    private function maxVideoKb(): int
+    {
+        return (int) min(20480, $this->topeDeSubidaKb());
+    }
+
+    /**
      * Formato del número de documento según el tipo, igual que en el
      * formulario del libro de reclamaciones.
      */
@@ -141,7 +178,7 @@ class ReclamosController extends Controller
                 // Adjuntos, con los topes del formulario.
                 'foto' => 'nullable|image|mimes:jpeg,jpg,png|max:5120',
                 'factura' => 'nullable|file|mimes:pdf,jpeg,jpg,png|max:5120',
-                'video' => 'nullable|file|mimes:mp4|max:20480',
+                'video' => 'nullable|file|mimes:mp4|max:' . $this->maxVideoKb(),
             ];
 
             // Agregar validaciones del apoderado solo si es menor de edad
@@ -163,7 +200,17 @@ class ReclamosController extends Controller
                 'monto_reclamado.min' => 'El monto reclamado debe ser mayor a 0',
                 'descripcion_bien.min' => 'La descripción debe tener al menos 10 caracteres',
                 'detalle_reclamo.min' => 'El detalle del reclamo debe tener al menos 20 caracteres',
-                'pedido_consumidor.min' => 'El pedido del consumidor debe tener al menos 10 caracteres'
+                'pedido_consumidor.min' => 'El pedido del consumidor debe tener al menos 10 caracteres',
+
+                // "failed to upload" es lo que responde PHP cuando el archivo
+                // pasa de upload_max_filesize/post_max_size y lo descarta.
+                'video.uploaded' => 'El video pasa del máximo que acepta el servidor ('
+                    . round($this->maxVideoKb() / 1024, 1) . ' MB). Súbelo más liviano.',
+                'video.max' => 'El video no puede pasar de '
+                    . round($this->maxVideoKb() / 1024, 1) . ' MB.',
+                'video.mimes' => 'El video debe estar en formato MP4.',
+                'foto.uploaded' => 'La imagen pasa del máximo que acepta el servidor.',
+                'factura.uploaded' => 'El archivo pasa del máximo que acepta el servidor.',
             ]);
 
             if ($validator->fails()) {

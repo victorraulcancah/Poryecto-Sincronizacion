@@ -274,14 +274,8 @@
       </div>
     </div>
 
-    <!-- Pie -->
+    <!-- Pie. El modal es solo de lectura: eliminar se hace desde el listado. -->
     <div class="modal-caja__pie">
-      <button type="button" class="btn btn-eliminar me-auto" (click)="eliminar(seleccionado)">
-        <i class="ph ph-trash"></i> Eliminar
-      </button>
-      <a class="btn btn-responder" [href]="enlaceCorreo(seleccionado)">
-        <i class="ph ph-paper-plane-tilt"></i> Responder por correo
-      </a>
       <button type="button" class="btn btn-cerrar-pie" (click)="cerrarModal()">Cerrar</button>
     </div>
   </div>

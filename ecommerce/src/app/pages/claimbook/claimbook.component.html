@@ -48,7 +48,11 @@
               <div class="col-md-6">
                 <label class="libro__label">Nombres y apellidos <span>*</span></label>
                 <input type="text" class="libro__input" formControlName="consumidor_nombre"
+                  [class.libro__input--error]="isFieldInvalid('consumidor_nombre')"
                   placeholder="Ej.: Juan Carlos Pérez López" />
+                <p class="libro__ayuda libro__ayuda--error" *ngIf="isFieldInvalid('consumidor_nombre')">
+                  {{ getFieldError('consumidor_nombre') }}
+                </p>
               </div>
               <div class="col-md-6">
                 <label class="libro__label">Tipo de documento <span>*</span></label>
@@ -72,19 +76,33 @@
                 <label class="libro__label">Teléfono <span>*</span></label>
                 <div class="libro__input-icono">
                   <input type="text" class="libro__input" formControlName="consumidor_telefono"
-                    placeholder="Ej.: 987 654 321" />
+                    [class.libro__input--error]="isFieldInvalid('consumidor_telefono')"
+                    maxlength="9" placeholder="Ej.: 987654321" />
                   <i class="ph ph-whatsapp-logo"></i>
                 </div>
+                <p class="libro__ayuda" [class.libro__ayuda--error]="isFieldInvalid('consumidor_telefono')">
+                  {{ isFieldInvalid('consumidor_telefono')
+                      ? getFieldError('consumidor_telefono')
+                      : 'Celular de 9 dígitos, empezando en 9.' }}
+                </p>
               </div>
               <div class="col-12">
                 <label class="libro__label">Correo electrónico <span>*</span></label>
                 <input type="email" class="libro__input" formControlName="consumidor_email"
+                  [class.libro__input--error]="isFieldInvalid('consumidor_email')"
                   placeholder="Ej.: correo@ejemplo.com" />
+                <p class="libro__ayuda libro__ayuda--error" *ngIf="isFieldInvalid('consumidor_email')">
+                  {{ getFieldError('consumidor_email') }}
+                </p>
               </div>
               <div class="col-12">
                 <label class="libro__label">Dirección <span>*</span></label>
                 <input type="text" class="libro__input" formControlName="consumidor_direccion"
+                  [class.libro__input--error]="isFieldInvalid('consumidor_direccion')"
                   placeholder="Ej.: Av. Los Próceres 123, Surco, Lima" />
+                <p class="libro__ayuda libro__ayuda--error" *ngIf="isFieldInvalid('consumidor_direccion')">
+                  {{ getFieldError('consumidor_direccion') }}
+                </p>
               </div>
 
               <!-- Menor de edad: lo exige Indecopi y ya estaba en el sistema. -->
@@ -177,12 +195,20 @@
               <div class="col-md-6">
                 <label class="libro__label">Monto reclamado (S/) <span>*</span></label>
                 <input type="number" class="libro__input" formControlName="monto_reclamado" step="0.01"
-                  min="0" placeholder="0.00" />
+                  [class.libro__input--error]="isFieldInvalid('monto_reclamado')"
+                  min="0.01" placeholder="0.00" />
+                <p class="libro__ayuda libro__ayuda--error" *ngIf="isFieldInvalid('monto_reclamado')">
+                  {{ getFieldError('monto_reclamado') }}
+                </p>
               </div>
               <div class="col-12">
                 <label class="libro__label">Descripción del producto o servicio <span>*</span></label>
                 <input type="text" class="libro__input" formControlName="descripcion_bien"
-                  placeholder="Describe brevemente qué compraste" />
+                  [class.libro__input--error]="isFieldInvalid('descripcion_bien')"
+                  maxlength="255" placeholder="Describe brevemente qué compraste" />
+                <p class="libro__ayuda libro__ayuda--error" *ngIf="isFieldInvalid('descripcion_bien')">
+                  {{ getFieldError('descripcion_bien') }}
+                </p>
               </div>
             </div>
           </div>
@@ -227,7 +253,13 @@
 
             <label class="libro__label">Detalle del reclamo o queja <span>*</span></label>
             <textarea rows="4" class="libro__input" formControlName="detalle_reclamo"
+              [class.libro__input--error]="isFieldInvalid('detalle_reclamo')"
               placeholder="Describe aquí tu reclamo o queja con el mayor detalle posible..."></textarea>
+            <p class="libro__ayuda" [class.libro__ayuda--error]="isFieldInvalid('detalle_reclamo')">
+              {{ isFieldInvalid('detalle_reclamo')
+                  ? getFieldError('detalle_reclamo')
+                  : 'Mínimo 20 caracteres.' }}
+            </p>
 
             <div class="row g-16 mt-4">
               <div class="col-md-6">
@@ -245,7 +277,13 @@
               <div class="col-12">
                 <label class="libro__label">Pedido concreto del consumidor <span>*</span></label>
                 <textarea rows="2" class="libro__input" formControlName="pedido_consumidor"
+                  [class.libro__input--error]="isFieldInvalid('pedido_consumidor')"
                   placeholder="Indica qué solicitas a la empresa"></textarea>
+                <p class="libro__ayuda" [class.libro__ayuda--error]="isFieldInvalid('pedido_consumidor')">
+                  {{ isFieldInvalid('pedido_consumidor')
+                      ? getFieldError('pedido_consumidor')
+                      : 'Mínimo 10 caracteres.' }}
+                </p>
               </div>
             </div>
           </div>
@@ -324,8 +362,15 @@
               He leído y estoy conforme con el contenido de mi reclamo.
             </label>
 
+            <p class="libro__ayuda libro__ayuda--error"
+              *ngIf="isFieldInvalid('acceptTerms') || isFieldInvalid('aceptaDatos') || isFieldInvalid('conformeContenido')">
+              Debes marcar las tres casillas para poder enviar el reclamo.
+            </p>
+
             <div class="libro__acciones">
-              <button type="submit" class="libro__enviar" [disabled]="claimbookForm.invalid || isSubmitting">
+              <!-- No se deshabilita por formulario inválido: al presionarlo se
+                   marcan los errores y se salta al primer campo que falta. -->
+              <button type="submit" class="libro__enviar" [disabled]="isSubmitting">
                 <i class="ph ph-paper-plane-tilt"></i>
                 {{ isSubmitting ? 'Enviando...' : 'ENVIAR RECLAMO' }}
               </button>
