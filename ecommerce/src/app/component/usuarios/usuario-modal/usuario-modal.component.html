@@ -1,5 +1,184 @@
 <div class="modal-overlay" *ngIf="isVisible" (click)="cerrarModal()">
   <div class="modal-container-wide" (click)="$event.stopPropagation()">
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Asistente de vinculación con Novik. Mientras está abierto tapa
+         el formulario, igual que en el modal de clientes.
+         ═══════════════════════════════════════════════════════════════ -->
+
+    <!-- Paso 1: buscar el usuario en Novik -->
+    <ng-container *ngIf="mostrandoBusqueda && pasoVinculacion === 'busqueda'">
+      <div class="modal-header">
+        <h2>
+          <span class="paso-numero">1</span>
+          Buscar usuario en Novik
+        </h2>
+        <button class="btn-close" (click)="cerrarBusqueda()">
+          <i class="ph ph-x"></i>
+        </button>
+      </div>
+
+      <div class="modal-body vinculacion-body">
+        <p class="text-muted mb-3">Busca por código, nombre, usuario o correo</p>
+
+        <div class="vinculacion-filtros mb-3">
+          <button type="button" class="chip" [class.chip--activo]="soloVendedores"
+            (click)="cambiarFiltroVendedores(true)">
+            Solo vendedores
+          </button>
+          <button type="button" class="chip" [class.chip--activo]="!soloVendedores"
+            (click)="cambiarFiltroVendedores(false)">
+            Todos los usuarios
+          </button>
+        </div>
+
+        <div class="input-group mb-3">
+          <span class="input-group-text"><i class="ph ph-magnifying-glass"></i></span>
+          <input type="text" class="form-control"
+            placeholder="Buscar por código, nombre, usuario o correo..."
+            [(ngModel)]="busquedaQuery" [ngModelOptions]="{standalone: true}"
+            (ngModelChange)="onBusquedaChange($event)">
+        </div>
+
+        <div *ngIf="buscandoErp" class="text-center py-3">
+          <span class="spinner-border spinner-border-sm"></span>
+        </div>
+
+        <div class="vinculacion-resultados" (scroll)="onScrollResultados($event)">
+          <div class="text-muted small mb-2">Resultados encontrados</div>
+
+          <div *ngIf="!buscandoErp && resultadosBusqueda.length === 0" class="text-muted small py-3">
+            No se encontraron usuarios en Novik con ese criterio.
+          </div>
+
+          <div *ngFor="let r of resultadosBusqueda" class="resultado-item">
+            <div class="resultado-item__datos">
+              <span class="resultado-item__avatar">
+                <i class="ph ph-user-circle"></i>
+              </span>
+              <div>
+                <div class="fw-semibold">{{ r.nombre }}</div>
+                <div class="text-muted small">Código: {{ r.codigo }}</div>
+                <div class="text-muted small" *ngIf="r.rol">{{ r.rol }}</div>
+              </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-primary"
+              [disabled]="r.ya_vinculado"
+              (click)="seleccionarUsuarioErp(r)">
+              {{ r.ya_vinculado ? 'Ya vinculado' : 'Seleccionar' }}
+            </button>
+          </div>
+
+          <div *ngIf="cargandoMas" class="text-center py-2">
+            <span class="spinner-border spinner-border-sm"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cerrarBusqueda()">Cancelar</button>
+      </div>
+    </ng-container>
+
+    <!-- Paso 2: confirmar antes de vincular -->
+    <ng-container *ngIf="mostrandoBusqueda && pasoVinculacion === 'confirmar' && usuarioErpSeleccionado">
+      <div class="modal-header">
+        <h2>
+          <span class="paso-numero">2</span>
+          Verificar los datos antes de vincular
+        </h2>
+        <button class="btn-close" (click)="cerrarBusqueda()">
+          <i class="ph ph-x"></i>
+        </button>
+      </div>
+
+      <div class="modal-body vinculacion-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="comparativa-card">
+              <div class="comparativa-card__titulo">Usuario del panel</div>
+              <div class="comparativa-card__cabecera">
+                <span class="comparativa-card__avatar"
+                  [style.background-color]="getAvatarColor(usuarioForm.get('name')?.value || '')">
+                  {{ getInitials(usuarioForm.get('name')?.value || '') }}
+                </span>
+                <div class="fw-semibold">{{ usuarioForm.get('name')?.value }}</div>
+              </div>
+              <div class="text-muted">{{ usuarioForm.get('email')?.value || '-' }}</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="comparativa-card">
+              <div class="comparativa-card__titulo">Usuario en Novik</div>
+              <div class="comparativa-card__cabecera">
+                <span class="comparativa-card__avatar comparativa-card__avatar--erp">
+                  <i class="ph ph-user-circle"></i>
+                </span>
+                <div class="fw-semibold">{{ usuarioErpSeleccionado.nombre }}</div>
+              </div>
+              <div class="text-muted">Código: {{ usuarioErpSeleccionado.codigo }}</div>
+              <div class="text-muted" *ngIf="usuarioErpSeleccionado.rol">{{ usuarioErpSeleccionado.rol }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="aviso-info mt-3">
+          <i class="ph ph-info"></i>
+          <div>
+            Al vincular, a este usuario solo le aparecerán las cotizaciones y pedidos de
+            los clientes de su cartera en Novik.
+          </div>
+        </div>
+
+        <div *ngIf="mostrarCampoPassword" class="mt-3">
+          <label class="form-label">Ingresa tu contraseña de administrador para confirmar</label>
+          <input type="password" name="password_vinculacion_admin" autocomplete="new-password"
+            class="form-control" [(ngModel)]="passwordVinculacion"
+            [ngModelOptions]="{standalone: true}" placeholder="Contraseña"
+            (keydown.enter)="ejecutarVinculacion()">
+        </div>
+
+        <div *ngIf="errorVinculacion" class="aviso-error mt-3">
+          <i class="ph ph-warning-circle"></i>
+          <div>{{ errorVinculacion }}</div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cerrarBusqueda()" [disabled]="vinculando">
+          Cancelar
+        </button>
+        <button *ngIf="!mostrarCampoPassword" type="button" class="btn btn-primary" (click)="pedirPassword()">
+          Confirmar vinculación
+        </button>
+        <button *ngIf="mostrarCampoPassword" type="button" class="btn btn-primary"
+          (click)="ejecutarVinculacion()" [disabled]="vinculando || !passwordVinculacion">
+          <span *ngIf="vinculando" class="spinner-border spinner-border-sm me-2"></span>
+          {{ vinculando ? 'Vinculando...' : 'Vincular' }}
+        </button>
+      </div>
+    </ng-container>
+
+    <!-- Paso 3: listo -->
+    <ng-container *ngIf="mostrandoBusqueda && pasoVinculacion === 'exito' && usuarioErpSeleccionado">
+      <div class="modal-body vinculacion-exito">
+        <div class="vinculacion-exito__icono">
+          <i class="ph ph-check-circle"></i>
+        </div>
+        <h3 class="fw-bold mb-3">¡Vinculación realizada!</h3>
+        <p class="text-muted mb-2">
+          {{ usuarioForm.get('name')?.value }} ahora está vinculado a
+        </p>
+        <p class="fw-bold mb-2">{{ usuarioErpSeleccionado.nombre }}</p>
+        <p class="text-muted mb-0">Código: {{ usuarioErpSeleccionado.codigo }}</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary w-100" (click)="finalizarVinculacion()">Listo</button>
+      </div>
+    </ng-container>
+
+    <!-- ═══════════════ Formulario del usuario ═══════════════ -->
+    <ng-container *ngIf="!mostrandoBusqueda">
     <div class="modal-header">
       <h2>{{ mode === 'edit' ? 'Editar Usuario' : 'Ver Usuario' }}</h2>
       <button class="btn-close" (click)="cerrarModal()">
@@ -7,8 +186,26 @@
       </button>
     </div>
 
+    <!-- Pestañas -->
+    <div class="modal-tabs" *ngIf="!loading">
+      <button type="button" class="modal-tabs__item" [class.modal-tabs__item--activo]="tab === 'informacion'"
+        (click)="tab = 'informacion'">
+        <i class="ph ph-user"></i>
+        Información
+      </button>
+      <button type="button" class="modal-tabs__item" [class.modal-tabs__item--activo]="tab === 'avanzado'"
+        (click)="tab = 'avanzado'">
+        <i class="ph ph-link"></i>
+        Avanzado
+      </button>
+    </div>
+
     <div class="modal-body" *ngIf="!loading">
       <form [formGroup]="usuarioForm" (ngSubmit)="onSubmit()" [class.view-only]="mode === 'view'">
+
+        <!-- Los controles del formulario se ocultan, no se destruyen: con
+             *ngIf se desregistrarían y el guardado perdería esos campos. -->
+        <div [hidden]="tab !== 'informacion'">
 
         <div class="row">
           <!-- Columna Izquierda -->
@@ -355,16 +552,124 @@
           </div>
         </div>
 
+        </div><!-- /pestaña Información -->
+
+        <!-- ═══════════════ Pestaña Avanzado ═══════════════ -->
+        <div class="row" *ngIf="tab === 'avanzado'">
+          <div class="col-12">
+            <div class="form-section">
+              <h3 class="section-title">
+                <i class="ph ph-link"></i>
+                Vinculación con Novik
+              </h3>
+
+              <p class="text-muted small">
+                Al vincular la cuenta con un usuario de Novik, a este usuario solo le
+                aparecerán las cotizaciones y pedidos de los clientes de su cartera.
+              </p>
+
+              <label class="form-label">Usuario de Novik vinculado</label>
+
+              <div *ngIf="cargandoVinculado" class="text-muted small">
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                Cargando datos del usuario en Novik...
+              </div>
+
+              <!-- Vinculado -->
+              <div *ngIf="!cargandoVinculado && usuarioErpVinculado" class="vinculo-card">
+                <span class="vinculo-card__avatar">
+                  <i class="ph ph-user-circle"></i>
+                </span>
+                <div class="vinculo-card__datos">
+                  <div class="fw-semibold">{{ usuarioErpVinculado.nombre }}</div>
+                  <div class="text-muted small">
+                    Código: {{ usuarioErpVinculado.codigo }}
+                    <ng-container *ngIf="usuarioErpVinculado.rol"> · {{ usuarioErpVinculado.rol }}</ng-container>
+                  </div>
+                  <div class="text-muted small" *ngIf="usuarioErpVinculado.email">
+                    {{ usuarioErpVinculado.email }}
+                  </div>
+                </div>
+
+                <!-- Menú de 3 puntos: modificar / eliminar vinculación -->
+                <div class="vinculo-card__menu" (click)="$event.stopPropagation()" *ngIf="mode === 'edit'">
+                  <button type="button" class="btn btn-sm btn-light" (click)="toggleMenuVinculacion($event)">
+                    <i class="ph ph-dots-three-vertical"></i>
+                  </button>
+                  <div class="vinculo-menu" *ngIf="mostrarMenuVinculacion">
+                    <button type="button" (click)="abrirBusqueda(); mostrarMenuVinculacion = false">
+                      <i class="ph ph-pencil-simple"></i>
+                      Modificar vinculación
+                    </button>
+                    <button type="button" class="text-danger" (click)="abrirEliminarVinculacion()">
+                      <i class="ph ph-link-break"></i>
+                      Eliminar vinculación
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sin vincular -->
+              <div *ngIf="!cargandoVinculado && !usuarioErpVinculado" class="vinculo-card vinculo-card--vacio">
+                <span class="vinculo-card__avatar vinculo-card__avatar--gris">
+                  <i class="ph ph-user-circle"></i>
+                </span>
+                <div class="text-muted small">
+                  Este usuario aún no está vinculado a ningún usuario de Novik.
+                </div>
+              </div>
+
+              <!-- Confirmar eliminación (pide contraseña del admin) -->
+              <div class="aviso-warning mt-3" *ngIf="mostrandoEliminarVinculacion">
+                <div class="mb-2">
+                  Ingresa tu contraseña de administrador para quitar la vinculación con
+                  <strong>{{ usuarioErpVinculado?.nombre }}</strong>.
+                </div>
+                <input type="password" name="password_eliminar_vinculacion" autocomplete="new-password"
+                  class="form-control mb-2" [(ngModel)]="passwordEliminarVinculacion"
+                  [ngModelOptions]="{standalone: true}" placeholder="Contraseña"
+                  (keydown.enter)="confirmarEliminarVinculacion()">
+                <div *ngIf="errorEliminarVinculacion" class="text-danger small mb-2">
+                  {{ errorEliminarVinculacion }}
+                </div>
+                <div class="d-flex gap-2">
+                  <button type="button" class="btn btn-secondary btn-sm"
+                    (click)="cancelarEliminarVinculacion()" [disabled]="eliminandoVinculacion">
+                    Cancelar
+                  </button>
+                  <button type="button" class="btn btn-danger btn-sm"
+                    (click)="confirmarEliminarVinculacion()"
+                    [disabled]="eliminandoVinculacion || !passwordEliminarVinculacion">
+                    <span *ngIf="eliminandoVinculacion" class="spinner-border spinner-border-sm me-1"></span>
+                    Confirmar eliminación
+                  </button>
+                </div>
+              </div>
+
+              <!-- Sin vincular: botón para abrir el asistente -->
+              <div class="text-center mt-3"
+                *ngIf="!cargandoVinculado && !usuarioErpVinculado && mode === 'edit'">
+                <button type="button" class="btn btn-primary px-5" (click)="abrirBusqueda()">
+                  <i class="ph ph-link"></i>
+                  Vincular
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" (click)="cerrarModal()">
             <i class="ph ph-x"></i>
             Cancelar
           </button>
+          <!-- La vinculación se guarda sola desde su propio asistente, así que
+               el botón solo aplica a los datos de la pestaña Información. -->
           <button
             type="submit"
             class="btn btn-primary"
             [disabled]="!usuarioForm.valid || loading"
-            *ngIf="mode === 'edit'">
+            *ngIf="mode === 'edit' && tab === 'informacion'">
             <i class="ph ph-check" *ngIf="!loading"></i>
             <span class="spinner-border spinner-border-sm me-2" *ngIf="loading"></span>
             {{ loading ? 'Guardando...' : 'Guardar Cambios' }}
@@ -381,5 +686,6 @@
         <p class="text-muted">Cargando información del usuario...</p>
       </div>
     </div>
+    </ng-container>
   </div>
 </div>

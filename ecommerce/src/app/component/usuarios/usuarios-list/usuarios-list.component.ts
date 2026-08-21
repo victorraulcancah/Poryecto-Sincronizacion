@@ -16,6 +16,8 @@ interface Usuario {
   rol: string;
   estado: boolean;
   fechaCreacion: Date;
+  /** Código del usuario en Novik cuando la cuenta está vinculada. */
+  codigoErp?: string | null;
 }
 
 @Component({
@@ -100,7 +102,8 @@ private refreshUserPermissions(): void {
           email: usuario.email,
           rol: usuario.roles?.[0]?.name || 'Sin rol',
           estado: usuario.is_enabled || false,
-          fechaCreacion: new Date(usuario.created_at)
+          fechaCreacion: new Date(usuario.created_at),
+          codigoErp: usuario.codigo_erp ?? null
         }));
         this.usuariosFiltrados = [...this.usuarios];
         this.loading = false;

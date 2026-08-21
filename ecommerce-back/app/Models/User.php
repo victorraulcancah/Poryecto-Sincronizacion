@@ -27,6 +27,9 @@ class User extends Authenticatable
         'email',
         'password',
         'is_enabled',
+        // Código del usuario en Novik (ej. "USR013") cuando la cuenta está
+        // vinculada con un vendedor del ERP.
+        'codigo_erp',
     ];
 
     /**

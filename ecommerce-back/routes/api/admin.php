@@ -12,6 +12,7 @@ use App\Http\Controllers\HorariosController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserRegistrationController;
 use App\Http\Controllers\UsuariosController;
+use App\Http\Controllers\UsuariosVinculacionController;
 use App\Http\Controllers\FormaEnvioController;
 use App\Http\Controllers\ReclamosController;
 use App\Http\Controllers\TipoPagoController;
@@ -63,6 +64,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/usuarios/{id}/cambiar-estado', [UsuariosController::class, 'cambiarEstado'])->middleware('permission:usuarios.edit');
         Route::delete('/usuarios/{id}', [UsuariosController::class, 'destroy'])->middleware('permission:usuarios.delete');
         Route::post('/usuarios/register', [UserRegistrationController::class, 'store'])->middleware('permission:usuarios.create');
+
+        // Pestaña "Avanzado": vinculación de la cuenta con un usuario de Novik.
+        // Van con 3 segmentos para no chocar con /usuarios/{id}.
+        Route::get('/usuarios/erp/buscar', [UsuariosVinculacionController::class, 'buscar']);
+        Route::get('/usuarios/{id}/vinculado', [UsuariosVinculacionController::class, 'vinculado']);
+        Route::post('/usuarios/{id}/vincular', [UsuariosVinculacionController::class, 'vincular'])->middleware('permission:usuarios.edit');
+        Route::post('/usuarios/{id}/desvincular', [UsuariosVinculacionController::class, 'desvincular'])->middleware('permission:usuarios.edit');
     });
 
     // ============================================

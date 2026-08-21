@@ -1,13 +1,21 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
-import { UsuariosService } from '../../../services/usuarios.service';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
+import { UsuariosService, UsuarioErp } from '../../../services/usuarios.service';
 import Swal from 'sweetalert2'; // ← AGREGAR ESTA LÍNEA
 import { environment } from '../../../../environments/environment';
+
+/** Pestañas del modal. "Avanzado" es la vinculación con Novik. */
+type TabUsuario = 'informacion' | 'avanzado';
+
+/** Pasos del asistente de vinculación, igual que en el modal de clientes. */
+type PasoVinculacion = 'busqueda' | 'confirmar' | 'exito';
+
 @Component({
   selector: 'app-usuario-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './usuario-modal.component.html',
   styleUrl: './usuario-modal.component.scss'
 })
@@ -32,6 +40,36 @@ export class UsuarioModalComponent {
   // Agregar después de las propiedades existentes:
   addressUbigeoData: { [key: number]: { provinces: any[], districts: any[] } } = {};
 
+  // ── Pestaña Avanzado: vinculación con Novik ───────────────────────────
+  tab: TabUsuario = 'informacion';
+
+  usuarioErpVinculado: UsuarioErp | null = null;
+  cargandoVinculado = false;
+  mostrarMenuVinculacion = false;
+
+  /** Asistente de vinculación (tapa el formulario mientras está abierto). */
+  mostrandoBusqueda = false;
+  pasoVinculacion: PasoVinculacion = 'busqueda';
+
+  busquedaQuery = '';
+  buscandoErp = false;
+  cargandoMas = false;
+  hayMasResultados = false;
+  resultadosBusqueda: UsuarioErp[] = [];
+  soloVendedores = true;
+  private busqueda$ = new Subject<string>();
+
+  usuarioErpSeleccionado: UsuarioErp | null = null;
+  mostrarCampoPassword = false;
+  passwordVinculacion = '';
+  vinculando = false;
+  errorVinculacion = '';
+
+  mostrandoEliminarVinculacion = false;
+  passwordEliminarVinculacion = '';
+  eliminandoVinculacion = false;
+  errorEliminarVinculacion = '';
+
   constructor(
     private fb: FormBuilder,
     private usuariosService: UsuariosService
@@ -41,6 +79,12 @@ export class UsuarioModalComponent {
 
   ngOnInit() {
     this.cargarDatosIniciales();
+
+    // La búsqueda en Novik espera a que el admin deje de escribir.
+    this.busqueda$
+      .pipe(debounceTime(400), distinctUntilChanged())
+      .subscribe(() => this.buscarEnErp(true));
+
     if (this.usuarioId && this.isVisible) {
       this.cargarUsuario();
     }
@@ -51,6 +95,7 @@ export class UsuarioModalComponent {
     // ← AGREGAR ESTA LÍNEA para limpiar datos previos:
     this.limpiarDatosPrevios();
     this.cargarUsuario();
+    this.cargarVinculacion();
   }
 }
 
@@ -485,6 +530,176 @@ onSubmit() {
     this.selectedFile = null;
     this.previewUrl = null;
     this.removeAvatar = false;
+    this.tab = 'informacion';
+    this.cerrarBusqueda();
+    this.cancelarEliminarVinculacion();
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  Pestaña Avanzado: vinculación con un usuario de Novik
+  // ══════════════════════════════════════════════════════════════════════
+
+  /** Trae el usuario de Novik al que está vinculada la cuenta, si tiene. */
+  cargarVinculacion() {
+    if (!this.usuarioId) return;
+
+    this.cargandoVinculado = true;
+    this.usuariosService.obtenerVinculacion(this.usuarioId).subscribe({
+      next: res => {
+        this.usuarioErpVinculado = res.usuario ?? null;
+        this.cargandoVinculado = false;
+      },
+      error: () => {
+        this.usuarioErpVinculado = null;
+        this.cargandoVinculado = false;
+      },
+    });
+  }
+
+  toggleMenuVinculacion(evento: Event) {
+    evento.stopPropagation();
+    this.mostrarMenuVinculacion = !this.mostrarMenuVinculacion;
+  }
+
+  abrirBusqueda() {
+    this.mostrandoBusqueda = true;
+    this.pasoVinculacion = 'busqueda';
+    this.busquedaQuery = '';
+    this.resultadosBusqueda = [];
+    this.usuarioErpSeleccionado = null;
+    this.mostrarCampoPassword = false;
+    this.passwordVinculacion = '';
+    this.errorVinculacion = '';
+    this.buscarEnErp(true);
+  }
+
+  cerrarBusqueda() {
+    this.mostrandoBusqueda = false;
+    this.pasoVinculacion = 'busqueda';
+    this.usuarioErpSeleccionado = null;
+    this.mostrarCampoPassword = false;
+    this.passwordVinculacion = '';
+    this.errorVinculacion = '';
+  }
+
+  onBusquedaChange(valor: string) {
+    this.busqueda$.next(valor);
+  }
+
+  /** Alterna entre "solo Vendedores" y todos los usuarios del ERP. */
+  cambiarFiltroVendedores(soloVendedores: boolean) {
+    this.soloVendedores = soloVendedores;
+    this.buscarEnErp(true);
+  }
+
+  private buscarEnErp(reiniciar: boolean) {
+    if (!this.mostrandoBusqueda) return;
+
+    const offset = reiniciar ? 0 : this.resultadosBusqueda.length;
+    if (reiniciar) this.buscandoErp = true;
+    else this.cargandoMas = true;
+
+    this.usuariosService
+      .buscarUsuariosErp(this.busquedaQuery, offset, this.soloVendedores)
+      .subscribe({
+        next: res => {
+          this.resultadosBusqueda = reiniciar
+            ? res.usuarios
+            : [...this.resultadosBusqueda, ...res.usuarios];
+          this.hayMasResultados = res.hay_mas;
+          this.buscandoErp = false;
+          this.cargandoMas = false;
+        },
+        error: () => {
+          if (reiniciar) this.resultadosBusqueda = [];
+          this.hayMasResultados = false;
+          this.buscandoErp = false;
+          this.cargandoMas = false;
+        },
+      });
+  }
+
+  /** Scroll infinito del listado de resultados. */
+  onScrollResultados(evento: Event) {
+    const el = evento.target as HTMLElement;
+    const alFinal = el.scrollTop + el.clientHeight >= el.scrollHeight - 40;
+    if (alFinal && this.hayMasResultados && !this.cargandoMas && !this.buscandoErp) {
+      this.buscarEnErp(false);
+    }
+  }
+
+  seleccionarUsuarioErp(usuario: UsuarioErp) {
+    this.usuarioErpSeleccionado = usuario;
+    this.pasoVinculacion = 'confirmar';
+    this.mostrarCampoPassword = false;
+    this.passwordVinculacion = '';
+    this.errorVinculacion = '';
+  }
+
+  pedirPassword() {
+    this.mostrarCampoPassword = true;
+  }
+
+  ejecutarVinculacion() {
+    if (!this.usuarioId || !this.usuarioErpSeleccionado || !this.passwordVinculacion) return;
+
+    this.vinculando = true;
+    this.errorVinculacion = '';
+
+    this.usuariosService
+      .vincular(this.usuarioId, this.usuarioErpSeleccionado.codigo, this.passwordVinculacion)
+      .subscribe({
+        next: res => {
+          this.vinculando = false;
+          this.usuarioErpVinculado = res.usuario;
+          this.pasoVinculacion = 'exito';
+        },
+        error: err => {
+          this.vinculando = false;
+          this.errorVinculacion =
+            err?.error?.message || 'No se pudo realizar la vinculación. Intenta nuevamente.';
+        },
+      });
+  }
+
+  finalizarVinculacion() {
+    this.cerrarBusqueda();
+    this.mostrarMenuVinculacion = false;
+    this.usuarioActualizado.emit();
+  }
+
+  abrirEliminarVinculacion() {
+    this.mostrarMenuVinculacion = false;
+    this.mostrandoEliminarVinculacion = true;
+    this.passwordEliminarVinculacion = '';
+    this.errorEliminarVinculacion = '';
+  }
+
+  cancelarEliminarVinculacion() {
+    this.mostrandoEliminarVinculacion = false;
+    this.passwordEliminarVinculacion = '';
+    this.errorEliminarVinculacion = '';
+  }
+
+  confirmarEliminarVinculacion() {
+    if (!this.usuarioId || !this.passwordEliminarVinculacion) return;
+
+    this.eliminandoVinculacion = true;
+    this.errorEliminarVinculacion = '';
+
+    this.usuariosService.desvincular(this.usuarioId, this.passwordEliminarVinculacion).subscribe({
+      next: () => {
+        this.eliminandoVinculacion = false;
+        this.usuarioErpVinculado = null;
+        this.cancelarEliminarVinculacion();
+        this.usuarioActualizado.emit();
+      },
+      error: err => {
+        this.eliminandoVinculacion = false;
+        this.errorEliminarVinculacion =
+          err?.error?.message || 'No se pudo quitar la vinculación.';
+      },
+    });
   }
 
   getInitials(name: string): string {

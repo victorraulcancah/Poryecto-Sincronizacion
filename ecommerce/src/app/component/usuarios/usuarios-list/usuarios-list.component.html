@@ -78,6 +78,13 @@
                 </div>
                 <div>
                   <div class="client-info__name">{{ usuario.nombre }}</div>
+                  <!-- Vinculación con Novik, igual que en el listado de clientes -->
+                  <div class="client-info__subtitle" *ngIf="usuario.codigoErp; else sinVincularUsuario">
+                    <i class="ph ph-link me-1"></i>{{ usuario.codigoErp }}
+                  </div>
+                  <ng-template #sinVincularUsuario>
+                    <div class="client-info__subtitle text-muted">Sin vincular a Novik</div>
+                  </ng-template>
                 </div>
               </div>
             </td>
