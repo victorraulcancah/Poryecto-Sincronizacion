@@ -3,7 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import Swal from 'sweetalert2';
-import { CaptchaService, CaptchaImagen } from '../../../services/captcha.service';
+import {
+  CaptchaService,
+  CaptchaImagen,
+  OPCIONES_PIEZAS,
+} from '../../../services/captcha.service';
 
 /**
  * Imágenes del rompecabezas del registro.
@@ -26,12 +30,27 @@ export class CaptchaComponent implements OnInit, OnDestroy {
   activas = 0;
   isLoading = false;
 
+  /** 2, 4, 6 u 8, con su cuadrícula. */
+  readonly opcionesPiezas = OPCIONES_PIEZAS;
+
   // Formulario de subida
   mostrandoFormulario = false;
   nombreNuevo = '';
+  piezasNuevo = 4;
   archivoNuevo: File | null = null;
   previewNuevo: string | null = null;
   subiendo = false;
+
+  /** Cuadrícula de una cantidad de piezas, para dibujar la vista previa. */
+  cuadricula(piezas: number): { columnas: number; filas: number } {
+    const opcion = this.opcionesPiezas.find(o => o.valor === piezas);
+    return opcion ?? { columnas: 2, filas: 2 };
+  }
+
+  /** Celdas de la rejilla que se pinta encima de la imagen. */
+  celdas(piezas: number): number[] {
+    return Array.from({ length: piezas || 4 }, (_, i) => i);
+  }
 
   constructor(private captchaService: CaptchaService) {}
 
@@ -71,6 +90,7 @@ export class CaptchaComponent implements OnInit, OnDestroy {
   abrirFormulario(): void {
     this.mostrandoFormulario = true;
     this.nombreNuevo = '';
+    this.piezasNuevo = 4;
     this.archivoNuevo = null;
     this.previewNuevo = null;
   }
@@ -121,7 +141,7 @@ export class CaptchaComponent implements OnInit, OnDestroy {
 
     this.subiendo = true;
     this.captchaService
-      .crear(this.nombreNuevo.trim(), this.archivoNuevo)
+      .crear(this.nombreNuevo.trim(), this.archivoNuevo, this.piezasNuevo)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
@@ -162,6 +182,27 @@ export class CaptchaComponent implements OnInit, OnDestroy {
           this.activas += nuevoValor ? 1 : -1;
         },
         error: error => {
+          Swal.fire({
+            title: 'No se pudo cambiar',
+            text: error?.error?.message || 'Intenta nuevamente.',
+            icon: 'error',
+            confirmButtonColor: '#d32027',
+          });
+        },
+      });
+  }
+
+  /** Cambia en cuántas piezas se parte esa imagen. */
+  cambiarPiezas(imagen: CaptchaImagen, piezas: number): void {
+    const anterior = imagen.piezas;
+    imagen.piezas = Number(piezas);
+
+    this.captchaService
+      .actualizar(imagen.id, { piezas: imagen.piezas })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        error: error => {
+          imagen.piezas = anterior;
           Swal.fire({
             title: 'No se pudo cambiar',
             text: error?.error?.message || 'Intenta nuevamente.',

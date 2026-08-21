@@ -53,15 +53,26 @@
     <div class="tarjeta" *ngFor="let img of imagenes; trackBy: trackPorId"
       [class.tarjeta--inactiva]="!img.activo">
 
-      <!-- Vista previa partida en 4, como se ve en el registro -->
+      <!-- Vista previa con el corte real que tendrá en el registro -->
       <div class="tarjeta__previa">
         <img [src]="urlImagen(img.ruta)" [alt]="img.nombre">
-        <div class="tarjeta__rejilla">
-          <span></span><span></span><span></span><span></span>
+        <div class="tarjeta__rejilla"
+          [style.grid-template-columns]="'repeat(' + cuadricula(img.piezas).columnas + ', 1fr)'"
+          [style.grid-template-rows]="'repeat(' + cuadricula(img.piezas).filas + ', 1fr)'">
+          <span *ngFor="let c of celdas(img.piezas)"></span>
         </div>
         <span class="tarjeta__estado" [class.tarjeta__estado--activo]="img.activo">
           {{ img.activo ? 'Activa' : 'Inactiva' }}
         </span>
+      </div>
+
+      <!-- En cuántas piezas se parte -->
+      <div class="tarjeta__piezas">
+        <label>Se arma en</label>
+        <select class="form-select form-select-sm" [ngModel]="img.piezas"
+          (ngModelChange)="cambiarPiezas(img, $event)">
+          <option *ngFor="let o of opcionesPiezas" [ngValue]="o.valor">{{ o.etiqueta }}</option>
+        </select>
       </div>
 
       <div class="tarjeta__pie">
@@ -104,6 +115,15 @@
       <label class="etiqueta">Nombre <span class="req">*</span></label>
       <input type="text" class="form-control mb-3" [(ngModel)]="nombreNuevo"
         maxlength="120" placeholder="Ej.: Taza de café">
+
+      <label class="etiqueta">Se arma en <span class="req">*</span></label>
+      <select class="form-control mb-1" [(ngModel)]="piezasNuevo">
+        <option *ngFor="let o of opcionesPiezas" [ngValue]="o.valor">{{ o.etiqueta }}</option>
+      </select>
+      <p class="ayuda mb-3">
+        Mientras más piezas, más difícil. Con 2 se arma de un vistazo; con 8 hay que
+        fijarse bien en la imagen.
+      </p>
 
       <label class="etiqueta">Imagen <span class="req">*</span></label>
       <label class="zona-subida">

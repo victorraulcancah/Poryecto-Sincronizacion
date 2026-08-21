@@ -60,8 +60,15 @@ export class RegisterComponent implements OnInit {
   // --- Propiedades para el Puzzle CAPTCHA ---
   puzzleSolved = false;
   puzzlePieces: any[] = [];
-  puzzleBoard: (any | null)[] = [null, null, null, null];
+  puzzleBoard: (any | null)[] = [];
   selectedPuzzleImage = '';
+
+  /** Cuadrícula del desafío actual; la fija la imagen desde el panel. */
+  puzzleTotal = 4;
+  puzzleColumnas = 2;
+  puzzleFilas = 2;
+  puzzleHuecos: number[] = [];
+  ladoCasilla = 150;
 
   /** Token del desafío; se manda al registrarse como prueba de que se resolvió. */
   puzzleToken = '';
@@ -116,7 +123,7 @@ export class RegisterComponent implements OnInit {
    */
   setupPuzzle(): void {
     this.puzzleSolved = false;
-    this.puzzleBoard = [null, null, null, null];
+    this.puzzleBoard = [];
     this.puzzlePieces = [];
     this.puzzleError = false;
     this.puzzleMensaje = '';
@@ -127,14 +134,26 @@ export class RegisterComponent implements OnInit {
         this.puzzleToken = desafio.token;
         this.selectedPuzzleImage = this.captchaService.urlImagen(desafio.imagen);
 
+        // La cantidad de piezas la define cada imagen desde el panel (2, 4, 6
+        // u 8), así que la cuadrícula viene con el desafío.
+        this.puzzleColumnas = desafio.columnas;
+        this.puzzleFilas = desafio.filas;
+        this.puzzleTotal = desafio.total_piezas;
+        this.puzzleBoard = new Array(this.puzzleTotal).fill(null);
+        this.puzzleHuecos = Array.from({ length: this.puzzleTotal }, (_, i) => i);
+
+        // Con más columnas la casilla se achica para que el tablero no se
+        // desborde en pantallas angostas.
+        this.ladoCasilla = this.puzzleColumnas >= 4 ? 84 : this.puzzleColumnas === 3 ? 108 : 150;
+
         // El servidor manda el orden barajado; el navegador solo lo dibuja.
-        // `style` es la pieza a tamaño del tablero (150px) y `styleMini` la de
-        // la bandeja (84px): si se comparte una sola, la que se muestra chica
-        // recorta el trozo equivocado de la imagen.
+        // `style` es la pieza a tamaño del tablero y `styleMini` la de la
+        // bandeja: si se comparte una sola, la chica recorta el trozo
+        // equivocado de la imagen.
         this.puzzlePieces = desafio.piezas.map((id) => ({
           id,
-          style: this.estiloDePieza(id, 150),
-          styleMini: this.estiloDePieza(id, 84),
+          style: this.estiloDePieza(id, this.ladoCasilla),
+          styleMini: this.estiloDePieza(id, 72),
         }));
 
         this.cargandoPuzzle = false;
@@ -193,10 +212,13 @@ export class RegisterComponent implements OnInit {
    * escala al doble del lado (2×2 piezas) y se desplaza al cuadrante que toca.
    */
   private estiloDePieza(id: number, lado: number): Record<string, string> {
+    const columna = id % this.puzzleColumnas;
+    const fila = Math.floor(id / this.puzzleColumnas);
+
     return {
       'background-image': `url(${this.selectedPuzzleImage})`,
-      'background-size': `${lado * 2}px ${lado * 2}px`,
-      'background-position': `${(id % 2) * -lado}px ${Math.floor(id / 2) * -lado}px`,
+      'background-size': `${lado * this.puzzleColumnas}px ${lado * this.puzzleFilas}px`,
+      'background-position': `${columna * -lado}px ${fila * -lado}px`,
       'background-repeat': 'no-repeat',
     };
   }
@@ -212,9 +234,9 @@ export class RegisterComponent implements OnInit {
     this.puzzleMensaje = '';
   }
 
-  /** ¿Están los cuatro huecos ocupados? Habilita el botón de confirmar. */
+  /** ¿Están todos los huecos ocupados? Habilita el botón de confirmar. */
   get puzzleCompleto(): boolean {
-    return this.puzzleBoard.every(pieza => pieza !== null);
+    return this.puzzleBoard.length > 0 && this.puzzleBoard.every(pieza => pieza !== null);
   }
 
   /**
@@ -711,7 +733,7 @@ export class RegisterComponent implements OnInit {
     this.puzzleMensaje = '';
 
     const colocadas = this.puzzleBoard.filter(Boolean);
-    this.puzzleBoard = [null, null, null, null];
+    this.puzzleBoard = new Array(this.puzzleTotal).fill(null);
     this.puzzlePieces = this.shuffle([...this.puzzlePieces, ...colocadas]);
   }
 }

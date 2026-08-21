@@ -476,9 +476,11 @@
 
             <div class="captcha__caja" *ngIf="!cargandoPuzzle && (puzzlePieces.length || puzzleCompleto)">
 
-              <!-- Tablero -->
-              <div class="captcha__tablero">
-                <div *ngFor="let i of [0,1,2,3]"
+              <!-- Tablero. La cuadrícula la define la imagen desde el panel. -->
+              <div class="captcha__tablero"
+                   [style.grid-template-columns]="'repeat(' + puzzleColumnas + ', ' + ladoCasilla + 'px)'"
+                   [style.grid-template-rows]="'repeat(' + puzzleFilas + ', ' + ladoCasilla + 'px)'">
+                <div *ngFor="let i of puzzleHuecos"
                      class="puzzle-placeholder"
                      [class.ocupado]="puzzleBoard[i]"
                      (dragover)="onDragOver($event)"
@@ -533,7 +535,7 @@
             </div>
 
             <p class="captcha__pista" *ngIf="!puzzleSolved && !puzzleCompleto && !cargandoPuzzle">
-              Faltan {{ puzzlePieces.length }} de 4 piezas
+              Faltan {{ puzzlePieces.length }} de {{ puzzleTotal }} piezas
             </p>
           </div>
           <!-- Puzzle CAPTCHA End -->

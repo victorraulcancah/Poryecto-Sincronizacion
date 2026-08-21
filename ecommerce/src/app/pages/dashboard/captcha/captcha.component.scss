@@ -113,17 +113,38 @@ $tenue: #6b7280;
     }
   }
 
-  // Las líneas muestran cómo se parte en 4, igual que en el registro.
+  // Las líneas muestran el corte real, según las piezas de esa imagen.
   &__rejilla {
     position: absolute;
     inset: 0;
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
     pointer-events: none;
 
     span {
       border: 1px dashed rgba(255, 255, 255, 0.75);
+    }
+  }
+
+  &__piezas {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px 0;
+
+    label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #6b7280;
+      white-space: nowrap;
+    }
+
+    .form-select {
+      flex: 1;
+      min-width: 0;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 0.8rem;
     }
   }
 

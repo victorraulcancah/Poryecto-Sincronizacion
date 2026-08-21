@@ -21,8 +21,6 @@ class CaptchaController extends Controller
     /** El desafío caduca a los 10 minutos. */
     private const VIGENCIA_MINUTOS = 10;
 
-    private const PIEZAS = 4;
-
     // ══════════════════════════════════════════════════════════════════
     //  Público: armar y verificar el desafío
     // ══════════════════════════════════════════════════════════════════
@@ -42,13 +40,19 @@ class CaptchaController extends Controller
             ], 503);
         }
 
-        $orden = range(0, self::PIEZAS - 1);
+        $total = $imagen->piezas ?: 4;
+        $cuadricula = $imagen->cuadricula();
+
+        $orden = range(0, $total - 1);
         shuffle($orden);
 
         $token = (string) Str::uuid();
 
+        // El total se guarda con el token: así el navegador no puede pedir
+        // que se valide contra una cantidad distinta de la que se le mostró.
         Cache::put("captcha:{$token}", [
             'imagen_id' => $imagen->id,
+            'total' => $total,
             'resuelto' => false,
         ], now()->addMinutes(self::VIGENCIA_MINUTOS));
 
@@ -58,7 +62,9 @@ class CaptchaController extends Controller
             'imagen' => $imagen->ruta,
             // Índices de pieza en el orden en que se le muestran al usuario.
             'piezas' => $orden,
-            'total_piezas' => self::PIEZAS,
+            'total_piezas' => $total,
+            'columnas' => $cuadricula['columnas'],
+            'filas' => $cuadricula['filas'],
         ]);
     }
 
@@ -70,8 +76,8 @@ class CaptchaController extends Controller
     {
         $request->validate([
             'token' => 'required|string',
-            'orden' => 'required|array|size:' . self::PIEZAS,
-            'orden.*' => 'required|integer|min:0|max:' . (self::PIEZAS - 1),
+            'orden' => 'required|array',
+            'orden.*' => 'required|integer|min:0',
         ]);
 
         $clave = "captcha:{$request->token}";
@@ -85,8 +91,11 @@ class CaptchaController extends Controller
             ], 422);
         }
 
+        // La cantidad esperada es la que se guardó al armar el desafío.
+        $total = $desafio['total'] ?? 4;
+
         // La solución es la identidad: la pieza 0 va en el hueco 0, y así.
-        $correcto = array_map('intval', $request->orden) === range(0, self::PIEZAS - 1);
+        $correcto = array_map('intval', $request->orden) === range(0, $total - 1);
 
         if (! $correcto) {
             return response()->json([
@@ -141,9 +150,11 @@ class CaptchaController extends Controller
             'nombre' => 'required|string|max:120',
             // Cuadradas o casi: el rompecabezas las parte en 4.
             'imagen' => 'required|image|mimes:jpeg,jpg,png,webp|max:4096',
+            'piezas' => 'nullable|integer|in:' . implode(',', CaptchaImagen::PIEZAS_VALIDAS),
             'activo' => 'nullable|boolean',
         ], [
             'imagen.uploaded' => 'La imagen pasa del máximo que acepta el servidor.',
+            'piezas.in' => 'El rompecabezas solo se puede armar en 2, 4, 6 u 8 piezas.',
         ]);
 
         $archivo = $request->file('imagen');
@@ -159,6 +170,7 @@ class CaptchaController extends Controller
         $imagen = CaptchaImagen::create([
             'nombre' => $request->nombre,
             'ruta' => 'storage/captcha/' . $nombreArchivo,
+            'piezas' => (int) $request->input('piezas', 4),
             'activo' => $request->boolean('activo', true),
         ]);
 
@@ -175,7 +187,10 @@ class CaptchaController extends Controller
 
         $request->validate([
             'nombre' => 'sometimes|required|string|max:120',
+            'piezas' => 'sometimes|integer|in:' . implode(',', CaptchaImagen::PIEZAS_VALIDAS),
             'activo' => 'sometimes|boolean',
+        ], [
+            'piezas.in' => 'El rompecabezas solo se puede armar en 2, 4, 6 u 8 piezas.',
         ]);
 
         // No se puede dejar el captcha sin ninguna imagen activa: el registro
@@ -190,7 +205,7 @@ class CaptchaController extends Controller
             }
         }
 
-        $imagen->fill($request->only(['nombre', 'activo']))->save();
+        $imagen->fill($request->only(['nombre', 'piezas', 'activo']))->save();
 
         return response()->json([
             'status' => 'success',
