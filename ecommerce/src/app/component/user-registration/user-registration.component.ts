@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -31,6 +31,14 @@ interface Address {
   styleUrl: './user-registration.component.scss'
 })
 export class UserRegistrationComponent {
+  /**
+   * El mismo formulario sirve como página (/dashboard/users/create) y como
+   * modal desde la lista de usuarios. En modal no navega: avisa al padre.
+   */
+  @Input() modoModal = false;
+  @Output() cerrado = new EventEmitter<void>();
+  @Output() usuarioCreado = new EventEmitter<void>();
+
 userForm!: FormGroup;
   selectedFile: File | null = null;
   previewUrl: string | null = null;
@@ -89,7 +97,8 @@ ngOnInit(): void {
       // Datos del perfil (user_profiles)
       first_name: ['', [Validators.required]],
       apellido_paterno: ['', [Validators.required]],
-      apellido_materno: [''],
+      // Todos los campos del registro son obligatorios menos la foto.
+      apellido_materno: ['', [Validators.required]],
       phone: ['', [Validators.required, Validators.pattern(/^[0-9]{9,15}$/)]],
       document_type: ['', [Validators.required]],
       document_number: ['', [Validators.required]],
@@ -121,7 +130,7 @@ ngOnInit(): void {
       district: ['', [Validators.required]], 
       province: ['', [Validators.required]],
       department: ['', [Validators.required]],
-      postal_code: [''],
+      postal_code: ['', [Validators.required]],
       country: ['', [Validators.required]],
       is_default: [false]
     });
@@ -242,6 +251,14 @@ ngOnInit(): void {
         text: response.message || 'Usuario registrado correctamente',
         confirmButtonText: 'OK'
       });
+
+      // En modal el listado ya está detrás: se cierra y se recarga.
+      if (this.modoModal) {
+        this.usuarioCreado.emit();
+        this.cerrado.emit();
+        return;
+      }
+
       this.router.navigate(['/dashboard/usuarios']);
     },
     error: (error: any) => {
@@ -339,6 +356,10 @@ ngOnInit(): void {
   }
 
   irListaUsuarios() {
+    if (this.modoModal) {
+      this.cerrado.emit();
+      return;
+    }
     this.router.navigate(['/dashboard/usuarios']);
   }
 

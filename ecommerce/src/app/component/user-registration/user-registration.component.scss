@@ -1,0 +1,72 @@
+
+// ══════════════════════════════════════════════════════════════════════
+//  Modo modal (se abre desde el listado de usuarios)
+// ══════════════════════════════════════════════════════════════════════
+
+.registro-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  margin: 0;
+  overflow: hidden;
+
+  &__fila {
+    width: 100%;
+    max-width: 980px;
+    margin: 0;
+  }
+
+  &__col {
+    padding: 0;
+  }
+
+  &__card {
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 16px;
+    animation: registroModalEntra 0.25s ease-out;
+  }
+
+  // El cuerpo es lo único que hace scroll; la cabecera queda fija.
+  &__body {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+  }
+
+  &__cerrar {
+    background: none;
+    border: none;
+    color: #fff;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease;
+
+    &:hover { background: rgba(255, 255, 255, 0.18); }
+  }
+}
+
+@keyframes registroModalEntra {
+  from { opacity: 0; transform: scale(0.96) translateY(-16px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@media (max-width: 575px) {
+  .registro-modal {
+    padding: 10px;
+
+    &__card { max-height: 95vh; }
+  }
+}

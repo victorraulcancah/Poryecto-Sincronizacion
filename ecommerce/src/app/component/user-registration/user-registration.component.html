@@ -1,15 +1,24 @@
-<div class="container-fluid py-4">
-  <div class="row justify-content-center">
-    <div class="col-12 col-lg-10 col-xl-8">
-      <div class="card shadow-lg border-0">
-        <div class="card-header bg-primary text-white py-3">
+<!-- Como página se ve igual que antes; con [modoModal]="true" el mismo bloque
+     se muestra dentro de un modal desde la lista de usuarios. -->
+<div [class.container-fluid]="!modoModal" [class.py-4]="!modoModal"
+  [class.registro-modal]="modoModal" (click)="modoModal && irListaUsuarios()">
+  <div class="row justify-content-center" [class.registro-modal__fila]="modoModal"
+    (click)="$event.stopPropagation()">
+    <div class="col-12 col-lg-10 col-xl-8" [class.registro-modal__col]="modoModal">
+      <div class="card shadow-lg border-0" [class.registro-modal__card]="modoModal">
+        <div class="card-header bg-primary text-white py-3 d-flex align-items-center justify-content-between">
           <h4 class="mb-0">
             <i class="fas fa-user-plus me-2"></i>
             Registro de Usuario
           </h4>
+          <button *ngIf="modoModal" type="button" class="registro-modal__cerrar"
+            (click)="irListaUsuarios()" aria-label="Cerrar">
+            <i class="fas fa-times"></i>
+          </button>
         </div>
-        
-        <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="card-body">
+
+        <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="card-body"
+          [class.registro-modal__body]="modoModal">
           
           <!-- SECCIÓN: Datos Base -->
           <div class="section-divider mb-4 mt-5 pt-2">

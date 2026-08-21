@@ -219,3 +219,11 @@
   (closeModal)="onCloseModal()"
   (usuarioActualizado)="onUsuarioActualizado()">
 </app-usuario-modal>
+
+<!-- Crear Usuario: el formulario de registro, en modal -->
+<app-user-registration
+  *ngIf="showModalCrear"
+  [modoModal]="true"
+  (cerrado)="cerrarModalCrear()"
+  (usuarioCreado)="onUsuarioCreado()">
+</app-user-registration>

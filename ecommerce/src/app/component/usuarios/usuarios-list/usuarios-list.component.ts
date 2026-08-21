@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { UsuarioModalComponent } from '../usuario-modal/usuario-modal.component';
+import { UserRegistrationComponent } from '../../user-registration/user-registration.component';
 import Swal from 'sweetalert2';
 import { environment } from '../../../../environments/environment';
 import { PermissionsService } from '../../../services/permissions.service';
@@ -23,7 +24,7 @@ interface Usuario {
 @Component({
   selector: 'app-usuarios-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, UsuarioModalComponent],
+  imports: [CommonModule, FormsModule, UsuarioModalComponent, UserRegistrationComponent],
   templateUrl: './usuarios-list.component.html',
   styleUrl: './usuarios-list.component.scss'
 })
@@ -47,6 +48,8 @@ export class UsuariosListComponent implements OnInit {
 
   // Modal properties
   showModal = false;
+  /** Modal de "Crear Usuario" (el formulario de registro embebido). */
+  showModalCrear = false;
   selectedUsuarioId: number | null = null;
   modalMode: 'view' | 'edit' = 'view';
   canShowUser$!: Observable<boolean>;
@@ -122,8 +125,18 @@ private refreshUserPermissions(): void {
     });
   }
 
+  /** El registro se abre en modal, sin salir del listado. */
   onCrearUsuario(): void {
-    this.router.navigate(['/dashboard/users/create']);
+    this.showModalCrear = true;
+  }
+
+  cerrarModalCrear(): void {
+    this.showModalCrear = false;
+  }
+
+  onUsuarioCreado(): void {
+    this.showModalCrear = false;
+    this.cargarUsuarios();
   }
 
     onVerUsuario(usuario: Usuario): void {
