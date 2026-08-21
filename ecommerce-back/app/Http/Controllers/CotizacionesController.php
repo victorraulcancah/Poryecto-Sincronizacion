@@ -47,6 +47,18 @@ class CotizacionesController extends Controller
                 'tracking.estadoCotizacion'
             ]);
 
+            // Un Vendedor solo ve las cotizaciones de los clientes de su
+            // cartera en Novik; el resto de roles ve todas.
+            $usuario = $request->user();
+            if ($usuario instanceof \App\Models\User && \App\Support\CarteraDelVendedor::aplica($usuario)) {
+                $codigos = \App\Support\CarteraDelVendedor::codigosDeCliente($usuario);
+
+                $query->whereHas('userCliente', function ($q) use ($codigos) {
+                    // Sin cartera no ve ninguna, no todas.
+                    $q->whereIn('codigo_erp', $codigos ?: ['__sin_cartera__']);
+                });
+            }
+
             // Filtros
             if ($request->has('estado_cotizacion_id') && $request->estado_cotizacion_id !== '') {
                 $query->where('estado_cotizacion_id', $request->estado_cotizacion_id);

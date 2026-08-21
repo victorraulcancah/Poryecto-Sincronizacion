@@ -1,319 +1,793 @@
-// Configuración base del datatable
-::ng-deep .reclamos-table {
-  box-shadow: none !important;
-  border: none !important;
-  font-size: 13px;
-  width: 100% !important;
-}
+// Libro de Reclamaciones — panel de administración
 
-// Header de la tabla
-::ng-deep .reclamos-table .datatable-header {
-  background-color: #f8f9fa !important;
-  border-bottom: 1px solid #dee2e6 !important;
-  height: 50px !important;
-}
+$rojo: #d32027;
+$rojo-oscuro: #b01a20;
+$rojo-suave: #fdecec;
+$borde: #e5e7eb;
+$texto: #111827;
+$tenue: #6b7280;
 
-::ng-deep .reclamos-table .datatable-header-cell {
-  font-weight: 600 !important;
-  color: #495057 !important;
-  font-size: 12px !important;
-  padding: 12px 8px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  text-align: center !important;
-  border-right: 1px solid #e9ecef !important;
-}
+.reclamos {
+  padding: 24px;
 
-::ng-deep .reclamos-table .datatable-header-cell:last-child {
-  border-right: none !important;
-}
+  // ── Cabecera ──────────────────────────────────────────────────────
+  &__cabecera {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
 
-// Celdas del cuerpo
-::ng-deep .reclamos-table .datatable-body-cell {
-  padding: 8px !important;
-  border-bottom: 1px solid #f1f3f4 !important;
-  border-right: 1px solid #f8f9fa !important;
-  font-size: 13px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  height: 80px !important;
-  vertical-align: middle !important;
-}
+    h4 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: $texto;
 
-::ng-deep .reclamos-table .datatable-body-cell:last-child {
-  border-right: none !important;
-}
+      i { color: $rojo; font-size: 26px; }
+    }
 
-// Filas alternadas
-::ng-deep .reclamos-table .datatable-row-even {
-  background-color: #ffffff !important;
-}
+    p {
+      margin: 4px 0 0;
+      font-size: 0.88rem;
+      color: $tenue;
+    }
 
-::ng-deep .reclamos-table .datatable-row-odd {
-  background-color: #fafbfc !important;
-}
-
-// Hover en filas
-::ng-deep .reclamos-table .datatable-body-row:hover {
-  background-color: #f5f5f5 !important;
-}
-
-// Estilos específicos para reclamos
-.reclamo-info {
-  text-align: left;
-  width: 100%;
-}
-
-.reclamo-numero {
-  font-size: 14px !important;
-  font-weight: 600 !important;
-  color: #0d6efd !important;
-  margin-bottom: 2px !important;
-}
-
-.reclamo-monto {
-  font-size: 11px !important;
-  color: #6c757d !important;
-}
-
-.cliente-info {
-  text-align: left;
-  width: 100%;
-}
-
-.cliente-nombre {
-  font-size: 14px !important;
-  font-weight: 500 !important;
-  color: #212529 !important;
-  margin-bottom: 2px !important;
-}
-
-.cliente-email {
-  font-size: 11px !important;
-  color: #6c757d !important;
-}
-
-.tipo-badge {
-  font-size: 10px !important;
-  padding: 4px 8px !important;
-  border-radius: 12px !important;
-  font-weight: 500 !important;
-  white-space: nowrap;
-}
-
-.tipo-bien {
-  font-size: 10px !important;
-  color: #6c757d !important;
-  margin-top: 4px;
-}
-
-.estado-badge {
-  font-size: 10px !important;
-  padding: 4px 8px !important;
-  border-radius: 12px !important;
-  font-weight: 500 !important;
-}
-
-.fecha-info {
-  text-align: left;
-  width: 100%;
-}
-
-.fecha-dia {
-  font-size: 12px !important;
-  color: #212529 !important;
-  margin-bottom: 2px;
-}
-
-.fecha-hora {
-  font-size: 10px !important;
-  color: #6c757d !important;
-}
-
-.dias-badge {
-  font-size: 9px !important;
-  padding: 3px 6px !important;
-  border-radius: 10px !important;
-  font-weight: 500 !important;
-  white-space: nowrap;
-}
-
-.action-buttons {
-  display: flex !important;
-  gap: 4px !important;
-  align-items: center !important;
-  justify-content: center !important;
-  flex-wrap: nowrap !important;
-}
-
-.action-btn {
-  width: 24px !important;
-  height: 24px !important;
-  padding: 0 !important;
-  border: none !important;
-  border-radius: 4px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  transition: all 0.2s ease !important;
-  font-size: 10px !important;
-  min-width: 24px !important;
-}
-
-.view-btn {
-  background-color: #cfe2ff !important;
-  color: #084298 !important;
-}
-
-.dropdown-btn {
-  background-color: #f8f9fa !important;
-  color: #6c757d !important;
-}
-
-.action-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.view-btn:hover {
-  background-color: #b6d4fe !important;
-  color: #052c65 !important;
-}
-
-.dropdown-btn:hover {
-  background-color: #e9ecef !important;
-  color: #495057 !important;
-}
-
-// Footer
-::ng-deep .reclamos-table .datatable-footer {
-  background-color: #f8f9fa !important;
-  border-top: 1px solid #dee2e6 !important;
-  padding: 8px 16px !important;
-  font-size: 12px !important;
-  height: 50px !important;
-}
-
-::ng-deep .reclamos-table .datatable-pager {
-  margin: 0 !important;
-}
-
-::ng-deep .reclamos-table .datatable-pager .pager .pages .page {
-  padding: 4px 8px !important;
-  margin: 0 1px !important;
-  border-radius: 4px !important;
-  font-size: 11px !important;
-}
-
-::ng-deep .reclamos-table .datatable-pager .pager .pages .page.active {
-  background-color: #0d6efd !important;
-  color: white !important;
-}
-
-// Eliminar espacios innecesarios
-::ng-deep .reclamos-table .datatable-body {
-  width: 100% !important;
-}
-
-::ng-deep .reclamos-table .datatable-row-wrapper {
-  width: 100% !important;
-}
-
-// Stats cards y otros estilos del dashboard
-.stats-card {
-  transition: all 0.3s ease;
-  
-  &:hover {
-    transform: translateY(-2px);
-  }
-}
-
-.hover-shadow {
-  transition: box-shadow 0.3s ease;
-  
-  &:hover {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-  }
-}
-
-// Modal styles
-.detalle-modal {
-  .modal-content {
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
-  }
-  
-  .modal-header {
-    background: linear-gradient(135deg, #0d6efd 0%, rgba(13, 110, 253, 0.8) 100%);
-    color: white;
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
-    border-bottom: none;
-  }
-  
-  .info-section {
-    background: rgba(248, 249, 250, 0.5);
-    border-radius: 8px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    
-    .info-label {
+    .btn-outline-danger {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-color: $rojo;
+      color: $rojo;
+      border-radius: 8px;
+      padding: 9px 18px;
       font-weight: 600;
-      color: #495057;
-      font-size: 0.875rem;
+      transition: none;
+
+      &:hover { background: $rojo; color: #fff; }
+    }
+  }
+
+  // ── Tarjetas de resumen ───────────────────────────────────────────
+  &__resumen {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  // ── Filtros ───────────────────────────────────────────────────────
+  &__filtros {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+    background: #fff;
+    border: 1px solid $borde;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  // ── Tabla ─────────────────────────────────────────────────────────
+  &__tabla {
+    background: #fff;
+    border: 1px solid $borde;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  &__paginacion {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 14px 18px;
+    border-top: 1px solid $borde;
+    font-size: 0.85rem;
+  }
+}
+
+.tarjeta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid $borde;
+  border-radius: 12px;
+  padding: 16px;
+
+  &--alerta { border-color: rgba($rojo, 0.35); background: $rojo-suave; }
+
+  &__icono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    font-size: 22px;
+    flex-shrink: 0;
+
+    &--total { background: rgba(107, 114, 128, 0.12); color: #4b5563; }
+    &--pendiente { background: #fef3c7; color: #b45309; }
+    &--proceso { background: #dbeafe; color: #1d4ed8; }
+    &--resuelto { background: #dcfce7; color: #15803d; }
+    &--vencido { background: rgba($rojo, 0.14); color: $rojo; }
+  }
+
+  &__valor {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: $texto;
+    line-height: 1.1;
+  }
+
+  &__label {
+    font-size: 0.8rem;
+    color: $tenue;
+  }
+}
+
+// ── Filtros ─────────────────────────────────────────────────────────
+.filtro {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1 1 150px;
+
+  label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #374151;
+  }
+
+  .form-control,
+  .form-select {
+    height: 38px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 0.88rem;
+
+    &:focus {
+      border-color: rgba($rojo, 0.55);
+      box-shadow: 0 0 0 3px rgba($rojo, 0.12);
+    }
+  }
+
+  &--buscar { flex: 2 1 280px; }
+
+  &__input-icono {
+    position: relative;
+
+    i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9ca3af;
+      font-size: 16px;
+    }
+
+    .form-control { padding-left: 36px; }
+  }
+
+  &--acciones {
+    flex: 0 0 auto;
+    flex-direction: row;
+    gap: 8px;
+  }
+}
+
+// Botones de los filtros: color fijo, sin animación.
+.btn-buscar,
+.btn-limpiar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  border-radius: 8px;
+  padding: 0 16px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition: none;
+}
+
+.btn-buscar {
+  background: $rojo;
+  border: 1px solid $rojo;
+  color: #fff;
+
+  &:hover { background: $rojo-oscuro; border-color: $rojo-oscuro; color: #fff; }
+}
+
+.btn-limpiar {
+  background: #fff;
+  border: 1px solid #d1d5db;
+  color: #4b5563;
+
+  &:hover { background: #f3f4f6; color: #4b5563; }
+  &:disabled { opacity: 0.5; }
+}
+
+// ── Tabla ───────────────────────────────────────────────────────────
+.table {
+  margin: 0;
+
+  thead th {
+    background: #f9fafb;
+    border-bottom: 1px solid $borde;
+    padding: 12px 16px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: $tenue;
+    white-space: nowrap;
+  }
+
+  tbody td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+  }
+
+  tbody tr:hover { background: #fafafa; }
+}
+
+// Fila fuera de plazo: una franja roja al costado, no todo pintado.
+.fila--vencida td:first-child {
+  box-shadow: inset 3px 0 0 $rojo;
+}
+
+.celda-codigo {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: $rojo;
+  white-space: nowrap;
+}
+
+.celda-nombre {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: $texto;
+}
+
+.celda-sub {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: $tenue;
+
+  &--tenue { color: #9ca3af; }
+}
+
+.celda-monto {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: $texto;
+  white-space: nowrap;
+}
+
+.chip {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 3px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba($rojo, 0.1);
+  color: $rojo;
+
+  &--queja {
+    background: rgba(109, 40, 217, 0.1);
+    color: #6d28d9;
+  }
+}
+
+.estado {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &--pendiente { background: #fef3c7; color: #92400e; }
+  &--en_proceso { background: #dbeafe; color: #1e40af; }
+  &--resuelto { background: #dcfce7; color: #166534; }
+  &--cerrado { background: #e5e7eb; color: #4b5563; }
+}
+
+.plazo {
+  display: inline-block;
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: #f3f4f6;
+  color: #4b5563;
+  white-space: nowrap;
+
+  &--ok { background: #dcfce7; color: #166534; }
+  &--urgente { background: #fef3c7; color: #92400e; }
+  &--vencido { background: rgba($rojo, 0.12); color: $rojo; }
+}
+
+.acciones {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.btn-accion {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid $borde;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  transition: none;
+
+  &--ver {
+    color: #1d4ed8;
+    &:hover { background: #dbeafe; }
+  }
+
+  &--eliminar {
+    color: $rojo;
+    &:hover { background: $rojo-suave; }
+  }
+}
+
+.btn-pagina {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid $borde;
+  background: #fff;
+  color: #4b5563;
+  cursor: pointer;
+
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+
+.paginas {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pagina-actual {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: $texto;
+}
+
+// ── Estados vacío / cargando ────────────────────────────────────────
+.cargando,
+.vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 56px 24px;
+  color: $tenue;
+
+  i { font-size: 44px; color: #d1d5db; }
+  p { margin: 0; font-size: 0.9rem; }
+
+  &--compacto { padding: 36px 20px; }
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  Modal de detalle
+// ════════════════════════════════════════════════════════════════════
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1050;
+}
+
+// Alto fijo: el modal no cambia de tamaño al pasar de pestaña.
+.modal-caja {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 1000px;
+  height: 80vh;
+  max-height: 720px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.modal-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 28px;
+  background: $rojo;
+  color: #fff;
+  flex-shrink: 0;
+
+  &__titulo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+
+    h2 {
+      margin: 0;
+      font-size: 1.35rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    p {
+      margin: 2px 0 0;
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.82);
+    }
+  }
+
+  &__icono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.18);
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  &__cerrar {
+    background: none;
+    border: none;
+    color: #fff;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+
+    &:hover { background: rgba(255, 255, 255, 0.2); }
+  }
+}
+
+.modal-estado {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px 28px;
+  background: #f9fafb;
+  border-bottom: 1px solid $borde;
+  flex-shrink: 0;
+
+  &__plazo {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.83rem;
+    color: $tenue;
+
+    &--vencido { color: $rojo; font-weight: 600; }
+  }
+
+  &__cambiar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+
+    label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #374151;
+      white-space: nowrap;
+    }
+
+    .form-select {
+      width: auto;
+      min-width: 150px;
+      border-radius: 8px;
     }
   }
 }
 
-// Responsive
-@media (max-width: 768px) {
-  ::ng-deep .reclamos-table .datatable-header-cell,
-  ::ng-deep .reclamos-table .datatable-body-cell {
-    font-size: 11px !important;
-    padding: 6px 4px !important;
-  }
-  
-  .reclamo-numero, .cliente-nombre {
-    font-size: 12px !important;
-  }
-  
-  .action-btn {
-    width: 20px !important;
-    height: 20px !important;
+.modal-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 0 20px;
+  border-bottom: 1px solid $borde;
+  background: #fff;
+  flex-shrink: 0;
+  overflow-x: auto;
+
+  &__item {
+    position: relative;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 12px 16px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: $tenue;
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+
+    i { font-size: 17px; }
+
+    &:hover { color: $texto; }
+
+    &--activo {
+      color: $rojo;
+      border-bottom-color: $rojo;
+    }
   }
 
-  .action-buttons {
-    gap: 2px !important;
-  }
-
-  .tipo-badge, .estado-badge, .dias-badge {
-    font-size: 8px !important;
-    padding: 2px 4px !important;
+  &__punto {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: $rojo;
   }
 }
 
-// Animaciones
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+.modal-cuerpo {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 22px 28px;
 }
 
-.fade-in {
-  animation: fadeIn 0.5s ease forwards;
+.modal-pie {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 14px 28px;
+  border-top: 1px solid $borde;
+  background: #f9fafb;
+  flex-shrink: 0;
 }
 
-// Utilidades personalizadas
-.text-truncate-3 {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
+// ── Fichas del detalle ──────────────────────────────────────────────
+.ficha {
+  border: 1px solid $borde;
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 16px;
+
+  &:last-child { margin-bottom: 0; }
+
+  &__titulo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: $texto;
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid #f3f4f6;
+
+    i { color: $rojo; font-size: 18px; }
+  }
+
+  &__fecha {
+    margin-left: auto;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: $tenue;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 14px 20px;
+  }
+
+  &__acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 16px;
+  }
 }
 
-.border-start-4 {
-  border-left-width: 4px !important;
+.dato {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+
+  span {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: $tenue;
+  }
+
+  strong {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: $texto;
+    word-break: break-word;
+
+    &.tenue { color: #9ca3af; font-weight: 500; }
+    &.monto { color: $rojo; }
+  }
+
+  &--ancho { grid-column: 1 / -1; }
+}
+
+.texto-largo {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: #374151;
+  white-space: pre-line;
+}
+
+.etiqueta {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 5px;
+
+  .req { color: $rojo; }
+}
+
+.ayuda {
+  margin: 6px 0 0;
+  font-size: 0.78rem;
+  color: $tenue;
+
+  &--error { color: $rojo; font-weight: 600; }
+}
+
+// ── Adjuntos ────────────────────────────────────────────────────────
+.adjuntos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.adjunto {
+  border: 1px solid $borde;
+  border-radius: 12px;
+  padding: 14px;
+
+  &__titulo {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: $texto;
+    margin-bottom: 10px;
+
+    i { color: $rojo; }
+  }
+
+  img,
+  video {
+    width: 100%;
+    border-radius: 8px;
+    display: block;
+    background: #f3f4f6;
+  }
+
+  img { max-height: 240px; object-fit: contain; }
+
+  &__link {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 0.78rem;
+    color: $rojo;
+  }
+
+  &__archivo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px dashed #d1d5db;
+    border-radius: 8px;
+    padding: 14px 16px;
+    width: 100%;
+    justify-content: center;
+    color: #4b5563;
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 600;
+
+    i { font-size: 20px; color: $rojo; }
+
+    &:hover { background: $rojo-suave; border-color: $rojo; color: $rojo; }
+  }
+}
+
+// ── Botones del modal ───────────────────────────────────────────────
+.btn-responder,
+.btn-cancelar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: none;
+}
+
+.btn-responder {
+  background: $rojo;
+  border: 1px solid $rojo;
+  color: #fff;
+
+  &:hover:not(:disabled) { background: $rojo-oscuro; border-color: $rojo-oscuro; color: #fff; }
+  &:disabled { background: #d1d5db; border-color: #d1d5db; color: #fff; }
+}
+
+.btn-cancelar {
+  background: #6b7280;
+  border: 1px solid #6b7280;
+  color: #fff;
+
+  &:hover,
+  &:focus,
+  &:active {
+    background: #6b7280;
+    border-color: #6b7280;
+    color: #fff;
+  }
+}
+
+// ── Móvil ───────────────────────────────────────────────────────────
+@media (max-width: 767px) {
+  .reclamos { padding: 14px; }
+
+  .modal-overlay { padding: 0; }
+
+  .modal-caja {
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+
+  .modal-cabecera,
+  .modal-estado,
+  .modal-cuerpo,
+  .modal-pie { padding-left: 16px; padding-right: 16px; }
+
+  .modal-estado__cambiar { margin-left: 0; width: 100%; }
 }

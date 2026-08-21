@@ -185,26 +185,104 @@
      no se editan, porque son lo que escribió el cliente. -->
 <div class="modal-fondo" *ngIf="seleccionado" (click)="cerrarModal()">
   <div class="modal-caja" (click)="$event.stopPropagation()">
+
+    <!-- Cabecera -->
     <div class="modal-caja__head">
-      <div>
-        <h6 class="mb-0">{{ seleccionado.asunto }}</h6>
-        <span class="text-xs text-gray-500">{{ seleccionado.created_at | date: 'dd/MM/yyyy HH:mm' }}</span>
+      <div class="modal-caja__titulo">
+        <span class="modal-caja__avatar">{{ iniciales(seleccionado.nombre) }}</span>
+        <div>
+          <h2>{{ seleccionado.nombre }}</h2>
+          <p>Mensaje de contacto · {{ seleccionado.created_at | date: 'dd/MM/yyyy HH:mm' }}</p>
+        </div>
       </div>
       <button type="button" class="btn-cerrar" (click)="cerrarModal()"><i class="ph ph-x"></i></button>
     </div>
 
-    <div class="modal-caja__cuerpo">
-      <div class="dato"><span>Nombre</span><strong>{{ seleccionado.nombre }}</strong></div>
-      <div class="dato"><span>Correo</span><strong>{{ seleccionado.email }}</strong></div>
-      <div class="dato"><span>Teléfono</span><strong>{{ seleccionado.telefono || '—' }}</strong></div>
-      <div class="mensaje-texto">{{ seleccionado.mensaje }}</div>
+    <!-- Barra de estado -->
+    <div class="modal-caja__estado">
+      <span class="chip-estado" [class.chip-estado--nuevo]="!seleccionado.leido">
+        <i class="ph" [class.ph-envelope-open]="seleccionado.leido" [class.ph-envelope]="!seleccionado.leido"></i>
+        {{ seleccionado.leido ? 'Leído' : 'Sin leer' }}
+      </span>
+
+      <button type="button" class="btn-marcar" *ngIf="seleccionado.leido"
+        (click)="marcarLeido(seleccionado, false)">
+        <i class="ph ph-arrow-counter-clockwise"></i>
+        Marcar como no leído
+      </button>
     </div>
 
+    <div class="modal-caja__cuerpo">
+
+      <!-- Datos de contacto -->
+      <div class="ficha">
+        <div class="ficha__titulo"><i class="ph ph-address-book"></i> Datos de contacto</div>
+        <div class="ficha__grid">
+          <div class="dato">
+            <span>Nombre</span>
+            <strong>{{ seleccionado.nombre }}</strong>
+          </div>
+          <div class="dato">
+            <span>Correo</span>
+            <strong><a [href]="'mailto:' + seleccionado.email">{{ seleccionado.email }}</a></strong>
+          </div>
+          <div class="dato">
+            <span>Teléfono</span>
+            <strong *ngIf="seleccionado.telefono; else sinTelefono">
+              <a [href]="'tel:' + seleccionado.telefono">{{ seleccionado.telefono }}</a>
+              <a class="enlace-wsp" *ngIf="enlaceWhatsapp(seleccionado)"
+                [href]="enlaceWhatsapp(seleccionado)" target="_blank" rel="noopener">
+                <i class="ph ph-whatsapp-logo"></i> WhatsApp
+              </a>
+            </strong>
+            <ng-template #sinTelefono><strong class="tenue">No lo dejó</strong></ng-template>
+          </div>
+          <div class="dato">
+            <span>Asunto</span>
+            <strong>{{ seleccionado.asunto }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mensaje -->
+      <div class="ficha">
+        <div class="ficha__titulo"><i class="ph ph-chat-text"></i> Mensaje</div>
+        <p class="mensaje-texto">{{ seleccionado.mensaje }}</p>
+      </div>
+
+      <!-- Trazabilidad -->
+      <div class="ficha">
+        <div class="ficha__titulo"><i class="ph ph-gear"></i> Registro del sistema</div>
+        <div class="ficha__grid">
+          <div class="dato">
+            <span>Canal</span>
+            <strong>Formulario "Contáctanos"</strong>
+          </div>
+          <div class="dato">
+            <span>Dirección IP</span>
+            <strong>{{ seleccionado.ip || '—' }}</strong>
+          </div>
+          <div class="dato">
+            <span>Recibido</span>
+            <strong>{{ seleccionado.created_at | date: 'dd/MM/yyyy HH:mm' }}</strong>
+          </div>
+          <div class="dato">
+            <span>Última actualización</span>
+            <strong>{{ seleccionado.updated_at | date: 'dd/MM/yyyy HH:mm' }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pie -->
     <div class="modal-caja__pie">
-      <button type="button" class="btn btn-outline-danger me-auto" (click)="eliminar(seleccionado)">
+      <button type="button" class="btn btn-eliminar me-auto" (click)="eliminar(seleccionado)">
         <i class="ph ph-trash"></i> Eliminar
       </button>
-      <button type="button" class="btn btn-primary" (click)="cerrarModal()">Cerrar</button>
+      <a class="btn btn-responder" [href]="enlaceCorreo(seleccionado)">
+        <i class="ph ph-paper-plane-tilt"></i> Responder por correo
+      </a>
+      <button type="button" class="btn btn-cerrar-pie" (click)="cerrarModal()">Cerrar</button>
     </div>
   </div>
 </div>

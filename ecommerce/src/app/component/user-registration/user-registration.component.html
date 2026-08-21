@@ -560,9 +560,18 @@
             </div>
 
             <p class="text-muted small">
-              Opcional. Si vinculas la cuenta con un usuario de Novik, a este usuario solo
-              le aparecerán las cotizaciones y pedidos de los clientes de su cartera.
+              Si vinculas la cuenta con un usuario de Novik, a este usuario solo le
+              aparecerán las cotizaciones y pedidos de los clientes de su cartera.
             </p>
+
+            <!-- El rol Vendedor no se puede guardar sin vinculación -->
+            <div class="aviso-obligatorio mb-3" *ngIf="faltaVinculacionDeVendedor">
+              <i class="fas fa-exclamation-triangle"></i>
+              <div>
+                El rol <strong>Vendedor</strong> exige vinculación: sin ella no vería
+                ninguna cotización.
+              </div>
+            </div>
 
             <!-- Usuario elegido -->
             <div class="vinculo-erp" *ngIf="usuarioErpSeleccionado">

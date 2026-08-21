@@ -3,18 +3,16 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { ReclamosService, Reclamo } from '../../../services/reclamos.service';
+import { environment } from '../../../../environments/environment';
 import Swal from 'sweetalert2';
-import {
-  NgxDatatableModule,
-  ColumnMode,
-  SelectionType,
-  SortType,
-} from '@swimlane/ngx-datatable';
+
+/** Pestañas del modal de detalle del reclamo. */
+type TabReclamo = 'consumidor' | 'compra' | 'detalle' | 'adjuntos' | 'respuesta';
 
 @Component({
   selector: 'app-dashboard-reclamos',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, NgxDatatableModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './reclamos.component.html',
   styleUrl: './reclamos.component.scss'
 })
@@ -58,21 +56,6 @@ export class ReclamosComponent implements OnInit, OnDestroy {
     { value: 'resuelto', label: 'Resuelto', class: 'bg-success-50 text-success-600' },
     { value: 'cerrado', label: 'Cerrado', class: 'bg-secondary-50 text-secondary-600' }
   ];
-
-  // Configuración para NGX-Datatable
-  columns = [
-    { name: 'Reclamo', prop: 'numero_reclamo', flexGrow: 1.5 },
-    { name: 'Cliente', prop: 'consumidor_nombre', flexGrow: 2 },
-    { name: 'Tipo', prop: 'tipo_solicitud', flexGrow: 1 },
-    { name: 'Estado', prop: 'estado', flexGrow: 1 },
-    { name: 'Fecha', prop: 'created_at', flexGrow: 1.2 },
-    { name: 'Días Rest.', prop: 'dias_restantes', flexGrow: 1 },
-    { name: 'Acciones', prop: 'acciones', flexGrow: 1.5 }
-  ];
-
-  ColumnMode = ColumnMode;
-  SelectionType = SelectionType;
-  SortType = SortType;
 
   constructor(private reclamosService: ReclamosService) {}
 
@@ -166,13 +149,51 @@ export class ReclamosComponent implements OnInit, OnDestroy {
     }
   }
 
+  // ── Modal de detalle ──────────────────────────────────────────────────
+
+  /** Pestañas del modal, para no apilar todo en un scroll largo. */
+  readonly pestanas: { id: TabReclamo; label: string; icono: string }[] = [
+    { id: 'consumidor', label: 'Consumidor', icono: 'ph-user' },
+    { id: 'compra', label: 'Compra', icono: 'ph-receipt' },
+    { id: 'detalle', label: 'Detalle', icono: 'ph-chat-text' },
+    { id: 'adjuntos', label: 'Adjuntos', icono: 'ph-paperclip' },
+    { id: 'respuesta', label: 'Respuesta', icono: 'ph-check-square' },
+  ];
+
+  tab: TabReclamo = 'consumidor';
+  mostrarDetalle = false;
+
   verDetalle(reclamo: Reclamo): void {
     this.reclamoSeleccionado = reclamo;
-    const modal = document.getElementById('detalleReclamoModal');
-    if (modal) {
-      const bootstrapModal = new (window as any).bootstrap.Modal(modal);
-      bootstrapModal.show();
-    }
+    this.tab = 'consumidor';
+    this.mostrandoFormularioRespuesta = false;
+    this.mostrarDetalle = true;
+  }
+
+  cerrarDetalle(): void {
+    this.mostrarDetalle = false;
+    this.reclamoSeleccionado = null;
+    this.mostrandoFormularioRespuesta = false;
+  }
+
+  /** URL absoluta de un adjunto guardado como "storage/reclamos/xxx.jpg". */
+  urlAdjunto(ruta?: string | null): string {
+    if (!ruta) return '';
+    if (/^https?:\/\//i.test(ruta)) return ruta;
+    return `${environment.baseUrl}/${ruta.replace(/^\/+/, '')}`;
+  }
+
+  get tieneAdjuntos(): boolean {
+    const r = this.reclamoSeleccionado;
+    return !!(r?.foto || r?.factura || r?.video);
+  }
+
+  /** Lo que el consumidor pidió: la opción del desplegable o su texto libre. */
+  get solucionPedida(): string {
+    const r = this.reclamoSeleccionado;
+    if (!r) return '';
+    if (r.solucion_esperada && r.solucion_esperada !== 'Otro') return r.solucion_esperada;
+    return r.otra_solucion || r.solucion_esperada || '';
   }
 
   cambiarEstado(reclamo: Reclamo, nuevoEstado: string): void {

@@ -471,3 +471,21 @@ $rojo-oscuro: #b01a20;
     box-shadow: none !important;
   }
 }
+
+// Aviso de vinculación obligatoria para el rol Vendedor.
+.aviso-obligatorio {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #78350f;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.88rem;
+
+  i {
+    color: #d97706;
+    margin-top: 2px;
+  }
+}

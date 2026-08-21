@@ -143,6 +143,21 @@ export class MensajesContactoComponent implements OnInit, OnDestroy {
     });
   }
 
+  /** `mailto:` con el asunto ya citado, para responder desde el correo. */
+  enlaceCorreo(mensaje: MensajeContacto): string {
+    const asunto = encodeURIComponent(`Re: ${mensaje.asunto}`);
+    return `mailto:${mensaje.email}?subject=${asunto}`;
+  }
+
+  /** WhatsApp del remitente; los números peruanos van con el +51. */
+  enlaceWhatsapp(mensaje: MensajeContacto): string | null {
+    const digitos = (mensaje.telefono || '').replace(/\D/g, '');
+    if (!digitos) return null;
+
+    const numero = digitos.length === 9 ? `51${digitos}` : digitos;
+    return `https://wa.me/${numero}`;
+  }
+
   /** Iniciales para el círculo de la columna Cliente (como en Pedidos). */
   iniciales(nombre: string): string {
     return (nombre || '?')

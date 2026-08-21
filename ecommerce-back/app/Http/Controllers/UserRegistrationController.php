@@ -75,6 +75,25 @@ class UserRegistrationController extends Controller
             ], 422);
         }
 
+        // Reglas de la propuesta de roles.
+        if (! \App\Support\ReglasDeRoles::puedeAsignarRol($request->user(), $request->role)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Solo un CEO puede crear usuarios con el rol CEO.',
+            ], 403);
+        }
+
+        // El Vendedor solo ve las cotizaciones de su cartera, y esa cartera
+        // sale de la vinculación: sin ella el usuario no serviría de nada.
+        if (\App\Support\ReglasDeRoles::esNombreDeVendedor($request->role)
+            && ! $request->filled('codigo_erp')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Un Vendedor debe quedar vinculado a un usuario de Novik. '
+                    . 'Elígelo en la pestaña Avanzado.',
+            ], 422);
+        }
+
         try {
             DB::beginTransaction();
 

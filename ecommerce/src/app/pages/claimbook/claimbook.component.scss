@@ -520,3 +520,25 @@ $texto-suave: #6b7280;
     }
   }
 }
+
+/* Texto de ayuda del número de documento (formato exigido / error). */
+.libro__ayuda {
+  margin: 5px 0 0;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.libro__ayuda--error {
+  color: #d32027;
+  font-weight: 600;
+}
+
+.libro__input--error {
+  border-color: #d32027;
+
+  &:focus {
+    border-color: #d32027;
+    box-shadow: 0 0 0 3px rgba(211, 32, 39, 0.15);
+  }
+}

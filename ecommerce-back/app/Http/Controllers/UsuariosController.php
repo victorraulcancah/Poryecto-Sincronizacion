@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Support\ReglasDeRoles;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -38,6 +39,31 @@ class UsuariosController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            // Reglas de la propuesta: al CEO no lo toca nadie y solo un CEO
+            // puede dejar a alguien como CEO.
+            $objetivo = User::with('roles')->findOrFail($id);
+            if ($motivo = ReglasDeRoles::motivoParaBloquearCambio($request->user(), $objetivo)) {
+                return response()->json(['error' => $motivo], 403);
+            }
+
+            $rolPedido = $request->filled('role_id')
+                ? optional(\Spatie\Permission\Models\Role::find($request->input('role_id')))->name
+                : null;
+
+            if (! ReglasDeRoles::puedeAsignarRol($request->user(), $rolPedido)) {
+                return response()->json([
+                    'error' => 'Solo un CEO puede asignar el rol CEO.',
+                ], 403);
+            }
+
+            // Un Vendedor no puede quedar sin vinculación: de ella depende qué
+            // cotizaciones ve.
+            if (ReglasDeRoles::esNombreDeVendedor($rolPedido) && ! $objetivo->codigo_erp) {
+                return response()->json([
+                    'error' => 'Un Vendedor debe estar vinculado a un usuario de Novik. '
+                        . 'Vincúlalo en la pestaña Avanzado antes de asignarle este rol.',
+                ], 422);
+            }
 
             \Log::info('=== DEBUG UPDATE USUARIO ===');
             \Log::info('Usuario ID: ' . $id);
@@ -283,11 +309,15 @@ class UsuariosController extends Controller
         }
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         try {
-            $usuario = User::findOrFail($id);
-            
+            $usuario = User::with('roles')->findOrFail($id);
+
+            if ($motivo = ReglasDeRoles::motivoParaBloquearCambio($request->user(), $usuario)) {
+                return response()->json(['error' => $motivo], 403);
+            }
+
             // Eliminar avatar si existe
            if ($usuario->profile && $usuario->profile->avatar_url) {
             $oldAvatarPath = str_replace('/storage/', '', $usuario->profile->avatar_url); // ← MODIFICADO
@@ -314,7 +344,11 @@ class UsuariosController extends Controller
     public function cambiarEstado(Request $request, $id)
     {
         try {
-            $usuario = User::findOrFail($id);
+            $usuario = User::with('roles')->findOrFail($id);
+
+            if ($motivo = ReglasDeRoles::motivoParaBloquearCambio($request->user(), $usuario)) {
+                return response()->json(['error' => $motivo], 403);
+            }
 
             $request->validate([
                 'is_enabled' => 'required|boolean'

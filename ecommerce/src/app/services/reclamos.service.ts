@@ -36,11 +36,46 @@ export interface Reclamo {
   // Respuesta del proveedor
   respuesta_proveedor?: string;
   fecha_respuesta?: string;
-  
+
+  // Tipo de documento del consumidor (DNI, RUC, carné, pasaporte)
+  tipo_documento?: string;
+
+  // Información de la compra (bloque 2 del libro)
+  tipo_comprobante?: string;
+  numero_comprobante?: string;
+  fecha_compra?: string;
+  codigo_pedido?: string;
+  codigo_producto?: string;
+  nombre_producto?: string;
+  marca?: string;
+  modelo?: string;
+
+  // Qué solución espera
+  solucion_esperada?: string;
+  otra_solucion?: string;
+
+  // Adjuntos: rutas relativas del tipo "storage/reclamos/xxx.jpg"
+  foto?: string;
+  factura?: string;
+  video?: string;
+
+  // Trazabilidad que llena el sistema
+  canal?: string;
+  ip?: string;
+  responsable_id?: number;
+
+  // Cliente del e-commerce, cuando el reclamo lo hizo alguien con cuenta
+  user_cliente?: {
+    id: number;
+    nombres?: string;
+    apellidos?: string;
+    email?: string;
+  } | null;
+
   // Estados del reclamo
   estado?: 'pendiente' | 'en_proceso' | 'resuelto' | 'cerrado';
   fecha_limite_respuesta?: string;
-  
+
   // Auditoría
   created_at?: string;
   updated_at?: string;

@@ -36,6 +36,18 @@ class PedidosController extends Controller
                 'tracking.usuario:id,name',
             ]);
 
+            // Un Vendedor solo ve los pedidos de los clientes de su cartera en
+            // Novik; el resto de roles ve todos.
+            $usuario = $request->user();
+            if ($usuario instanceof \App\Models\User && \App\Support\CarteraDelVendedor::aplica($usuario)) {
+                $codigos = \App\Support\CarteraDelVendedor::codigosDeCliente($usuario);
+
+                $query->whereHas('userCliente', function ($q) use ($codigos) {
+                    // Sin cartera no ve ninguno, no todos.
+                    $q->whereIn('codigo_erp', $codigos ?: ['__sin_cartera__']);
+                });
+            }
+
             // Por defecto la pantalla es una bandeja de trabajo: solo lo que
             // espera una acción, más lo que se atendió hoy (a medianoche sale).
             // Con ?historial=1 se ve todo, sin ocultar nada.

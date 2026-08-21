@@ -73,6 +73,30 @@ class ReclamosController extends Controller
     /**
      * Crear un nuevo reclamo (público)
      */
+    /**
+     * Formato del número de documento según el tipo, igual que en el
+     * formulario del libro de reclamaciones.
+     */
+    private function reglaDeDocumento(?string $tipo): string
+    {
+        return match (trim((string) $tipo)) {
+            'RUC' => 'regex:/^(10|15|17|20)\d{9}$/',
+            'Carné de extranjería' => 'regex:/^[A-Za-z0-9]{9,12}$/',
+            'Pasaporte' => 'regex:/^[A-Za-z0-9]{6,12}$/',
+            default => 'regex:/^\d{8}$/',
+        };
+    }
+
+    private function mensajeDeDocumento(?string $tipo): string
+    {
+        return match (trim((string) $tipo)) {
+            'RUC' => 'El RUC debe tener 11 dígitos y empezar con 10, 15, 17 o 20',
+            'Carné de extranjería' => 'El carné de extranjería debe tener entre 9 y 12 caracteres',
+            'Pasaporte' => 'El pasaporte debe tener entre 6 y 12 caracteres',
+            default => 'El DNI debe tener 8 dígitos',
+        };
+    }
+
     public function crear(Request $request)
     {
         try {
@@ -80,7 +104,10 @@ class ReclamosController extends Controller
             $rules = [
                 // Datos del consumidor
                 'consumidor_nombre' => 'required|string|min:2|max:255',
-                'consumidor_dni' => 'required|string|size:8|regex:/^\d{8}$/',
+                // El formato depende del tipo de documento: la regla fija de 8
+                // dígitos rechazaba los reclamos hechos con RUC, carné o
+                // pasaporte, que el formulario sí permite elegir.
+                'consumidor_dni' => ['required', 'string', $this->reglaDeDocumento($request->input('tipo_documento'))],
                 'consumidor_direccion' => 'required|string|min:10',
                 'consumidor_telefono' => 'required|string|size:9|regex:/^\d{9}$/',
                 'consumidor_email' => 'required|email|max:255',
@@ -128,9 +155,8 @@ class ReclamosController extends Controller
 
             $validator = Validator::make($request->all(), $rules, [
                 'consumidor_nombre.required' => 'El nombre del consumidor es requerido',
-                'consumidor_dni.required' => 'El DNI del consumidor es requerido',
-                'consumidor_dni.size' => 'El DNI debe tener exactamente 8 dígitos',
-                'consumidor_dni.regex' => 'El DNI solo debe contener números',
+                'consumidor_dni.required' => 'El número de documento es requerido',
+                'consumidor_dni.regex' => $this->mensajeDeDocumento($request->input('tipo_documento')),
                 'consumidor_telefono.size' => 'El teléfono debe tener exactamente 9 dígitos',
                 'consumidor_telefono.regex' => 'El teléfono solo debe contener números',
                 'consumidor_email.email' => 'El email no tiene un formato válido',

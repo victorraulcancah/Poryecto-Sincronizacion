@@ -6,8 +6,8 @@ import { UsuariosService, UsuarioErp } from '../../../services/usuarios.service'
 import Swal from 'sweetalert2'; // ← AGREGAR ESTA LÍNEA
 import { environment } from '../../../../environments/environment';
 
-/** Pestañas del modal. "Avanzado" es la vinculación con Novik. */
-type TabUsuario = 'informacion' | 'avanzado';
+/** Pestañas del modal, las mismas que en Crear Usuario. */
+type TabUsuario = 'cuenta' | 'perfil' | 'direcciones' | 'avanzado';
 
 /** Pasos del asistente de vinculación, igual que en el modal de clientes. */
 type PasoVinculacion = 'busqueda' | 'confirmar' | 'exito';
@@ -40,8 +40,16 @@ export class UsuarioModalComponent {
   // Agregar después de las propiedades existentes:
   addressUbigeoData: { [key: number]: { provinces: any[], districts: any[] } } = {};
 
+  tab: TabUsuario = 'cuenta';
+
+  readonly pestanas: { id: TabUsuario; label: string; icono: string }[] = [
+    { id: 'cuenta', label: 'Cuenta', icono: 'ph-user' },
+    { id: 'perfil', label: 'Perfil', icono: 'ph-identification-card' },
+    { id: 'direcciones', label: 'Direcciones', icono: 'ph-map-pin' },
+    { id: 'avanzado', label: 'Avanzado', icono: 'ph-link' },
+  ];
+
   // ── Pestaña Avanzado: vinculación con Novik ───────────────────────────
-  tab: TabUsuario = 'informacion';
 
   usuarioErpVinculado: UsuarioErp | null = null;
   cargandoVinculado = false;
@@ -530,7 +538,7 @@ onSubmit() {
     this.selectedFile = null;
     this.previewUrl = null;
     this.removeAvatar = false;
-    this.tab = 'informacion';
+    this.tab = 'cuenta';
     this.cerrarBusqueda();
     this.cancelarEliminarVinculacion();
   }

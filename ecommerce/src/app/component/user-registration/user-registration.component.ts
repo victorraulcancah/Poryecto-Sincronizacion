@@ -324,9 +324,21 @@ ngOnInit(): void {
   console.log('Form valid:', this.userForm.valid);
   console.log('Form errors:', this.getFormErrors());
   
+  // Un Vendedor sin vinculación no vería ninguna cotización: se corta acá.
+  if (this.faltaVinculacionDeVendedor) {
+    this.tab = 'avanzado';
+    Swal.fire({
+      icon: 'warning',
+      title: 'Falta la vinculación',
+      text: 'Un Vendedor debe quedar vinculado a un usuario de Novik. Elígelo en la pestaña Avanzado.',
+      confirmButtonColor: '#d32027'
+    });
+    return;
+  }
+
   if (this.userForm.valid) {
     const formData = this.userForm.value;
-    
+
     console.log('Datos del formulario:', formData);
     console.log('Archivo seleccionado:', this.selectedFile);
     
@@ -507,12 +519,34 @@ ngOnInit(): void {
   private loadRoles(): void {
     this.registrationService.getRoles().subscribe({
       next: (roles: Role[]) => {
-        this.roles = roles;
+        // Solo un CEO puede crear otro CEO: al resto ni se le ofrece el rol.
+        this.roles = this.usuarioEnSesionEsCeo()
+          ? roles
+          : roles.filter(r => (r.name || '').toLowerCase() !== 'ceo');
       },
       error: (error: any) => {
         console.error('Error cargando roles:', error);
       }
     });
+  }
+
+  private usuarioEnSesionEsCeo(): boolean {
+    if (typeof window === 'undefined' || !localStorage) return false;
+
+    try {
+      const guardado = localStorage.getItem('current_user');
+      const usuario = guardado ? JSON.parse(guardado) : null;
+      const roles: string[] = usuario?.roles ?? [];
+      return roles.some(r => (r || '').toLowerCase() === 'ceo');
+    } catch {
+      return false;
+    }
+  }
+
+  /** El Vendedor no se puede guardar sin vinculación con Novik. */
+  get faltaVinculacionDeVendedor(): boolean {
+    const rol = (this.userForm?.get('role')?.value || '').toString().toLowerCase();
+    return rol === 'vendedor' && !this.usuarioErpSeleccionado;
   }
 
   private loadDocumentTypes(): void {

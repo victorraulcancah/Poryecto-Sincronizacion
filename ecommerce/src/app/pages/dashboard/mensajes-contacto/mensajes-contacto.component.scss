@@ -2,6 +2,13 @@
    los estilos globales `assets/sass/components/_data-table.scss` (los mismos
    que usa "Gestión de Pedidos"). Aquí solo queda el modal de detalle, que no
    existe como componente compartido. */
+
+$rojo: #d32027;
+$rojo-oscuro: #b01a20;
+$borde: #e5e7eb;
+$texto: #111827;
+$tenue: #6b7280;
+
 .modal-fondo {
   position: fixed;
   inset: 0;
@@ -9,31 +16,86 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: 20px;
   background: rgba(15, 23, 42, 0.45);
 }
 
+/* Alto fijo, igual que los modales de usuario, para que no baile según el
+   largo del mensaje. */
 .modal-caja {
   width: 100%;
-  max-width: 620px;
-  max-height: 90vh;
+  max-width: 780px;
+  height: 80vh;
+  max-height: 700px;
   display: flex;
   flex-direction: column;
   background: #fff;
   border-radius: 16px;
   overflow: hidden;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 
+  /* ── Cabecera roja ─────────────────────────────────────────────── */
   &__head {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
+    gap: 16px;
+    padding: 20px 28px;
+    background: $rojo;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  &__titulo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+
+    h2 {
+      margin: 0;
+      font-size: 1.3rem;
+      font-weight: 700;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+
+    p {
+      margin: 2px 0 0;
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.82);
+    }
+  }
+
+  &__avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.2);
+    font-size: 1rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* ── Barra de estado ───────────────────────────────────────────── */
+  &__estado {
+    display: flex;
+    align-items: center;
     gap: 12px;
-    padding: 20px 24px;
-    border-bottom: 1px solid #eef0f3;
+    flex-wrap: wrap;
+    padding: 12px 28px;
+    background: #f9fafb;
+    border-bottom: 1px solid $borde;
+    flex-shrink: 0;
   }
 
   &__cuerpo {
-    padding: 20px 24px;
+    flex: 1;
+    min-height: 0;
+    padding: 22px 28px;
     overflow-y: auto;
   }
 
@@ -41,52 +103,211 @@
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 8px;
-    padding: 16px 24px;
-    border-top: 1px solid #eef0f3;
+    gap: 10px;
+    padding: 14px 28px;
+    border-top: 1px solid $borde;
+    background: #f9fafb;
+    flex-shrink: 0;
   }
 
   .btn-cerrar {
     border: 0;
     background: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
     font-size: 18px;
     line-height: 1;
-    color: #7b8493;
+    color: #fff;
     cursor: pointer;
-  }
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 
-  .dato {
+    &:hover { background: rgba(255, 255, 255, 0.2); }
+  }
+}
+
+/* ── Chip de leído / sin leer ─────────────────────────────────────── */
+.chip-estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 5px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: #e5e7eb;
+  color: #4b5563;
+
+  &--nuevo {
+    background: rgba($rojo, 0.12);
+    color: $rojo;
+  }
+}
+
+.btn-marcar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #4b5563;
+  cursor: pointer;
+
+  &:hover { background: #f3f4f6; }
+}
+
+/* ── Fichas ───────────────────────────────────────────────────────── */
+.ficha {
+  border: 1px solid $borde;
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 16px;
+
+  &:last-child { margin-bottom: 0; }
+
+  &__titulo {
     display: flex;
-    gap: 12px;
-    padding: 6px 0;
-    font-size: 14px;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: $texto;
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid #f3f4f6;
 
-    span {
-      min-width: 90px;
-      color: #7b8493;
-    }
+    i { color: $rojo; font-size: 18px; }
   }
 
-  .mensaje-texto {
-    margin-top: 14px;
-    padding: 14px;
-    border: 1px solid #eef0f3;
-    border-radius: 12px;
-    background: #f8f9fb;
-    font-size: 14px;
-    color: #3a424f;
-    white-space: pre-wrap;
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px 20px;
+  }
+}
+
+.dato {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+
+  span {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: $tenue;
   }
 
-  .campo {
-    display: block;
-    margin-bottom: 12px;
+  strong {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: $texto;
+    word-break: break-word;
 
-    span {
-      display: block;
-      margin-bottom: 4px;
-      font-size: 13px;
-      color: #7b8493;
+    a { color: $texto; text-decoration: none; }
+    a:hover { color: $rojo; text-decoration: underline; }
+
+    &.tenue { color: #9ca3af; font-weight: 500; }
+  }
+}
+
+.enlace-wsp {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #16a34a !important;
+  text-decoration: none !important;
+
+  &:hover { text-decoration: underline !important; }
+}
+
+.mensaje-texto {
+  margin: 0;
+  padding: 16px;
+  border: 1px solid $borde;
+  border-radius: 10px;
+  background: #f9fafb;
+  font-size: 0.93rem;
+  line-height: 1.65;
+  color: #374151;
+  white-space: pre-wrap;
+}
+
+/* ── Botones del pie: color fijo, sin animación ───────────────────── */
+.modal-caja__pie .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 8px;
+  padding: 9px 18px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: none;
+  text-decoration: none;
+}
+
+.btn-eliminar {
+  background: #fff;
+  border: 1px solid $rojo;
+  color: $rojo;
+
+  &:hover { background: rgba($rojo, 0.08); color: $rojo; }
+}
+
+.btn-responder {
+  background: $rojo;
+  border: 1px solid $rojo;
+  color: #fff;
+
+  &:hover { background: $rojo-oscuro; border-color: $rojo-oscuro; color: #fff; }
+}
+
+.btn-cerrar-pie {
+  background: #6b7280;
+  border: 1px solid #6b7280;
+  color: #fff;
+
+  &:hover,
+  &:focus,
+  &:active {
+    background: #6b7280;
+    border-color: #6b7280;
+    color: #fff;
+  }
+}
+
+@media (max-width: 767px) {
+  .modal-fondo { padding: 0; }
+
+  .modal-caja {
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+
+    &__head,
+    &__estado,
+    &__cuerpo,
+    &__pie {
+      padding-left: 16px;
+      padding-right: 16px;
     }
+
+    &__pie { flex-wrap: wrap; }
   }
 }

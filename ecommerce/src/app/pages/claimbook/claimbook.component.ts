@@ -104,7 +104,8 @@ export class ClaimbookComponent implements OnInit, OnDestroy {
       // Datos del consumidor
       consumidor_nombre: ['', [Validators.required, Validators.minLength(2)]],
       consumidor_direccion: ['', [Validators.required]],
-      consumidor_dni: ['', [Validators.required, Validators.pattern(/^\d{6,12}$/)]],
+      // El formato depende del tipo de documento (ver `aplicarReglaDeDocumento`).
+      consumidor_dni: ['', [Validators.required]],
       consumidor_telefono: ['', [Validators.required, Validators.pattern(/^\d{9}$/)]],
       consumidor_email: ['', [Validators.required, Validators.email]],
       es_menor_edad: [false],
@@ -153,6 +154,12 @@ export class ClaimbookComponent implements OnInit, OnDestroy {
       conformeContenido: [false, Validators.requiredTrue]
     });
 
+    // El número de documento se valida según el tipo elegido.
+    this.aplicarReglaDeDocumento(this.claimbookForm.get('tipo_documento')?.value);
+    this.claimbookForm
+      .get('tipo_documento')
+      ?.valueChanges.subscribe(tipo => this.aplicarReglaDeDocumento(tipo));
+
     // Validaciones condicionales para menor de edad
     this.claimbookForm.get('es_menor_edad')?.valueChanges.subscribe(isMinor => {
       const guardianFields = ['apoderado_nombre', 'apoderado_direccion', 'apoderado_dni', 'apoderado_telefono', 'apoderado_email'];
@@ -180,6 +187,35 @@ export class ClaimbookComponent implements OnInit, OnDestroy {
         this.claimbookForm.get(field)?.updateValueAndValidity();
       });
     });
+  }
+
+  /**
+   * Formato del número según el tipo de documento:
+   *   DNI                  8 dígitos
+   *   RUC                  11 dígitos y empieza en 10, 15, 17 o 20
+   *   Carné de extranjería 9 a 12 caracteres alfanuméricos
+   *   Pasaporte            6 a 12 caracteres alfanuméricos
+   */
+  private static readonly REGLAS_DOCUMENTO: Record<string, { patron: RegExp; ayuda: string; maxlength: number }> = {
+    'DNI': { patron: /^\d{8}$/, ayuda: 'El DNI debe tener 8 dígitos.', maxlength: 8 },
+    'RUC': { patron: /^(10|15|17|20)\d{9}$/, ayuda: 'El RUC debe tener 11 dígitos y empezar con 10, 15, 17 o 20.', maxlength: 11 },
+    'Carné de extranjería': { patron: /^[A-Za-z0-9]{9,12}$/, ayuda: 'El carné de extranjería debe tener entre 9 y 12 caracteres.', maxlength: 12 },
+    'Pasaporte': { patron: /^[A-Za-z0-9]{6,12}$/, ayuda: 'El pasaporte debe tener entre 6 y 12 caracteres.', maxlength: 12 },
+  };
+
+  /** Texto de ayuda y tope de caracteres del documento activo. */
+  get reglaDocumento(): { patron: RegExp; ayuda: string; maxlength: number } {
+    const tipo = this.claimbookForm?.get('tipo_documento')?.value || 'DNI';
+    return ClaimbookComponent.REGLAS_DOCUMENTO[tipo] ?? ClaimbookComponent.REGLAS_DOCUMENTO['DNI'];
+  }
+
+  private aplicarReglaDeDocumento(tipo: string): void {
+    const control = this.claimbookForm.get('consumidor_dni');
+    if (!control) return;
+
+    const regla = ClaimbookComponent.REGLAS_DOCUMENTO[tipo] ?? ClaimbookComponent.REGLAS_DOCUMENTO['DNI'];
+    control.setValidators([Validators.required, Validators.pattern(regla.patron)]);
+    control.updateValueAndValidity({ emitEvent: false });
   }
 
   /** Opciones del desplegable "¿Qué solución espera?". */

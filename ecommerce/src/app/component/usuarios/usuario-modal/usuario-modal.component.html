@@ -194,17 +194,13 @@
       </button>
     </div>
 
-    <!-- Pestañas -->
+    <!-- Pestañas: las mismas que en Crear Usuario -->
     <div class="modal-tabs" *ngIf="!loading">
-      <button type="button" class="modal-tabs__item" [class.modal-tabs__item--activo]="tab === 'informacion'"
-        (click)="tab = 'informacion'">
-        <i class="ph ph-user"></i>
-        Información
-      </button>
-      <button type="button" class="modal-tabs__item" [class.modal-tabs__item--activo]="tab === 'avanzado'"
-        (click)="tab = 'avanzado'">
-        <i class="ph ph-link"></i>
-        Avanzado
+      <button *ngFor="let p of pestanas" type="button" class="modal-tabs__item"
+        [class.modal-tabs__item--activo]="tab === p.id"
+        (click)="tab = p.id">
+        <i [class]="'ph ' + p.icono"></i>
+        {{ p.label }}
       </button>
     </div>
 
@@ -213,7 +209,8 @@
 
         <!-- Los controles del formulario se ocultan, no se destruyen: con
              *ngIf se desregistrarían y el guardado perdería esos campos. -->
-        <div [hidden]="tab !== 'informacion'">
+        <!-- ══════════ PESTAÑA: CUENTA ══════════ -->
+        <div [hidden]="tab !== 'cuenta'">
 
         <div class="row">
           <!-- Columna Izquierda -->
@@ -253,7 +250,16 @@
                 </select>
               </div>
             </div>
+          </div>
+        </div>
 
+        </div><!-- /pestaña Cuenta -->
+
+        <!-- ══════════ PESTAÑA: PERFIL ══════════ -->
+        <div [hidden]="tab !== 'perfil'">
+
+        <div class="row">
+          <div class="col-md-6">
             <!-- Avatar -->
             <div class="form-section">
               <h3 class="section-title">
@@ -412,8 +418,12 @@
           </div>
         </div>
 
-        <!-- Direcciones en su propia fila -->
-        <div class="row" *ngIf="addressesArray.length > 0">
+        </div><!-- /pestaña Perfil -->
+
+        <!-- ══════════ PESTAÑA: DIRECCIONES ══════════ -->
+        <div [hidden]="tab !== 'direcciones'">
+
+        <div class="row">
           <div class="col-12">
             <div class="form-section">
               <h3 class="section-title">
@@ -421,6 +431,10 @@
                 Direcciones
                 <span class="badge bg-main-50 text-main-600 ms-2">{{ addressesArray.length }}</span>
               </h3>
+
+              <p class="text-muted small" *ngIf="addressesArray.length === 0">
+                Este usuario todavía no tiene direcciones registradas.
+              </p>
 
               <div formArrayName="addresses">
                 <div class="row">
@@ -560,7 +574,7 @@
           </div>
         </div>
 
-        </div><!-- /pestaña Información -->
+        </div><!-- /pestaña Direcciones -->
 
         <!-- ═══════════════ Pestaña Avanzado ═══════════════ -->
         <div class="row" *ngIf="tab === 'avanzado'">
@@ -677,7 +691,7 @@
             type="submit"
             class="btn btn-primary"
             [disabled]="!usuarioForm.valid || loading"
-            *ngIf="mode === 'edit' && tab === 'informacion'">
+            *ngIf="mode === 'edit' && tab !== 'avanzado'">
             <i class="ph ph-check" *ngIf="!loading"></i>
             <span class="spinner-border spinner-border-sm me-2" *ngIf="loading"></span>
             {{ loading ? 'Guardando...' : 'Guardar Cambios' }}

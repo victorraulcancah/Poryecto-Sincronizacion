@@ -59,7 +59,14 @@
               <div class="col-md-6">
                 <label class="libro__label">Número de documento <span>*</span></label>
                 <input type="text" class="libro__input" formControlName="consumidor_dni"
-                  placeholder="Ej.: 12345678" />
+                  [class.libro__input--error]="isFieldInvalid('consumidor_dni')"
+                  [maxlength]="reglaDocumento.maxlength"
+                  [placeholder]="'Ej.: ' + (claimbookForm.get('tipo_documento')?.value === 'RUC' ? '20123456789' : '12345678')" />
+                <p class="libro__ayuda" [class.libro__ayuda--error]="isFieldInvalid('consumidor_dni')">
+                  {{ isFieldInvalid('consumidor_dni') && claimbookForm.get('consumidor_dni')?.errors?.['required']
+                      ? 'Ingresa tu número de documento.'
+                      : reglaDocumento.ayuda }}
+                </p>
               </div>
               <div class="col-md-6">
                 <label class="libro__label">Teléfono <span>*</span></label>
