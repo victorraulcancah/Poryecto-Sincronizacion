@@ -17,7 +17,8 @@
 
   &__fila {
     width: 100%;
-    max-width: 980px;
+    // Mismo ancho que el modal de Editar Usuario.
+    max-width: 1000px;
     margin: 0;
   }
 
@@ -25,8 +26,11 @@
     padding: 0;
   }
 
+  // Alto fijo (no máximo): el modal no debe cambiar de tamaño al cambiar de
+  // pestaña ni respecto al de Editar Usuario.
   &__card {
-    max-height: 90vh;
+    height: 88vh;
+    max-height: 88vh;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -65,8 +69,158 @@
 
 @media (max-width: 575px) {
   .registro-modal {
-    padding: 10px;
+    padding: 0;
 
-    &__card { max-height: 95vh; }
+    &__card {
+      height: 100dvh;
+      max-height: 100dvh;
+      border-radius: 0;
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  Pestañas del formulario de registro
+// ══════════════════════════════════════════════════════════════════════
+
+.registro-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 0 1.25rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+  flex-shrink: 0;
+  overflow-x: auto;
+
+  &__item {
+    position: relative;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 12px 18px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #6b7280;
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.15s ease, border-color 0.15s ease;
+
+    &:hover { color: #111827; }
+
+    &--activo {
+      color: #0d6efd;
+      border-bottom-color: #0d6efd;
+    }
+
+    // Con campos obligatorios sin llenar se avisa aunque no sea la activa.
+    &--error {
+      color: #dc3545;
+
+      &.registro-tabs__item--activo {
+        border-bottom-color: #dc3545;
+      }
+    }
+  }
+
+  &__punto {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #dc3545;
+  }
+}
+
+// Los botones quedan siempre a la vista al final del bloque activo.
+.registro-acciones {
+  border-top: 1px solid #e5e7eb;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  Pestaña Avanzado: vinculación con Novik
+// ══════════════════════════════════════════════════════════════════════
+
+.vinculo-erp {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px 16px;
+
+  &--vacio { background: #f9fafb; }
+
+  &__avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(13, 110, 253, 0.12);
+    color: #0d6efd;
+    font-size: 22px;
+    flex-shrink: 0;
+
+    &--gris {
+      background: rgba(108, 117, 125, 0.12);
+      color: #6c757d;
+    }
+  }
+
+  &__datos { flex: 1; min-width: 0; }
+}
+
+.buscador-erp {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  background: #fff;
+
+  &__filtros {
+    display: flex;
+    gap: 8px;
+
+    .chip {
+      border: 1px solid #d1d5db;
+      background: #fff;
+      color: #4b5563;
+      border-radius: 999px;
+      padding: 5px 14px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+
+      &--activo {
+        background: #0d6efd;
+        border-color: #0d6efd;
+        color: #fff;
+      }
+    }
+  }
+
+  &__resultados {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+}
+
+.resultado-erp {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+
+  &__datos {
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
 }

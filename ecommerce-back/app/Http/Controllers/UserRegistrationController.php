@@ -51,6 +51,9 @@ class UserRegistrationController extends Controller
             
             // Avatar
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+
+            // Vinculación con Novik (pestaña Avanzado del registro)
+            'codigo_erp' => 'nullable|string|max:20|unique:users,codigo_erp',
             
             // Direcciones
             'addresses' => 'required|array|min:1',
@@ -81,7 +84,12 @@ class UserRegistrationController extends Controller
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 // Eliminado: 'role_id' porque ahora usamos Spatie
-                'is_enabled' => 1
+                'is_enabled' => 1,
+                // Al crear no se pide contraseña de confirmación: el admin ya
+                // está creando la cuenta. Cambiarla después sí la pide.
+                'codigo_erp' => $request->filled('codigo_erp')
+                    ? strtoupper(trim($request->codigo_erp))
+                    : null,
             ]);
 
             // 2. Manejar avatar si existe

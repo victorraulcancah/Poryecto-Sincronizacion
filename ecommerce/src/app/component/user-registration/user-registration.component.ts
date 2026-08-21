@@ -1,13 +1,18 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 // Agregar después de las importaciones existentes
 import { RegistrationService, Role, DocumentType, UbigeoItem } from '../../services/registration.service';
+import { UsuariosService, UsuarioErp } from '../../services/usuarios.service';
+import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { ReniecService, ReniecResponse } from '../../services/reniec.service'; // コード ← este es el bueno
 import Swal from 'sweetalert2';
 
+
+/** Pestañas del formulario de registro. */
+type TabRegistro = 'cuenta' | 'perfil' | 'direcciones' | 'avanzado';
 
 interface Address {
   label: string;
@@ -26,7 +31,7 @@ interface Address {
 @Component({
   selector: 'app-user-registration',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './user-registration.component.html',
   styleUrl: './user-registration.component.scss'
 })
@@ -38,6 +43,122 @@ export class UserRegistrationComponent {
   @Input() modoModal = false;
   @Output() cerrado = new EventEmitter<void>();
   @Output() usuarioCreado = new EventEmitter<void>();
+
+  /** El formulario está partido en pestañas para no ser un scroll eterno. */
+  tab: TabRegistro = 'cuenta';
+
+  readonly pestanas: { id: TabRegistro; label: string; icono: string }[] = [
+    { id: 'cuenta', label: 'Cuenta', icono: 'fas fa-lock' },
+    { id: 'perfil', label: 'Perfil', icono: 'fas fa-id-card' },
+    { id: 'direcciones', label: 'Direcciones', icono: 'fas fa-map-marker-alt' },
+    { id: 'avanzado', label: 'Avanzado', icono: 'fas fa-link' },
+  ];
+
+  // ── Pestaña Avanzado: vinculación con un usuario de Novik ─────────────
+  // Al crear no se pide contraseña: la vinculación viaja con el registro.
+
+  usuarioErpSeleccionado: UsuarioErp | null = null;
+  mostrandoBuscadorErp = false;
+  busquedaErp = '';
+  buscandoErp = false;
+  cargandoMasErp = false;
+  hayMasResultadosErp = false;
+  resultadosErp: UsuarioErp[] = [];
+  soloVendedores = true;
+  private busquedaErp$ = new Subject<string>();
+
+  abrirBuscadorErp(): void {
+    this.mostrandoBuscadorErp = true;
+    this.buscarUsuariosErp(true);
+  }
+
+  cerrarBuscadorErp(): void {
+    this.mostrandoBuscadorErp = false;
+  }
+
+  onBusquedaErpChange(valor: string): void {
+    this.busquedaErp$.next(valor);
+  }
+
+  cambiarFiltroVendedores(soloVendedores: boolean): void {
+    this.soloVendedores = soloVendedores;
+    this.buscarUsuariosErp(true);
+  }
+
+  private buscarUsuariosErp(reiniciar: boolean): void {
+    if (!this.mostrandoBuscadorErp) return;
+
+    const offset = reiniciar ? 0 : this.resultadosErp.length;
+    if (reiniciar) this.buscandoErp = true;
+    else this.cargandoMasErp = true;
+
+    this.usuariosService
+      .buscarUsuariosErp(this.busquedaErp, offset, this.soloVendedores)
+      .subscribe({
+        next: res => {
+          this.resultadosErp = reiniciar
+            ? res.usuarios
+            : [...this.resultadosErp, ...res.usuarios];
+          this.hayMasResultadosErp = res.hay_mas;
+          this.buscandoErp = false;
+          this.cargandoMasErp = false;
+        },
+        error: () => {
+          if (reiniciar) this.resultadosErp = [];
+          this.hayMasResultadosErp = false;
+          this.buscandoErp = false;
+          this.cargandoMasErp = false;
+        },
+      });
+  }
+
+  onScrollResultadosErp(evento: Event): void {
+    const el = evento.target as HTMLElement;
+    const alFinal = el.scrollTop + el.clientHeight >= el.scrollHeight - 40;
+    if (alFinal && this.hayMasResultadosErp && !this.cargandoMasErp && !this.buscandoErp) {
+      this.buscarUsuariosErp(false);
+    }
+  }
+
+  seleccionarUsuarioErp(usuario: UsuarioErp): void {
+    this.usuarioErpSeleccionado = usuario;
+    this.mostrandoBuscadorErp = false;
+  }
+
+  quitarUsuarioErp(): void {
+    this.usuarioErpSeleccionado = null;
+  }
+
+  /** Qué campos vive en cada pestaña, para marcar cuál tiene errores. */
+  private readonly camposPorPestana: Record<TabRegistro, string[]> = {
+    cuenta: ['name', 'email', 'password', 'confirmPassword', 'role'],
+    perfil: [
+      'first_name',
+      'apellido_paterno',
+      'apellido_materno',
+      'phone',
+      'document_type',
+      'document_number',
+      'birth_date',
+      'gender',
+    ],
+    direcciones: ['addresses'],
+    // La vinculación es opcional: nunca marca error.
+    avanzado: [],
+  };
+
+  /** Pinta en rojo la pestaña que tiene campos obligatorios sin llenar. */
+  pestanaConErrores(pestana: TabRegistro): boolean {
+    return this.camposPorPestana[pestana].some(campo => {
+      const control = this.userForm?.get(campo);
+      return !!control && control.invalid && (control.dirty || control.touched);
+    });
+  }
+
+  private irAPrimeraPestanaConErrores(): void {
+    const conError = this.pestanas.find(p => this.pestanaConErrores(p.id));
+    if (conError) this.tab = conError.id;
+  }
 
 userForm!: FormGroup;
   selectedFile: File | null = null;
@@ -70,10 +191,11 @@ userForm!: FormGroup;
 
 // REEMPLAZA el constructor existente con:
 constructor(
-  private fb: FormBuilder, 
+  private fb: FormBuilder,
   private router: Router,
   private registrationService: RegistrationService,
-  private reniecService: ReniecService
+  private reniecService: ReniecService,
+  private usuariosService: UsuariosService
 ) {}
 
  // REEMPLAZA el método ngOnInit existente con:
@@ -83,6 +205,11 @@ ngOnInit(): void {
   
   this.initializeForm();
   this.loadInitialData();
+
+  // La búsqueda en Novik espera a que el admin deje de escribir.
+  this.busquedaErp$
+    .pipe(debounceTime(400), distinctUntilChanged())
+    .subscribe(() => this.buscarUsuariosErp(true));
 }
 
   initializeForm(): void {
@@ -207,6 +334,9 @@ ngOnInit(): void {
   } else {
     console.log('Formulario INVÁLIDO - marcando campos como tocados');
     this.markFormGroupTouched(this.userForm);
+    // Los campos con error pueden estar en otra pestaña: se salta a la primera
+    // que tenga alguno, si no el usuario no ve por qué no se guarda.
+    this.irAPrimeraPestanaConErrores();
   }
 }
 
@@ -236,7 +366,11 @@ ngOnInit(): void {
     document_number: formData.document_number,
     birth_date: formData.birth_date,
     gender: formData.gender,
-    addresses: processedAddresses // Usar las direcciones procesadas
+    addresses: processedAddresses, // Usar las direcciones procesadas
+    // Solo va si en la pestaña Avanzado se eligió un usuario de Novik.
+    ...(this.usuarioErpSeleccionado
+      ? { codigo_erp: this.usuarioErpSeleccionado.codigo }
+      : {}),
   };
 
   console.log('addresses antes de enviar:', formData.addresses);

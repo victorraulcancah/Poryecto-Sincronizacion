@@ -18,8 +18,11 @@
   border-radius: 16px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   width: 100%;
-  max-width: 1200px; // Más ancho
-  max-height: 90vh;
+  // Mismo tamaÃ±o que el modal de Crear Usuario, y fijo: asÃ­ no cambia de
+  // tamaÃ±o al pasar de una pestaÃ±a a otra.
+  max-width: 1000px;
+  height: 88vh;
+  max-height: 88vh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -153,7 +156,7 @@
     }
   }
 
-  // Versión pequeña para direcciones
+  // Versiï¿½n pequeï¿½a para direcciones
   &.form-group-sm {
     margin-bottom: 12px;
 
@@ -341,7 +344,7 @@
   }
 }
 
-// Botones pequeños
+// Botones pequeï¿½os
 .btn-xs {
   padding: 4px 8px !important;
   font-size: 0.75rem !important;
@@ -358,7 +361,8 @@
     max-width: 100%;
     margin: 0;
     border-radius: 0;
-    max-height: 100vh;
+    height: 100dvh;
+    max-height: 100dvh;
   }
 
   .modal-header,

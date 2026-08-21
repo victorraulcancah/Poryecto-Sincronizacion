@@ -17,11 +17,29 @@
           </button>
         </div>
 
+        <!-- Pestañas: el formulario es largo, así se recorre por bloques -->
+        <div class="registro-tabs">
+          <button *ngFor="let p of pestanas" type="button" class="registro-tabs__item"
+            [class.registro-tabs__item--activo]="tab === p.id"
+            [class.registro-tabs__item--error]="pestanaConErrores(p.id)"
+            (click)="tab = p.id">
+            <i [class]="p.icono"></i>
+            {{ p.label }}
+            <span class="registro-tabs__punto" *ngIf="pestanaConErrores(p.id)"></span>
+          </button>
+        </div>
+
         <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="card-body"
           [class.registro-modal__body]="modoModal">
-          
+
+          <!-- Los bloques se ocultan, no se destruyen: con *ngIf los controles
+               se desregistrarían y el guardado perdería esos campos. -->
+
+          <!-- ══════════ PESTAÑA: CUENTA ══════════ -->
+          <div [hidden]="tab !== 'cuenta'">
+
           <!-- SECCIÓN: Datos Base -->
-          <div class="section-divider mb-4 mt-5 pt-2">
+          <div class="section-divider mb-4 pt-2">
             <h5 class="section-title" style="margin-top: 0px;">
               <i class="fas fa-lock text-primary me-2"></i>
               Datos de Inicio de Sesión
@@ -138,8 +156,13 @@
             </div>
           </div>
 
+          </div><!-- /pestaña Cuenta -->
+
+          <!-- ══════════ PESTAÑA: PERFIL ══════════ -->
+          <div [hidden]="tab !== 'perfil'">
+
           <!-- SECCIÓN: Datos del Perfil -->
-          <div class="section-divider mb-4 mt-5 pt-2">
+          <div class="section-divider mb-4 pt-2">
             <h5 class="section-title">
               <i class="fas fa-id-card text-success me-2"></i>
               Datos del Perfil
@@ -335,8 +358,13 @@
             </div>
           </div>
 
+          </div><!-- /pestaña Perfil -->
+
+          <!-- ══════════ PESTAÑA: DIRECCIONES ══════════ -->
+          <div [hidden]="tab !== 'direcciones'">
+
           <!-- SECCIÓN: Direcciones -->
-          <div class="section-divider mb-4 mt-5 pt-2">
+          <div class="section-divider mb-4 pt-2">
             <h5 class="section-title">
               <i class="fas fa-map-marker-alt text-info me-2"></i>
               Direcciones
@@ -511,15 +539,121 @@
             </div>
           </div>
 
+          </div><!-- /pestaña Direcciones -->
+
+          <!-- ══════════ PESTAÑA: AVANZADO ══════════ -->
+          <div *ngIf="tab === 'avanzado'">
+
+            <div class="section-divider mb-4 pt-2">
+              <h5 class="section-title" style="margin-top: 0px;">
+                <i class="fas fa-link text-primary me-2"></i>
+                Vinculación con Novik
+              </h5>
+            </div>
+
+            <p class="text-muted small">
+              Opcional. Si vinculas la cuenta con un usuario de Novik, a este usuario solo
+              le aparecerán las cotizaciones y pedidos de los clientes de su cartera.
+            </p>
+
+            <!-- Usuario elegido -->
+            <div class="vinculo-erp" *ngIf="usuarioErpSeleccionado">
+              <span class="vinculo-erp__avatar"><i class="fas fa-user-circle"></i></span>
+              <div class="vinculo-erp__datos">
+                <div class="fw-semibold">{{ usuarioErpSeleccionado.nombre }}</div>
+                <div class="text-muted small">
+                  Código: {{ usuarioErpSeleccionado.codigo }}
+                  <ng-container *ngIf="usuarioErpSeleccionado.rol"> · {{ usuarioErpSeleccionado.rol }}</ng-container>
+                </div>
+              </div>
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="abrirBuscadorErp()">
+                  <i class="fas fa-pen"></i> Cambiar
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger" (click)="quitarUsuarioErp()">
+                  <i class="fas fa-unlink"></i> Quitar
+                </button>
+              </div>
+            </div>
+
+            <!-- Sin elegir -->
+            <div class="vinculo-erp vinculo-erp--vacio" *ngIf="!usuarioErpSeleccionado">
+              <span class="vinculo-erp__avatar vinculo-erp__avatar--gris"><i class="fas fa-user-circle"></i></span>
+              <div class="text-muted small">
+                Este usuario aún no está vinculado a ningún usuario de Novik.
+              </div>
+            </div>
+
+            <div class="text-center mt-3" *ngIf="!usuarioErpSeleccionado">
+              <button type="button" class="btn btn-primary px-5" (click)="abrirBuscadorErp()">
+                <i class="fas fa-link me-2"></i> Vincular
+              </button>
+            </div>
+
+            <!-- Buscador de usuarios de Novik -->
+            <div class="buscador-erp mt-3" *ngIf="mostrandoBuscadorErp">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong>Buscar usuario en Novik</strong>
+                <button type="button" class="btn btn-sm btn-light" (click)="cerrarBuscadorErp()">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+
+              <div class="buscador-erp__filtros mb-2">
+                <button type="button" class="chip" [class.chip--activo]="soloVendedores"
+                  (click)="cambiarFiltroVendedores(true)">Solo vendedores</button>
+                <button type="button" class="chip" [class.chip--activo]="!soloVendedores"
+                  (click)="cambiarFiltroVendedores(false)">Todos los usuarios</button>
+              </div>
+
+              <div class="input-group mb-2">
+                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                <input type="text" class="form-control"
+                  placeholder="Buscar por código, nombre, usuario o correo..."
+                  [(ngModel)]="busquedaErp" [ngModelOptions]="{standalone: true}"
+                  (ngModelChange)="onBusquedaErpChange($event)">
+              </div>
+
+              <div *ngIf="buscandoErp" class="text-center py-3">
+                <span class="spinner-border spinner-border-sm"></span>
+              </div>
+
+              <div class="buscador-erp__resultados" (scroll)="onScrollResultadosErp($event)">
+                <div *ngIf="!buscandoErp && resultadosErp.length === 0" class="text-muted small py-3">
+                  No se encontraron usuarios en Novik con ese criterio.
+                </div>
+
+                <div *ngFor="let r of resultadosErp" class="resultado-erp">
+                  <div class="resultado-erp__datos">
+                    <span class="vinculo-erp__avatar"><i class="fas fa-user-circle"></i></span>
+                    <div>
+                      <div class="fw-semibold">{{ r.nombre }}</div>
+                      <div class="text-muted small">Código: {{ r.codigo }}</div>
+                      <div class="text-muted small" *ngIf="r.rol">{{ r.rol }}</div>
+                    </div>
+                  </div>
+                  <button type="button" class="btn btn-sm btn-outline-primary"
+                    [disabled]="r.ya_vinculado" (click)="seleccionarUsuarioErp(r)">
+                    {{ r.ya_vinculado ? 'Ya vinculado' : 'Seleccionar' }}
+                  </button>
+                </div>
+
+                <div *ngIf="cargandoMasErp" class="text-center py-2">
+                  <span class="spinner-border spinner-border-sm"></span>
+                </div>
+              </div>
+            </div>
+          </div><!-- /pestaña Avanzado -->
+
           <!-- Botones de Acción -->
-          <div class="row mt-4 mt-5 pt-2">
+          <div class="row mt-4 pt-2 registro-acciones">
             <div class="col-12">
               <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                 <button type="button" class="btn btn-outline-secondary btn-lg me-md-2" (click)="irListaUsuarios()">
                     <i class="fas fa-times me-2"></i> Cancelar
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   class="btn btn-primary btn-lg"
                   >
                   <i class="fas fa-save me-2"></i>
