@@ -488,54 +488,32 @@
 
       <!-- ══════════ RESPUESTA ══════════ -->
       <div *ngIf="tab === 'respuesta'">
-        <!-- Ya respondido -->
-        <div class="ficha" *ngIf="reclamoSeleccionado.respuesta_proveedor && !mostrandoFormularioRespuesta">
+        <!-- El formulario de respuesta se quitó: solo guardaba el texto en la
+             base, no le llegaba nada al consumidor. Queda pendiente el envío
+             por correo antes de volver a ofrecerlo. -->
+        <div class="pendiente">
+          <span class="pendiente__icono"><i class="ph ph-wrench"></i></span>
+          <h5>Falta implementar el envío de la respuesta</h5>
+          <p>
+            Todavía no se puede responder desde aquí. Cuando esté listo, la respuesta
+            le llegará al consumidor por correo a
+            <strong>{{ reclamoSeleccionado.consumidor_email }}</strong> y el reclamo
+            pasará automáticamente a <strong>Resuelto</strong>.
+          </p>
+          <p class="pendiente__nota">
+            Mientras tanto, contacta al consumidor por fuera y cambia el estado del
+            reclamo con el selector de arriba.
+          </p>
+        </div>
+
+        <!-- Si algún reclamo ya tiene una respuesta guardada, se muestra. -->
+        <div class="ficha" *ngIf="reclamoSeleccionado.respuesta_proveedor">
           <div class="ficha__titulo">
-            <i class="ph ph-check-circle"></i>
-            Respuesta enviada
+            <i class="ph ph-note"></i>
+            Respuesta registrada
             <span class="ficha__fecha">{{ reclamoSeleccionado.fecha_respuesta | date:'dd/MM/yyyy' }}</span>
           </div>
           <p class="texto-largo">{{ reclamoSeleccionado.respuesta_proveedor }}</p>
-          <button type="button" class="btn btn-outline-danger btn-sm" (click)="responderReclamo()">
-            <i class="ph ph-pencil-simple"></i> Corregir la respuesta
-          </button>
-        </div>
-
-        <!-- Sin responder -->
-        <div class="vacio vacio--compacto"
-          *ngIf="!reclamoSeleccionado.respuesta_proveedor && !mostrandoFormularioRespuesta">
-          <i class="ph ph-chat-centered-dots"></i>
-          <p>Este reclamo todavía no tiene respuesta.</p>
-          <button type="button" class="btn btn-responder" (click)="responderReclamo()">
-            <i class="ph ph-paper-plane-tilt"></i> Responder
-          </button>
-        </div>
-
-        <!-- Formulario -->
-        <div class="ficha" *ngIf="mostrandoFormularioRespuesta">
-          <div class="ficha__titulo"><i class="ph ph-paper-plane-tilt"></i> Responder al consumidor</div>
-
-          <label class="etiqueta">Fecha de respuesta</label>
-          <input type="date" class="form-control mb-3" [(ngModel)]="fechaRespuesta">
-
-          <label class="etiqueta">Respuesta <span class="req">*</span></label>
-          <textarea rows="6" class="form-control" [(ngModel)]="respuestaTexto"
-            placeholder="Escribe la respuesta que recibirá el consumidor en su correo..."></textarea>
-          <p class="ayuda" [class.ayuda--error]="respuestaTexto.trim().length > 0 && respuestaTexto.trim().length < 10">
-            Mínimo 10 caracteres. Al enviarla el reclamo pasa a <strong>Resuelto</strong>.
-          </p>
-
-          <div class="ficha__acciones">
-            <button type="button" class="btn btn-cancelar" (click)="cancelarRespuesta()"
-              [disabled]="isUpdatingReclamo">
-              Cancelar
-            </button>
-            <button type="button" class="btn btn-responder" (click)="enviarRespuesta()"
-              [disabled]="isUpdatingReclamo || respuestaTexto.trim().length < 10">
-              <span *ngIf="isUpdatingReclamo" class="spinner-border spinner-border-sm me-2"></span>
-              {{ isUpdatingReclamo ? 'Enviando...' : 'Enviar respuesta' }}
-            </button>
-          </div>
         </div>
       </div>
     </div>

@@ -28,11 +28,6 @@ export class ReclamosComponent implements OnInit, OnDestroy {
   isLoading = false;
   isLoadingStats = false;
   isUpdatingReclamo = false;
-  mostrandoFormularioRespuesta = false;
-  
-  // Formulario de respuesta
-  respuestaTexto = '';
-  fechaRespuesta = new Date().toISOString().split('T')[0];
 
   // Filtros
   filtros = {
@@ -166,14 +161,12 @@ export class ReclamosComponent implements OnInit, OnDestroy {
   verDetalle(reclamo: Reclamo): void {
     this.reclamoSeleccionado = reclamo;
     this.tab = 'consumidor';
-    this.mostrandoFormularioRespuesta = false;
     this.mostrarDetalle = true;
   }
 
   cerrarDetalle(): void {
     this.mostrarDetalle = false;
     this.reclamoSeleccionado = null;
-    this.mostrandoFormularioRespuesta = false;
   }
 
   /** URL absoluta de un adjunto guardado como "storage/reclamos/xxx.jpg". */
@@ -230,62 +223,6 @@ export class ReclamosComponent implements OnInit, OnDestroy {
           });
       }
     });
-  }
-
-  responderReclamo(): void {
-    this.mostrandoFormularioRespuesta = true;
-    this.respuestaTexto = '';
-    this.fechaRespuesta = new Date().toISOString().split('T')[0];
-  }
-
-  cancelarRespuesta(): void {
-    this.mostrandoFormularioRespuesta = false;
-    this.respuestaTexto = '';
-  }
-
-  enviarRespuesta(): void {
-    if (!this.reclamoSeleccionado || !this.respuestaTexto.trim() || this.respuestaTexto.trim().length < 10) {
-      this.mostrarError('La respuesta debe tener al menos 10 caracteres');
-      return;
-    }
-
-    this.actualizarRespuesta(this.reclamoSeleccionado.id!, this.respuestaTexto.trim(), this.fechaRespuesta);
-  }
-
-  private actualizarRespuesta(id: number, respuesta: string, fechaRespuesta: string): void {
-    this.isUpdatingReclamo = true;
-    this.reclamosService.actualizarRespuesta(id, respuesta, fechaRespuesta)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          if (response.status === 'success') {
-            // Actualizar el reclamo seleccionado
-            if (this.reclamoSeleccionado) {
-              this.reclamoSeleccionado.respuesta_proveedor = respuesta;
-              this.reclamoSeleccionado.fecha_respuesta = fechaRespuesta;
-              this.reclamoSeleccionado.estado = 'resuelto';
-            }
-            
-            // Actualizar en la lista
-            const index = this.reclamos.findIndex(r => r.id === id);
-            if (index >= 0) {
-              this.reclamos[index] = { ...this.reclamos[index], ...response.reclamo };
-            }
-            
-            this.mostrarExito('Respuesta enviada correctamente');
-            this.cargarEstadisticas();
-            this.mostrandoFormularioRespuesta = false;
-            this.respuestaTexto = '';
-          }
-          this.isUpdatingReclamo = false;
-        },
-        error: (error) => {
-          console.error('Error enviando respuesta:', error);
-          this.isUpdatingReclamo = false;
-          this.mostrarError('Error al enviar la respuesta');
-          this.mostrandoFormularioRespuesta = false;
-        }
-      });
   }
 
   eliminarReclamo(reclamo: Reclamo): void {
