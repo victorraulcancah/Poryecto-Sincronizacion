@@ -37,6 +37,9 @@
         <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="card-body"
           [class.registro-modal__body]="modoModal">
 
+          <!-- Solo esto hace scroll; los botones quedan fijos abajo -->
+          <div class="registro-contenido">
+
           <!-- Los bloques se ocultan, no se destruyen: con *ngIf los controles
                se desregistrarían y el guardado perdería esos campos. -->
 
@@ -650,22 +653,17 @@
             </div>
           </div><!-- /pestaña Avanzado -->
 
+          </div><!-- /contenido con scroll -->
+
           <!-- Botones de Acción -->
-          <div class="row mt-4 pt-2 registro-acciones">
-            <div class="col-12">
-              <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                <button type="button" class="btn btn-outline-secondary btn-lg me-md-2" (click)="irListaUsuarios()">
-                    <i class="fas fa-times me-2"></i> Cancelar
-                </button>
-                <button
-                  type="submit"
-                  class="btn btn-primary btn-lg"
-                  >
-                  <i class="fas fa-save me-2"></i>
-                  Registrar Usuario
-                </button>
-              </div>
-            </div>
+          <div class="registro-acciones">
+            <button type="button" class="btn btn-cancelar" (click)="irListaUsuarios()">
+              <i class="fas fa-times"></i> Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i>
+              Registrar Usuario
+            </button>
           </div>
 
           <!-- Debug Info (Solo para desarrollo - Eliminar en producción) -->

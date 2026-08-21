@@ -27,10 +27,11 @@
   }
 
   // Alto fijo (no máximo): el modal no debe cambiar de tamaño al cambiar de
-  // pestaña ni respecto al de Editar Usuario.
+  // pestaña ni respecto al de Editar Usuario. El tope evita que en pantallas
+  // grandes quede un modal enorme con media pantalla vacía.
   &__card {
-    height: 88vh;
-    max-height: 88vh;
+    height: 80vh;
+    max-height: 720px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -38,13 +39,29 @@
     animation: registroModalEntra 0.25s ease-out;
   }
 
-  // El cuerpo es lo único que hace scroll; la cabecera queda fija.
+  // El cuerpo se reparte entre el contenido (que hace scroll) y el pie con
+  // los botones, que queda pegado abajo en vez de flotar tras los campos.
   &__body {
     flex: 1;
-    overflow-y: auto;
     min-height: 0;
-  }
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
 
+    .registro-contenido {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 22px 28px;
+    }
+
+    .registro-acciones {
+      flex-shrink: 0;
+      margin: 0;
+      padding: 14px 28px;
+    }
+  }
 }
 
 // ══════════════════════════════════════════════════════════════════════
@@ -287,20 +304,27 @@
 $rojo: #d32027;
 $rojo-oscuro: #b01a20;
 
+// El estilo global de _registro.scss pinta este botón con un degradado azul
+// usando la propiedad `background` (o sea, background-image): con solo cambiar
+// background-color el degradado seguía encima. Por eso se anula la imagen.
 .btn-primary {
-  background-color: $rojo;
-  border-color: $rojo;
+  background: $rojo !important;
+  background-image: none !important;
+  border: 1px solid $rojo !important;
+  color: #fff !important;
+  box-shadow: none !important;
 
   &:hover,
   &:focus,
   &:active {
-    background-color: $rojo-oscuro !important;
+    background: $rojo-oscuro !important;
     border-color: $rojo-oscuro !important;
+    box-shadow: none !important;
   }
 
-  &:focus,
-  &:focus-visible {
-    box-shadow: 0 0 0 0.2rem rgba(211, 32, 39, 0.25) !important;
+  &:disabled {
+    background: #d1d5db !important;
+    border-color: #d1d5db !important;
   }
 }
 
@@ -406,15 +430,44 @@ $rojo-oscuro: #b01a20;
   }
 }
 
-// Botones del pie: mismo tamaño que en el modal de Editar Usuario.
+// Pie con los botones, igual que en el modal de Editar Usuario.
 .registro-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
   margin-top: 24px;
   padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
 
   .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     padding: 10px 22px;
     font-size: 0.95rem;
     border-radius: 8px;
     font-weight: 500;
+    // Sin animaciones: el color no cambia al pasar el mouse.
+    transition: none;
+    transform: none !important;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+}
+
+// Cancelar: gris fijo, sin hover que lo cambie.
+.btn-cancelar {
+  background: #6b7280;
+  border: 1px solid #6b7280;
+  color: #fff;
+
+  &:hover,
+  &:focus,
+  &:active {
+    background: #6b7280 !important;
+    border-color: #6b7280 !important;
+    color: #fff !important;
+    box-shadow: none !important;
   }
 }

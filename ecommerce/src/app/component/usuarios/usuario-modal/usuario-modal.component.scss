@@ -21,8 +21,8 @@
   // Mismo tamaño que el modal de Crear Usuario, y fijo: así no cambia de
   // tamaño al pasar de una pestaña a otra.
   max-width: 1000px;
-  height: 88vh;
-  max-height: 88vh;
+  height: 80vh;
+  max-height: 720px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -753,4 +753,83 @@
 .badge.bg-main-50 {
   background-color: rgba(211, 32, 39, 0.1) !important;
   color: #d32027 !important;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  El pie con los botones va pegado abajo del modal, no flotando después
+//  del último campo (con el alto fijo quedaba un vacío enorme debajo).
+// ══════════════════════════════════════════════════════════════════════
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+
+  > form {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    // Solo la pestaña visible hace scroll; las ocultas no ocupan espacio.
+    > div:not(.modal-footer) {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 24px 32px;
+    }
+
+    > .modal-footer {
+      flex-shrink: 0;
+      padding: 14px 28px;
+    }
+  }
+}
+
+// Los pasos del asistente de vinculación no llevan formulario: su cuerpo
+// mantiene el padding de siempre.
+.modal-body.vinculacion-body {
+  padding: 24px 32px;
+}
+
+// La pantalla de "vinculación realizada" queda centrada en el modal.
+.modal-body.vinculacion-exito {
+  justify-content: center;
+}
+
+// Botones del pie: color fijo, sin animación al pasar el mouse.
+.modal-footer .btn {
+  transition: none;
+  transform: none !important;
+
+  &.btn-secondary,
+  &.btn-secondary:hover,
+  &.btn-secondary:focus,
+  &.btn-secondary:active {
+    background: #6b7280 !important;
+    border-color: #6b7280 !important;
+    color: #fff !important;
+    box-shadow: none !important;
+  }
+
+  &.btn-primary {
+    background: #d32027 !important;
+    background-image: none !important;
+    border-color: #d32027 !important;
+    box-shadow: none !important;
+
+    &:hover:not(:disabled),
+    &:focus:not(:disabled),
+    &:active:not(:disabled) {
+      background: #b01a20 !important;
+      border-color: #b01a20 !important;
+    }
+
+    &:disabled {
+      background: #d1d5db !important;
+      border-color: #d1d5db !important;
+    }
+  }
 }
