@@ -205,6 +205,20 @@ class AdminController extends Controller
 
         Log::info('AuthController@register - Iniciando validación de datos');
 
+        // El captcha se verifica en el servidor: sin un token resuelto no se
+        // crea la cuenta, aunque el POST venga directo sin pasar por la web.
+        if (! CaptchaController::consumirToken($request->input('captcha_token'))) {
+            Log::warning('AuthController@register - Registro rechazado: captcha no resuelto', [
+                'ip' => $request->ip(),
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Completa el captcha para registrarte.',
+                'errors' => ['captcha_token' => ['El captcha no se resolvió o ya caducó.']],
+            ], 422);
+        }
+
         // Validaciones con mensajes personalizados
         $request->validate([
             'nombres' => 'required|string|max:255',

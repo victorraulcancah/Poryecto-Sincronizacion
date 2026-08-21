@@ -35,6 +35,10 @@ use Illuminate\Support\Facades\Route;
 // ============================================
 Route::post('/login', [AdminController::class, 'login'])->name('login');
 Route::post('/register', [AdminController::class, 'register']);
+
+// Rompecabezas del registro. El servidor arma el desafío y verifica el orden.
+Route::get('/captcha/desafio', [\App\Http\Controllers\CaptchaController::class, 'desafio']);
+Route::post('/captcha/verificar', [\App\Http\Controllers\CaptchaController::class, 'verificar']);
 Route::post('/check-email', [AdminController::class, 'checkEmail']);
 Route::post('/check-documento', [AdminController::class, 'checkDocumento']);
 

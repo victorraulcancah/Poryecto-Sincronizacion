@@ -250,4 +250,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/reclamos/{id}/respuesta', [ReclamosController::class, 'actualizarRespuesta']);
     Route::patch('/reclamos/{id}/estado', [ReclamosController::class, 'cambiarEstado']);
     Route::delete('/reclamos/{id}', [ReclamosController::class, 'destroy']);
+
+    // ============================================
+    // CAPTCHA: imágenes del rompecabezas del registro
+    // ============================================
+    Route::middleware('permission:configuracion.ver')->group(function () {
+        Route::get('/captcha/imagenes', [\App\Http\Controllers\CaptchaController::class, 'index']);
+    });
+
+    Route::middleware('permission:configuracion.edit')->group(function () {
+        Route::post('/captcha/imagenes', [\App\Http\Controllers\CaptchaController::class, 'store']);
+        Route::put('/captcha/imagenes/{id}', [\App\Http\Controllers\CaptchaController::class, 'update']);
+        Route::delete('/captcha/imagenes/{id}', [\App\Http\Controllers\CaptchaController::class, 'destroy']);
+    });
 });

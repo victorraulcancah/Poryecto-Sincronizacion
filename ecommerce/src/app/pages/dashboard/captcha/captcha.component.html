@@ -1,0 +1,136 @@
+<!-- Imágenes del rompecabezas del registro -->
+<div class="captcha">
+
+  <div class="captcha__cabecera">
+    <div>
+      <h4>
+        <i class="ph ph-puzzle-piece"></i>
+        Captcha del registro
+      </h4>
+      <p>
+        Imágenes que se usan para armar el rompecabezas. En cada registro se elige
+        una al azar entre las activas.
+      </p>
+    </div>
+    <button type="button" class="btn btn-agregar" (click)="abrirFormulario()">
+      <i class="ph ph-plus"></i>
+      Agregar imagen
+    </button>
+  </div>
+
+  <!-- Aviso cuando no queda ninguna activa -->
+  <div class="aviso-alerta" *ngIf="!isLoading && activas === 0">
+    <i class="ph ph-warning-circle"></i>
+    <div>
+      <strong>No hay ninguna imagen activa.</strong>
+      Sin imágenes el captcha no se puede mostrar y nadie podrá registrarse.
+    </div>
+  </div>
+
+  <div class="captcha__resumen" *ngIf="!isLoading">
+    <span><strong>{{ imagenes.length }}</strong> imágenes</span>
+    <span class="separador">·</span>
+    <span><strong>{{ activas }}</strong> activas</span>
+  </div>
+
+  <!-- Cargando -->
+  <div class="cargando" *ngIf="isLoading">
+    <span class="spinner-border"></span>
+    <span>Cargando imágenes...</span>
+  </div>
+
+  <!-- Sin imágenes -->
+  <div class="vacio" *ngIf="!isLoading && imagenes.length === 0">
+    <i class="ph ph-image"></i>
+    <p>Todavía no hay imágenes cargadas.</p>
+    <button type="button" class="btn btn-agregar" (click)="abrirFormulario()">
+      <i class="ph ph-plus"></i> Agregar la primera
+    </button>
+  </div>
+
+  <!-- Grilla -->
+  <div class="grilla" *ngIf="!isLoading && imagenes.length > 0">
+    <div class="tarjeta" *ngFor="let img of imagenes; trackBy: trackPorId"
+      [class.tarjeta--inactiva]="!img.activo">
+
+      <!-- Vista previa partida en 4, como se ve en el registro -->
+      <div class="tarjeta__previa">
+        <img [src]="urlImagen(img.ruta)" [alt]="img.nombre">
+        <div class="tarjeta__rejilla">
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <span class="tarjeta__estado" [class.tarjeta__estado--activo]="img.activo">
+          {{ img.activo ? 'Activa' : 'Inactiva' }}
+        </span>
+      </div>
+
+      <div class="tarjeta__pie">
+        <div class="tarjeta__nombre" [title]="img.nombre">{{ img.nombre }}</div>
+        <div class="tarjeta__acciones">
+          <button type="button" class="btn-accion"
+            [class.btn-accion--on]="img.activo"
+            [title]="img.activo ? 'Desactivar' : 'Activar'"
+            (click)="alternarActivo(img)">
+            <i class="ph" [class.ph-eye]="img.activo" [class.ph-eye-slash]="!img.activo"></i>
+          </button>
+          <button type="button" class="btn-accion btn-accion--eliminar" title="Eliminar"
+            (click)="eliminar(img)">
+            <i class="ph ph-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ Modal para subir una imagen ════════════ -->
+<div class="modal-fondo" *ngIf="mostrandoFormulario" (click)="cerrarFormulario()">
+  <div class="modal-caja" (click)="$event.stopPropagation()">
+
+    <div class="modal-caja__head">
+      <div class="modal-caja__titulo">
+        <span class="modal-caja__icono"><i class="ph ph-image"></i></span>
+        <div>
+          <h2>Agregar imagen</h2>
+          <p>Se partirá en 4 piezas para armar el rompecabezas</p>
+        </div>
+      </div>
+      <button type="button" class="btn-cerrar" (click)="cerrarFormulario()">
+        <i class="ph ph-x"></i>
+      </button>
+    </div>
+
+    <div class="modal-caja__cuerpo">
+      <label class="etiqueta">Nombre <span class="req">*</span></label>
+      <input type="text" class="form-control mb-3" [(ngModel)]="nombreNuevo"
+        maxlength="120" placeholder="Ej.: Taza de café">
+
+      <label class="etiqueta">Imagen <span class="req">*</span></label>
+      <label class="zona-subida">
+        <input type="file" accept="image/jpeg,image/png,image/webp" hidden
+          (change)="onArchivoSeleccionado($event)">
+        <ng-container *ngIf="!previewNuevo">
+          <i class="ph ph-upload-simple"></i>
+          <strong>Elegir imagen</strong>
+          <small>JPG, PNG o WEBP · máx. 4 MB</small>
+        </ng-container>
+        <img *ngIf="previewNuevo" [src]="previewNuevo" alt="Vista previa">
+      </label>
+
+      <p class="ayuda">
+        Usa imágenes <strong>cuadradas</strong> y con detalle repartido: se cortan en
+        4 partes iguales y si son muy planas las piezas quedan indistinguibles.
+      </p>
+    </div>
+
+    <div class="modal-caja__pie">
+      <button type="button" class="btn btn-cancelar" (click)="cerrarFormulario()" [disabled]="subiendo">
+        Cancelar
+      </button>
+      <button type="button" class="btn btn-guardar" (click)="guardar()" [disabled]="subiendo">
+        <span *ngIf="subiendo" class="spinner-border spinner-border-sm me-2"></span>
+        {{ subiendo ? 'Subiendo...' : 'Guardar' }}
+      </button>
+    </div>
+  </div>
+</div>

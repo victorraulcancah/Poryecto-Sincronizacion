@@ -1,0 +1,234 @@
+// ══════════════════════════════════════════════════════════════════════
+//  Captcha del registro (rompecabezas)
+// ══════════════════════════════════════════════════════════════════════
+
+$rojo: #d32027;
+$rojo-oscuro: #b01a20;
+
+.captcha {
+  text-align: center;
+
+  &__titulo {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 10px;
+  }
+
+  &__ayuda {
+    max-width: 520px;
+    margin: 0 auto 18px;
+    padding: 11px 14px;
+    background: #fdecec;
+    border: 1px solid rgba(211, 32, 39, 0.25);
+    border-radius: 10px;
+    font-size: 0.86rem;
+    line-height: 1.5;
+    color: #7f1d1d;
+
+    i { color: $rojo; margin-right: 6px; }
+  }
+
+  &__cargando,
+  &__error-carga {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 28px 16px;
+    font-size: 0.9rem;
+    color: #6b7280;
+  }
+
+  &__error-carga {
+    flex-wrap: wrap;
+    color: #b91c1c;
+
+    i { font-size: 20px; }
+  }
+
+  &__reintentar {
+    border: 1px solid $rojo;
+    background: #fff;
+    color: $rojo;
+    border-radius: 8px;
+    padding: 6px 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  &__caja {
+    display: inline-block;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 20px;
+  }
+
+  &__tablero {
+    display: grid;
+    grid-template-columns: repeat(2, 150px);
+    grid-template-rows: repeat(2, 150px);
+    gap: 4px;
+    margin: 0 auto 18px;
+    padding: 10px;
+    background: #fff;
+    border: 2px solid $rojo;
+    border-radius: 14px;
+  }
+
+  &__numero {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #94a3b8;
+  }
+
+  &__bandeja {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    min-height: 96px;
+    padding: 12px;
+    background: #fff;
+    border: 2px dashed #d1d5db;
+    border-radius: 12px;
+  }
+
+  &__bandeja-vacia {
+    font-size: 0.82rem;
+    color: #9ca3af;
+  }
+
+  &__resultado {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 0.88rem;
+    font-weight: 600;
+
+    i { font-size: 18px; }
+
+    &--error {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #b91c1c;
+    }
+
+    &--ok {
+      background: #dcfce7;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+    }
+  }
+
+  &__acciones {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border-radius: 8px;
+    padding: 10px 24px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: none;
+
+    &--reiniciar {
+      background: #fff;
+      border: 1px solid #d1d5db;
+      color: #4b5563;
+
+      &:hover { background: #f3f4f6; }
+    }
+
+    &--confirmar {
+      background: $rojo;
+      border: 1px solid $rojo;
+      color: #fff;
+
+      &:hover:not(:disabled) { background: $rojo-oscuro; border-color: $rojo-oscuro; }
+
+      &:disabled {
+        background: #d1d5db;
+        border-color: #d1d5db;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  &__pista {
+    margin: 10px 0 0;
+    font-size: 0.8rem;
+    color: #6b7280;
+  }
+}
+
+.puzzle-placeholder {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+
+  &.over { border-color: $rojo; background: #fdecec; }
+
+  // Con una pieza puesta se puede sacar con un clic.
+  &.ocupado {
+    border-style: solid;
+    border-color: transparent;
+    cursor: pointer;
+
+    &:hover::after {
+      content: 'Quitar';
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(17, 24, 39, 0.55);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+  }
+}
+
+.puzzle-piece {
+  border-radius: 6px;
+
+  &.colocada {
+    width: 100%;
+    height: 100%;
+  }
+
+  &.suelta {
+    width: 84px;
+    height: 84px;
+    cursor: grab;
+    border: 2px solid #fff;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
+
+    &:active { cursor: grabbing; }
+  }
+}
+
+@media (max-width: 575px) {
+  .captcha__caja { padding: 12px; }
+  .captcha__bandeja { gap: 6px; padding: 8px; }
+}

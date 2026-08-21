@@ -512,6 +512,16 @@
           <span *ngIf="!isCollapsed" class="fw-medium">Configuración</span>
         </a>
       </li>
+
+      <!-- Captcha del registro -->
+      <li class="mb-8">
+        <a routerLink="/dashboard/captcha" routerLinkActive="active"
+          class="nav-link flex-align gap-12 px-16 py-12 text-white text-decoration-none rounded-8 transition-2 hover-bg-main-500">
+          <i class="ph ph-puzzle-piece text-xl flex-shrink-0"></i>
+          <span *ngIf="!isCollapsed" class="fw-medium">Captcha</span>
+        </a>
+      </li>
+
       <!-- Información de Empresa -->
       <li *ngIf="puedeVerEmpresaInfo" class="mb-8">
         <a routerLink="/dashboard/empresa-info" routerLinkActive="active"

@@ -1010,6 +1010,17 @@ export const routes: Routes = [
         title: 'Configuración del Sistema',
         canActivate: [authGuard],
       },
+      {
+        // Imágenes del rompecabezas del registro público.
+        path: 'captcha',
+        loadComponent: () =>
+          import('./pages/dashboard/captcha/captcha.component').then(
+            (m) => m.CaptchaComponent
+          ),
+        title: 'Captcha del registro',
+        canActivate: [permissionGuard],
+        data: { permission: 'configuracion.ver' },
+      },
       // ✅ RUTAS DE FACTURACIÓN ELECTRÓNICA
       // La ruta POS ahora está en /dashboard/ventas/nueva
       {

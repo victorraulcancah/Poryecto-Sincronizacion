@@ -12,6 +12,7 @@ import { BreadcrumbComponent } from '../../component/breadcrumb/breadcrumb.compo
 import { ShippingComponent } from '../../component/shipping/shipping.component';
 import { AuthService } from '../../services/auth.service';
 import { ReniecService } from '../../services/reniec.service';
+import { CaptchaService } from '../../services/captcha.service';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import {
   UbigeoService,
@@ -61,7 +62,12 @@ export class RegisterComponent implements OnInit {
   puzzlePieces: any[] = [];
   puzzleBoard: (any | null)[] = [null, null, null, null];
   selectedPuzzleImage = '';
-  private puzzleImages: string[] = [];
+
+  /** Token del desafío; se manda al registrarse como prueba de que se resolvió. */
+  puzzleToken = '';
+  cargandoPuzzle = false;
+  verificandoPuzzle = false;
+  puzzleMensaje = '';
   private draggedPiece: any = null;
   showPuzzle = false;
   puzzleError = false;
@@ -83,7 +89,8 @@ export class RegisterComponent implements OnInit {
     private authService: AuthService,
     private router: Router,
     private reniecService: ReniecService,
-    private ubigeoService: UbigeoService
+    private ubigeoService: UbigeoService,
+    private captchaService: CaptchaService
   ) {}
 
   ngOnInit(): void {
@@ -98,45 +105,46 @@ export class RegisterComponent implements OnInit {
     if (this.authService.isLoggedIn()) {
       this.router.navigate(['/']);
     }
-    this.initializePuzzleImages();
     this.setupPuzzle();
   }
 
   // --- Métodos para el Puzzle CAPTCHA ---
 
-  initializePuzzleImages(): void {
-    // **REEMPLAZA ESTAS URLS CON LAS 8 IMÁGENES QUE QUIERAS USAR**
-    this.puzzleImages = [
-      'https://img.freepik.com/fotos-premium/cerezos-flor-aldea-japonesa-paisaje-anime-manga-ilustracion_691560-7845.jpg',
-      'https://img.freepik.com/vector-premium/imagen-gatito_1138544-28699.jpg',
-      'https://static.vecteezy.com/system/resources/previews/011/194/544/non_2x/town-night-anime-background-photo.jpg',
-      'https://cafesabora.com/sites/default/files/taza-para-cafe_0.jpg',
-      'https://i.pinimg.com/originals/38/44/04/384404885abaa598f5a26fe8672c179d.jpg',
-      'https://i.pinimg.com/736x/2a/ec/c7/2aecc77f26354b5c12538ea63c1151c7.jpg',
-      'https://imgmedia.larepublica.pe/640x374/larepublica/original/2023/08/04/64ccfed7bc6c3c375112b8c9.webp',
-      'assets/images/puzzle/logo_puzzle.jpg',
-    ];
-    console.log('Puzzle images initialized:', this.puzzleImages);
-  }
-
+  /**
+   * Las imágenes ya no viven en el código: las administra el panel
+   * (dashboard/captcha) y el servidor manda una al azar entre las activas.
+   */
   setupPuzzle(): void {
     this.puzzleSolved = false;
     this.puzzleBoard = [null, null, null, null];
-    this.selectedPuzzleImage = this.puzzleImages[Math.floor(Math.random() * this.puzzleImages.length)];
-    console.log('Selected puzzle image:', this.selectedPuzzleImage);
+    this.puzzlePieces = [];
+    this.puzzleError = false;
+    this.puzzleMensaje = '';
+    this.cargandoPuzzle = true;
 
-    const pieces = [];
-    for (let i = 0; i < 4; i++) {
-      pieces.push({
-        id: i,
-        style: {
-          'background-image': `url(${this.selectedPuzzleImage})`,
-          'background-position': `${(i % 2) * -150}px ${(Math.floor(i / 2)) * -150}px`,
-        }
-      });
-    }
-    this.puzzlePieces = this.shuffle(pieces);
-    console.log('Puzzle pieces generated:', this.puzzlePieces);
+    this.captchaService.obtenerDesafio().subscribe({
+      next: (desafio) => {
+        this.puzzleToken = desafio.token;
+        this.selectedPuzzleImage = this.captchaService.urlImagen(desafio.imagen);
+
+        // El servidor manda el orden barajado; el navegador solo lo dibuja.
+        // `style` es la pieza a tamaño del tablero (150px) y `styleMini` la de
+        // la bandeja (84px): si se comparte una sola, la que se muestra chica
+        // recorta el trozo equivocado de la imagen.
+        this.puzzlePieces = desafio.piezas.map((id) => ({
+          id,
+          style: this.estiloDePieza(id, 150),
+          styleMini: this.estiloDePieza(id, 84),
+        }));
+
+        this.cargandoPuzzle = false;
+      },
+      error: () => {
+        this.cargandoPuzzle = false;
+        this.puzzleMensaje =
+          'No se pudo cargar el captcha. Recarga la página o inténtalo en un momento.';
+      },
+    });
   }
 
   shuffle(array: any[]): any[] {
@@ -169,36 +177,80 @@ export class RegisterComponent implements OnInit {
     const target = event.target as HTMLElement;
     target.classList.remove('over');
 
-    if (this.puzzleBoard[index] === null) { // Si el espacio está libre
-      // Mover la pieza del contenedor de piezas al tablero
+    if (this.puzzleBoard[index] === null && this.draggedPiece) {
+      // Mover la pieza del contenedor de piezas al tablero. Ya no se valida
+      // aquí: la comprobación es al pulsar "Confirmar".
       this.puzzleBoard[index] = this.draggedPiece;
       this.puzzlePieces = this.puzzlePieces.filter(p => p.id !== this.draggedPiece.id);
       this.draggedPiece = null;
-      this.checkPuzzle();
+      this.puzzleError = false;
+      this.puzzleMensaje = '';
     }
   }
 
-  checkPuzzle(): void {
-    const isSolved = this.puzzleBoard.every((piece, i) => piece && piece.id === i);
-    if (isSolved) {
-      this.puzzleSolved = true;
-      this.puzzleError = false; // Limpiar error si se resuelve correctamente
-      // Ocultar el puzzle después de un breve delay para mostrar el éxito
-      setTimeout(() => {
-        this.showPuzzle = false;
-      }, 2000);
-    } else {
-      // Verificar si todas las posiciones están ocupadas pero mal colocadas
-      const allPositionsFilled = this.puzzleBoard.every(piece => piece !== null);
-      if (allPositionsFilled) {
-        this.puzzleError = true; // Mostrar error si está completo pero mal
-        // Opcional: resetear automáticamente después de mostrar el error
-        setTimeout(() => {
-          this.resetPuzzle();
-          this.puzzleError = false;
-        }, 2000);
-      }
-    }
+  /**
+   * Estilo de una pieza para un tamaño de casilla dado. La imagen completa se
+   * escala al doble del lado (2×2 piezas) y se desplaza al cuadrante que toca.
+   */
+  private estiloDePieza(id: number, lado: number): Record<string, string> {
+    return {
+      'background-image': `url(${this.selectedPuzzleImage})`,
+      'background-size': `${lado * 2}px ${lado * 2}px`,
+      'background-position': `${(id % 2) * -lado}px ${Math.floor(id / 2) * -lado}px`,
+      'background-repeat': 'no-repeat',
+    };
+  }
+
+  /** Devuelve una pieza colocada a la bandeja, para poder corregir. */
+  quitarPieza(index: number): void {
+    const pieza = this.puzzleBoard[index];
+    if (!pieza) return;
+
+    this.puzzleBoard[index] = null;
+    this.puzzlePieces = [...this.puzzlePieces, pieza];
+    this.puzzleError = false;
+    this.puzzleMensaje = '';
+  }
+
+  /** ¿Están los cuatro huecos ocupados? Habilita el botón de confirmar. */
+  get puzzleCompleto(): boolean {
+    return this.puzzleBoard.every(pieza => pieza !== null);
+  }
+
+  /**
+   * Confirma el rompecabezas. El orden se comprueba en el servidor: el
+   * navegador nunca supo cuál era el correcto.
+   */
+  confirmarPuzzle(): void {
+    if (!this.puzzleCompleto || this.verificandoPuzzle) return;
+
+    this.verificandoPuzzle = true;
+    this.puzzleError = false;
+    this.puzzleMensaje = '';
+
+    const orden = this.puzzleBoard.map(pieza => pieza!.id);
+
+    this.captchaService.verificar(this.puzzleToken, orden).subscribe({
+      next: () => {
+        this.verificandoPuzzle = false;
+        this.puzzleSolved = true;
+        setTimeout(() => (this.showPuzzle = false), 1200);
+      },
+      error: (error) => {
+        this.verificandoPuzzle = false;
+        this.puzzleError = true;
+
+        // Si caducó no sirve reintentar con el mismo desafío: se pide otro.
+        if (error?.error?.expirado) {
+          this.puzzleMensaje = 'El captcha caducó. Te preparamos uno nuevo.';
+          setTimeout(() => this.setupPuzzle(), 1500);
+          return;
+        }
+
+        this.puzzleMensaje =
+          error?.error?.message || 'Las piezas no están en el orden correcto.';
+      },
+    });
   }
 
   initForms(): void {
@@ -555,7 +607,10 @@ export class RegisterComponent implements OnInit {
     this.registerSuccess = '';
 
     const registerData = { ...this.registerForm.value };
-    
+
+    // Prueba de que el captcha se resolvió; el servidor la exige y la consume.
+    registerData.captcha_token = this.puzzleToken;
+
     // Asegurar que ubigeo sea string si existe
     if (registerData.ubigeo) {
       registerData.ubigeo = String(registerData.ubigeo);
@@ -646,26 +701,19 @@ export class RegisterComponent implements OnInit {
     return this.registerForm.get('password_confirmation');
   }
 
-  // Nueva función para resetear el puzzle
+  /**
+   * Devuelve todas las piezas a la bandeja sin pedir otro desafío: el token
+   * sigue siendo válido, solo se vacía el tablero.
+   */
   resetPuzzle(): void {
     this.puzzleSolved = false;
     this.puzzleError = false;
+    this.puzzleMensaje = '';
+
+    const colocadas = this.puzzleBoard.filter(Boolean);
     this.puzzleBoard = [null, null, null, null];
-    
-    // Recrear las piezas originales
-    const pieces = [];
-    for (let i = 0; i < 4; i++) {
-      pieces.push({
-        id: i,
-        style: {
-          'background-image': `url(${this.selectedPuzzleImage})`,
-          'background-position': `${(i % 2) * -150}px ${(Math.floor(i / 2)) * -150}px`,
-        }
-      });
-    }
-    this.puzzlePieces = this.shuffle(pieces);
+    this.puzzlePieces = this.shuffle([...this.puzzlePieces, ...colocadas]);
   }
-  
 }
 
 
