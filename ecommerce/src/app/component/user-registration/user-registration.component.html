@@ -6,12 +6,17 @@
     (click)="$event.stopPropagation()">
     <div class="col-12 col-lg-10 col-xl-8" [class.registro-modal__col]="modoModal">
       <div class="card shadow-lg border-0" [class.registro-modal__card]="modoModal">
-        <div class="card-header bg-primary text-white py-3 d-flex align-items-center justify-content-between">
-          <h4 class="mb-0">
-            <i class="fas fa-user-plus me-2"></i>
-            Registro de Usuario
-          </h4>
-          <button *ngIf="modoModal" type="button" class="registro-modal__cerrar"
+        <div class="registro-cabecera">
+          <div class="registro-cabecera__titulo">
+            <span class="registro-cabecera__icono">
+              <i class="fas fa-user-plus"></i>
+            </span>
+            <div>
+              <h2>Crear Usuario</h2>
+              <p>Completa los datos de cada pestaña para registrar la cuenta</p>
+            </div>
+          </div>
+          <button *ngIf="modoModal" type="button" class="registro-cabecera__cerrar"
             (click)="irListaUsuarios()" aria-label="Cerrar">
             <i class="fas fa-times"></i>
           </button>

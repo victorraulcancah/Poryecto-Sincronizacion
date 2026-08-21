@@ -40,42 +40,82 @@
   }
 }
 
+// Misma cabecera roja que el modal de Crear Usuario, para que los dos se
+// vean como una sola cosa.
 .modal-header {
-  padding: 24px 32px;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 20px 28px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #f9fafb;
+  gap: 16px;
+  background: #d32027;
+  color: #fff;
+  flex-shrink: 0;
+
+  &__titulo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+
+    p {
+      margin: 2px 0 0;
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.82);
+    }
+  }
+
+  &__icono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.18);
+    font-size: 22px;
+    flex-shrink: 0;
+  }
 
   h2 {
     margin: 0;
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #111827;
+    font-size: 1.4rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #fff;
   }
 
   .btn-close {
     background: none;
     border: none;
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #6b7280;
+    color: #fff;
+    flex-shrink: 0;
     transition: all 0.2s ease;
     cursor: pointer;
 
     &:hover {
-      background-color: #f3f4f6;
-      color: #374151;
+      background-color: rgba(255, 255, 255, 0.2);
     }
 
     i {
       font-size: 16px;
     }
+  }
+}
+
+@media (max-width: 575px) {
+  .modal-header {
+    padding: 16px 18px;
+
+    &__titulo p { display: none; }
+
+    h2 { font-size: 1.15rem; }
   }
 }
 
@@ -430,18 +470,21 @@
   }
 }
 
-// Título con el número del paso del asistente
+// Número del paso del asistente. Va sobre la cabecera roja, así que se
+// invierte: fondo blanco y texto rojo.
 .paso-numero {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  background: #d32027;
-  color: #fff;
+  background: #fff;
+  color: #d32027;
   font-size: 0.95rem;
+  font-weight: 700;
   margin-right: 10px;
+  flex-shrink: 0;
 }
 
 .vinculacion-body {
@@ -664,4 +707,50 @@
     &:hover { background: #f3f4f6; }
     &.text-danger { color: #dc3545; }
   }
+}
+
+// Los pasos del asistente usan un h2 con el número dentro, sin bloque de
+// título/subtítulo: se alinean igual que la cabecera principal.
+.modal-header > h2 {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  Rojo institucional en vez del azul: los dos modales de usuario deben
+//  verse como una sola cosa.
+// ══════════════════════════════════════════════════════════════════════
+
+.form-section .section-title i {
+  color: #d32027;
+}
+
+.form-group .form-control:focus {
+  border-color: rgba(211, 32, 39, 0.55);
+  box-shadow: 0 0 0 3px rgba(211, 32, 39, 0.12);
+}
+
+.address-card:hover {
+  border-color: rgba(211, 32, 39, 0.4);
+  box-shadow: 0 4px 12px rgba(211, 32, 39, 0.1);
+}
+
+.address-header .address-title i {
+  color: #d32027;
+}
+
+.modal-footer .btn.btn-primary {
+  background: #d32027;
+  border-color: #d32027;
+
+  &:hover:not(:disabled) {
+    background: #b01a20;
+    border-color: #b01a20;
+  }
+}
+
+.badge.bg-main-50 {
+  background-color: rgba(211, 32, 39, 0.1) !important;
+  color: #d32027 !important;
 }

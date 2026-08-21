@@ -180,7 +180,15 @@
     <!-- ═══════════════ Formulario del usuario ═══════════════ -->
     <ng-container *ngIf="!mostrandoBusqueda">
     <div class="modal-header">
-      <h2>{{ mode === 'edit' ? 'Editar Usuario' : 'Ver Usuario' }}</h2>
+      <div class="modal-header__titulo">
+        <span class="modal-header__icono">
+          <i class="ph" [class.ph-pencil-simple]="mode === 'edit'" [class.ph-eye]="mode === 'view'"></i>
+        </span>
+        <div>
+          <h2>{{ mode === 'edit' ? 'Editar Usuario' : 'Ver Usuario' }}</h2>
+          <p>{{ mode === 'edit' ? 'Modifica los datos y la vinculación con Novik' : 'Datos de la cuenta' }}</p>
+        </div>
+      </div>
       <button class="btn-close" (click)="cerrarModal()">
         <i class="ph ph-x"></i>
       </button>

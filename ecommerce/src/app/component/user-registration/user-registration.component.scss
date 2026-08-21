@@ -45,20 +45,78 @@
     min-height: 0;
   }
 
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  Cabecera (rojo institucional, igual en página y en modal)
+// ══════════════════════════════════════════════════════════════════════
+
+.registro-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 28px;
+  background: #d32027;
+  color: #fff;
+  flex-shrink: 0;
+
+  &__titulo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+
+    h2 {
+      margin: 0;
+      font-size: 1.4rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    p {
+      margin: 2px 0 0;
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.82);
+    }
+  }
+
+  &__icono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.18);
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
   &__cerrar {
     background: none;
     border: none;
     color: #fff;
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     border-radius: 8px;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
     transition: background 0.15s ease;
 
-    &:hover { background: rgba(255, 255, 255, 0.18); }
+    &:hover { background: rgba(255, 255, 255, 0.2); }
+  }
+}
+
+@media (max-width: 575px) {
+  .registro-cabecera {
+    padding: 16px 18px;
+
+    &__titulo p { display: none; }
+    h2 { font-size: 1.15rem; }
   }
 }
 
@@ -111,17 +169,14 @@
     &:hover { color: #111827; }
 
     &--activo {
-      color: #0d6efd;
-      border-bottom-color: #0d6efd;
+      color: #d32027;
+      border-bottom-color: #d32027;
     }
 
     // Con campos obligatorios sin llenar se avisa aunque no sea la activa.
+    // Se distingue de la activa por el punto, no por el color.
     &--error {
-      color: #dc3545;
-
-      &.registro-tabs__item--activo {
-        border-bottom-color: #dc3545;
-      }
+      color: #b91c1c;
     }
   }
 
@@ -222,5 +277,144 @@
     display: flex;
     align-items: center;
     gap: 10px;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  Rojo institucional en vez del azul de Bootstrap
+// ══════════════════════════════════════════════════════════════════════
+
+$rojo: #d32027;
+$rojo-oscuro: #b01a20;
+
+.btn-primary {
+  background-color: $rojo;
+  border-color: $rojo;
+
+  &:hover,
+  &:focus,
+  &:active {
+    background-color: $rojo-oscuro !important;
+    border-color: $rojo-oscuro !important;
+  }
+
+  &:focus,
+  &:focus-visible {
+    box-shadow: 0 0 0 0.2rem rgba(211, 32, 39, 0.25) !important;
+  }
+}
+
+// Los campos toman el rojo al enfocarse, no el azul del tema.
+.form-control:focus,
+.form-select:focus {
+  border-color: rgba(211, 32, 39, 0.55);
+  box-shadow: 0 0 0 0.2rem rgba(211, 32, 39, 0.15);
+}
+
+.form-check-input:checked {
+  background-color: $rojo;
+  border-color: $rojo;
+}
+
+// Íconos de los títulos de sección: un solo color, no tres distintos.
+.section-title i {
+  color: $rojo !important;
+}
+
+.buscador-erp__filtros .chip--activo {
+  background: $rojo;
+  border-color: $rojo;
+}
+
+.vinculo-erp__avatar {
+  background: rgba(211, 32, 39, 0.12);
+  color: $rojo;
+
+  &--gris {
+    background: rgba(108, 117, 125, 0.12);
+    color: #6c757d;
+  }
+}
+
+.btn-outline-primary {
+  color: $rojo;
+  border-color: $rojo;
+
+  &:hover {
+    background-color: $rojo;
+    border-color: $rojo;
+    color: #fff;
+  }
+}
+
+.input-group-text {
+  background-color: #f9fafb;
+  border-color: #dee2e6;
+  color: #6b7280;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  Ajustes sobre los estilos globales de _registro.scss
+//  (bordes de 2px, padding de 12px y foco azul se ven muy pesados dentro
+//   del modal). Solo aplican a este componente por la encapsulación.
+// ══════════════════════════════════════════════════════════════════════
+
+.section-divider {
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 8px;
+  margin-bottom: 18px;
+}
+
+.section-title {
+  margin-top: 0 !important;
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: #111827;
+  display: flex;
+  align-items: center;
+}
+
+.form-label {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 5px;
+}
+
+.form-control,
+.form-select {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 0.94rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input-group-text {
+  border: 1px solid #d1d5db;
+  border-right: none;
+  min-width: 42px;
+}
+
+.address-card .card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+
+  &:hover {
+    border-color: rgba(211, 32, 39, 0.4);
+    box-shadow: 0 4px 12px rgba(211, 32, 39, 0.1);
+  }
+}
+
+// Botones del pie: mismo tamaño que en el modal de Editar Usuario.
+.registro-acciones {
+  margin-top: 24px;
+  padding-top: 20px;
+
+  .btn {
+    padding: 10px 22px;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    font-weight: 500;
   }
 }
