@@ -265,6 +265,18 @@ export class RangoFechasComponent implements OnInit {
     return !dia.delMes;
   }
 
+  /**
+   * Se hizo foco en una de las dos casillas del filtro: se abre el calendario
+   * (si estaba cerrado) y ese extremo pasa a ser el que se está editando.
+   */
+  abrirEn(cual: 'inicio' | 'fin'): void {
+    if (!this.abierto) {
+      this.ubicarPanel();
+      this.abierto = true;
+    }
+    this.editarExtremo(cual);
+  }
+
   /** Pone el foco en un extremo para cambiar solo esa fecha. */
   editarExtremo(cual: 'inicio' | 'fin'): void {
     this.extremo = cual;
@@ -374,10 +386,6 @@ export class RangoFechasComponent implements OnInit {
     this.mesBase = new Date(fecha.getFullYear(), fecha.getMonth(), 1);
   }
 
-  /** Al salir del campo se descarta lo que quedó a medio escribir. */
-  cerrarEdicion(): void {
-    this.sincronizarEntradas();
-  }
 
   /** Día intermedio del rango (ya elegido o en previsualización con el mouse). */
   enRango(dia: Dia): boolean {
@@ -420,12 +428,6 @@ export class RangoFechasComponent implements OnInit {
   }
 
   /** Texto del botón: "01/08/2026 — 07/08/2026". */
-  get resumen(): string {
-    if (!this.seleccionInicio) return 'Seleccionar fechas';
-    const ini = this.formatoCorto(this.seleccionInicio);
-    if (!this.seleccionFin) return ini;
-    return `${ini} — ${this.formatoCorto(this.seleccionFin)}`;
-  }
 
   // ---------------------------------------------------------------- utilidades
 

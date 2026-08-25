@@ -1,10 +1,35 @@
 <div class="rango-fechas">
-  <!-- Disparador -->
-  <button #disparador type="button" class="rango-fechas__trigger" (click)="alternar()">
-    <i class="ph ph-calendar-blank"></i>
-    <span>{{ resumen }}</span>
-    <i class="ph ph-caret-down rango-fechas__caret"></i>
-  </button>
+  <!-- Disparador: las dos fechas se escriben acá mismo, como el filtro de
+       reportes del ERP. El calendario se abre debajo. -->
+  <div #disparador class="rango-fechas__trigger" [class.abierto]="abierto">
+    <i class="ph ph-calendar-blank rango-fechas__icono" (click)="alternar()"></i>
+
+    <input
+      type="text"
+      class="rango-fechas__entrada"
+      [class.activa]="abierto && extremo === 'inicio'"
+      placeholder="dd/mm/aaaa"
+      maxlength="10"
+      [value]="entradaInicio"
+      (focus)="abrirEn('inicio')"
+      (input)="escribir('inicio', $any($event.target).value)"
+    />
+
+    <span class="rango-fechas__separador">→</span>
+
+    <input
+      type="text"
+      class="rango-fechas__entrada"
+      [class.activa]="abierto && extremo === 'fin'"
+      placeholder="dd/mm/aaaa"
+      maxlength="10"
+      [value]="entradaFin"
+      (focus)="abrirEn('fin')"
+      (input)="escribir('fin', $any($event.target).value)"
+    />
+
+    <i class="ph ph-caret-down rango-fechas__caret" (click)="alternar()"></i>
+  </div>
 
   <!-- Panel. Va con position:fixed (ver `posicion` en el componente) porque la
        tarjeta que lo contiene tiene overflow-hidden y lo recortaría. -->
@@ -107,41 +132,11 @@
         </div>
       </div>
 
-      <!-- Pie. Dos campos: el clic en uno decide qué extremo cambia el
-           siguiente día que se elija, sin borrar el otro. -->
+      <!-- Pie. Las fechas se ven y se escriben arriba, en el propio filtro. -->
       <div class="rango-fechas__pie">
-        <div class="rango-fechas__campos">
-          <!-- Se pueden escribir a mano, como el filtro de reportes del ERP. -->
-          <label class="rango-fechas__campo" [class.activo]="extremo === 'inicio'">
-            <span class="rango-fechas__campo-label">Desde</span>
-            <input
-              type="text"
-              class="rango-fechas__campo-input"
-              placeholder="dd/mm/aaaa"
-              maxlength="10"
-              [value]="entradaInicio"
-              (focus)="editarExtremo('inicio')"
-              (input)="escribir('inicio', $any($event.target).value)"
-              (blur)="cerrarEdicion()"
-            />
-          </label>
-
-          <i class="ph ph-arrow-right rango-fechas__flecha"></i>
-
-          <label class="rango-fechas__campo" [class.activo]="extremo === 'fin'">
-            <span class="rango-fechas__campo-label">Hasta</span>
-            <input
-              type="text"
-              class="rango-fechas__campo-input"
-              placeholder="dd/mm/aaaa"
-              maxlength="10"
-              [value]="entradaFin"
-              (focus)="editarExtremo('fin')"
-              (input)="escribir('fin', $any($event.target).value)"
-              (blur)="cerrarEdicion()"
-            />
-          </label>
-        </div>
+        <span class="rango-fechas__resumen">
+          {{ extremo === 'inicio' ? 'Eligiendo la fecha de inicio' : 'Eligiendo la fecha final' }}
+        </span>
 
         <div class="rango-fechas__acciones">
           <button type="button" class="rango-fechas__borrar" (click)="borrar()">Borrar</button>

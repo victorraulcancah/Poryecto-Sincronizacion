@@ -24,21 +24,6 @@ $texto-suave: #6b7280;
     flex-wrap: wrap;
   }
 
-  /* El logo trae el texto "POWER" en blanco (está pensado para la barra roja),
-     así que se muestra sobre el mismo fondo rojo para que se lea. */
-  &__marca {
-    background: $rojo;
-    border-radius: 10px;
-    padding: 10px 16px;
-    display: flex;
-    align-items: center;
-  }
-
-  &__logo {
-    height: 34px;
-    width: auto;
-  }
-
   &__titulo {
     flex: 1 1 320px;
 
