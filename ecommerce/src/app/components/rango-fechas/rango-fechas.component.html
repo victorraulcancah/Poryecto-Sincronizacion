@@ -111,31 +111,36 @@
            siguiente día que se elija, sin borrar el otro. -->
       <div class="rango-fechas__pie">
         <div class="rango-fechas__campos">
-          <button
-            type="button"
-            class="rango-fechas__campo"
-            [class.activo]="extremo === 'inicio'"
-            (click)="editarExtremo('inicio')"
-          >
+          <!-- Se pueden escribir a mano, como el filtro de reportes del ERP. -->
+          <label class="rango-fechas__campo" [class.activo]="extremo === 'inicio'">
             <span class="rango-fechas__campo-label">Desde</span>
-            <span class="rango-fechas__campo-valor" [class.vacio]="!textoInicio">
-              {{ textoInicio || 'dd/mm/aaaa' }}
-            </span>
-          </button>
+            <input
+              type="text"
+              class="rango-fechas__campo-input"
+              placeholder="dd/mm/aaaa"
+              maxlength="10"
+              [value]="entradaInicio"
+              (focus)="editarExtremo('inicio')"
+              (input)="escribir('inicio', $any($event.target).value)"
+              (blur)="cerrarEdicion()"
+            />
+          </label>
 
           <i class="ph ph-arrow-right rango-fechas__flecha"></i>
 
-          <button
-            type="button"
-            class="rango-fechas__campo"
-            [class.activo]="extremo === 'fin'"
-            (click)="editarExtremo('fin')"
-          >
+          <label class="rango-fechas__campo" [class.activo]="extremo === 'fin'">
             <span class="rango-fechas__campo-label">Hasta</span>
-            <span class="rango-fechas__campo-valor" [class.vacio]="!textoFin">
-              {{ textoFin || 'dd/mm/aaaa' }}
-            </span>
-          </button>
+            <input
+              type="text"
+              class="rango-fechas__campo-input"
+              placeholder="dd/mm/aaaa"
+              maxlength="10"
+              [value]="entradaFin"
+              (focus)="editarExtremo('fin')"
+              (input)="escribir('fin', $any($event.target).value)"
+              (blur)="cerrarEdicion()"
+            />
+          </label>
         </div>
 
         <div class="rango-fechas__acciones">

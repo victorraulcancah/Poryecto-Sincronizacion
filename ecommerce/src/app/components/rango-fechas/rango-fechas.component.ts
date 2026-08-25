@@ -66,9 +66,6 @@ export class RangoFechasComponent implements OnInit {
   /** La fecha inicial no puede ser futura: no hay movimientos por venir. */
   private readonly hoy = this.soloFecha(new Date());
 
-  /** La fecha final sí puede adelantarse, como mucho hasta fin de año. */
-  private readonly finDeAnio = new Date(new Date().getFullYear(), 11, 31);
-
   /**
    * Atajos de rango, los mismos del filtro de reportes del ERP. El inicio
    * nunca se va al futuro, así que "esta semana" y "este mes" terminan hoy.
@@ -87,6 +84,7 @@ export class RangoFechasComponent implements OnInit {
     const [inicio, fin] = atajo.rango();
     this.seleccionInicio = inicio;
     this.seleccionFin = fin;
+    this.sincronizarEntradas();
     // El panel se posiciona en el mes del inicio, para que se vea el rango.
     this.mesBase = new Date(inicio.getFullYear(), inicio.getMonth(), 1);
     this.confirmar();
@@ -153,6 +151,7 @@ export class RangoFechasComponent implements OnInit {
   ngOnInit(): void {
     this.seleccionInicio = this.aFecha(this.desde);
     this.seleccionFin = this.aFecha(this.hasta);
+    this.sincronizarEntradas();
     // Abrir mostrando el mes de la fecha inicial elegida.
     if (this.seleccionInicio) {
       this.mesBase = new Date(this.seleccionInicio.getFullYear(), this.seleccionInicio.getMonth(), 1);
@@ -173,6 +172,7 @@ export class RangoFechasComponent implements OnInit {
     // funcionando como siempre.
     this.extremo = 'inicio';
     this.hover = null;
+    this.sincronizarEntradas();
     this.ubicarPanel();
     this.abierto = true;
   }
@@ -256,13 +256,13 @@ export class RangoFechasComponent implements OnInit {
   // --------------------------------------------------------------- selección
 
   /**
-   * Un día que no se puede elegir: los de relleno de otro mes, los posteriores
-   * a hoy mientras se elige la fecha inicial, y los de más allá de fin de año.
+   * Solo se descartan los días de relleno del mes vecino. No se bloquean
+   * fechas futuras: el filtro de reportes del ERP tampoco lo hace, y había
+   * casos legítimos (pedidos programados, cuotas por vencer) que quedaban
+   * fuera de alcance.
    */
   noSeleccionable(dia: Dia): boolean {
-    if (!dia.delMes) return true;
-    const limite = this.extremo === 'inicio' ? this.hoy : this.finDeAnio;
-    return dia.fecha > limite;
+    return !dia.delMes;
   }
 
   /** Pone el foco en un extremo para cambiar solo esa fecha. */
@@ -290,6 +290,7 @@ export class RangoFechasComponent implements OnInit {
       // solo al fin. Si el fin ya estaba puesto, no se mueve el foco: se
       // asume que solo se quería corregir el inicio.
       if (!this.seleccionFin) this.extremo = 'fin';
+      this.sincronizarEntradas();
       return;
     }
 
@@ -298,11 +299,13 @@ export class RangoFechasComponent implements OnInit {
       // Eligió un fin anterior al inicio: se invierten en vez de romperse.
       this.seleccionFin = this.seleccionInicio;
       this.seleccionInicio = f;
+      this.sincronizarEntradas();
       return;
     }
 
     this.seleccionFin = f;
     if (!this.seleccionInicio) this.seleccionInicio = f;
+    this.sincronizarEntradas();
   }
 
   // Los días que se ven en el mes vecino (el 1 de agosto asomando en la
@@ -316,13 +319,64 @@ export class RangoFechasComponent implements OnInit {
     return dia.delMes && !!this.seleccionFin && this.mismoDia(dia.fecha, this.seleccionFin);
   }
 
-  /** Texto de cada campo del pie; vacío muestra el marcador. */
-  get textoInicio(): string {
-    return this.seleccionInicio ? this.aTexto(this.seleccionInicio) : '';
+  /**
+   * Texto de los campos del pie. Se guardan aparte de las fechas porque son
+   * editables: mientras se escribe "0", "01", "01/0"… no hay fecha válida que
+   * mostrar, y un getter derivado de la selección borraría lo tecleado.
+   */
+  entradaInicio = '';
+  entradaFin = '';
+
+  /** Refleja la selección en los campos de texto (dd/mm/aaaa). */
+  private sincronizarEntradas(): void {
+    this.entradaInicio = this.seleccionInicio ? this.formatoCorto(this.seleccionInicio) : '';
+    this.entradaFin = this.seleccionFin ? this.formatoCorto(this.seleccionFin) : '';
   }
 
-  get textoFin(): string {
-    return this.seleccionFin ? this.aTexto(this.seleccionFin) : '';
+  /**
+   * Lee un "dd/mm/aaaa" escrito a mano. Devuelve null mientras esté a medias
+   * o si el día no existe (31/02 y similares).
+   */
+  private deTextoCorto(texto: string): Date | null {
+    const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(texto.trim());
+    if (!m) return null;
+
+    const [, d, mes, a] = m.map(Number);
+    const fecha = new Date(a, mes - 1, d);
+
+    // new Date(2026, 1, 31) no falla: se corre al 3 de marzo. Se compara para
+    // descartar esas fechas inventadas.
+    const valida =
+      fecha.getFullYear() === a && fecha.getMonth() === mes - 1 && fecha.getDate() === d;
+
+    return valida ? fecha : null;
+  }
+
+  /** Se escribió una fecha a mano. Solo se aplica cuando queda completa. */
+  escribir(cual: 'inicio' | 'fin', valor: string): void {
+    if (cual === 'inicio') this.entradaInicio = valor;
+    else this.entradaFin = valor;
+
+    const fecha = this.deTextoCorto(valor);
+    if (!fecha) return;
+
+    if (cual === 'inicio') this.seleccionInicio = fecha;
+    else this.seleccionFin = fecha;
+
+    // Si quedaron cruzadas, se invierten.
+    if (this.seleccionInicio && this.seleccionFin && this.seleccionInicio > this.seleccionFin) {
+      const tmp = this.seleccionInicio;
+      this.seleccionInicio = this.seleccionFin;
+      this.seleccionFin = tmp;
+      this.sincronizarEntradas();
+    }
+
+    this.mesBase = new Date(fecha.getFullYear(), fecha.getMonth(), 1);
+  }
+
+  /** Al salir del campo se descarta lo que quedó a medio escribir. */
+  cerrarEdicion(): void {
+    this.sincronizarEntradas();
   }
 
   /** Día intermedio del rango (ya elegido o en previsualización con el mouse). */
@@ -351,6 +405,7 @@ export class RangoFechasComponent implements OnInit {
     this.seleccionFin = null;
     this.hover = null;
     this.extremo = 'inicio';
+    this.sincronizarEntradas();
   }
 
   confirmar(): void {
