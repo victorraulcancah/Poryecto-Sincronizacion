@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 /** Mensaje enviado desde el formulario público de "Contáctanos". */
@@ -29,7 +29,27 @@ export interface MensajesContactoPagina {
 export class ContactoService {
   private apiUrl = environment.apiUrl;
 
+  /**
+   * Mensajes sin leer, para el badge del menú lateral. Es un BehaviorSubject
+   * para que al marcar uno como leído el número baje al instante, sin esperar
+   * a que el menú vuelva a consultar.
+   */
+  private noLeidosSubject = new BehaviorSubject<number>(0);
+  readonly noLeidos$ = this.noLeidosSubject.asObservable();
+
   constructor(private http: HttpClient) {}
+
+  /** Pide el conteo al servidor y actualiza el badge. */
+  refrescarNoLeidos(): Observable<{ no_leidos: number }> {
+    return this.http
+      .get<{ no_leidos: number }>(`${this.apiUrl}/contacto/mensajes/no-leidos`)
+      .pipe(tap(res => this.noLeidosSubject.next(res.no_leidos ?? 0)));
+  }
+
+  /** Ajusta el contador sin ir al servidor (al leer o desleer un mensaje). */
+  ajustarNoLeidos(delta: number): void {
+    this.noLeidosSubject.next(Math.max(0, this.noLeidosSubject.value + delta));
+  }
 
   /** Envío desde la vista pública /contact (no requiere sesión). */
   enviar(datos: {

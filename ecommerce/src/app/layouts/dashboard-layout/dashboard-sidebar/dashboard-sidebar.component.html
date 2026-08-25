@@ -42,8 +42,16 @@
       <li class="mb-8">
         <a routerLink="/dashboard/mensajes-contacto" routerLinkActive="active"
           class="nav-link flex-align gap-12 px-16 py-12 text-white text-decoration-none rounded-8 transition-2 hover-bg-main-500">
-          <i class="ph ph-envelope-simple text-xl flex-shrink-0"></i>
+          <span class="menu-icono">
+            <i class="ph ph-envelope-simple text-xl flex-shrink-0"></i>
+            <!-- Con el menú plegado el número no cabe al lado: se muestra
+                 como un punto sobre el ícono. -->
+            <span class="menu-punto" *ngIf="isCollapsed && (mensajesNoLeidos$ | async)"></span>
+          </span>
           <span *ngIf="!isCollapsed" class="fw-medium">Contáctanos</span>
+          <span class="menu-badge" *ngIf="!isCollapsed && (mensajesNoLeidos$ | async) as sinLeer">
+            {{ sinLeer > 99 ? '99+' : sinLeer }}
+          </span>
         </a>
       </li>
 

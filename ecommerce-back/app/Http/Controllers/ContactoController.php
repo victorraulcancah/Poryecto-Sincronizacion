@@ -67,6 +67,20 @@ class ContactoController extends Controller
         return response()->json($query->paginate($request->get('per_page', 20)));
     }
 
+    /**
+     * Cuántos mensajes quedan sin leer.
+     *
+     * Va aparte del listado porque lo consulta el menú lateral en cada
+     * pantalla: traer la primera página entera solo para contar sería tirar
+     * 20 registros a la basura en cada carga.
+     */
+    public function noLeidos()
+    {
+        return response()->json([
+            'no_leidos' => MensajeContacto::where('leido', false)->count(),
+        ]);
+    }
+
     public function show($id)
     {
         return response()->json(MensajeContacto::findOrFail($id));

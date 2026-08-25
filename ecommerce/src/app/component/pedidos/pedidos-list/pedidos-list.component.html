@@ -186,7 +186,8 @@
         <thead>
           <tr>
             <th>CÓDIGO</th>
-            <th>CLIENTE</th>
+            <!-- El encabezado sigue la misma sangría que el contenido. -->
+            <th class="celda-cliente">CLIENTE</th>
             <th class="d-none d-lg-table-cell">FECHA</th>
             <th>TOTAL</th>
             <th class="d-none d-md-table-cell">ESTADO</th>
@@ -203,14 +204,15 @@
 
             <!-- Cliente: si la cuenta está vinculada manda el cliente de
                  7Power, que es a nombre de quién se emite el comprobante. -->
-            <td>
-              <!-- Centrado: la columna es ancha y el bloque quedaba pegado a la
-                   izquierda, lejos del encabezado. -->
-              <div class="d-flex align-items-center justify-content-center gap-12 text-center">
+            <td class="celda-cliente">
+              <!-- Alineado a la izquierda: centrarlo hacía que cada fila
+                   arrancara en una x distinta según el largo del nombre, y los
+                   avatares no quedaban en línea. -->
+              <div class="celda-cliente__bloque">
                 <div class="table-avatar__circle" style="background-color: var(--main-600);">
                   {{ getInitials(nombreCliente(pedido)) }}
                 </div>
-                <div>
+                <div class="celda-cliente__datos">
                   <div class="client-info__name">
                     {{ nombreCliente(pedido) }}
                     <span *ngIf="pedido.cliente_erp"

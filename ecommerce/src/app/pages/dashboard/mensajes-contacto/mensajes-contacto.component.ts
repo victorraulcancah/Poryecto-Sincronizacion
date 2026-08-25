@@ -40,6 +40,11 @@ export class MensajesContactoComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.cargar();
+    // Al entrar a la bandeja se resincroniza el badge del menú.
+    this.contactoService
+      .refrescarNoLeidos()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({ error: () => {} });
   }
 
   ngOnDestroy(): void {
@@ -101,7 +106,12 @@ export class MensajesContactoComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (actualizado) => {
+          const cambio = mensaje.leido === actualizado.leido ? 0 : actualizado.leido ? -1 : 1;
           mensaje.leido = actualizado.leido;
+
+          // El badge del menú baja (o sube) al instante, sin volver a consultar.
+          if (cambio) this.contactoService.ajustarNoLeidos(cambio);
+
           if (this.soloNoLeidos && actualizado.leido) this.cargar(this.currentPage);
         },
         error: (error) => {
@@ -132,6 +142,8 @@ export class MensajesContactoComponent implements OnInit, OnDestroy {
           next: () => {
             this.mensajes = this.mensajes.filter((m) => m.id !== mensaje.id);
             this.total = Math.max(0, this.total - 1);
+            // Si se borra uno sin leer, deja de contar en el badge.
+            if (!mensaje.leido) this.contactoService.ajustarNoLeidos(-1);
             if (this.seleccionado?.id === mensaje.id) this.cerrarModal();
             Swal.fire('Eliminado', 'El mensaje se eliminó', 'success');
           },

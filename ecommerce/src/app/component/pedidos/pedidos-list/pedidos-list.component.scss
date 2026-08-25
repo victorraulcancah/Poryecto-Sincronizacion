@@ -1003,3 +1003,42 @@ app-rango-fechas {
     margin-inline-start: auto;
   }
 }
+
+// ══════════════════════════════════════════════════════════════════════
+//  Columna CLIENTE
+//  Alineada a la izquierda con una sangría fija: centrarla hacía que cada
+//  fila empezara en una x distinta según el largo del nombre, y los avatares
+//  quedaban desalineados entre sí.
+// ══════════════════════════════════════════════════════════════════════
+
+.celda-cliente {
+  text-align: left !important;
+  padding-left: 28px !important;
+
+  &__bloque {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+  }
+
+  // El avatar no se encoge ni se estira: así todos caen en la misma columna.
+  .table-avatar__circle {
+    flex-shrink: 0;
+  }
+
+  &__datos {
+    min-width: 0;
+
+    .client-info__name,
+    .client-info__subtitle {
+      text-align: left;
+    }
+  }
+}
+
+@media (max-width: 767px) {
+  .celda-cliente {
+    padding-left: 16px !important;
+  }
+}

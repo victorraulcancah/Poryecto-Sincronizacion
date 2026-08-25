@@ -355,3 +355,40 @@
     }
   }
 }
+// ══════════════════════════════════════════════════════════════════════
+//  Badge de mensajes sin leer ("Contáctanos")
+// ══════════════════════════════════════════════════════════════════════
+
+.menu-icono {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+// Con el menú plegado no cabe el número: se avisa con un punto.
+.menu-punto {
+  position: absolute;
+  top: -2px;
+  right: -3px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ef4444;
+  border: 2px solid #d32027;
+}
+
+.menu-badge {
+  margin-left: auto;
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #fff;
+  color: #d32027;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}

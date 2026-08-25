@@ -15,6 +15,7 @@ import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { PermissionsService } from '../../../services/permissions.service';
 import { EmpresaInfoService } from '../../../services/empresa-info.service';
+import { ContactoService } from '../../../services/contacto.service';
 import { Subscription } from 'rxjs';
 import { NavigationEnd } from '@angular/router';
 
@@ -80,10 +81,14 @@ export class DashboardSidebarComponent implements OnInit, AfterViewInit, OnDestr
   private empresaInfoSub: Subscription | null = null;
   private router = inject(Router);
 
+  /** Mensajes de contacto sin leer, para el badge de "Contáctanos". */
+  readonly mensajesNoLeidos$ = inject(ContactoService).noLeidos$;
+
   constructor(
     private authService: AuthService,
     public permissionsService: PermissionsService,   // <- Cambiar private por public
-    private empresaInfoService: EmpresaInfoService
+    private empresaInfoService: EmpresaInfoService,
+    private contactoService: ContactoService
   ) {}
 
 
@@ -100,10 +105,19 @@ export class DashboardSidebarComponent implements OnInit, AfterViewInit, OnDestr
       this.checkPermissions();
     });
 
+    // Contador de mensajes de contacto sin leer, para el badge.
+    this.contactoService.refrescarNoLeidos().subscribe({ error: () => {} });
+
     // Mantener abierto el dropdown de Recompensas según la ruta activa
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
         this.syncRecompensasDropdownWithRoute(event.urlAfterRedirects);
+
+        // Al salir de la bandeja se vuelve a contar: puede que se hayan leído
+        // mensajes ahí dentro.
+        if (!event.urlAfterRedirects.includes('/dashboard/mensajes-contacto')) {
+          this.contactoService.refrescarNoLeidos().subscribe({ error: () => {} });
+        }
       }
     });
 

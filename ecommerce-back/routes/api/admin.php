@@ -34,6 +34,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // ============================================
     // Mensajes del formulario público de contacto
     Route::get('/contacto/mensajes', [\App\Http\Controllers\ContactoController::class, 'index']);
+    // Contador para el badge del menú lateral. Va antes de /{id} para que no
+    // lo capture el comodín.
+    Route::get('/contacto/mensajes/no-leidos', [\App\Http\Controllers\ContactoController::class, 'noLeidos']);
     Route::get('/contacto/mensajes/{id}', [\App\Http\Controllers\ContactoController::class, 'show']);
     Route::put('/contacto/mensajes/{id}', [\App\Http\Controllers\ContactoController::class, 'update']);
     Route::put('/contacto/mensajes/{id}/leido', [\App\Http\Controllers\ContactoController::class, 'marcarLeido']);
