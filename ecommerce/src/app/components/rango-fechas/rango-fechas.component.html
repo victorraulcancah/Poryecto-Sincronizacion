@@ -107,9 +107,37 @@
         </div>
       </div>
 
-      <!-- Pie -->
+      <!-- Pie. Dos campos: el clic en uno decide qué extremo cambia el
+           siguiente día que se elija, sin borrar el otro. -->
       <div class="rango-fechas__pie">
-        <span class="rango-fechas__resumen">{{ resumen }}</span>
+        <div class="rango-fechas__campos">
+          <button
+            type="button"
+            class="rango-fechas__campo"
+            [class.activo]="extremo === 'inicio'"
+            (click)="editarExtremo('inicio')"
+          >
+            <span class="rango-fechas__campo-label">Desde</span>
+            <span class="rango-fechas__campo-valor" [class.vacio]="!textoInicio">
+              {{ textoInicio || 'dd/mm/aaaa' }}
+            </span>
+          </button>
+
+          <i class="ph ph-arrow-right rango-fechas__flecha"></i>
+
+          <button
+            type="button"
+            class="rango-fechas__campo"
+            [class.activo]="extremo === 'fin'"
+            (click)="editarExtremo('fin')"
+          >
+            <span class="rango-fechas__campo-label">Hasta</span>
+            <span class="rango-fechas__campo-valor" [class.vacio]="!textoFin">
+              {{ textoFin || 'dd/mm/aaaa' }}
+            </span>
+          </button>
+        </div>
+
         <div class="rango-fechas__acciones">
           <button type="button" class="rango-fechas__borrar" (click)="borrar()">Borrar</button>
           <button type="button" class="rango-fechas__aplicar" [disabled]="!seleccionInicio" (click)="confirmar()">

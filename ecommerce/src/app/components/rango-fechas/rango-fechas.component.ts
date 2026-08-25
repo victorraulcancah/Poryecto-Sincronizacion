@@ -47,6 +47,13 @@ export class RangoFechasComponent implements OnInit {
   /** Día bajo el cursor, para previsualizar el rango mientras se elige. */
   hover: Date | null = null;
 
+  /**
+   * Qué extremo se está editando. Con dos campos (Desde / Hasta) se puede
+   * cambiar solo uno sin perder el otro: antes cualquier clic sobre un rango
+   * ya armado lo borraba y obligaba a marcar las dos fechas de nuevo.
+   */
+  extremo: 'inicio' | 'fin' = 'inicio';
+
   readonly diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   readonly meses = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -162,6 +169,10 @@ export class RangoFechasComponent implements OnInit {
       this.abierto = false;
       return;
     }
+    // Se abre editando el inicio, para que marcar un rango de corrido siga
+    // funcionando como siempre.
+    this.extremo = 'inicio';
+    this.hover = null;
     this.ubicarPanel();
     this.abierto = true;
   }
@@ -250,33 +261,48 @@ export class RangoFechasComponent implements OnInit {
    */
   noSeleccionable(dia: Dia): boolean {
     if (!dia.delMes) return true;
-    const limite = this.eligiendoInicio ? this.hoy : this.finDeAnio;
+    const limite = this.extremo === 'inicio' ? this.hoy : this.finDeAnio;
     return dia.fecha > limite;
   }
 
-  /** El próximo clic define la fecha inicial (no hay rango a medias). */
-  private get eligiendoInicio(): boolean {
-    return !this.seleccionInicio || !!this.seleccionFin;
+  /** Pone el foco en un extremo para cambiar solo esa fecha. */
+  editarExtremo(cual: 'inicio' | 'fin'): void {
+    this.extremo = cual;
+    this.hover = null;
+
+    // Al ir a un extremo ya elegido, el calendario se mueve a su mes.
+    const fecha = cual === 'inicio' ? this.seleccionInicio : this.seleccionFin;
+    if (fecha) this.mesBase = new Date(fecha.getFullYear(), fecha.getMonth(), 1);
   }
 
   elegir(dia: Dia): void {
     if (this.noSeleccionable(dia)) return;
     const f = this.soloFecha(dia.fecha);
 
-    // Sin inicio, o ya había un rango completo: se empieza de nuevo.
-    if (!this.seleccionInicio || this.seleccionFin) {
+    if (this.extremo === 'inicio') {
       this.seleccionInicio = f;
-      this.seleccionFin = null;
+
+      // Si el inicio se pasa del fin, el fin deja de tener sentido: se suelta
+      // y el siguiente clic lo vuelve a marcar.
+      if (this.seleccionFin && f > this.seleccionFin) this.seleccionFin = null;
+
+      // Flujo normal de armar un rango de corrido: tras el inicio se pasa
+      // solo al fin. Si el fin ya estaba puesto, no se mueve el foco: se
+      // asume que solo se quería corregir el inicio.
+      if (!this.seleccionFin) this.extremo = 'fin';
       return;
     }
 
-    // Si la segunda fecha es anterior a la primera, se invierten.
-    if (f < this.seleccionInicio) {
+    // Editando el fin.
+    if (this.seleccionInicio && f < this.seleccionInicio) {
+      // Eligió un fin anterior al inicio: se invierten en vez de romperse.
       this.seleccionFin = this.seleccionInicio;
       this.seleccionInicio = f;
-    } else {
-      this.seleccionFin = f;
+      return;
     }
+
+    this.seleccionFin = f;
+    if (!this.seleccionInicio) this.seleccionInicio = f;
   }
 
   // Los días que se ven en el mes vecino (el 1 de agosto asomando en la
@@ -290,10 +316,22 @@ export class RangoFechasComponent implements OnInit {
     return dia.delMes && !!this.seleccionFin && this.mismoDia(dia.fecha, this.seleccionFin);
   }
 
+  /** Texto de cada campo del pie; vacío muestra el marcador. */
+  get textoInicio(): string {
+    return this.seleccionInicio ? this.aTexto(this.seleccionInicio) : '';
+  }
+
+  get textoFin(): string {
+    return this.seleccionFin ? this.aTexto(this.seleccionFin) : '';
+  }
+
   /** Día intermedio del rango (ya elegido o en previsualización con el mouse). */
   enRango(dia: Dia): boolean {
     if (!this.seleccionInicio || !dia.delMes) return false;
-    const fin = this.seleccionFin ?? this.hover;
+
+    // La previsualización con el mouse solo tiene sentido cuando falta el fin;
+    // si el rango está completo, mover el cursor no debe repintarlo.
+    const fin = this.seleccionFin ?? (this.extremo === 'fin' ? this.hover : null);
     if (!fin) return false;
 
     const desde = this.seleccionInicio < fin ? this.seleccionInicio : fin;
@@ -312,6 +350,7 @@ export class RangoFechasComponent implements OnInit {
     this.seleccionInicio = null;
     this.seleccionFin = null;
     this.hover = null;
+    this.extremo = 'inicio';
   }
 
   confirmar(): void {
