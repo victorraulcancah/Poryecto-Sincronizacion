@@ -7,6 +7,7 @@ import {
   ContactoService,
   MensajeContacto,
 } from '../../../services/contacto.service';
+import { RangoFechasComponent } from '../../../components/rango-fechas/rango-fechas.component';
 
 /**
  * Bandeja de los mensajes que llegan del formulario público "Contáctanos".
@@ -15,7 +16,7 @@ import {
 @Component({
   selector: 'app-mensajes-contacto',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RangoFechasComponent],
   templateUrl: './mensajes-contacto.component.html',
   styleUrl: './mensajes-contacto.component.scss',
 })
@@ -28,6 +29,17 @@ export class MensajesContactoComponent implements OnInit, OnDestroy {
   /** Búsqueda por nombre, correo o asunto (se filtra en el cliente). */
   busqueda = '';
   soloNoLeidos = false;
+
+  /** Rango de fechas (YYYY-MM-DD), lo filtra el servidor. */
+  desde = '';
+  hasta = '';
+  descargando = false;
+
+  /**
+   * Por defecto es una bandeja: lo leído sale de la lista a medianoche. Con
+   * esto activado se ve todo el histórico.
+   */
+  historial = false;
 
   currentPage = 1;
   totalPages = 1;
@@ -57,7 +69,14 @@ export class MensajesContactoComponent implements OnInit, OnDestroy {
     this.currentPage = pagina;
 
     this.contactoService
-      .listar({ page: pagina, per_page: 20, solo_no_leidos: this.soloNoLeidos })
+      .listar({
+        page: pagina,
+        per_page: 20,
+        solo_no_leidos: this.soloNoLeidos,
+        desde: this.desde,
+        hasta: this.hasta,
+        historial: this.historial,
+      })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => {
@@ -86,6 +105,69 @@ export class MensajesContactoComponent implements OnInit, OnDestroy {
 
   get noLeidos(): number {
     return this.mensajes.filter((m) => !m.leido).length;
+  }
+
+  // --------------------------------------------------------------- filtros
+
+  /** Llega del selector de rango; vuelve a pedir la primera página. */
+  cambiarRango(rango: { desde: string; hasta: string }): void {
+    this.desde = rango.desde;
+    this.hasta = rango.hasta;
+    this.cargar(1);
+  }
+
+  limpiarFiltros(): void {
+    this.desde = '';
+    this.hasta = '';
+    this.busqueda = '';
+    this.soloNoLeidos = false;
+    this.historial = false;
+    this.cargar(1);
+  }
+
+  get hayFiltros(): boolean {
+    return !!(
+      this.desde ||
+      this.hasta ||
+      this.busqueda.trim() ||
+      this.soloNoLeidos ||
+      this.historial
+    );
+  }
+
+  /**
+   * Descarga los mensajes con los filtros puestos. El navegador no puede
+   * seguir la URL directo porque el endpoint exige el token de sesión, así
+   * que se baja como blob y se dispara la descarga a mano.
+   */
+  descargar(): void {
+    this.descargando = true;
+
+    this.contactoService
+      .exportar({
+        solo_no_leidos: this.soloNoLeidos,
+        desde: this.desde,
+        hasta: this.hasta,
+        buscar: this.busqueda,
+      })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (archivo) => {
+          this.descargando = false;
+
+          const url = URL.createObjectURL(archivo);
+          const enlace = document.createElement('a');
+          enlace.href = url;
+          enlace.download = `mensajes-contacto-${new Date().toISOString().slice(0, 10)}.csv`;
+          enlace.click();
+          URL.revokeObjectURL(url);
+        },
+        error: (error) => {
+          this.descargando = false;
+          console.error('Error al exportar los mensajes de contacto:', error);
+          Swal.fire('Error', 'No se pudo generar el archivo', 'error');
+        },
+      });
   }
 
   // ------------------------------------------------------------- acciones

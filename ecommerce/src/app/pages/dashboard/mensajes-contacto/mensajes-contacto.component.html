@@ -48,6 +48,35 @@
         </div>
       </div>
     </div>
+
+    <!-- Rango de fechas y descarga. El filtro lo aplica el servidor, así que
+         el archivo sale con lo mismo que se ve en pantalla. -->
+    <div class="d-flex align-items-center flex-wrap gap-12 mt-16">
+      <div class="d-flex align-items-center gap-8">
+        <span class="text-sm fw-medium text-gray-600">Fechas:</span>
+        <app-rango-fechas [desde]="desde" [hasta]="hasta" (aplicar)="cambiarRango($event)"></app-rango-fechas>
+      </div>
+
+      <!-- Los leídos salen de la lista a medianoche; acá se ven todos. -->
+      <div class="form-check d-flex align-items-center gap-8 mb-0">
+        <input class="form-check-input mt-0" type="checkbox" id="historial" [(ngModel)]="historial"
+          name="historial" (change)="cargar(1)" />
+        <label class="form-check-label text-sm fw-medium text-dark" for="historial">
+          Ver historial completo
+        </label>
+      </div>
+
+      <button type="button" class="btn-limpiar-msj" (click)="limpiarFiltros()" [disabled]="!hayFiltros">
+        <i class="ph ph-eraser"></i>
+        Limpiar
+      </button>
+
+      <button type="button" class="btn-exportar-msj ms-auto" (click)="descargar()" [disabled]="descargando">
+        <i class="ph ph-microsoft-excel-logo" *ngIf="!descargando"></i>
+        <span *ngIf="descargando" class="spinner-border spinner-border-sm"></span>
+        {{ descargando ? 'Generando...' : 'Descargar Excel' }}
+      </button>
+    </div>
   </div>
 
   <!-- Tabla -->

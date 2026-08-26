@@ -51,6 +51,37 @@ export class ContactoService {
     this.noLeidosSubject.next(Math.max(0, this.noLeidosSubject.value + delta));
   }
 
+  /** Filtros comunes al listado y a la exportación. */
+  private filtrosComoParams(opciones: {
+    solo_no_leidos?: boolean;
+    desde?: string;
+    hasta?: string;
+    buscar?: string;
+  }): HttpParams {
+    let params = new HttpParams();
+    if (opciones.solo_no_leidos) params = params.set('solo_no_leidos', '1');
+    if (opciones.desde) params = params.set('desde', opciones.desde);
+    if (opciones.hasta) params = params.set('hasta', opciones.hasta);
+    if (opciones.buscar?.trim()) params = params.set('buscar', opciones.buscar.trim());
+    return params;
+  }
+
+  /**
+   * Descarga los mensajes filtrados. Llega como blob porque la respuesta es
+   * un archivo, no JSON.
+   */
+  exportar(opciones: {
+    solo_no_leidos?: boolean;
+    desde?: string;
+    hasta?: string;
+    buscar?: string;
+  } = {}): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/contacto/mensajes/exportar`, {
+      params: this.filtrosComoParams(opciones),
+      responseType: 'blob',
+    });
+  }
+
   /** Envío desde la vista pública /contact (no requiere sesión). */
   enviar(datos: {
     nombre: string;
@@ -69,11 +100,15 @@ export class ContactoService {
     page?: number;
     per_page?: number;
     solo_no_leidos?: boolean;
+    desde?: string;
+    hasta?: string;
+    buscar?: string;
+    historial?: boolean;
   } = {}): Observable<MensajesContactoPagina> {
-    let params = new HttpParams();
+    let params = this.filtrosComoParams(opciones);
     if (opciones.page) params = params.set('page', opciones.page);
     if (opciones.per_page) params = params.set('per_page', opciones.per_page);
-    if (opciones.solo_no_leidos) params = params.set('solo_no_leidos', '1');
+    if (opciones.historial) params = params.set('historial', '1');
 
     return this.http.get<MensajesContactoPagina>(
       `${this.apiUrl}/contacto/mensajes`,

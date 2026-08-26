@@ -294,3 +294,43 @@ $tenue: #6b7280;
     &__pie { flex-wrap: wrap; }
   }
 }
+
+/* ── Filtros de fecha y descarga ────────────────────────────────────── */
+
+.btn-limpiar-msj,
+.btn-exportar-msj {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  border-radius: 8px;
+  padding: 0 16px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: none;
+
+  i { font-size: 17px; }
+
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.btn-limpiar-msj {
+  background: #fff;
+  border: 1px solid #d1d5db;
+  color: #4b5563;
+
+  &:hover:not(:disabled) { background: #f3f4f6; }
+}
+
+.btn-exportar-msj {
+  background: #16794c;
+  border: 1px solid #16794c;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: #115c3a;
+    border-color: #115c3a;
+    color: #fff;
+  }
+}

@@ -58,13 +58,98 @@ class ContactoController extends Controller
     /** Listado para el panel de administración. */
     public function index(Request $request)
     {
+        $query = $this->filtrados($request);
+
+        // Por defecto es una bandeja de trabajo: lo leído sale de la lista a
+        // medianoche. Con ?historial=1, o si se filtró por fecha, se muestra
+        // todo sin ocultar nada.
+        $verTodo = $request->boolean('historial')
+            || $request->filled('desde')
+            || $request->filled('hasta');
+
+        if (! $verTodo) {
+            $query->bandeja();
+        }
+
+        return response()->json($query->paginate($request->get('per_page', 20)));
+    }
+
+    /**
+     * Consulta con los filtros del panel. La comparten el listado y la
+     * exportación, para que el archivo salga con lo mismo que se ve en
+     * pantalla y no con todo el histórico.
+     */
+    private function filtrados(Request $request)
+    {
         $query = MensajeContacto::query()->latest();
 
         if ($request->boolean('solo_no_leidos')) {
             $query->where('leido', false);
         }
 
-        return response()->json($query->paginate($request->get('per_page', 20)));
+        if ($request->filled('desde')) {
+            $query->whereDate('created_at', '>=', $request->desde);
+        }
+
+        if ($request->filled('hasta')) {
+            $query->whereDate('created_at', '<=', $request->hasta);
+        }
+
+        if ($request->filled('buscar')) {
+            $texto = $request->buscar;
+            $query->where(function ($q) use ($texto) {
+                $q->where('nombre', 'LIKE', "%{$texto}%")
+                    ->orWhere('email', 'LIKE', "%{$texto}%")
+                    ->orWhere('asunto', 'LIKE', "%{$texto}%");
+            });
+        }
+
+        return $query;
+    }
+
+    /**
+     * Descarga los mensajes filtrados.
+     *
+     * Se arma un CSV con BOM en vez de un .xlsx: el proyecto no tiene ninguna
+     * librería de Excel instalada y este formato lo abre Excel directamente,
+     * respetando los acentos.
+     */
+    public function exportar(Request $request)
+    {
+        $mensajes = $this->filtrados($request)->get();
+        $nombre = 'mensajes-contacto-' . now()->format('Y-m-d') . '.csv';
+
+        return response()->streamDownload(function () use ($mensajes) {
+            $archivo = fopen('php://output', 'w');
+
+            // Sin el BOM, Excel abre los acentos como caracteres raros.
+            fwrite($archivo, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            fputcsv($archivo, [
+                'N°', 'Fecha', 'Hora', 'Nombre', 'Correo',
+                'Teléfono', 'Asunto', 'Mensaje', 'Estado', 'IP',
+            ], ';');
+
+            foreach ($mensajes as $m) {
+                fputcsv($archivo, [
+                    $m->id,
+                    $m->created_at?->format('d/m/Y'),
+                    $m->created_at?->format('H:i'),
+                    $m->nombre,
+                    $m->email,
+                    $m->telefono ?: '-',
+                    $m->asunto,
+                    // Los saltos de línea romperían la fila del CSV.
+                    str_replace(["\r\n", "\r", "\n"], ' ', (string) $m->mensaje),
+                    $m->leido ? 'Leído' : 'Sin leer',
+                    $m->ip ?: '-',
+                ], ';');
+            }
+
+            fclose($archivo);
+        }, $nombre, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
     }
 
     /**
@@ -90,7 +175,14 @@ class ContactoController extends Controller
     public function marcarLeido(Request $request, $id)
     {
         $mensaje = MensajeContacto::findOrFail($id);
-        $mensaje->update(['leido' => $request->boolean('leido', true)]);
+        $leido = $request->boolean('leido', true);
+
+        // La fecha decide hasta cuándo sigue en la bandeja. Al marcarlo como
+        // no leído se limpia, para que vuelva a la lista sin caducidad.
+        $mensaje->update([
+            'leido' => $leido,
+            'leido_at' => $leido ? now() : null,
+        ]);
 
         return response()->json($mensaje);
     }
