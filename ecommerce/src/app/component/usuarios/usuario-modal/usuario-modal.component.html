@@ -645,8 +645,11 @@
 
                 <!-- Menú de 3 puntos: modificar / eliminar vinculación -->
                 <div class="vinculo-card__menu" (click)="$event.stopPropagation()" *ngIf="mode === 'edit'">
-                  <button type="button" class="btn btn-sm btn-light" (click)="toggleMenuVinculacion($event)">
+                  <!-- Con `btn-light` quedaba casi blanco sobre blanco y no se
+                       veía hasta pasar el mouse. Color fijo y con su texto. -->
+                  <button type="button" class="btn-opciones" (click)="toggleMenuVinculacion($event)">
                     <i class="ph ph-dots-three-vertical"></i>
+                    Opciones
                   </button>
                   <div class="vinculo-menu" *ngIf="mostrarMenuVinculacion">
                     <button type="button" (click)="abrirBusqueda(); mostrarMenuVinculacion = false">

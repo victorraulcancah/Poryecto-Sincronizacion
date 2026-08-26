@@ -877,3 +877,32 @@
     }
   }
 }
+
+// Botón de opciones de la vinculación: color fijo y visible siempre, sin
+// depender del hover para notarse.
+.btn-opciones {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #d1d5db;
+  background: #f3f4f6;
+  color: #374151;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: none;
+
+  i { font-size: 15px; }
+
+  &:hover,
+  &:focus,
+  &:active {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+    color: #374151;
+    box-shadow: none;
+  }
+}
