@@ -498,53 +498,62 @@ class SincronizarDesde7Power extends Command
     {
         $this->info('  Actualizando stock de productos...');
 
-        // Obtener todos los mapeos de productos
+        // Antes esto hacía tres consultas por producto (leer el stock, hacer el
+        // UPDATE y un SELECT del nombre que ni se usaba): con 600 productos son
+        // ~1.800 consultas. Con Novik en otro servidor, cada una suma latencia
+        // de red y la tarea se vuelve lenta. Ahora se lee todo de una y se
+        // actualiza agrupando por valor de stock.
         $mapeos = DB::table('producto_mapeo_7power')->get();
 
+        if ($mapeos->isEmpty()) {
+            $this->info(' No hay productos mapeados; nada que actualizar');
+            return;
+        }
+
         $actualizados = 0;
-        $errores = 0;
         $sinStock = 0;
 
-        foreach ($mapeos as $mapeo) {
-            try {
-                // Obtener stock disponible de 7Power del almacén indicado
-                $stockTotal = DB::connection('mysql_7power')
+        try {
+            // 1. El stock de todos los productos, en una sola consulta por lote.
+            $stockPor7PowerId = [];
+            foreach ($mapeos->pluck('producto_7power_id')->chunk(1000) as $lote) {
+                $stockPor7PowerId += DB::connection('mysql_7power')
                     ->table('product_warehouse')
-                    ->where('product_id', $mapeo->producto_7power_id)
                     ->where('warehouse_id', $warehouseId)
-                    ->value('stock') ?? 0;
-                
-                if ($stockTotal === null) {
-                    $stockTotal = 0;
-                    $sinStock++;
-                }
-                
-                // Actualizar stock en Magus
-                DB::table('productos')
-                    ->where('id', $mapeo->producto_id)
-                    ->update([
-                        'stock' => $stockTotal,
-                        'updated_at' => now(),
-                    ]);
-                
-                $actualizados++;
-                
-                // Obtener nombre del producto para el log
-                $producto = DB::table('productos')
-                    ->where('id', $mapeo->producto_id)
-                    ->first();
-                
-                if ($actualizados % 50 == 0) {
-                    $this->line("  Actualizados: {$actualizados} productos...");
-                }
-                
-            } catch (\Exception $e) {
-                $errores++;
-                $this->error("  Error actualizando producto ID {$mapeo->producto_id}: " . $e->getMessage());
+                    ->whereIn('product_id', $lote->all())
+                    ->pluck('stock', 'product_id')
+                    ->all();
             }
+
+            // 2. Agrupar los productos que comparten el mismo stock.
+            $productosPorStock = [];
+            foreach ($mapeos as $mapeo) {
+                $stock = (int) ($stockPor7PowerId[$mapeo->producto_7power_id] ?? 0);
+                if (! isset($stockPor7PowerId[$mapeo->producto_7power_id])) $sinStock++;
+
+                $productosPorStock[$stock][] = $mapeo->producto_id;
+            }
+
+            // 3. Un UPDATE por cada valor distinto de stock, no uno por producto.
+            $ahora = now();
+            foreach ($productosPorStock as $stock => $ids) {
+                foreach (array_chunk($ids, 1000) as $lote) {
+                    DB::table('productos')
+                        ->whereIn('id', $lote)
+                        ->update(['stock' => $stock, 'updated_at' => $ahora]);
+
+                    $actualizados += count($lote);
+                }
+            }
+
+            $consultas = count($productosPorStock);
+            $this->info(" Stock actualizado: {$actualizados} productos, {$sinStock} sin stock en 7Power"
+                . " ({$consultas} consultas en vez de " . ($mapeos->count() * 3) . ")");
+        } catch (\Exception $e) {
+            $this->error('  Error actualizando el stock: ' . $e->getMessage());
+            Log::error('Error actualizando stock desde 7Power', ['error' => $e->getMessage()]);
+            throw $e;
         }
-        
-        $this->info(" Stock actualizado: {$actualizados} productos, {$sinStock} sin stock en 7Power, {$errores} errores");
     }
 
     /**
