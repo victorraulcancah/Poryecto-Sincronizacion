@@ -161,19 +161,49 @@
 
     <!-- Paso 3: listo -->
     <ng-container *ngIf="mostrandoBusqueda && pasoVinculacion === 'exito' && usuarioErpSeleccionado">
-      <div class="modal-body vinculacion-exito">
-        <div class="vinculacion-exito__icono">
-          <i class="ph ph-check-circle"></i>
+      <div class="modal-header">
+        <div class="modal-header__titulo">
+          <span class="modal-header__icono"><i class="ph ph-check-circle"></i></span>
+          <div>
+            <h2>Vinculación realizada</h2>
+            <p>Ya puedes cerrar esta ventana</p>
+          </div>
         </div>
-        <h3 class="fw-bold mb-3">¡Vinculación realizada!</h3>
-        <p class="text-muted mb-2">
-          {{ usuarioForm.get('name')?.value }} ahora está vinculado a
-        </p>
-        <p class="fw-bold mb-2">{{ usuarioErpSeleccionado.nombre }}</p>
-        <p class="text-muted mb-0">Código: {{ usuarioErpSeleccionado.codigo }}</p>
+        <button type="button" class="btn-close" (click)="finalizarVinculacion()">
+          <i class="ph ph-x"></i>
+        </button>
       </div>
+
+      <div class="modal-body vinculacion-exito">
+        <span class="vinculacion-exito__icono"><i class="ph ph-check-circle"></i></span>
+
+        <p class="vinculacion-exito__texto">
+          <strong>{{ usuarioForm.get('name')?.value }}</strong> quedó vinculado a
+        </p>
+
+        <!-- Los datos del usuario de Novik, en una tarjeta, para que no queden
+             como líneas sueltas en medio del modal. -->
+        <div class="vinculacion-exito__tarjeta">
+          <span class="vinculacion-exito__avatar"><i class="ph ph-user-circle"></i></span>
+          <div>
+            <div class="fw-semibold">{{ usuarioErpSeleccionado.nombre }}</div>
+            <div class="text-muted small">
+              Código: {{ usuarioErpSeleccionado.codigo }}
+              <ng-container *ngIf="usuarioErpSeleccionado.rol"> · {{ usuarioErpSeleccionado.rol }}</ng-container>
+            </div>
+          </div>
+        </div>
+
+        <p class="vinculacion-exito__nota">
+          A partir de ahora solo verá las cotizaciones y pedidos de los clientes de su cartera.
+        </p>
+      </div>
+
       <div class="modal-footer">
-        <button type="button" class="btn btn-primary w-100" (click)="finalizarVinculacion()">Listo</button>
+        <button type="button" class="btn btn-primary" (click)="finalizarVinculacion()">
+          <i class="ph ph-check"></i>
+          Listo
+        </button>
       </div>
     </ng-container>
 

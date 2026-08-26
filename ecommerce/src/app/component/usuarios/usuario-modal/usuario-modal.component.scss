@@ -626,23 +626,72 @@
 }
 
 .vinculacion-exito {
+  // El cuerpo del modal es flex column, asi que centrar con text-align no
+  // alcanza: hay que alinear los propios items (el icono salia pegado a la
+  // izquierda por eso).
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
   text-align: center;
-  padding: 48px 32px;
+  padding: 32px;
 
   &__icono {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 96px;
-    height: 96px;
+    width: 84px;
+    height: 84px;
     border-radius: 50%;
-    background: rgba(25, 135, 84, 0.12);
-    margin-bottom: 20px;
+    background: rgba(22, 163, 74, 0.12);
+    flex-shrink: 0;
 
     i {
-      font-size: 52px;
-      color: #198754;
+      font-size: 46px;
+      color: #16a34a;
     }
+  }
+
+  &__texto {
+    margin: 0;
+    font-size: 0.98rem;
+    color: #4b5563;
+
+    strong { color: #111827; }
+  }
+
+  &__tarjeta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 14px 20px;
+    min-width: 280px;
+    background: #f9fafb;
+  }
+
+  &__avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: rgba(211, 32, 39, 0.12);
+    color: #d32027;
+    font-size: 26px;
+    flex-shrink: 0;
+  }
+
+  &__nota {
+    margin: 0;
+    max-width: 420px;
+    font-size: 0.84rem;
+    line-height: 1.5;
+    color: #6b7280;
   }
 }
 
@@ -792,11 +841,6 @@
 // mantiene el padding de siempre.
 .modal-body.vinculacion-body {
   padding: 24px 32px;
-}
-
-// La pantalla de "vinculación realizada" queda centrada en el modal.
-.modal-body.vinculacion-exito {
-  justify-content: center;
 }
 
 // Botones del pie: color fijo, sin animación al pasar el mouse.
