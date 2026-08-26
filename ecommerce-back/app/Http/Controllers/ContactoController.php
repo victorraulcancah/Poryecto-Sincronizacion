@@ -107,48 +107,40 @@ class ContactoController extends Controller
         return $query;
     }
 
-    /**
-     * Descarga los mensajes filtrados.
-     *
-     * Se arma un CSV con BOM en vez de un .xlsx: el proyecto no tiene ninguna
-     * librería de Excel instalada y este formato lo abre Excel directamente,
-     * respetando los acentos.
-     */
+    /** Descarga los mensajes filtrados en un .xlsx. */
     public function exportar(Request $request)
     {
         $mensajes = $this->filtrados($request)->get();
-        $nombre = 'mensajes-contacto-' . now()->format('Y-m-d') . '.csv';
 
-        return response()->streamDownload(function () use ($mensajes) {
-            $archivo = fopen('php://output', 'w');
+        $excel = (new \App\Support\ExcelSimple('Mensajes de contacto'))
+            ->encabezados(
+                ['N°', 'Fecha', 'Hora', 'Nombre', 'Correo', 'Teléfono', 'Asunto', 'Mensaje', 'Estado', 'IP'],
+                //  N°  Fecha Hora Nombre Correo Tel  Asunto Mensaje Estado IP
+                [6, 12, 8, 28, 30, 14, 30, 60, 12, 16]
+            );
 
-            // Sin el BOM, Excel abre los acentos como caracteres raros.
-            fwrite($archivo, chr(0xEF) . chr(0xBB) . chr(0xBF));
+        foreach ($mensajes as $m) {
+            $excel->fila([
+                $m->id,
+                $m->created_at?->format('d/m/Y'),
+                $m->created_at?->format('H:i'),
+                $m->nombre,
+                $m->email,
+                $m->telefono ?: '—',
+                $m->asunto,
+                // Los saltos de línea se dejan como espacios: en una celda con
+                // ajuste de texto quedan igual de legibles y no rompen el XML.
+                trim(preg_replace('/\s+/u', ' ', (string) $m->mensaje) ?? ''),
+                $m->leido ? 'Leído' : 'Sin leer',
+                $m->ip ?: '—',
+            ]);
+        }
 
-            fputcsv($archivo, [
-                'N°', 'Fecha', 'Hora', 'Nombre', 'Correo',
-                'Teléfono', 'Asunto', 'Mensaje', 'Estado', 'IP',
-            ], ';');
+        $nombre = 'mensajes-contacto-' . now()->format('Y-m-d') . '.xlsx';
 
-            foreach ($mensajes as $m) {
-                fputcsv($archivo, [
-                    $m->id,
-                    $m->created_at?->format('d/m/Y'),
-                    $m->created_at?->format('H:i'),
-                    $m->nombre,
-                    $m->email,
-                    $m->telefono ?: '-',
-                    $m->asunto,
-                    // Los saltos de línea romperían la fila del CSV.
-                    str_replace(["\r\n", "\r", "\n"], ' ', (string) $m->mensaje),
-                    $m->leido ? 'Leído' : 'Sin leer',
-                    $m->ip ?: '-',
-                ], ';');
-            }
-
-            fclose($archivo);
-        }, $nombre, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
+        return response($excel->contenido(), 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $nombre . '"',
         ]);
     }
 
