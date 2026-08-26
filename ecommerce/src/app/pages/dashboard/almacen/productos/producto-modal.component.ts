@@ -273,8 +273,9 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
     // Volver al primer tab
     this.activeTab = 'basico';
 
-    // Agregar elementos por defecto
+    // Agregar elementos por defecto: los dos campos que siempre se llenan.
     this.agregarInformacionAdicional('Características principales');
+    this.agregarInformacionAdicional('Descripción del producto');
     this.agregarEspecificacion();
     this.agregarCaracteristicaTecnica();
   }
@@ -361,8 +362,9 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
                 );
               });
             } else {
-              // Sin nada guardado: dejar la fila "Características principales" por defecto.
+              // Sin nada guardado: dejar los dos campos de siempre.
               this.agregarInformacionAdicional('Características principales');
+              this.agregarInformacionAdicional('Descripción del producto');
             }
           }
 
