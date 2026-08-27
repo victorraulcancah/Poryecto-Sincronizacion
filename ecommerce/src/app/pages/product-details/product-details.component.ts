@@ -62,6 +62,15 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   especificacionesProcesadas: any[] = []
   caracteristicasProcesadas: any[] = []
   informacionAdicionalProcesada: any[] = []
+  /**
+   * Los campos que el administrador crea en la pestaña "Características
+   * principales" del producto se guardan todos en `informacion_adicional`,
+   * pero acá el acordeón tiene dos secciones. Se reparten por su título: el
+   * campo titulado "Características principales" va a esa sección y el resto
+   * a "Descripción del producto". Antes todo caía en Descripción y la primera
+   * sección salía siempre vacía.
+   */
+  caracteristicasRedactadas: any[] = []
   safeDescripcionDetallada: SafeHtml = ""
   environment = environment
   nombreEmpresa: string = 'MAGUS' // Valor por defecto
@@ -610,6 +619,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
 
   private procesarInformacionAdicional(): void {
     this.informacionAdicionalProcesada = [];
+    this.caracteristicasRedactadas = [];
     try {
       if (!this.detalles?.informacion_adicional) return;
       let items = (typeof this.detalles.informacion_adicional === "string") ? JSON.parse(this.detalles.informacion_adicional) : this.detalles.informacion_adicional;
@@ -617,14 +627,49 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
         // ✅ El HTML seguro se calcula UNA sola vez aquí (no en el template) para
         // evitar que Angular lo re-sanitice/re-renderice en cada ciclo de detección
         // de cambios (eso congelaba la pestaña con textos largos o con imágenes).
-        this.informacionAdicionalProcesada = items
+        const procesados = items
           .filter(i => i && i.titulo && i.texto)
-          .map(i => ({ ...i, textoSeguro: this.sanitizer.bypassSecurityTrustHtml(i.texto) }));
+          .map(i => ({
+            ...i,
+            textoSeguro: this.sanitizer.bypassSecurityTrustHtml(i.texto),
+            // El título se oculta cuando repite el nombre de la sección que lo
+            // contiene (ej. un campo "Descripción del producto" dentro de la
+            // sección "Descripción del producto").
+            mostrarTitulo: !this.esTituloDeSeccion(i.titulo),
+          }));
+
+        // El reparto se hace acá y no en un getter con .filter(): un getter
+        // devolvería un arreglo nuevo en cada ciclo de detección de cambios y
+        // el *ngFor volvería a pintar todo el bloque cada vez.
+        this.caracteristicasRedactadas = procesados.filter(i => this.esTituloDeCaracteristicas(i.titulo));
+        this.informacionAdicionalProcesada = procesados.filter(i => !this.esTituloDeCaracteristicas(i.titulo));
       }
     } catch (error) { console.warn("Error procesando información adicional:", error); }
   }
 
+  /** Sin tildes, espacios ni mayúsculas: el título lo escribe el administrador a mano. */
+  private normalizarTitulo(titulo: string): string {
+    return (titulo || '')
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '')
+      .trim()
+      .toLowerCase();
+  }
+
+  private esTituloDeCaracteristicas(titulo: string): boolean {
+    return this.normalizarTitulo(titulo) === 'caracteristicas principales';
+  }
+
+  /** El título repite el nombre de la sección del acordeón que lo contiene. */
+  private esTituloDeSeccion(titulo: string): boolean {
+    const limpio = this.normalizarTitulo(titulo);
+    return limpio === 'caracteristicas principales' || limpio === 'descripcion del producto';
+  }
+
   getInformacionAdicional(): any[] { return this.informacionAdicionalProcesada; }
+
+  /** Campos redactados que van en la sección "Características principales". */
+  getCaracteristicasRedactadas(): any[] { return this.caracteristicasRedactadas; }
 
   private procesarCaracteristicas(): void {
     this.caracteristicasProcesadas = [];

@@ -67,11 +67,15 @@ export class RangoFechasComponent implements OnInit {
   private readonly hoy = this.soloFecha(new Date());
 
   /**
-   * Atajos de rango, los mismos del filtro de reportes del ERP. El inicio
-   * nunca se va al futuro, así que "esta semana" y "este mes" terminan hoy.
+   * Atajos de rango, los mismos del filtro de reportes del ERP.
+   *
+   * "Hoy" es distinto a los demás: no arma un rango, autocompleta con la fecha
+   * de hoy la casilla en la que está el cursor (Desde o Hasta). Es lo que se
+   * espera al tener el foco en una de las dos fechas, y antes rearmaba el
+   * rango entero y cerraba el panel.
    */
-  readonly atajos = [
-    { etiqueta: 'Hoy', rango: () => this.hastaHoy() },
+  readonly atajos: { etiqueta: string; rango?: () => [Date, Date]; soloExtremo?: boolean }[] = [
+    { etiqueta: 'Hoy', soloExtremo: true },
     { etiqueta: 'Esta semana', rango: () => this.semanaActual() },
     { etiqueta: 'Última semana', rango: () => this.semanaAnterior() },
     { etiqueta: 'Este mes', rango: () => this.mesActual() },
@@ -80,7 +84,12 @@ export class RangoFechasComponent implements OnInit {
     { etiqueta: 'Último año', rango: () => this.anioAnterior() },
   ];
 
-  aplicarAtajo(atajo: { rango: () => [Date, Date] }): void {
+  aplicarAtajo(atajo: { rango?: () => [Date, Date]; soloExtremo?: boolean }): void {
+    if (atajo.soloExtremo || !atajo.rango) {
+      this.ponerHoyEnExtremo();
+      return;
+    }
+
     const [inicio, fin] = atajo.rango();
     this.seleccionInicio = inicio;
     this.seleccionFin = fin;
@@ -91,11 +100,29 @@ export class RangoFechasComponent implements OnInit {
   }
 
   /**
-   * Desde la fecha elegida hasta hoy: si el cliente marcó el 01/08, el rango
-   * queda 01/08 - 19/08 (hoy). Si no marcó nada, queda solo el día de hoy.
+   * Escribe la fecha de hoy en el extremo que se está editando. No cierra el
+   * panel: es un autocompletado del campo, igual que teclear la fecha a mano;
+   * el rango se dispara recién con "Aplicar".
    */
-  private hastaHoy(): [Date, Date] {
-    return [this.seleccionInicio ?? this.hoy, this.hoy];
+  private ponerHoyEnExtremo(): void {
+    const hoy = new Date(this.hoy);
+
+    if (this.extremo === 'inicio') {
+      this.seleccionInicio = hoy;
+      // Mismo criterio que al elegir un día en el calendario: si el inicio se
+      // pasa del fin, el fin deja de tener sentido y se suelta.
+      if (this.seleccionFin && hoy > this.seleccionFin) this.seleccionFin = null;
+    } else {
+      this.seleccionFin = hoy;
+      // Si quedó antes del inicio, se invierten en vez de romperse.
+      if (this.seleccionInicio && hoy < this.seleccionInicio) {
+        this.seleccionFin = this.seleccionInicio;
+        this.seleccionInicio = hoy;
+      }
+    }
+
+    this.sincronizarEntradas();
+    this.mesBase = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
   }
 
   /** Lunes de la semana en curso hasta hoy. */

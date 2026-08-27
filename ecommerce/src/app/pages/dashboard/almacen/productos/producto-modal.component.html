@@ -300,8 +300,8 @@
           <!-- Tab: Descripción de Información (CRUD dinámico: título + texto enriquecido) -->
           <div *ngIf="activeTab === 'descripcion'" class="animate__animated animate__fadeIn animate__faster">
             <form [formGroup]="detallesForm">
-              <div class="d-flex justify-content-between align-items-center mb-16">
-                <h6 class="mb-0">Características principales</h6>
+              <!-- Sin título: la pestaña ya dice "Características principales". -->
+              <div class="d-flex justify-content-end align-items-center mb-16">
                 <button type="button" class="btn btn-sm bg-main-600 text-white"
                         (click)="agregarInformacionAdicional()">
                   <i class="ph ph-plus me-8"></i>Agregar campo

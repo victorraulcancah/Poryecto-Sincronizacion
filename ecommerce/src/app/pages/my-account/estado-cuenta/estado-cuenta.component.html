@@ -93,14 +93,8 @@
         [hasta]="fechaHasta"
         (aplicar)="cambiarRangoFechas($event)"
       ></app-rango-fechas>
-      <!-- Vuelve a consultar la API con el mismo rango: sirve para ver una
-           venta o un pago que se acaba de registrar en el ERP. -->
-      <button type="button" class="btn btn-sm py-2 d-flex align-items-center gap-4 text-white"
-        style="height: 28px; background-color: #9B1C1C; border-color: #9B1C1C;"
-        (click)="recargar()">
-        <i class="ph ph-arrows-clockwise"></i>
-        Buscar
-      </button>
+      <!-- Sin botón "Buscar": el rango consulta solo al presionar "Aplicar"
+           dentro del calendario, así que el botón no agregaba nada. -->
       <div class="position-relative flex-grow-1">
         <input
           type="text"
