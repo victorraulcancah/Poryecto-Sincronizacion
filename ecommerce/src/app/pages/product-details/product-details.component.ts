@@ -63,14 +63,16 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   caracteristicasProcesadas: any[] = []
   informacionAdicionalProcesada: any[] = []
   /**
-   * Los campos que el administrador crea en la pestaña "Características
-   * principales" del producto se guardan todos en `informacion_adicional`,
-   * pero acá el acordeón tiene dos secciones. Se reparten por su título: el
-   * campo titulado "Características principales" va a esa sección y el resto
-   * a "Descripción del producto". Antes todo caía en Descripción y la primera
-   * sección salía siempre vacía.
+   * Secciones del acordeón que salen de los campos que el administrador crea
+   * en la pestaña "Características principales" del producto (título + texto).
+   *
+   * Antes el acordeón tenía dos secciones fijas ("Características principales"
+   * y "Descripción del producto") y todos los campos caían en la segunda: si
+   * el administrador titulaba un campo "Características", el texto aparecía
+   * bajo "Descripción" y la primera sección salía siempre vacía. Ahora cada
+   * campo es su propia sección y lleva el título que le pusieron.
    */
-  caracteristicasRedactadas: any[] = []
+  seccionesInfo: { clave: string; titulo: string; textoSeguro: SafeHtml }[] = []
   safeDescripcionDetallada: SafeHtml = ""
   environment = environment
   nombreEmpresa: string = 'MAGUS' // Valor por defecto
@@ -79,7 +81,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   compartirMensaje: string = ''
 
   // Acordeón de detalles: cada sección se expande/colapsa de forma independiente
-  private seccionesAbiertas = new Set<string>(['caracteristicas'])
+  private seccionesAbiertas = new Set<string>()
 
   toggleAccordion(seccion: string): void {
     if (this.seccionesAbiertas.has(seccion)) {
@@ -301,6 +303,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
     this.procesarEspecificaciones()
     this.procesarCaracteristicas()
     this.procesarInformacionAdicional()
+    this.abrirPrimeraSeccion()
     const rawDescription = this.detalles?.descripcion_detallada || this.producto?.descripcion || ""
     this.safeDescripcionDetallada = this.sanitizer.bypassSecurityTrustHtml(rawDescription)
 
@@ -619,7 +622,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
 
   private procesarInformacionAdicional(): void {
     this.informacionAdicionalProcesada = [];
-    this.caracteristicasRedactadas = [];
+    this.seccionesInfo = [];
     try {
       if (!this.detalles?.informacion_adicional) return;
       let items = (typeof this.detalles.informacion_adicional === "string") ? JSON.parse(this.detalles.informacion_adicional) : this.detalles.informacion_adicional;
@@ -627,49 +630,43 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
         // ✅ El HTML seguro se calcula UNA sola vez aquí (no en el template) para
         // evitar que Angular lo re-sanitice/re-renderice en cada ciclo de detección
         // de cambios (eso congelaba la pestaña con textos largos o con imágenes).
-        const procesados = items
+        this.informacionAdicionalProcesada = items
           .filter(i => i && i.titulo && i.texto)
-          .map(i => ({
-            ...i,
-            textoSeguro: this.sanitizer.bypassSecurityTrustHtml(i.texto),
-            // El título se oculta cuando repite el nombre de la sección que lo
-            // contiene (ej. un campo "Descripción del producto" dentro de la
-            // sección "Descripción del producto").
-            mostrarTitulo: !this.esTituloDeSeccion(i.titulo),
-          }));
+          .map(i => ({ ...i, textoSeguro: this.sanitizer.bypassSecurityTrustHtml(i.texto) }));
 
-        // El reparto se hace acá y no en un getter con .filter(): un getter
-        // devolvería un arreglo nuevo en cada ciclo de detección de cambios y
-        // el *ngFor volvería a pintar todo el bloque cada vez.
-        this.caracteristicasRedactadas = procesados.filter(i => this.esTituloDeCaracteristicas(i.titulo));
-        this.informacionAdicionalProcesada = procesados.filter(i => !this.esTituloDeCaracteristicas(i.titulo));
+        // Una sección de acordeón por campo, en el mismo orden en que están en
+        // el administrador. La clave es el índice y no el título: dos campos
+        // pueden llamarse igual y se pisarían al abrir/cerrar.
+        this.seccionesInfo = this.informacionAdicionalProcesada.map((i, indice) => ({
+          clave: `info-${indice}`,
+          titulo: i.titulo,
+          textoSeguro: i.textoSeguro,
+        }));
       }
     } catch (error) { console.warn("Error procesando información adicional:", error); }
   }
 
-  /** Sin tildes, espacios ni mayúsculas: el título lo escribe el administrador a mano. */
-  private normalizarTitulo(titulo: string): string {
-    return (titulo || '')
-      .normalize('NFD')
-      .replace(/\p{Diacritic}/gu, '')
-      .trim()
-      .toLowerCase();
+  /**
+   * Deja abierta la primera sección del acordeón. Se llama después de procesar
+   * los campos porque las claves dependen de cuántos vengan.
+   */
+  private abrirPrimeraSeccion(): void {
+    this.seccionesAbiertas.clear();
+    if (this.seccionesInfo.length > 0) {
+      this.seccionesAbiertas.add(this.seccionesInfo[0].clave);
+    } else if (this.hayFichaTecnica) {
+      this.seccionesAbiertas.add('ficha');
+    } else {
+      this.seccionesAbiertas.add('descripcion');
+    }
   }
 
-  private esTituloDeCaracteristicas(titulo: string): boolean {
-    return this.normalizarTitulo(titulo) === 'caracteristicas principales';
-  }
-
-  /** El título repite el nombre de la sección del acordeón que lo contiene. */
-  private esTituloDeSeccion(titulo: string): boolean {
-    const limpio = this.normalizarTitulo(titulo);
-    return limpio === 'caracteristicas principales' || limpio === 'descripcion del producto';
+  /** Especificaciones y características técnicas: van juntas en su propia sección. */
+  get hayFichaTecnica(): boolean {
+    return this.especificacionesProcesadas.length > 0 || this.caracteristicasProcesadas.length > 0;
   }
 
   getInformacionAdicional(): any[] { return this.informacionAdicionalProcesada; }
-
-  /** Campos redactados que van en la sección "Características principales". */
-  getCaracteristicasRedactadas(): any[] { return this.caracteristicasRedactadas; }
 
   private procesarCaracteristicas(): void {
     this.caracteristicasProcesadas = [];

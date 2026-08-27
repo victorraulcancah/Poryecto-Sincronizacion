@@ -175,21 +175,33 @@
                             <!-- ✅ Acordeón: Características / Descripción / Manual (debajo de la galería) -->
                             <div class="product-accordion mt-40">
 
-                                <div class="product-accordion__item">
+                                <!-- Una sección por cada campo creado en el administrador
+                                     (pestaña "Características principales" del producto). El
+                                     encabezado es el título que le pusieron: antes los títulos
+                                     eran fijos y el texto siempre caía en "Descripción". -->
+                                <div class="product-accordion__item" *ngFor="let seccion of seccionesInfo">
                                     <button type="button" class="product-accordion__header"
-                                        (click)="toggleAccordion('caracteristicas')">
-                                        <span>Características principales</span>
-                                        <i class="ph" [class.ph-plus]="!estaSeccionAbierta('caracteristicas')"
-                                            [class.ph-minus]="estaSeccionAbierta('caracteristicas')"></i>
+                                        (click)="toggleAccordion(seccion.clave)">
+                                        <span>{{ seccion.titulo }}</span>
+                                        <i class="ph" [class.ph-plus]="!estaSeccionAbierta(seccion.clave)"
+                                            [class.ph-minus]="estaSeccionAbierta(seccion.clave)"></i>
                                     </button>
-                                    <div class="product-accordion__body" *ngIf="estaSeccionAbierta('caracteristicas')">
-                                        <!-- Campo redactado desde el administrador (pestaña
-                                             "Características principales" del producto). Va primero
-                                             porque es el texto que el vendedor escribió. -->
-                                        <div class="mb-32" *ngFor="let item of getCaracteristicasRedactadas()">
-                                            <div [innerHTML]="item.textoSeguro"></div>
-                                        </div>
+                                    <div class="product-accordion__body" *ngIf="estaSeccionAbierta(seccion.clave)">
+                                        <div [innerHTML]="seccion.textoSeguro"></div>
+                                    </div>
+                                </div>
 
+                                <!-- Ficha técnica: especificaciones y características técnicas.
+                                     Son campos aparte del CRUD de arriba, así que van en su
+                                     propia sección y solo si tienen datos. -->
+                                <div class="product-accordion__item" *ngIf="hayFichaTecnica">
+                                    <button type="button" class="product-accordion__header"
+                                        (click)="toggleAccordion('ficha')">
+                                        <span>Ficha técnica</span>
+                                        <i class="ph" [class.ph-plus]="!estaSeccionAbierta('ficha')"
+                                            [class.ph-minus]="estaSeccionAbierta('ficha')"></i>
+                                    </button>
+                                    <div class="product-accordion__body" *ngIf="estaSeccionAbierta('ficha')">
                                         <div class="mb-32" *ngIf="getEspecificaciones().length > 0">
                                             <h6 class="mb-24">Especificaciones del producto</h6>
                                             <ul class="mt-32">
@@ -220,14 +232,12 @@
                                             </ul>
                                         </div>
 
-                                        <p class="text-gray-500"
-                                           *ngIf="!getCaracteristicasRedactadas().length && !getEspecificaciones().length && !getCaracteristicasTecnicas().length">
-                                            Este producto no tiene características principales registradas.
-                                        </p>
                                     </div>
                                 </div>
 
-                                <div class="product-accordion__item">
+                                <!-- Solo para productos que todavía no tienen campos cargados:
+                                     se muestra la descripción suelta del producto. -->
+                                <div class="product-accordion__item" *ngIf="seccionesInfo.length === 0">
                                     <button type="button" class="product-accordion__header"
                                         (click)="toggleAccordion('descripcion')">
                                         <span>Descripción del producto</span>
@@ -235,19 +245,7 @@
                                             [class.ph-minus]="estaSeccionAbierta('descripcion')"></i>
                                     </button>
                                     <div class="product-accordion__body" *ngIf="estaSeccionAbierta('descripcion')">
-                                        <!-- ✅ Descripción de Información (CRUD dinámico: título + texto) -->
-                                        <ng-container *ngIf="getInformacionAdicional().length > 0; else descripcionBasica">
-                                            <div class="mb-32" *ngFor="let item of getInformacionAdicional(); let last = last" [class.mb-0]="last">
-                                                <!-- El título se omite si repite el nombre de la sección. -->
-                                                <h6 class="mb-24" *ngIf="item.mostrarTitulo">{{ item.titulo }}</h6>
-                                                <div [innerHTML]="item.textoSeguro"></div>
-                                            </div>
-                                        </ng-container>
-
-                                        <!-- Fallback: productos sin campos dinámicos cargados aún -->
-                                        <ng-template #descripcionBasica>
-                                            <div [innerHTML]="safeDescripcionDetallada"></div>
-                                        </ng-template>
+                                        <div [innerHTML]="safeDescripcionDetallada"></div>
                                     </div>
                                 </div>
 
