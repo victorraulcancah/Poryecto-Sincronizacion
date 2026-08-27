@@ -54,6 +54,14 @@ export class RangoFechasComponent implements OnInit {
    */
   extremo: 'inicio' | 'fin' = 'inicio';
 
+  /**
+   * Casilla en la que el usuario puso el cursor, o null si abrió el panel con
+   * el ícono del calendario. `extremo` no sirve para distinguirlo porque al
+   * abrir con el ícono queda en 'inicio' de todas formas, y el atajo "Hoy"
+   * necesita saberlo para decidir qué hacer (ver aplicarAtajo).
+   */
+  campoEnfocado: 'inicio' | 'fin' | null = null;
+
   readonly diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   readonly meses = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -66,16 +74,9 @@ export class RangoFechasComponent implements OnInit {
   /** La fecha inicial no puede ser futura: no hay movimientos por venir. */
   private readonly hoy = this.soloFecha(new Date());
 
-  /**
-   * Atajos de rango, los mismos del filtro de reportes del ERP.
-   *
-   * "Hoy" es distinto a los demás: no arma un rango, autocompleta con la fecha
-   * de hoy la casilla en la que está el cursor (Desde o Hasta). Es lo que se
-   * espera al tener el foco en una de las dos fechas, y antes rearmaba el
-   * rango entero y cerraba el panel.
-   */
-  readonly atajos: { etiqueta: string; rango?: () => [Date, Date]; soloExtremo?: boolean }[] = [
-    { etiqueta: 'Hoy', soloExtremo: true },
+  /** Atajos de rango, los mismos del filtro de reportes del ERP. */
+  readonly atajos: { etiqueta: string; rango?: () => [Date, Date]; hoy?: boolean }[] = [
+    { etiqueta: 'Hoy', rango: () => this.hastaHoy(), hoy: true },
     { etiqueta: 'Esta semana', rango: () => this.semanaActual() },
     { etiqueta: 'Última semana', rango: () => this.semanaAnterior() },
     { etiqueta: 'Este mes', rango: () => this.mesActual() },
@@ -84,11 +85,23 @@ export class RangoFechasComponent implements OnInit {
     { etiqueta: 'Último año', rango: () => this.anioAnterior() },
   ];
 
-  aplicarAtajo(atajo: { rango?: () => [Date, Date]; soloExtremo?: boolean }): void {
-    if (atajo.soloExtremo || !atajo.rango) {
+  /**
+   * "Hoy" hace dos cosas según desde dónde se abrió el panel:
+   *
+   *   - Con el cursor puesto en una de las dos casillas, autocompleta **esa**
+   *     casilla con la fecha de hoy y deja el panel abierto para terminar de
+   *     ajustar la otra.
+   *   - Abierto con el ícono del calendario, arma el rango hasta hoy y aplica,
+   *     igual que "Esta semana" o "Este mes".
+   *
+   * Los demás atajos siempre arman el rango completo y aplican.
+   */
+  aplicarAtajo(atajo: { rango?: () => [Date, Date]; hoy?: boolean }): void {
+    if (atajo.hoy && this.campoEnfocado) {
       this.ponerHoyEnExtremo();
       return;
     }
+    if (!atajo.rango) return;
 
     const [inicio, fin] = atajo.rango();
     this.seleccionInicio = inicio;
@@ -100,7 +113,15 @@ export class RangoFechasComponent implements OnInit {
   }
 
   /**
-   * Escribe la fecha de hoy en el extremo que se está editando. No cierra el
+   * Desde la fecha elegida hasta hoy: si el cliente marcó el 01/08, el rango
+   * queda 01/08 - 27/08 (hoy). Si no marcó nada, queda solo el día de hoy.
+   */
+  private hastaHoy(): [Date, Date] {
+    return [this.seleccionInicio ?? this.hoy, this.hoy];
+  }
+
+  /**
+   * Escribe la fecha de hoy en la casilla que tiene el cursor. No cierra el
    * panel: es un autocompletado del campo, igual que teclear la fecha a mano;
    * el rango se dispara recién con "Aplicar".
    */
@@ -196,8 +217,9 @@ export class RangoFechasComponent implements OnInit {
       return;
     }
     // Se abre editando el inicio, para que marcar un rango de corrido siga
-    // funcionando como siempre.
+    // funcionando como siempre. Sin casilla enfocada: se abrió con el ícono.
     this.extremo = 'inicio';
+    this.campoEnfocado = null;
     this.hover = null;
     this.sincronizarEntradas();
     this.ubicarPanel();
@@ -217,6 +239,7 @@ export class RangoFechasComponent implements OnInit {
     const destino = event.target as HTMLElement | null;
     if (!destino?.closest('.rango-fechas')) {
       this.abierto = false;
+      this.campoEnfocado = null;
     }
   }
 
@@ -225,6 +248,7 @@ export class RangoFechasComponent implements OnInit {
   @HostListener('window:scroll')
   cerrarPorMovimiento(): void {
     this.abierto = false;
+    this.campoEnfocado = null;
   }
 
   private ubicarPanel(): void {
@@ -301,6 +325,7 @@ export class RangoFechasComponent implements OnInit {
       this.ubicarPanel();
       this.abierto = true;
     }
+    this.campoEnfocado = cual;
     this.editarExtremo(cual);
   }
 
@@ -317,6 +342,17 @@ export class RangoFechasComponent implements OnInit {
   elegir(dia: Dia): void {
     if (this.noSeleccionable(dia)) return;
     const f = this.soloFecha(dia.fecha);
+
+    // Volver a clickear el día ya marcado lo desmarca. Sin esto, con el rango
+    // ya armado el calendario no reaccionaba y no había forma de soltar una
+    // fecha sin borrar las dos.
+    const yaMarcado = this.extremo === 'inicio' ? this.seleccionInicio : this.seleccionFin;
+    if (yaMarcado && this.mismoDia(f, yaMarcado)) {
+      if (this.extremo === 'inicio') this.seleccionInicio = null;
+      else this.seleccionFin = null;
+      this.sincronizarEntradas();
+      return;
+    }
 
     if (this.extremo === 'inicio') {
       this.seleccionInicio = f;
@@ -440,6 +476,7 @@ export class RangoFechasComponent implements OnInit {
     this.seleccionFin = null;
     this.hover = null;
     this.extremo = 'inicio';
+    this.campoEnfocado = null;
     this.sincronizarEntradas();
   }
 
@@ -452,6 +489,7 @@ export class RangoFechasComponent implements OnInit {
       hasta: this.aTexto(fin),
     });
     this.abierto = false;
+    this.campoEnfocado = null;
   }
 
   /** Texto del botón: "01/08/2026 — 07/08/2026". */
