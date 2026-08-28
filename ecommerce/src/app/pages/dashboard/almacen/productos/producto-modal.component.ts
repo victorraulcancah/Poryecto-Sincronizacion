@@ -702,8 +702,30 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
     this.informacionAdicional.push(grupo);
   }
 
+  /**
+   * Elimina un campo reconstruyendo todo el FormArray.
+   *
+   * No basta con `removeAt(index)`. Las filas se pintan con
+   * `[formGroupName]="i"`, así que al quitar una del medio Angular reutiliza el
+   * `<div>` de la siguiente y solo le cambia el índice; el `formControlName` y
+   * el `quill-editor` de adentro no se vuelven a registrar (su propio nombre no
+   * cambió) y quedan enganchados al grupo eliminado. En pantalla se veía el
+   * campo borrado y al guardar se enviaba el otro.
+   *
+   * Al crear grupos nuevos, el *ngFor los ve como filas distintas, destruye las
+   * anteriores y vuelve a crearlas ya apuntando al grupo correcto.
+   */
   eliminarInformacionAdicional(index: number): void {
-    this.informacionAdicional.removeAt(index);
+    const restantes = this.informacionAdicional.value.filter(
+      (_: any, i: number) => i !== index
+    );
+
+    this.informacionAdicional.clear();
+    restantes.forEach((item: any) =>
+      this.informacionAdicional.push(
+        this.fb.group({ titulo: [item.titulo || ''], texto: [item.texto || ''] })
+      )
+    );
   }
 
   // ==================== MÉTODOS PARA ESPECIFICACIONES ====================
