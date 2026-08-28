@@ -416,12 +416,21 @@ class ProductosController extends Controller
             });
         }
 
-        // Filtrar por búsqueda si se proporciona
+        // Filtrar por búsqueda si se proporciona.
+        //
+        // Mismos campos que el desplegable del header (buscarProductos): código,
+        // marca y categoría además del nombre. Antes solo miraba nombre y
+        // descripción, y como `descripcion` es el "Producto <nombre>" que genera
+        // la sincronización, buscar "amplificador" traía únicamente los productos
+        // con esa palabra en el nombre y dejaba fuera toda la categoría.
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('nombre', 'LIKE', "%{$search}%")
-                    ->orWhere('descripcion', 'LIKE', "%{$search}%");
+                    ->orWhere('descripcion', 'LIKE', "%{$search}%")
+                    ->orWhere('codigo_producto', 'LIKE', "%{$search}%")
+                    ->orWhereHas('marca', fn ($m) => $m->where('nombre', 'LIKE', "%{$search}%"))
+                    ->orWhereHas('categoria', fn ($c) => $c->where('nombre', 'LIKE', "%{$search}%"));
             });
         }
 
