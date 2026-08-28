@@ -666,16 +666,9 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
     this.seccionesAbiertas.clear();
     if (this.seccionesInfo.length > 0) {
       this.seccionesAbiertas.add(this.seccionesInfo[0].clave);
-    } else if (this.hayFichaTecnica) {
-      this.seccionesAbiertas.add('ficha');
     } else if (this.hayDescripcionSuelta) {
       this.seccionesAbiertas.add('descripcion');
     }
-  }
-
-  /** Especificaciones y características técnicas: van juntas en su propia sección. */
-  get hayFichaTecnica(): boolean {
-    return this.especificacionesProcesadas.length > 0 || this.caracteristicasProcesadas.length > 0;
   }
 
   getInformacionAdicional(): any[] { return this.informacionAdicionalProcesada; }

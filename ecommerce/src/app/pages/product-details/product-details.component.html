@@ -191,49 +191,10 @@
                                     </div>
                                 </div>
 
-                                <!-- Ficha técnica: especificaciones y características técnicas.
-                                     Son campos aparte del CRUD de arriba, así que van en su
-                                     propia sección y solo si tienen datos. -->
-                                <div class="product-accordion__item" *ngIf="hayFichaTecnica">
-                                    <button type="button" class="product-accordion__header"
-                                        (click)="toggleAccordion('ficha')">
-                                        <span>Ficha técnica</span>
-                                        <i class="ph" [class.ph-plus]="!estaSeccionAbierta('ficha')"
-                                            [class.ph-minus]="estaSeccionAbierta('ficha')"></i>
-                                    </button>
-                                    <div class="product-accordion__body" *ngIf="estaSeccionAbierta('ficha')">
-                                        <div class="mb-32" *ngIf="getEspecificaciones().length > 0">
-                                            <h6 class="mb-24">Especificaciones del producto</h6>
-                                            <ul class="mt-32">
-                                                <li *ngFor="let spec of getEspecificaciones()" class="text-gray-400 mb-14 flex-align gap-14">
-                                                    <span class="w-20 h-20 bg-main-50 text-main-600 text-xs flex-center rounded-circle">
-                                                        <i class="ph ph-check"></i>
-                                                    </span>
-                                                    <span class="text-heading fw-medium">
-                                                        {{ spec.nombre }}:
-                                                        <span class="text-gray-500"> {{ spec.valor }}</span>
-                                                    </span>
-                                                </li>
-                                            </ul>
-                                        </div>
-
-                                        <div class="mb-0" *ngIf="getCaracteristicasTecnicas().length > 0">
-                                            <h6 class="mb-24">Características técnicas</h6>
-                                            <ul class="mt-32">
-                                                <li *ngFor="let caracteristica of getCaracteristicasTecnicas()" class="text-gray-400 mb-14 flex-align gap-14">
-                                                    <span class="w-20 h-20 bg-main-50 text-main-600 text-xs flex-center rounded-circle">
-                                                        <i class="ph ph-check"></i>
-                                                    </span>
-                                                    <span class="text-heading fw-medium">
-                                                        {{ caracteristica.caracteristica }}:
-                                                        <span class="text-gray-500"> {{ caracteristica.detalle }}</span>
-                                                    </span>
-                                                </li>
-                                            </ul>
-                                        </div>
-
-                                    </div>
-                                </div>
+                                <!-- Acá había una sección "Ficha técnica" con `especificaciones` y
+                                     `caracteristicas_tecnicas`. Se quitó: el administrador ya no
+                                     edita esos campos, así que solo mostraba datos viejos
+                                     (ej. "PRUEBA: PRUEBA 2") que nadie podía corregir. -->
 
                                 <!-- Solo para productos sin campos cargados y que sí tienen una
                                      descripción escrita a mano. Sin `hayDescripcionSuelta` salía
@@ -683,39 +644,9 @@
                                 <div [innerHTML]="safeDescripcionDetallada"></div> <!-- ✅ Usa la nueva propiedad -->
                             </div>
 
-                            <!-- ✅ ESPECIFICACIONES DINÁMICAS -->
-                            <div class="mb-40" *ngIf="getEspecificaciones().length > 0">
-                                <h6 class="mb-24">Especificaciones del producto</h6>
-                                <ul class="mt-32">
-                                    <li *ngFor="let spec of getEspecificaciones()" class="text-gray-400 mb-14 flex-align gap-14">
-                                        <span
-                                            class="w-20 h-20 bg-main-50 text-main-600 text-xs flex-center rounded-circle">
-                                            <i class="ph ph-check"></i>
-                                        </span>
-                                        <span class="text-heading fw-medium">
-                                            {{ spec.nombre }}:
-                                            <span class="text-gray-500"> {{ spec.valor }}</span>
-                                        </span>
-                                    </li>
-                                </ul>
-                            </div>
-
-                            <!-- ✅ CARACTERÍSTICAS TÉCNICAS DINÁMICAS -->
-                            <div class="mb-40" *ngIf="getCaracteristicasTecnicas().length > 0">
-                                <h6 class="mb-24">Características técnicas</h6>
-                                <ul class="mt-32">
-                                    <li *ngFor="let caracteristica of getCaracteristicasTecnicas()" class="text-gray-400 mb-14 flex-align gap-14">
-                                        <span
-                                            class="w-20 h-20 bg-main-50 text-main-600 text-xs flex-center rounded-circle">
-                                            <i class="ph ph-check"></i>
-                                        </span>
-                                        <span class="text-heading fw-medium">
-                                            {{ caracteristica.caracteristica }}:
-                                            <span class="text-gray-500"> {{ caracteristica.detalle }}</span>
-                                        </span>
-                                    </li>
-                                </ul>
-                            </div>
+                            <!-- Especificaciones y características técnicas: quitadas junto con la
+                                 sección "Ficha técnica" del acordeón, por el mismo motivo (el
+                                 administrador ya no edita esos campos). -->
 
                             <!-- ✅ INSTRUCCIONES DE USO -->
                             <div class="mb-0" *ngIf="detalles?.instrucciones_uso">
