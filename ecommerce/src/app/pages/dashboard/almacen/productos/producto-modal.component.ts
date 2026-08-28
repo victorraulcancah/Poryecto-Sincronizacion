@@ -685,9 +685,18 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
 
   // ==================== MÉTODOS PARA INFORMACIÓN ADICIONAL ====================
 
-  agregarInformacionAdicional(tituloInicial: string = ''): void {
+  /**
+   * Títulos que se sugieren según la posición del campo. Si se borran los dos
+   * de siempre y se vuelve a agregar, el primero recupera "Características
+   * principales" y el segundo "Descripción del producto"; del tercero en
+   * adelante el título va en blanco para que lo escriba el usuario.
+   */
+  private readonly titulosPorDefecto = ['Características principales', 'Descripción del producto'];
+
+  agregarInformacionAdicional(tituloInicial?: string): void {
+    const titulo = tituloInicial ?? (this.titulosPorDefecto[this.informacionAdicional.length] || '');
     const grupo = this.fb.group({
-      titulo: [tituloInicial],
+      titulo: [titulo],
       texto: [''],
     });
     this.informacionAdicional.push(grupo);
