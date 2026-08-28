@@ -639,9 +639,12 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
         // ✅ El HTML seguro se calcula UNA sola vez aquí (no en el template) para
         // evitar que Angular lo re-sanitice/re-renderice en cada ciclo de detección
         // de cambios (eso congelaba la pestaña con textos largos o con imágenes).
+        // Basta con el título: un campo creado en el administrador se muestra
+        // aunque todavía no tenga contenido. Antes se exigía también el texto y
+        // los campos recién agregados no aparecían en la ficha.
         this.informacionAdicionalProcesada = items
-          .filter(i => i && i.titulo && i.texto)
-          .map(i => ({ ...i, textoSeguro: this.sanitizer.bypassSecurityTrustHtml(i.texto) }));
+          .filter(i => i && typeof i.titulo === 'string' && i.titulo.trim() !== '')
+          .map(i => ({ ...i, textoSeguro: this.sanitizer.bypassSecurityTrustHtml(i.texto || '') }));
 
         // Una sección de acordeón por campo, en el mismo orden en que están en
         // el administrador. La clave es el índice y no el título: dos campos
