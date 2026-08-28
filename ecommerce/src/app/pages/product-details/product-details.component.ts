@@ -74,6 +74,8 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
    */
   seccionesInfo: { clave: string; titulo: string; textoSeguro: SafeHtml }[] = []
   safeDescripcionDetallada: SafeHtml = ""
+  /** Hay una descripción escrita a mano (no la que autogenera la sincronización). */
+  hayDescripcionSuelta = false
   environment = environment
   nombreEmpresa: string = 'MAGUS' // Valor por defecto
   logoEmpresa: string = '' // URL del logo
@@ -303,9 +305,16 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
     this.procesarEspecificaciones()
     this.procesarCaracteristicas()
     this.procesarInformacionAdicional()
-    this.abrirPrimeraSeccion()
-    const rawDescription = this.detalles?.descripcion_detallada || this.producto?.descripcion || ""
+
+    // Solo cuenta lo que alguien escribió. Antes se caía a `producto.descripcion`,
+    // que la sincronización rellena sola con "Producto <nombre>": eso hacía
+    // aparecer una sección "Descripción del producto" con ese texto en productos
+    // donde no se había cargado nada.
+    const rawDescription = (this.detalles?.descripcion_detallada || '').trim()
+    this.hayDescripcionSuelta = rawDescription !== ''
     this.safeDescripcionDetallada = this.sanitizer.bypassSecurityTrustHtml(rawDescription)
+
+    this.abrirPrimeraSeccion()
 
     // ✅ NUEVO: Configurar SEO completo para el producto
     if (this.producto) {
@@ -656,7 +665,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
       this.seccionesAbiertas.add(this.seccionesInfo[0].clave);
     } else if (this.hayFichaTecnica) {
       this.seccionesAbiertas.add('ficha');
-    } else {
+    } else if (this.hayDescripcionSuelta) {
       this.seccionesAbiertas.add('descripcion');
     }
   }

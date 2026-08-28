@@ -235,9 +235,11 @@
                                     </div>
                                 </div>
 
-                                <!-- Solo para productos que todavía no tienen campos cargados:
-                                     se muestra la descripción suelta del producto. -->
-                                <div class="product-accordion__item" *ngIf="seccionesInfo.length === 0">
+                                <!-- Solo para productos sin campos cargados y que sí tienen una
+                                     descripción escrita a mano. Sin `hayDescripcionSuelta` salía
+                                     esta sección con el texto "Producto <nombre>" que genera la
+                                     sincronización, en productos donde no había nada cargado. -->
+                                <div class="product-accordion__item" *ngIf="seccionesInfo.length === 0 && hayDescripcionSuelta">
                                     <button type="button" class="product-accordion__header"
                                         (click)="toggleAccordion('descripcion')">
                                         <span>Descripción del producto</span>
