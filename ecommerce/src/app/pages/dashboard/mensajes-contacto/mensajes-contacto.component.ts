@@ -158,7 +158,11 @@ export class MensajesContactoComponent implements OnInit, OnDestroy {
           const url = URL.createObjectURL(archivo);
           const enlace = document.createElement('a');
           enlace.href = url;
-          enlace.download = `mensajes-contacto-${new Date().toISOString().slice(0, 10)}.csv`;
+          // .xlsx, que es lo que genera el backend. Quedó en .csv de cuando la
+          // exportación era texto plano: Excel abre por extensión, así que leía
+          // el binario del Excel como si fuera texto y salía en blanco o pidiendo
+          // "reparar" el libro.
+          enlace.download = `mensajes-contacto-${new Date().toISOString().slice(0, 10)}.xlsx`;
           enlace.click();
           URL.revokeObjectURL(url);
         },
