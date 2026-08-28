@@ -315,10 +315,10 @@
                   <div class="product-card__price mt-12 mb-8">
                       <span *ngIf="producto.precio_oferta"
                             class="text-gray-400 text-md fw-semibold text-decoration-line-through">
-                          {{ producto.moneda | moneda }} {{ producto.precio }}
+                          {{ producto.moneda | moneda }} {{ producto.precio | number:'1.2-2' }}
                       </span>
                       <span class="text-heading text-md fw-semibold">
-                          {{ producto.moneda | moneda }} {{ producto.precio_oferta || producto.precio }}
+                          {{ producto.moneda | moneda }} {{ (producto.precio_oferta || producto.precio) | number:'1.2-2' }}
                           <span class="text-gray-500 fw-normal">/Qty</span>
                       </span>
                   </div>
