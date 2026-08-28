@@ -780,7 +780,7 @@
                 >
                   <i class="ph ph-file-pdf me-8" *ngIf="!procesandoPedido"></i>
                   <i class="ph ph-spinner ph-spin me-8" *ngIf="procesandoPedido"></i>
-                  Generar Cotización
+                  {{ esEdicionDeCotizacion ? 'Editar Cotización' : 'Generar Cotización' }}
                 </button>
               </div>
             </div>

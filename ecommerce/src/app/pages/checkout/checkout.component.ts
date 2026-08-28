@@ -160,6 +160,11 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   /** Id de la cotización que se está reemplazando (si se entró por "Editar"). */
   private cotizacionEditandoId: number | null = null;
 
+  /** Para el botón y los mensajes: se llegó acá desde "Editar cotización". */
+  get esEdicionDeCotizacion(): boolean {
+    return this.cotizacionEditandoId !== null;
+  }
+
   private loadCotizacionEditando(): void {
     const guardada = sessionStorage.getItem('cotizacion_editando');
     if (!guardada) return;
@@ -924,7 +929,9 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
           // La cotización anterior ya la reemplazó el backend dentro de la
           // misma transacción (ver `reemplaza_cotizacion_id`), conservando su
-          // código. Acá solo se suelta la referencia.
+          // código. Acá solo se suelta la referencia, pero antes se guarda para
+          // que los mensajes digan "actualizada" y no "creada".
+          const eraEdicion = this.cotizacionEditandoId !== null;
           this.cotizacionEditandoId = null;
 
           // clearCart() devuelve un Observable frío: sin suscribirse la
@@ -951,14 +958,18 @@ export class CheckoutComponent implements OnInit, OnDestroy {
                </div>`;
 
           Swal.fire({
-            title: varias ? '¡Cotizaciones creadas!' : '¡Cotización creada exitosamente!',
+            title: varias
+              ? (eraEdicion ? '¡Cotizaciones actualizadas!' : '¡Cotizaciones creadas!')
+              : (eraEdicion ? '¡Cotización actualizada!' : '¡Cotización creada exitosamente!'),
             html: `
               <div class="text-center">
                 <i class="ph ph-check-circle text-success mb-3" style="font-size: 4rem;"></i>
                 <p class="text-muted">
                   ${varias
                     ? 'Tu compra tiene productos en soles y en dólares, así que se registró una cotización por cada moneda.'
-                    : 'Tu cotización ha sido registrada exitosamente.'}
+                    : (eraEdicion
+                        ? 'Tu cotización se actualizó y conserva el mismo número.'
+                        : 'Tu cotización ha sido registrada exitosamente.')}
                 </p>
                 <div class="text-start mt-3">${detalle}</div>
                 <p class="text-sm text-gray-600 mt-3">
