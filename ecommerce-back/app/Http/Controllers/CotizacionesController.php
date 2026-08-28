@@ -211,7 +211,34 @@ class CotizacionesController extends Controller
 
                 if ($anterior) {
                     $codigoAReutilizar = $anterior->codigo_cotizacion;
+
+                    // El pedido se va con ella. No es opcional: `codigo_pedido`
+                    // es único y toma el mismo código de la cotización, así que
+                    // al reutilizarlo el INSERT del pedido nuevo chocaba con
+                    // "Duplicate entry ... for key pedidos_codigo_pedido_unique".
+                    // Además, un pedido huérfano quedaría en la bandeja del
+                    // vendedor apuntando a una cotización que ya no existe.
+                    //
+                    // No se usa pedidoDeCotizacion(): su `orWhere` sobre
+                    // `observaciones like %codigo%` engancha pedidos viejos que
+                    // solo mencionan el código, y con `first()` devolvía uno
+                    // ajeno — se borraba el pedido equivocado y quedaba el que
+                    // choca. Acá se buscan por vínculo directo y por el código
+                    // exacto, que es justo lo que la clave única no admite
+                    // repetido.
+                    $pedidosAnteriores = Pedido::where('cotizacion_id', $anterior->id)
+                        ->orWhere('codigo_pedido', $anterior->codigo_cotizacion)
+                        ->get();
+
+                    foreach ($pedidosAnteriores as $pedidoAnterior) {
+                        $pedidoAnterior->detalles()->delete();
+                        $pedidoAnterior->metodosPago()->delete();
+                        $pedidoAnterior->delete();
+                    }
+
                     $anterior->detalles()->delete();
+                    $anterior->metodosPago()->delete();
+                    $anterior->tracking()->delete();
                     $anterior->delete();
                 }
             }
