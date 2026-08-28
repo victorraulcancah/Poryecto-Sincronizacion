@@ -167,6 +167,8 @@ class CotizacionesController extends Controller
             'metodos_pago.*.tipo' => 'required_with:metodos_pago|string|max:50',
             'metodos_pago.*.moneda' => 'required_with:metodos_pago|string|max:10',
             'metodos_pago.*.monto' => 'required_with:metodos_pago|numeric|min:0.01',
+            // Cotización que esta reemplaza (flujo "Editar" de Mi cuenta).
+            'reemplaza_cotizacion_id' => 'nullable|integer|exists:cotizaciones,id',
         ]);
 
         if ($validator->fails()) {
@@ -188,6 +190,31 @@ class CotizacionesController extends Controller
             }
 
             DB::beginTransaction();
+
+            /*
+             * "Editar" desde Mi cuenta devuelve los productos al carrito y pasa
+             * de nuevo por el checkout, así que llega acá como una cotización
+             * nueva. Sin esto, la 2026-00025 editada se guardaba como
+             * 2026-00026 y la original se borraba: para el cliente y para el
+             * administrador la cotización cambiaba de número.
+             *
+             * Se conserva el código de la que se reemplaza. Primero se borra la
+             * anterior y después se crea la nueva con su mismo código, todo
+             * dentro de esta transacción, para que no existan las dos a la vez.
+             */
+            $codigoAReutilizar = null;
+
+            if ($request->filled('reemplaza_cotizacion_id')) {
+                $anterior = Cotizacion::where('id', $request->reemplaza_cotizacion_id)
+                    ->where('user_cliente_id', $userCliente->id)
+                    ->first();
+
+                if ($anterior) {
+                    $codigoAReutilizar = $anterior->codigo_cotizacion;
+                    $anterior->detalles()->delete();
+                    $anterior->delete();
+                }
+            }
 
             // Calcular totales
             $subtotal = 0;
@@ -326,8 +353,13 @@ class CotizacionesController extends Controller
                 $totalCot = $totalPorMoneda[$monedaCot];
                 $igvCot = $totalCot - $envioDeMoneda - $subtotalCot;
 
+                // La primera hereda el código de la cotización que reemplaza; si
+                // el carrito mezcla monedas, la segunda sí lleva uno nuevo.
+                $codigo = $codigoAReutilizar ?? Cotizacion::generarCodigoCotizacion();
+                $codigoAReutilizar = null;
+
                 $cotizacion = Cotizacion::create([
-                    'codigo_cotizacion' => Cotizacion::generarCodigoCotizacion(),
+                    'codigo_cotizacion' => $codigo,
                     'user_cliente_id' => $userCliente->id,
                     'fecha_cotizacion' => now(),
                     'subtotal' => $subtotalCot,

@@ -905,6 +905,14 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       cotizacionData.metodos_pago = metodosPago;
     }
 
+    // Si se entró por "Editar", el backend reemplaza la cotización anterior
+    // conservando su código. Antes se creaba una nueva (con número nuevo) y se
+    // borraba la vieja aparte, así que al editar la 2026-00025 quedaba como
+    // 2026-00026, tanto para el cliente como en el administrador.
+    if (this.cotizacionEditandoId) {
+      (cotizacionData as any).reemplaza_cotizacion_id = this.cotizacionEditandoId;
+    }
+
     this.cotizacionesService.crearCotizacionEcommerce(cotizacionData).subscribe({
       next: (response) => {
         this.procesandoPedido = false;
@@ -914,17 +922,10 @@ export class CheckoutComponent implements OnInit, OnDestroy {
           // redirectIfCartIsEmpty(), y acá el vaciado es intencional.
           this.cotizacionGenerada = true;
 
-          // Recién ahora se elimina la que se estaba editando: ya existe la
-          // nueva que la reemplaza. Si esto falla, el cliente ve las dos, que
-          // es mejor que perder la original.
-          if (this.cotizacionEditandoId) {
-            const idAnterior = this.cotizacionEditandoId;
-            this.cotizacionEditandoId = null;
-            this.cotizacionesService.eliminarCotizacion(idAnterior).subscribe({
-              error: (err) =>
-                console.error('No se pudo eliminar la cotización editada:', err),
-            });
-          }
+          // La cotización anterior ya la reemplazó el backend dentro de la
+          // misma transacción (ver `reemplaza_cotizacion_id`), conservando su
+          // código. Acá solo se suelta la referencia.
+          this.cotizacionEditandoId = null;
 
           // clearCart() devuelve un Observable frío: sin suscribirse la
           // petición nunca sale y el carrito del cliente quedaba con los
