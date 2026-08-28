@@ -256,10 +256,19 @@ class PedidosController extends Controller
             $subtotal = 0;
             $productosValidados = [];
 
+            // El stock se valida contra Novik en el momento, no contra la copia
+            // que refresca la sincronización: un minuto de desfase alcanza para
+            // vender algo que el ERP ya despachó. Es una sola consulta para todo
+            // el carrito; si Novik no responde, se cae a la copia local.
+            $stockReal = \App\Support\StockEnVivo::de(
+                collect($request->productos)->pluck('producto_id')->all()
+            );
+
             foreach ($request->productos as $prod) {
                 $producto = Producto::findOrFail($prod['producto_id']);
+                $disponible = $stockReal[$producto->id] ?? $producto->stock;
 
-                if ($producto->stock < $prod['cantidad']) {
+                if ($disponible < $prod['cantidad']) {
                     throw new \Exception("Stock insuficiente para: {$producto->nombre}");
                 }
 
@@ -367,11 +376,18 @@ class PedidosController extends Controller
             // resuelve producto por producto contra ellas.
             $listasPrecio = $this->listasPrecioAplicables($userCliente);
 
+            // Igual que arriba: el stock se comprueba contra Novik en vivo, con
+            // la copia local como respaldo si el ERP no responde.
+            $stockReal = \App\Support\StockEnVivo::de(
+                collect($request->productos)->pluck('producto_id')->all()
+            );
+
             foreach ($request->productos as $prod) {
                 $producto = Producto::findOrFail($prod['producto_id']);
-                
+
                 // Verificar stock
-                if ($producto->stock < $prod['cantidad']) {
+                $disponible = $stockReal[$producto->id] ?? $producto->stock;
+                if ($disponible < $prod['cantidad']) {
                     throw new \Exception("Stock insuficiente para el producto: {$producto->nombre}");
                 }
 

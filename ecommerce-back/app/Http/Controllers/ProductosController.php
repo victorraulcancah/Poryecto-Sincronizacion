@@ -896,6 +896,16 @@ class ProductosController extends Controller
             ->where('activo', true)
             ->findOrFail($id);
 
+        // El stock se lee de Novik en el momento: es una sola consulta y es la
+        // pantalla donde el cliente decide comprar. El catálogo sigue usando la
+        // copia de `productos.stock` (leer en vivo un listado de 40 productos
+        // haría una consulta cruzada por página, y ahí el dato de la última
+        // sincronización alcanza). Si Novik no responde, queda la copia.
+        $stockEnVivo = \App\Support\StockEnVivo::deProducto($producto->id);
+        if ($stockEnVivo !== null) {
+            $producto->stock = $stockEnVivo;
+        }
+
         // Invitado sin ninguna lista de "Clientes visitantes" configurada:
         // no ve precio (login requerido). Si hay al menos una configurada
         // (o está logueado), se resuelve el precio normalmente.
