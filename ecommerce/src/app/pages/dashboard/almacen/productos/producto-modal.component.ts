@@ -346,26 +346,17 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
               );
             });
           } else {
-            // ✅ Migración de los campos fijos antiguos (descripcion_detallada, garantia,
-            // instrucciones_uso, politicas_devolucion) a filas iniciales editables.
-            const camposAntiguos = [
-              { titulo: 'Descripción del producto', texto: detalles.descripcion_detallada },
-              { titulo: 'Garantía', texto: detalles.garantia },
-              { titulo: 'Instrucciones de Uso', texto: detalles.instrucciones_uso },
-              { titulo: 'Políticas de Devolución', texto: detalles.politicas_devolucion },
-            ].filter((campo) => campo.texto && campo.texto.trim() !== '');
-
-            if (camposAntiguos.length > 0) {
-              camposAntiguos.forEach((campo) => {
-                this.informacionAdicional.push(
-                  this.fb.group({ titulo: [campo.titulo], texto: [campo.texto] })
-                );
-              });
-            } else {
-              // Sin nada guardado: dejar los dos campos de siempre.
-              this.agregarInformacionAdicional('Características principales');
-              this.agregarInformacionAdicional('Descripción del producto');
-            }
+            // Sin campos guardados: siempre los dos por defecto.
+            //
+            // Acá antes había una migración que rellenaba estas filas con las
+            // columnas viejas (descripcion_detallada, garantia,
+            // instrucciones_uso, politicas_devolucion). Se quitó porque hacía
+            // reaparecer "Descripción del producto" y "Garantía" con texto
+            // antiguo en productos donde se había limpiado a propósito, y no
+            // dejaba ver los campos por defecto. Esas columnas siguen en la
+            // base; solo dejaron de resucitar en este formulario.
+            this.agregarInformacionAdicional('Características principales');
+            this.agregarInformacionAdicional('Descripción del producto');
           }
 
           // Cargar dimensiones
