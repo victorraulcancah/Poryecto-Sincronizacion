@@ -685,43 +685,76 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
 
   // ==================== MÉTODOS PARA INFORMACIÓN ADICIONAL ====================
 
-  /**
-   * Títulos que se sugieren según la posición del campo. Si se borran los dos
-   * de siempre y se vuelve a agregar, el primero recupera "Características
-   * principales" y el segundo "Descripción del producto"; del tercero en
-   * adelante el título va en blanco para que lo escriba el usuario.
-   */
+  /** Los dos campos de siempre, en el orden en que deben aparecer. */
   private readonly titulosPorDefecto = ['Características principales', 'Descripción del producto'];
 
-  agregarInformacionAdicional(tituloInicial?: string): void {
-    const titulo = tituloInicial ?? (this.titulosPorDefecto[this.informacionAdicional.length] || '');
-    const grupo = this.fb.group({
-      titulo: [titulo],
-      texto: [''],
-    });
-    this.informacionAdicional.push(grupo);
+  /** Compara títulos sin tildes, mayúsculas ni espacios (el usuario los edita a mano). */
+  private normalizarTitulo(titulo: string): string {
+    return (titulo || '')
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '')
+      .trim()
+      .toLowerCase();
   }
 
   /**
-   * Elimina un campo reconstruyendo todo el FormArray.
+   * "Agregar campo" repone el campo por defecto que **falte**, no el que toque
+   * por cantidad: si borraste "Características principales" y agregas, vuelve
+   * ese, aunque "Descripción del producto" siga ahí. Y se coloca en su sitio,
+   * porque el orden es fijo: primero Características principales, después
+   * Descripción del producto.
    *
-   * No basta con `removeAt(index)`. Las filas se pintan con
-   * `[formGroupName]="i"`, así que al quitar una del medio Angular reutiliza el
-   * `<div>` de la siguiente y solo le cambia el índice; el `formControlName` y
-   * el `quill-editor` de adentro no se vuelven a registrar (su propio nombre no
-   * cambió) y quedan enganchados al grupo eliminado. En pantalla se veía el
-   * campo borrado y al guardar se enviaba el otro.
-   *
-   * Al crear grupos nuevos, el *ngFor los ve como filas distintas, destruye las
-   * anteriores y vuelve a crearlas ya apuntando al grupo correcto.
+   * Cuando los dos ya están, el campo nuevo va al final con el título en blanco
+   * para que el usuario lo escriba.
    */
-  eliminarInformacionAdicional(index: number): void {
-    const restantes = this.informacionAdicional.value.filter(
-      (_: any, i: number) => i !== index
+  agregarInformacionAdicional(tituloInicial?: string): void {
+    if (tituloInicial !== undefined) {
+      this.informacionAdicional.push(this.fb.group({ titulo: [tituloInicial], texto: [''] }));
+      return;
+    }
+
+    const presentes = this.informacionAdicional.value.map((i: any) => this.normalizarTitulo(i.titulo));
+    const faltante = this.titulosPorDefecto.findIndex(
+      (t) => !presentes.includes(this.normalizarTitulo(t))
     );
 
+    if (faltante === -1) {
+      this.informacionAdicional.push(this.fb.group({ titulo: [''], texto: [''] }));
+      return;
+    }
+
+    // Va detrás de los campos por defecto que lo preceden y delante de todo lo
+    // demás, así los dos de siempre quedan arriba y en su orden.
+    const anteriores = this.titulosPorDefecto.slice(0, faltante).map((t) => this.normalizarTitulo(t));
+    const posicion = presentes.filter((t: string) => anteriores.includes(t)).length;
+
+    const items = [...this.informacionAdicional.value];
+    items.splice(posicion, 0, { titulo: this.titulosPorDefecto[faltante], texto: '' });
+    this.reconstruirInformacionAdicional(items);
+  }
+
+  eliminarInformacionAdicional(index: number): void {
+    this.reconstruirInformacionAdicional(
+      this.informacionAdicional.value.filter((_: any, i: number) => i !== index)
+    );
+  }
+
+  /**
+   * Rehace el FormArray entero con grupos nuevos.
+   *
+   * Hace falta cada vez que se quita o se inserta en el medio. Las filas se
+   * pintan con `[formGroupName]="i"`, así que al cambiar los índices Angular
+   * reutiliza los `<div>` y solo les cambia el número; el `formControlName` y
+   * el `quill-editor` de adentro no se vuelven a registrar (su propio nombre no
+   * cambió) y quedan enganchados al grupo anterior. En pantalla se veía el campo
+   * borrado y al guardar se enviaba otro.
+   *
+   * Con grupos nuevos, el *ngFor los ve como filas distintas, destruye las
+   * anteriores y vuelve a crearlas apuntando al grupo que les toca.
+   */
+  private reconstruirInformacionAdicional(items: any[]): void {
     this.informacionAdicional.clear();
-    restantes.forEach((item: any) =>
+    items.forEach((item) =>
       this.informacionAdicional.push(
         this.fb.group({ titulo: [item.titulo || ''], texto: [item.texto || ''] })
       )
