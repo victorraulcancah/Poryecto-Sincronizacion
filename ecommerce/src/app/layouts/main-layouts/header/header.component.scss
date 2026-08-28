@@ -1,5 +1,5 @@
 // ============================================
-// SKELETON LOADERS PARA MEN�S
+// SKELETON LOADERS PARA MEN�S
 // ============================================
 
 .menu-skeleton {
@@ -99,6 +99,15 @@
 .search-suggestion-item {
   display: flex;
   align-items: center;
+
+  /* El resaltado del mouse es solo visual. Antes se hacía con
+     `(mouseenter)="selectedSuggestionIndex = i"`, que es la misma variable que
+     usa el teclado: si el desplegable se abría debajo del cursor, la sugerencia
+     quedaba "seleccionada" sin tocar nada y al presionar Enter el buscador se
+     iba al detalle de ese producto en vez de listar los resultados. */
+  &:hover {
+    background-color: #f8f9fa;
+  }
 
   .suggestion-title {
     /* La clase global `.product-name` corta a una linea con `nowrap` y
