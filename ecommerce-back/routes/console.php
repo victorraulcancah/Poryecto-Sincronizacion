@@ -39,7 +39,9 @@ Schedule::command('sync:7power --update-stock')
     // corrida cada minuto esto es lo que impide que se apilen.
     ->withoutOverlapping(10)
     ->runInBackground()
-    ->appendOutputTo(storage_path('logs/sync-7power.log'));
+    // Cada tarea a su propio archivo: corriendo las dos tan seguido, escribir
+    // en el mismo log entrelazaba las líneas y no se entendía nada.
+    ->appendOutputTo(storage_path('logs/sync-7power-stock.log'));
 
 Schedule::command('sync:7power')
     ->everyFiveMinutes()
@@ -48,4 +50,4 @@ Schedule::command('sync:7power')
     // perdían seis corridas seguidas.
     ->withoutOverlapping(5)
     ->runInBackground()
-    ->appendOutputTo(storage_path('logs/sync-7power.log'));
+    ->appendOutputTo(storage_path('logs/sync-7power-completa.log'));
