@@ -135,7 +135,10 @@ class SincronizarDesde7Power extends Command
                             ->where('id', $marcaMagusId)
                             ->update([
                                 'nombre' => $marca7Power->name,
-                                'activo' => true,
+                                // `activo` no se toca: si el administrador de la tienda
+                                // la desactivó, la sincronización no debe volver a
+                                // encenderla. Solo puede desactivar (ver el bloque de
+                                // "ya no existen en 7Power" al final del método).
                                 'updated_at' => now(),
                             ]);
                         
@@ -156,7 +159,7 @@ class SincronizarDesde7Power extends Command
                         ->where('id', $mapeo->marca_magus_id)
                         ->update([
                             'nombre' => $marca7Power->name,
-                            'activo' => true,
+                            // Ver arriba: la sincronizacion no reactiva.
                             'updated_at' => now(),
                         ]);
                     
@@ -252,7 +255,8 @@ class SincronizarDesde7Power extends Command
                             ->where('id', $categoriaMagusId)
                             ->update([
                                 'nombre' => $categoria7Power->name,
-                                'activo' => true,
+                                // Ver marcas: la sincronizacion no reactiva lo que el
+                                // administrador de la tienda desactivo a proposito.
                                 'updated_at' => now(),
                             ]);
                         
@@ -273,7 +277,7 @@ class SincronizarDesde7Power extends Command
                         ->where('id', $mapeo->categoria_magus_id)
                         ->update([
                             'nombre' => $categoria7Power->name,
-                            'activo' => true,
+                            // Ver arriba: la sincronizacion no reactiva.
                             'updated_at' => now(),
                         ]);
                     
@@ -424,7 +428,12 @@ class SincronizarDesde7Power extends Command
                                 'categoria_id' => $categoriaMagusId,
                                 'marca_id' => $marcaMagusId,
                                 'stock' => $stockTotal ?? 0,
-                                'activo' => $activoEn7Power,
+                                // Solo se escribe `activo` cuando Novik lo tiene
+                                // desactivado: no se puede vender lo que el ERP dio de
+                                // baja. Si en Novik esta activo no se toca, para no
+                                // reactivar lo que el administrador de la tienda
+                                // desactivo a proposito.
+                                ...($activoEn7Power ? [] : ['activo' => false]),
                                 'updated_at' => now(),
                             ]);
                         
@@ -457,7 +466,8 @@ class SincronizarDesde7Power extends Command
                             'categoria_id' => $categoriaMagusId,
                             'marca_id' => $marcaMagusId,
                             'stock' => $stockTotal ?? 0,
-                            'activo' => $activoEn7Power,
+                            // Ver arriba: la sincronizacion desactiva, nunca reactiva.
+                            ...($activoEn7Power ? [] : ['activo' => false]),
                             'updated_at' => now(),
                         ]);
                     
