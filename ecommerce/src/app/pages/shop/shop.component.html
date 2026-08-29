@@ -274,7 +274,9 @@
             </a>
             
             <div class="product-card__content mt-16">
-                <h6 class="title text-lg fw-semibold mt-12 mb-8">
+                <!-- `text-md` en vez de `text-lg`: los nombres son largos y a
+                     dos líneas ocupaban casi la mitad de la tarjeta. -->
+                <h6 class="title text-md fw-semibold mt-12 mb-8">
                     <a [routerLink]="['/product-details', producto.id]" class="link text-line-2">
                         {{ producto.nombre }}
                     </a>

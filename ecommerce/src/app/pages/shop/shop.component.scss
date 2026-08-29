@@ -505,3 +505,11 @@
     }
   }
 }
+
+/* Nombre del producto: cada línea se llena hasta el borde.
+   Sin `break-all`, cuando la palabra siguiente no entraba completa el navegador
+   la bajaba entera y la primera línea quedaba con un hueco a la derecha
+   ("6.5" MEDIO RANGO COAXIAL" y recién abajo "CON DIF DE DRIVER..."). */
+.product-card__content .title .link {
+  word-break: break-all;
+}
