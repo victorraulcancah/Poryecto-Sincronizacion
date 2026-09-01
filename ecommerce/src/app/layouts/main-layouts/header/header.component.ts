@@ -118,6 +118,13 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
   selectedCategory: string = '';
   searchTerm: string = '';
   isHomePageActive: boolean = false;
+
+  /**
+   * El botón "Explorar categorías" del header. Va aparte de `isHomePageActive`
+   * porque esa bandera la usa además el enlace "Arma tu PC", que sí es solo
+   * para la portada.
+   */
+  mostrarExplorarCategorias: boolean = false;
   isIndexTwoPage: boolean = false;
   categoryDropdownVisible = false;
   isActive = false;
@@ -578,6 +585,9 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private updateRouteFlags(url: string): void {
     this.isHomePageActive = url === '/';
+    // También en el catálogo: es donde el cliente está buscando y más falta le
+    // hace tener las categorías a mano.
+    this.mostrarExplorarCategorias = url === '/' || url.startsWith('/shop');
     this.isIndexTwoPage = url.startsWith('/index-two') || url.startsWith('/index-laptop') || url.startsWith('/index-three');
   }
 

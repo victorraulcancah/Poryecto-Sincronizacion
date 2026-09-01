@@ -38,3 +38,111 @@
 ::ng-deep .modern-data-table .table tbody tr:last-child td {
   padding-bottom: 24px !important;
 }
+/* ── Pestañas ────────────────────────────────────────────────────── */
+.marcas-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 0 24px;
+  border-bottom: 1px solid #f3f4f6;
+
+  &__tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 0;
+    background: none;
+    padding: 14px 18px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #6b7280;
+    /* Sin transición: la pestaña activa se distingue por el subrayado, no por
+       una animación que retrasa la respuesta al clic. */
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+
+    &.activa {
+      color: var(--main-600, #d32027);
+      border-bottom-color: var(--main-600, #d32027);
+    }
+  }
+}
+
+/* ── Vitrina ─────────────────────────────────────────────────────── */
+.vitrina-config {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fafafa;
+
+  &__campo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 150px;
+
+    small { font-size: 0.72rem; }
+  }
+}
+
+.vitrina-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vitrina-fila {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  cursor: grab;
+
+  /* Oculta de la web: se sigue viendo acá, pero apagada. */
+  &.oculta {
+    opacity: 0.45;
+    background: #f9fafb;
+  }
+
+  &__agarre { color: #9ca3af; font-size: 18px; }
+
+  &__pos {
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: #f3f4f6;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #4b5563;
+  }
+
+  &__logo {
+    width: 74px;
+    height: 40px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  &__datos {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+  }
+
+  &__acciones {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+}

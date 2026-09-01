@@ -577,4 +577,55 @@ export class AlmacenService {
       })
     );
   }
+
+  // ============================================================
+  // Vitrina de marcas (pagina publica "Trabajamos con las mejores marcas")
+  // ============================================================
+
+  /** Vitrina publica: solo las marcas elegidas, en su orden, con su presentacion. */
+  obtenerVitrinaPublica(): Observable<VitrinaMarcasRespuesta> {
+    return this.http.get<VitrinaMarcasRespuesta>(`${this.apiUrl}/marcas/vitrina`).pipe(
+      map((respuesta) => ({
+        ...respuesta,
+        marcas: respuesta.marcas.map((marca) => ({
+          ...marca,
+          imagen_url: marca.imagen
+            ? `${this.baseUrl}/storage/marcas_productos/${marca.imagen}`
+            : undefined,
+        })),
+      }))
+    );
+  }
+
+  /** Todas las marcas con logo, elegidas o no, en el orden en que saldrian. */
+  obtenerVitrinaAdmin(): Observable<VitrinaMarcasRespuesta> {
+    return this.http.get<VitrinaMarcasRespuesta>(`${this.apiUrl}/marcas/vitrina/admin`);
+  }
+
+  /**
+   * Guarda el orden y la presentacion. `orden` es la lista completa de ids en
+   * su nuevo orden; `ocultas` las que no deben mostrarse.
+   */
+  guardarVitrina(datos: {
+    orden: number[];
+    ocultas: number[];
+    config: VitrinaMarcasConfig;
+  }): Observable<{ message: string }> {
+    return this.http.put<{ message: string }>(`${this.apiUrl}/marcas/vitrina/orden`, datos);
+  }
+}
+
+/** Como se presenta la vitrina de marcas en la pagina publica. */
+export interface VitrinaMarcasConfig {
+  carrusel: boolean;
+  /** Segundos que tarda el carrusel en dar una vuelta completa. */
+  velocidad: number;
+  por_fila: number;
+  /** 0 = sin limite: se muestran todas las marcas elegidas. */
+  filas: number;
+}
+
+export interface VitrinaMarcasRespuesta {
+  config: VitrinaMarcasConfig;
+  marcas: MarcaProducto[];
 }

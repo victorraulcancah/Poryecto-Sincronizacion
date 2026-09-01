@@ -83,6 +83,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('permission:marcas.ver')->group(function () {
         Route::get('/marcas', [MarcaProductoController::class, 'index']);
         Route::get('/marcas/activas', [MarcaProductoController::class, 'marcasActivas']);
+        // Antes de /marcas/{id}: si no, "vitrina" entraria como id.
+        Route::get('/marcas/vitrina/admin', [MarcaProductoController::class, 'vitrinaAdmin']);
         Route::get('/marcas/{id}', [MarcaProductoController::class, 'show']);
     });
 
@@ -91,6 +93,8 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::middleware('permission:marcas.edit')->group(function () {
+        // Antes de /marcas/{id}, por el mismo motivo.
+        Route::put('/marcas/vitrina/orden', [MarcaProductoController::class, 'guardarVitrina']);
         Route::put('/marcas/{id}', [MarcaProductoController::class, 'update']);
         Route::patch('/marcas/{id}/toggle-estado', [MarcaProductoController::class, 'toggleEstado']);
     });

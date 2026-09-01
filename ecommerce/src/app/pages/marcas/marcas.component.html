@@ -22,8 +22,10 @@
       <p class="text-gray-500 mt-12 mb-0">Cargando marcas...</p>
     </div>
 
-    <!-- Grilla de logos -->
-    <div class="marcas__grilla" *ngIf="!isLoading && marcas.length > 0">
+    <!-- Cuadrícula de logos. El número de columnas lo fija el administrador
+         (Marcas → Vitrina de la web); en pantallas chicas manda el CSS. -->
+    <div class="marcas__grilla" *ngIf="!isLoading && marcas.length > 0 && !config.carrusel"
+      [style.--columnas]="anchoColumna">
       <button type="button" class="marcas__item" *ngFor="let marca of marcas; trackBy: trackPorId"
         (click)="irAMarca(marca)" [title]="'Ver productos de ' + marca.nombre">
         <img [src]="marca.imagen_url" [alt]="marca.nombre" (error)="onImagenError($event, marca)" loading="lazy" />
@@ -34,6 +36,24 @@
           </span>
         </span>
       </button>
+    </div>
+
+    <!-- Carrusel. La lista va duplicada y la tira se desplaza la mitad de su
+         ancho, así el salto al reiniciar cae justo donde estaba y no se ve.
+         Se detiene al pasar el mouse para poder hacer clic. -->
+    <div class="marcas__carrusel" *ngIf="!isLoading && marcas.length > 0 && config.carrusel">
+      <div class="marcas__tira" [style.animation-duration]="duracionCarrusel">
+        <button type="button" class="marcas__item" *ngFor="let marca of marcasParaMostrar; let i = index"
+          (click)="irAMarca(marca)" [title]="'Ver productos de ' + marca.nombre">
+          <img [src]="marca.imagen_url" [alt]="marca.nombre" loading="lazy" />
+          <span class="marcas__nombre">
+            {{ marca.nombre }}
+            <span class="marcas__conteo" *ngIf="marca.productos_count">
+              · {{ marca.productos_count }} productos
+            </span>
+          </span>
+        </button>
+      </div>
     </div>
 
     <!-- Sin marcas -->

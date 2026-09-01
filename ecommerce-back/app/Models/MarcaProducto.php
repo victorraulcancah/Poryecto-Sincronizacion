@@ -11,10 +11,15 @@ class MarcaProducto extends Model
         'nombre',
         'descripcion',
         'imagen',
-        'activo'
+        'activo',
+        // Vitrina de la pagina publica de marcas: si sale y en que posicion.
+        // Es independiente de `activo`: una marca puede venderse y no salir ahi.
+        'mostrar_en_vitrina',
+        'orden_vitrina',
     ];
     protected $casts = [
         'activo' => 'boolean',
+        'mostrar_en_vitrina' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime'
     ];

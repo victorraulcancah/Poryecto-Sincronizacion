@@ -25,7 +25,10 @@
 
   &__grilla {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    /* Las columnas las decide el administrador (variable --columnas). El
+       `auto-fit` de respaldo se usa si todavía no llegó la configuración, y en
+       pantallas chicas manda el media query del final. */
+    grid-template-columns: var(--columnas, repeat(auto-fit, minmax(220px, 1fr)));
     gap: 24px;
     justify-items: center;
   }
@@ -88,5 +91,51 @@
     img {
       max-height: 52px;
     }
+  }
+}
+
+/* ── Carrusel ─────────────────────────────────────────────────────
+   La tira lleva la lista de marcas duplicada y se desplaza el 50% de su
+   ancho: al terminar, la segunda copia queda exactamente donde empezó la
+   primera, así que el reinicio es invisible. La duración la fija el
+   administrador desde el panel. */
+.marcas__carrusel {
+  overflow: hidden;
+  /* Los logos de los extremos se desvanecen en vez de cortarse de golpe. */
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+
+.marcas__tira {
+  display: flex;
+  width: max-content;
+  animation: marcas-desfile linear infinite;
+
+  .marcas__item {
+    width: 220px;
+    flex-shrink: 0;
+  }
+
+  /* Se detiene al pasar el mouse: si no, no se puede hacer clic en un logo. */
+  &:hover {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes marcas-desfile {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* Respeta a quien pidió menos animación en su sistema: se queda quieto. */
+@media (prefers-reduced-motion: reduce) {
+  .marcas__tira {
+    animation: none;
+  }
+}
+
+@media (max-width: 576px) {
+  .marcas__tira .marcas__item {
+    width: 150px;
   }
 }

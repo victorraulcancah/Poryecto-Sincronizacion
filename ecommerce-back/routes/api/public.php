@@ -80,6 +80,10 @@ Route::get('/productos/buscar', [ProductosController::class, 'buscarProductos'])
 Route::get('/marcas/publicas', [MarcaProductoController::class, 'marcasPublicas']);
 Route::get('/marcas/por-categoria', [MarcaProductoController::class, 'marcasPorCategoria']);
 
+// Vitrina de la pagina /marcas: solo las marcas elegidas, en su orden, con la
+// configuracion de presentacion (cuadricula o carrusel).
+Route::get('/marcas/vitrina', [MarcaProductoController::class, 'vitrinaPublica']);
+
 // ============================================
 // BANNERS PÚBLICOS
 // ============================================

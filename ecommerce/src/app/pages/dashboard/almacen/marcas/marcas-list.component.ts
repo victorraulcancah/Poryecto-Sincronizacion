@@ -8,6 +8,7 @@ import { MarcaProducto } from "../../../../types/almacen.types"
 import { SeccionFilterService } from '../../../../services/seccion-filter.service';
 import { PermissionsService } from '../../../../services/permissions.service';
 import { MarcaModalComponent } from "./marca-modal.component"
+import type { VitrinaMarcasConfig } from "../../../../services/almacen.service"
 import Swal from "sweetalert2"
 
 @Component({
@@ -36,6 +37,113 @@ export class MarcasListComponent implements OnInit, OnDestroy {
 
   // Método para acceder a Math.min en el template
   Math = Math;
+
+  // ==========================================================
+  // Pestañas
+  // ==========================================================
+  pestana: 'listado' | 'vitrina' = 'listado';
+
+  // ==========================================================
+  // Vitrina: qué marcas salen en la página pública y en qué orden
+  // ==========================================================
+  vitrina: MarcaProducto[] = [];
+  vitrinaConfig: VitrinaMarcasConfig = { carrusel: false, velocidad: 30, por_fila: 6, filas: 0 };
+  vitrinaCargando = false;
+  vitrinaGuardando = false;
+  /** Índice de la fila que se está arrastrando, o null. */
+  private arrastrando: number | null = null;
+
+  trackPorId = (_: number, marca: MarcaProducto) => marca.id;
+
+  irAPestana(pestana: 'listado' | 'vitrina'): void {
+    this.pestana = pestana;
+    // Se carga al entrar, no al abrir la pantalla: la mayoría de las veces solo
+    // se viene a ver el listado.
+    if (pestana === 'vitrina' && !this.vitrina.length) this.cargarVitrina();
+  }
+
+  cargarVitrina(): void {
+    this.vitrinaCargando = true;
+    this.almacenService.obtenerVitrinaAdmin().subscribe({
+      next: (respuesta) => {
+        this.vitrina = respuesta.marcas;
+        this.vitrinaConfig = respuesta.config;
+        this.vitrinaCargando = false;
+      },
+      error: (error) => {
+        console.error('Error al cargar la vitrina de marcas:', error);
+        this.vitrinaCargando = false;
+        Swal.fire('Error', 'No se pudo cargar la vitrina de marcas', 'error');
+      },
+    });
+  }
+
+  /** Marcas que se van a ver en la web, en orden. */
+  get vitrinaVisibles(): MarcaProducto[] {
+    return this.vitrina.filter((m) => m.mostrar_en_vitrina);
+  }
+
+  alternarEnVitrina(marca: MarcaProducto): void {
+    marca.mostrar_en_vitrina = !marca.mostrar_en_vitrina;
+  }
+
+  // --------------------------------------------------- reordenar
+
+  iniciarArrastre(indice: number): void {
+    this.arrastrando = indice;
+  }
+
+  permitirSoltar(evento: DragEvent): void {
+    // Sin esto el navegador no deja soltar y el `drop` nunca llega.
+    evento.preventDefault();
+  }
+
+  soltarEn(indice: number): void {
+    if (this.arrastrando === null || this.arrastrando === indice) {
+      this.arrastrando = null;
+      return;
+    }
+
+    const [movida] = this.vitrina.splice(this.arrastrando, 1);
+    this.vitrina.splice(indice, 0, movida);
+    this.arrastrando = null;
+  }
+
+  /** Botones de subir/bajar: el arrastre no siempre es cómodo en pantallas chicas. */
+  moverEnVitrina(indice: number, direccion: -1 | 1): void {
+    const destino = indice + direccion;
+    if (destino < 0 || destino >= this.vitrina.length) return;
+
+    [this.vitrina[indice], this.vitrina[destino]] = [this.vitrina[destino], this.vitrina[indice]];
+  }
+
+  guardarVitrina(): void {
+    this.vitrinaGuardando = true;
+
+    this.almacenService
+      .guardarVitrina({
+        orden: this.vitrina.map((m) => m.id),
+        ocultas: this.vitrina.filter((m) => !m.mostrar_en_vitrina).map((m) => m.id),
+        config: this.vitrinaConfig,
+      })
+      .subscribe({
+        next: () => {
+          this.vitrinaGuardando = false;
+          Swal.fire({
+            icon: 'success',
+            title: 'Vitrina actualizada',
+            text: 'Los cambios ya se ven en la página de marcas.',
+            timer: 2000,
+            showConfirmButton: false,
+          });
+        },
+        error: (error) => {
+          console.error('Error al guardar la vitrina:', error);
+          this.vitrinaGuardando = false;
+          Swal.fire('Error', 'No se pudieron guardar los cambios', 'error');
+        },
+      });
+  }
 
 constructor(
     private almacenService: AlmacenService,

@@ -20,6 +20,21 @@
     </div>
   </div>
 
+  <!-- Pestañas -->
+  <div class="marcas-tabs">
+    <button type="button" class="marcas-tabs__tab" [class.activa]="pestana === 'listado'"
+      (click)="irAPestana('listado')">
+      <i class="ph ph-list-bullets"></i> Listado
+    </button>
+    <button type="button" class="marcas-tabs__tab" [class.activa]="pestana === 'vitrina'"
+      (click)="irAPestana('vitrina')">
+      <i class="ph ph-squares-four"></i> Vitrina de la web
+    </button>
+  </div>
+
+  <!-- ============================ LISTADO ============================ -->
+  <div [hidden]="pestana !== 'listado'">
+
   <!-- Filtros y Estadísticas -->
   <div class="p-24 p-md-32 border-bottom border-gray-100">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-12">
@@ -207,6 +222,115 @@
         Intenta cambiar los filtros para encontrar las marcas que buscas.
       </p>
     </div>
+  </div>
+  </div><!-- /pestaña listado -->
+
+  <!-- ============================ VITRINA ============================ -->
+  <!-- Controla la página pública /marcas: qué logos salen, en qué orden y si
+       se presentan en cuadrícula o en carrusel. -->
+  <div class="p-24 p-md-32" [hidden]="pestana !== 'vitrina'">
+
+    <div *ngIf="vitrinaCargando" class="text-center py-40">
+      <div class="spinner-border text-main-600" role="status"></div>
+      <p class="text-gray-500 mt-12 mb-0">Cargando vitrina...</p>
+    </div>
+
+    <ng-container *ngIf="!vitrinaCargando">
+      <!-- Presentación -->
+      <div class="vitrina-config">
+        <div class="vitrina-config__campo">
+          <label class="form-check form-switch mb-0 d-flex align-items-center gap-8">
+            <input class="form-check-input" type="checkbox" [(ngModel)]="vitrinaConfig.carrusel"
+              [ngModelOptions]="{ standalone: true }" />
+            <span class="fw-semibold text-sm">Carrusel</span>
+          </label>
+          <small class="text-gray-500">Los logos avanzan solos, en bucle.</small>
+        </div>
+
+        <div class="vitrina-config__campo" [hidden]="!vitrinaConfig.carrusel">
+          <label class="text-sm fw-semibold">Vuelta completa</label>
+          <div class="d-flex align-items-center gap-8">
+            <input type="number" class="form-control form-control-sm" min="5" max="180"
+              [(ngModel)]="vitrinaConfig.velocidad" [ngModelOptions]="{ standalone: true }" />
+            <span class="text-gray-500 text-sm">seg</span>
+          </div>
+          <small class="text-gray-500">Más segundos, más lento.</small>
+        </div>
+
+        <div class="vitrina-config__campo" [hidden]="vitrinaConfig.carrusel">
+          <label class="text-sm fw-semibold">Logos por fila</label>
+          <input type="number" class="form-control form-control-sm" min="1" max="12"
+            [(ngModel)]="vitrinaConfig.por_fila" [ngModelOptions]="{ standalone: true }" />
+          <small class="text-gray-500">En pantallas chicas se acomodan solos.</small>
+        </div>
+
+        <div class="vitrina-config__campo" [hidden]="vitrinaConfig.carrusel">
+          <label class="text-sm fw-semibold">Máximo de filas</label>
+          <input type="number" class="form-control form-control-sm" min="0" max="20"
+            [(ngModel)]="vitrinaConfig.filas" [ngModelOptions]="{ standalone: true }" />
+          <small class="text-gray-500">0 = sin límite.</small>
+        </div>
+
+        <button type="button" class="btn bg-main-600 text-white ms-auto align-self-end"
+          [disabled]="vitrinaGuardando" (click)="guardarVitrina()">
+          <i class="ph ph-floppy-disk me-8"></i>
+          {{ vitrinaGuardando ? 'Guardando...' : 'Guardar cambios' }}
+        </button>
+      </div>
+
+      <p class="text-gray-500 text-sm mt-16 mb-16">
+        Arrastra las filas para cambiar el orden, o usa las flechas.
+        Se muestran <strong>{{ vitrinaVisibles.length }}</strong> de {{ vitrina.length }} marcas.
+        Solo aparecen las marcas que tienen logo cargado.
+      </p>
+
+      <!-- Orden -->
+      <div class="vitrina-lista">
+        <div class="vitrina-fila" *ngFor="let marca of vitrina; let i = index; trackBy: trackPorId"
+          [class.oculta]="!marca.mostrar_en_vitrina" draggable="true"
+          (dragstart)="iniciarArrastre(i)" (dragover)="permitirSoltar($event)" (drop)="soltarEn(i)">
+
+          <span class="vitrina-fila__agarre" title="Arrastrar para reordenar">
+            <i class="ph ph-dots-six-vertical"></i>
+          </span>
+
+          <span class="vitrina-fila__pos">{{ i + 1 }}</span>
+
+          <img class="vitrina-fila__logo" [src]="marca.imagen_url" [alt]="marca.nombre" />
+
+          <div class="vitrina-fila__datos">
+            <span class="fw-semibold text-sm">{{ marca.nombre }}</span>
+            <small class="text-gray-500">{{ marca.productos_count || 0 }} productos</small>
+          </div>
+
+          <div class="vitrina-fila__acciones">
+            <button type="button" class="btn btn-sm btn-light" [disabled]="i === 0"
+              (click)="moverEnVitrina(i, -1)" title="Subir">
+              <i class="ph ph-arrow-up"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-light" [disabled]="i === vitrina.length - 1"
+              (click)="moverEnVitrina(i, 1)" title="Bajar">
+              <i class="ph ph-arrow-down"></i>
+            </button>
+            <button type="button" class="btn btn-sm"
+              [class.btn-outline-success]="marca.mostrar_en_vitrina"
+              [class.btn-outline-secondary]="!marca.mostrar_en_vitrina"
+              (click)="alternarEnVitrina(marca)"
+              [title]="marca.mostrar_en_vitrina ? 'Ocultar de la web' : 'Mostrar en la web'">
+              <i class="ph" [ngClass]="marca.mostrar_en_vitrina ? 'ph-eye' : 'ph-eye-slash'"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="!vitrina.length" class="text-center py-40">
+        <i class="ph ph-image text-4xl text-gray-300 mb-16"></i>
+        <h6 class="text-gray-500 mb-8 fw-semibold">Ninguna marca tiene logo</h6>
+        <p class="text-gray-400 text-sm mb-0">
+          Sube el logo de una marca desde el listado para poder mostrarla acá.
+        </p>
+      </div>
+    </ng-container>
   </div>
 </div>
 

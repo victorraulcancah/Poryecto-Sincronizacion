@@ -494,9 +494,9 @@
       <div class="flex-align menu-category-wrapper position-relative">
         <!-- Category Dropdown Start -->
         <div class="position-relative category-dropdown-wrapper">
-          <!-- Botón Explorar categorías (solo en página principal) -->
+          <!-- Botón Explorar categorías: portada y catálogo -->
           <button
-            *ngIf="isHomePageActive"
+            *ngIf="mostrarExplorarCategorias"
             type="button"
             (click)="toggleCategoryDropdown()"
             class="category-button d-flex align-items-center gap-12 text-white bg-danger-600 px-16 py-10 rounded-6 hover-bg-danger-700 transition-2"

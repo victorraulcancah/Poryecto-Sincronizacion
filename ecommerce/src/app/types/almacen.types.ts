@@ -30,6 +30,11 @@ export interface MarcaProducto {
   imagen?: string
   imagen_url?: string
   activo: boolean
+  /** Sale en la vitrina de la página pública de marcas. Es independiente de
+   *  `activo`: una marca puede venderse y no aparecer ahí. */
+  mostrar_en_vitrina?: boolean
+  /** Posición en la vitrina; null va al final, ordenada por nombre. */
+  orden_vitrina?: number | null
   productos_count?: number
   created_at: string
   updated_at: string
