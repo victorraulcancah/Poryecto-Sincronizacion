@@ -38,23 +38,28 @@
       </button>
     </div>
 
-    <!-- Carrusel. La lista va duplicada y la tira se desplaza la mitad de su
-         ancho, así el salto al reiniciar cae justo donde estaba y no se ve.
-         Se detiene al pasar el mouse para poder hacer clic. -->
-    <div class="marcas__carrusel" *ngIf="!isLoading && marcas.length > 0 && config.carrusel">
-      <div class="marcas__tira" [style.animation-duration]="duracionCarrusel">
-        <button type="button" class="marcas__item" *ngFor="let marca of marcasParaMostrar; let i = index"
-          (click)="irAMarca(marca)" [title]="'Ver productos de ' + marca.nombre">
-          <img [src]="marca.imagen_url" [alt]="marca.nombre" loading="lazy" />
-          <span class="marcas__nombre">
-            {{ marca.nombre }}
-            <span class="marcas__conteo" *ngIf="marca.productos_count">
-              · {{ marca.productos_count }} productos
+    <!-- Carrusel: una tira por fila, según las filas configuradas. Cada lista
+         va duplicada y se desplaza la mitad de su ancho, así el salto al
+         reiniciar cae justo donde estaba y no se ve. Las filas alternan de
+         sentido para que no parezcan un solo bloque. Se detienen al pasar el
+         mouse, si no no se podría hacer clic en un logo. -->
+    <ng-container *ngIf="!isLoading && marcas.length > 0 && config.carrusel">
+      <div class="marcas__carrusel" *ngFor="let fila of filasCarrusel; let f = index">
+        <div class="marcas__tira" [class.marcas__tira--inversa]="f % 2 === 1"
+          [style.animation-duration]="duracionCarrusel">
+          <button type="button" class="marcas__item" *ngFor="let marca of fila"
+            (click)="irAMarca(marca)" [title]="'Ver productos de ' + marca.nombre">
+            <img [src]="marca.imagen_url" [alt]="marca.nombre" loading="lazy" />
+            <span class="marcas__nombre">
+              {{ marca.nombre }}
+              <span class="marcas__conteo" *ngIf="marca.productos_count">
+                · {{ marca.productos_count }} productos
+              </span>
             </span>
-          </span>
-        </button>
+          </button>
+        </div>
       </div>
-    </div>
+    </ng-container>
 
     <!-- Sin marcas -->
     <div *ngIf="!isLoading && marcas.length === 0" class="text-center py-40">

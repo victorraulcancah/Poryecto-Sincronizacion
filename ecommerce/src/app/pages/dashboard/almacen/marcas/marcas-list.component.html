@@ -264,11 +264,21 @@
           <small class="text-gray-500">En pantallas chicas se acomodan solos.</small>
         </div>
 
-        <div class="vitrina-config__campo" [hidden]="vitrinaConfig.carrusel">
-          <label class="text-sm fw-semibold">Máximo de filas</label>
-          <input type="number" class="form-control form-control-sm" min="0" max="20"
+        <!-- `filas` sirve en los dos modos, pero significa cosas distintas: en
+             cuadrícula es un tope de cuántas mostrar, y en carrusel en cuántas
+             tiras se reparten los logos. -->
+        <div class="vitrina-config__campo">
+          <label class="text-sm fw-semibold">
+            {{ vitrinaConfig.carrusel ? 'Filas del carrusel' : 'Máximo de filas' }}
+          </label>
+          <input type="number" class="form-control form-control-sm"
+            [min]="vitrinaConfig.carrusel ? 1 : 0" max="20"
             [(ngModel)]="vitrinaConfig.filas" [ngModelOptions]="{ standalone: true }" />
-          <small class="text-gray-500">0 = sin límite.</small>
+          <small class="text-gray-500">
+            {{ vitrinaConfig.carrusel
+                ? 'Las marcas se reparten en esa cantidad de tiras.'
+                : '0 = sin límite.' }}
+          </small>
         </div>
 
         <button type="button" class="btn bg-main-600 text-white ms-auto align-self-end"

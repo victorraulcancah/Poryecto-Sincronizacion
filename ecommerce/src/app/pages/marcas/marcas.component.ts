@@ -29,13 +29,32 @@ export class MarcasComponent implements OnInit, OnDestroy {
   config: VitrinaMarcasConfig = { carrusel: false, velocidad: 30, por_fila: 6, filas: 0 };
 
   /**
-   * En carrusel la lista se pinta dos veces seguidas y la tira se desplaza
-   * justo la mitad de su ancho: al terminar, la segunda copia está exactamente
-   * donde arrancó la primera y el bucle no se nota.
+   * Filas del carrusel, cada una con su lista ya duplicada.
+   *
+   * Se calcula una sola vez al cargar, no en un getter: un getter devolvería
+   * arreglos nuevos en cada ciclo de detección de cambios, el *ngFor volvería a
+   * crear las tiras y la animación se reiniciaría sin parar.
    */
-  get marcasParaMostrar(): MarcaProducto[] {
-    if (!this.config.carrusel) return this.marcas;
-    return [...this.marcas, ...this.marcas];
+  filasCarrusel: MarcaProducto[][] = [];
+
+  /**
+   * Reparte las marcas en tantas filas como pida la configuración y duplica
+   * cada una.
+   *
+   * Lo de duplicar es lo que hace invisible el bucle: la tira se desplaza justo
+   * la mitad de su ancho, así que al terminar la segunda copia queda donde
+   * arrancó la primera.
+   */
+  private armarFilasCarrusel(): void {
+    const filas = Math.max(1, this.config.filas || 1);
+    const porFila = Math.ceil(this.marcas.length / filas);
+
+    this.filasCarrusel = [];
+
+    for (let i = 0; i < this.marcas.length; i += porFila) {
+      const fila = this.marcas.slice(i, i + porFila);
+      this.filasCarrusel.push([...fila, ...fila]);
+    }
   }
 
   /** Duración de una vuelta completa, para la animación CSS. */
@@ -72,13 +91,14 @@ export class MarcasComponent implements OnInit, OnDestroy {
           // Sin logo no hay nada que mostrar en la vitrina.
           let marcas = respuesta.marcas.filter((m) => !!m.imagen_url);
 
-          // Tope de filas (0 = sin tope). En carrusel no aplica: es una sola
-          // tira continua.
+          // En cuadrícula, `filas` es un tope de cuántas mostrar. En carrusel es
+          // en cuántas tiras se reparten, así que ahí no se recorta nada.
           if (!this.config.carrusel && this.config.filas > 0) {
             marcas = marcas.slice(0, this.config.filas * Math.max(1, this.config.por_fila));
           }
 
           this.marcas = marcas;
+          if (this.config.carrusel) this.armarFilasCarrusel();
           this.isLoading = false;
         },
         error: (error) => {
