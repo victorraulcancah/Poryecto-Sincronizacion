@@ -303,18 +303,20 @@
             <small class="text-gray-500">{{ marca.productos_count || 0 }} productos</small>
           </div>
 
+          <!-- Botones de color fijo y sin animación: con `btn-light` las flechas
+               quedaban casi invisibles sobre el fondo blanco de la fila. -->
           <div class="vitrina-fila__acciones">
-            <button type="button" class="btn btn-sm btn-light" [disabled]="i === 0"
+            <button type="button" class="vitrina-btn" [disabled]="i === 0"
               (click)="moverEnVitrina(i, -1)" title="Subir">
               <i class="ph ph-arrow-up"></i>
             </button>
-            <button type="button" class="btn btn-sm btn-light" [disabled]="i === vitrina.length - 1"
+            <button type="button" class="vitrina-btn" [disabled]="i === vitrina.length - 1"
               (click)="moverEnVitrina(i, 1)" title="Bajar">
               <i class="ph ph-arrow-down"></i>
             </button>
-            <button type="button" class="btn btn-sm"
-              [class.btn-outline-success]="marca.mostrar_en_vitrina"
-              [class.btn-outline-secondary]="!marca.mostrar_en_vitrina"
+            <button type="button" class="vitrina-btn"
+              [class.vitrina-btn--visible]="marca.mostrar_en_vitrina"
+              [class.vitrina-btn--oculta]="!marca.mostrar_en_vitrina"
               (click)="alternarEnVitrina(marca)"
               [title]="marca.mostrar_en_vitrina ? 'Ocultar de la web' : 'Mostrar en la web'">
               <i class="ph" [ngClass]="marca.mostrar_en_vitrina ? 'ph-eye' : 'ph-eye-slash'"></i>
