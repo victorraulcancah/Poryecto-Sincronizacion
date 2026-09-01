@@ -83,14 +83,22 @@ import {  MarcaProducto } from "../../../../types/almacen.types"
                            class="img-fluid rounded-6 mb-8"
                            style="max-height: 120px;">
                       <br>
-                      <label class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm">
-                        <i class="ph ph-pencil me-6"></i>
-                        Cambiar
-                        <input type="file" 
-                               class="d-none" 
-                               accept="image/*"
-                               (change)="onImageSelected($event)">
-                      </label>
+                      <div class="d-flex justify-content-center gap-8">
+                        <label class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm">
+                          <i class="ph ph-pencil me-6"></i>
+                          Cambiar
+                          <input type="file"
+                                 class="d-none"
+                                 accept="image/*"
+                                 (change)="onImageSelected($event)">
+                        </label>
+                        <button type="button"
+                                class="btn bg-danger-50 text-danger-600 px-12 py-6 rounded-6 text-sm"
+                                (click)="quitarImagen()">
+                          <i class="ph ph-trash me-6"></i>
+                          Quitar
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -137,6 +145,12 @@ export class MarcaModalComponent implements OnInit, OnChanges {
   marcaForm: FormGroup
   selectedImage: File | null = null
   imagePreview: string | null = null
+  /**
+   * Se pidió quitar el logo. No basta con vaciar la vista previa: el backend
+   * solo toca la imagen si recibe un archivo nuevo, así que hay que decirle
+   * expresamente que la borre.
+   */
+  quitarImagenPendiente = false
   isLoading = false
 
   constructor(
@@ -160,6 +174,8 @@ export class MarcaModalComponent implements OnInit, OnChanges {
         activo: this.marca.activo,
       })
       this.imagePreview = this.marca.imagen_url || null
+      this.selectedImage = null
+      this.quitarImagenPendiente = false
     } else {
       this.marcaForm.reset({
         nombre: "",
@@ -168,13 +184,23 @@ export class MarcaModalComponent implements OnInit, OnChanges {
       })
       this.imagePreview = null
       this.selectedImage = null
+      this.quitarImagenPendiente = false
     }
+  }
+
+  /** Deja la marca sin logo. Se aplica al guardar, no al instante. */
+  quitarImagen(): void {
+    this.imagePreview = null
+    this.selectedImage = null
+    this.quitarImagenPendiente = true
   }
 
   onImageSelected(event: any): void {
     const file = event.target.files[0]
     if (file) {
       this.selectedImage = file
+      // Eligió una imagen nueva: ya no se trata de quitar la anterior.
+      this.quitarImagenPendiente = false
 
       const reader = new FileReader()
       reader.onload = (e: any) => {
@@ -197,6 +223,8 @@ export class MarcaModalComponent implements OnInit, OnChanges {
       // Solo agregar imagen si hay una nueva seleccionada
       if (this.selectedImage) {
         formValue.imagen = this.selectedImage
+      } else if (this.quitarImagenPendiente) {
+        formValue.quitar_imagen = '1'
       }
 
       console.log('📤 Enviando marca:', {

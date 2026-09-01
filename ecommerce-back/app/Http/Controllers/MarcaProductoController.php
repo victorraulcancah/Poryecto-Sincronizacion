@@ -121,7 +121,9 @@ class MarcaProductoController extends Controller
         $rules = [
             'descripcion' => 'nullable|string',
             'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'activo' => 'nullable|in:true,false,1,0'
+            'activo' => 'nullable|in:true,false,1,0',
+            // Quitar el logo desde el modal de edicion.
+            'quitar_imagen' => 'nullable|in:true,false,1,0',
         ];
         
         // Solo validar nombre si se está enviando
@@ -175,6 +177,19 @@ class MarcaProductoController extends Controller
                 // Mover imagen directamente a public/storage/marcas_productos
                 $imagen->move($directorioDestino, $nombreImagen);
                 $data['imagen'] = $nombreImagen;
+            } elseif (filter_var($request->input('quitar_imagen'), FILTER_VALIDATE_BOOLEAN)) {
+                // Quitar el logo: se borra el archivo y la marca queda sin
+                // imagen. Sin logo no puede salir en la vitrina de la web, asi
+                // que tambien se la saca de ahi.
+                if ($marca->imagen) {
+                    $rutaImagen = public_path('storage/marcas_productos/' . $marca->imagen);
+                    if (file_exists($rutaImagen)) {
+                        unlink($rutaImagen);
+                    }
+                }
+
+                $data['imagen'] = null;
+                $data['mostrar_en_vitrina'] = false;
             }
 
             $marca->update($data);
