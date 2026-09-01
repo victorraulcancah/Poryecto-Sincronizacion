@@ -187,8 +187,16 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // ✅ NUEVO: Menús visibles y ocultos
   visibleMenuItems: Menu[] = [];
+  /**
+   * Menús que van dentro de "Más".
+   *
+   * Se dejó siempre vacío: los últimos elementos (Contáctanos, Marcas) quedaban
+   * escondidos detrás de un desplegable y el cliente no los encontraba. Ahora
+   * salen todos en la barra, que se acomoda en dos líneas si hace falta.
+   * La propiedad y el bloque del template se conservan por si alguna vez el
+   * menú crece tanto que vuelva a hacer falta agruparlos.
+   */
   hiddenMenuItems: Menu[] = [];
-  maxVisibleMenus: number = 7; // Máximo de menús visibles antes del "Más"
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: any,
@@ -281,17 +289,10 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
       });
   }
 
-  // ✅ NUEVO: Organizar menús visibles y ocultos
+  /** Todos los menús a la vista; ver el comentario de `hiddenMenuItems`. */
   private organizarMenusVisibles(): void {
-    if (this.menuItems.length <= this.maxVisibleMenus) {
-      // Si hay pocos menús, mostrar todos
-      this.visibleMenuItems = this.menuItems;
-      this.hiddenMenuItems = [];
-    } else {
-      // Si hay muchos menús, mostrar solo los primeros y el resto en "Más"
-      this.visibleMenuItems = this.menuItems.slice(0, this.maxVisibleMenus - 1);
-      this.hiddenMenuItems = this.menuItems.slice(this.maxVisibleMenus - 1);
-    }
+    this.visibleMenuItems = this.menuItems;
+    this.hiddenMenuItems = [];
   }
 
   // ✅ NUEVO: Obtener submenús de un menú padre

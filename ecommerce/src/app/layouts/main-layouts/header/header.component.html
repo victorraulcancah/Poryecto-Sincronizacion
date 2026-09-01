@@ -582,7 +582,10 @@
         <!-- Menu Start  -->
         <div class="header-menu d-lg-block d-none">
           <!-- Nav Menu Start -->
-          <ul class="nav-menu flex-align">
+          <!-- `flex-wrap`: ahora salen todos los menús (ya no hay "Más"), así
+               que si no entran en una línea pasan a la siguiente en vez de
+               desbordar la barra. -->
+          <ul class="nav-menu flex-align flex-wrap">
             <!-- ✅ SKELETON LOADER DESKTOP -->
             <ng-container *ngIf="isLoadingMenus">
               <li class="nav-menu__item">
