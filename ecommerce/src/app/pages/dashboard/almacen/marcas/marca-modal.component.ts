@@ -83,9 +83,12 @@ import {  MarcaProducto } from "../../../../types/almacen.types"
                            class="img-fluid rounded-6 mb-8"
                            style="max-height: 120px;">
                       <br>
-                      <div class="d-flex justify-content-center gap-8">
-                        <label class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm">
-                          <i class="ph ph-pencil me-6"></i>
+                      <!-- La columna del logo es angosta: con el tamano y el
+                           padding de antes, "Cambiar" y "Quitar" se partian en
+                           dos lineas. Texto mas chico y sin salto de linea. -->
+                      <div class="d-flex justify-content-center gap-6">
+                        <label class="btn bg-main-50 text-main-600 px-10 py-4 rounded-6 cursor-pointer text-xs text-nowrap">
+                          <i class="ph ph-pencil me-4"></i>
                           Cambiar
                           <input type="file"
                                  class="d-none"
@@ -93,9 +96,9 @@ import {  MarcaProducto } from "../../../../types/almacen.types"
                                  (change)="onImageSelected($event)">
                         </label>
                         <button type="button"
-                                class="btn bg-danger-50 text-danger-600 px-12 py-6 rounded-6 text-sm"
+                                class="btn bg-danger-50 text-danger-600 px-10 py-4 rounded-6 text-xs text-nowrap"
                                 (click)="quitarImagen()">
-                          <i class="ph ph-trash me-6"></i>
+                          <i class="ph ph-trash me-4"></i>
                           Quitar
                         </button>
                       </div>
