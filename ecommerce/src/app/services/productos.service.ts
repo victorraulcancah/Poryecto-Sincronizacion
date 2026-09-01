@@ -104,11 +104,23 @@ export interface ProductosPublicosResponse {
   precio_max?: number | null;
 }
 
-/** Medida en pulgadas que aparece escrita en el nombre de los productos. */
+/** Una opcion del filtro de medida (6.5", 4 canales, 3.3 m...). */
 export interface TamanoProducto {
   valor: string;
   etiqueta: string;
   productos_count: number;
+}
+
+/**
+ * Filtro de medida del catalogo. Lo que se mide depende de la categoria
+ * elegida: canales en amplificadores, bobina en drivers, metros en cables y
+ * pulgadas en parlantes. Sin categoria (o con una que no tiene medida) llega
+ * `tipo: null` y la lista vacia, y el sidebar oculta la seccion.
+ */
+export interface FiltroDeMedida {
+  tipo: string | null;
+  titulo: string;
+  opciones: TamanoProducto[];
 }
 
 export interface CategoriaParaSidebar {
@@ -240,8 +252,10 @@ export class ProductosService {
   }
 
   /** Medidas disponibles para el filtro del catálogo. */
-  obtenerTamanosPublicos(): Observable<TamanoProducto[]> {
-    return this.http.get<TamanoProducto[]>(`${this.apiUrl}/productos/tamanos`);
+  obtenerTamanosPublicos(categoriaId?: number): Observable<FiltroDeMedida> {
+    let params = new HttpParams();
+    if (categoriaId) params = params.set('categoria', categoriaId.toString());
+    return this.http.get<FiltroDeMedida>(`${this.apiUrl}/productos/tamanos`, { params });
   }
 
   obtenerCategoriasParaSidebar(marcaId?: number): Observable<CategoriaParaSidebar[]> {

@@ -10,6 +10,7 @@ import {
   ProductoPublico,
   type CategoriaParaSidebar,
   type TamanoProducto,
+  type FiltroDeMedida,
 } from '../../services/productos.service';
 import { CartService } from '../../services/cart.service';
 import { CartNotificationService } from '../../services/cart-notification.service';
@@ -49,10 +50,17 @@ export class ShopComponent implements OnInit, OnDestroy {
      se reflejan en la URL igual (?categorias=1,2&marcas=3). */
   categoriasSeleccionadas: number[] = [];
   marcasSeleccionadas: number[] = [];
-  /* El tamaño no es una columna: se escribe a mano dentro del nombre del
-     producto (ej. "6.5'' MEDIO RANGO"), y el backend lo busca ahí. */
-  tamanos: TamanoProducto[] = [];
+  /* La medida no es una columna: se escribe a mano dentro del nombre del
+     producto y el backend la lee de ahí. Qué se mide depende de la categoría
+     elegida — canales en amplificadores, bobina en drivers, metros en cables,
+     pulgadas en parlantes —, así que el título y las opciones vienen del
+     servidor en vez de estar fijos. */
+  filtroMedida: FiltroDeMedida = { tipo: null, titulo: 'Tamaño', opciones: [] };
   tamanosSeleccionados: string[] = [];
+
+  get tamanos(): TamanoProducto[] {
+    return this.filtroMedida.opciones;
+  }
 
   /* Los conteos cruzados del sidebar (cuántos productos de esta marca hay en
      esta categoría) solo tienen sentido con UNA selección; con varias se
@@ -147,7 +155,8 @@ export class ShopComponent implements OnInit, OnDestroy {
     // Cargar categorías para el sidebar
     this.cargarCategorias();
     this.cargarMarcas(); // ✅ NUEVO: Cargar marcas desde el backend
-    this.cargarTamanos();
+    // Las medidas se cargan en cargarProductos(), que es donde ya se conoce la
+    // categoría elegida.
     this.cargarBannerSidebar(); // ✅ NUEVO: Cargar banner del sidebar
 
     // ✅ NUEVO: Escuchar cambios en los parámetros de ruta (para slug de categoría y marca)
@@ -274,11 +283,16 @@ export class ShopComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** Medidas que existen en los nombres de los productos activos. */
+  /**
+   * Opciones del filtro de medida para la categoría elegida.
+   *
+   * Con varias categorías marcadas (o ninguna) no hay una unidad única que
+   * ofrecer, así que el backend devuelve la lista vacía y la sección se oculta.
+   */
   cargarTamanos(): void {
-    this.productosService.obtenerTamanosPublicos().subscribe({
-      next: (tamanos) => (this.tamanos = tamanos),
-      error: (error) => console.error('Error al cargar tamaños:', error),
+    this.productosService.obtenerTamanosPublicos(this.categoriaSeleccionada).subscribe({
+      next: (filtro) => (this.filtroMedida = filtro),
+      error: (error) => console.error('Error al cargar las medidas:', error),
     });
   }
 
@@ -308,6 +322,7 @@ export class ShopComponent implements OnInit, OnDestroy {
     // ✅ Los conteos del sidebar se refrescan con el filtro cruzado (categoría <-> marca) actual
     this.cargarCategorias();
     this.cargarMarcas();
+    this.cargarTamanos();
 
     const filtros: any = {
       categoryIds: this.categoriasSeleccionadas.join(','),
@@ -364,6 +379,9 @@ export class ShopComponent implements OnInit, OnDestroy {
   // dedicada, así ambos filtros (categoría + marca) coexisten en la misma URL.
   seleccionarCategoria(categoriaId: number): void {
     this.categoriasSeleccionadas = this.alternar(this.categoriasSeleccionadas, categoriaId);
+    // La medida elegida pertenece a la categoría anterior: un "6.5" de
+    // parlantes no significa nada en amplificadores, donde se miden canales.
+    this.tamanosSeleccionados = [];
     this.currentPage = 1;
     this.navegarConFiltrosActuales();
   }
@@ -542,7 +560,10 @@ export class ShopComponent implements OnInit, OnDestroy {
     });
 
     this.tamanosSeleccionados.forEach((valor) => {
-      fichas.push({ etiqueta: `${valor}"`, tipo: 'tamano' });
+      // La etiqueta la da el backend ("4 canales", "3.3 m", '6.5"'): acá no se
+      // sabe en qué unidad está la medida.
+      const opcion = this.filtroMedida.opciones.find((o) => o.valor === valor);
+      fichas.push({ etiqueta: opcion?.etiqueta ?? valor, tipo: 'tamano' });
     });
 
     if (this.currentMinPrice !== undefined || this.currentMaxPrice !== undefined) {

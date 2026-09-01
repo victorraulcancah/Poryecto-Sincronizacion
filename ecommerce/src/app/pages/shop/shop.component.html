@@ -113,12 +113,16 @@
                             </div>
                         </div>
 
-                        <!-- Tamaño / Pulgadas: la medida no es un campo del
-                             producto, se lee del nombre (ej. "6.5''"). -->
+                        <!-- La medida no es un campo del producto: se lee del
+                             nombre, y qué se mide depende de la categoría
+                             elegida (pulgadas, canales, bobina o metros). El
+                             título y las opciones los da el backend; sin
+                             categoría no llegan opciones y la sección no se
+                             dibuja. -->
                         <div class="filtros-panel__seccion" *ngIf="tamanos.length">
                             <button type="button" class="filtros-panel__seccion-head"
                                 (click)="alternarSeccion('tamano')">
-                                <span>Tamaño / Pulgadas</span>
+                                <span>{{ filtroMedida.titulo }}</span>
                                 <i class="ph ph-caret-down filtros-panel__flecha"
                                     [class.abierta]="seccionesAbiertas.tamano"></i>
                             </button>

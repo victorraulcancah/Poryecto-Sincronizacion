@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Producto;
 use App\Models\Categoria;
 use App\Models\ProductoDetalle;
+use App\Support\MedidaDeCategoria;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -452,26 +453,53 @@ class ProductosController extends Controller
             $query->whereIn('marca_id', $brandIds);
         }
 
-        // Filtro por tamaño (pulgadas). No hay columna: la medida se escribe a
-        // mano dentro del nombre del producto (ej. "6.5'' MEDIO RANGO"), así
-        // que se busca ahí con una expresión regular.
+        // Filtro por medida. No hay columna: la medida se escribe a mano dentro
+        // del nombre del producto, y qué se mide depende de la categoría —
+        // canales en amplificadores, bobina en drivers, metros en cables,
+        // pulgadas en parlantes (ver App\Support\MedidaDeCategoria).
+        //
+        // La categoría manda: el mismo "2" significa 2 canales en un
+        // amplificador y 2 pulgadas en un parlante.
         if ($request->filled('sizes')) {
             $sizes = array_filter(explode(',', $request->sizes));
-            $query->where(function ($q) use ($sizes) {
-                foreach ($sizes as $size) {
-                    // 1) La medida con la marca de pulgadas: "6.5''", '10"'.
-                    $q->orWhereRaw('nombre REGEXP ?', [$this->regexTamano($size)]);
 
-                    // 2) La medida al principio del nombre y sin marca
-                    //    ("6.5 PARLANTE 2 VIAS"). Solo cuenta si el nombre es de
-                    //    un producto que se mide en pulgadas: si no, "4 SENSORES
-                    //    DE RETROCESO" o "3.30 M ... RCA" saldrían como medidas.
-                    $q->orWhere(function ($qq) use ($size) {
-                        $qq->whereRaw('nombre REGEXP ?', [$this->regexTamanoAlInicio($size)])
-                            ->whereRaw('nombre REGEXP ?', [self::PALABRAS_MEDIDA_SQL]);
-                    });
-                }
-            });
+            $categorias = $request->filled('categoryIds')
+                ? array_filter(explode(',', $request->categoryIds))
+                : ($request->filled('categoria') ? [$request->categoria] : []);
+
+            $tipo = count($categorias) === 1
+                ? MedidaDeCategoria::tipoDe(
+                    \DB::table('categorias')->where('id', reset($categorias))->value('nombre')
+                )
+                : null;
+
+            if ($tipo) {
+                $query->where(function ($q) use ($sizes, $tipo) {
+                    foreach ($sizes as $size) {
+                        [$sql, $bindings] = MedidaDeCategoria::condicionSql($tipo, $size);
+                        $q->orWhereRaw($sql, $bindings);
+                    }
+                });
+            } else {
+                // Sin una categoría única no se sabe qué unidad es: se mantiene
+                // el comportamiento de siempre, buscar pulgadas.
+                $query->where(function ($q) use ($sizes) {
+                    foreach ($sizes as $size) {
+                        // 1) La medida con la marca de pulgadas: "6.5''", '10"'.
+                        $q->orWhereRaw('nombre REGEXP ?', [$this->regexTamano($size)]);
+
+                        // 2) La medida al principio del nombre y sin marca
+                        //    ("6.5 PARLANTE 2 VIAS"). Solo cuenta si el nombre es
+                        //    de un producto que se mide en pulgadas: si no,
+                        //    "4 SENSORES DE RETROCESO" o "3.30 M ... RCA" saldrían
+                        //    como medidas.
+                        $q->orWhere(function ($qq) use ($size) {
+                            $qq->whereRaw('nombre REGEXP ?', [$this->regexTamanoAlInicio($size)])
+                                ->whereRaw('nombre REGEXP ?', [self::PALABRAS_MEDIDA_SQL]);
+                        });
+                    }
+                });
+            }
         }
 
         // El precio que ve el cliente sale de su lista de precios, no de la
@@ -672,55 +700,62 @@ class ProductosController extends Controller
     private const PALABRAS_MEDIDA_SQL = '(PARLANTE|SUBWOOFER|SUB WOOFER|TWEETER|DRIVER|WOOFER|MEDIO RANGO|MID ?BASS|MIDRANGE|COMPONENTE|CORNETA|BOCINA|PANTALLA|RECEPTOR|MONITOR)';
 
     /**
-     * Medidas (en pulgadas) que aparecen escritas en los nombres de los
-     * productos activos, para armar el filtro del catálogo.
+     * Opciones del filtro de medida del catálogo.
+     *
+     * Lo que se mide depende de la categoría elegida: canales en amplificadores,
+     * bobina en drivers, metros en cables y pulgadas en parlantes (ver
+     * App\Support\MedidaDeCategoria). Sin categoría, o con una que no tiene
+     * medida definida, se devuelve la lista vacía y el sidebar oculta el filtro:
+     * antes se ofrecían siempre pulgadas y en Amplificadores no daba resultados.
      */
-    public function tamanosPublicos()
+    public function tamanosPublicos(Request $request)
     {
-        $nombres = Producto::where('activo', true)->pluck('nombre');
+        $categoriaId = $request->query('categoria');
 
+        $categoria = $categoriaId
+            ? \DB::table('categorias')->where('id', $categoriaId)->first()
+            : null;
+
+        $tipo = MedidaDeCategoria::tipoDe($categoria->nombre ?? null);
+
+        if (! $tipo) {
+            return response()->json([
+                'tipo' => null,
+                'titulo' => MedidaDeCategoria::titulo(null),
+                'opciones' => [],
+            ]);
+        }
+
+        $nombres = Producto::where('activo', true)
+            ->where('categoria_id', $categoria->id)
+            ->pluck('nombre');
+
+        // Un nombre puede traer varias medidas ("4CH * 120 + 1CH * 320"), y el
+        // producto cuenta en todas: es lo mismo que hace el filtro.
         $conteo = [];
         foreach ($nombres as $nombre) {
-            $medidas = [];
-
-            // 1) Número con marca de pulgadas: "6.5''", '10"'.
-            if (preg_match_all("/(?<![0-9.])([0-9]+(?:[.,][0-9]+)?)[[:space:]]*(?:''|\"|”|″)/u", $nombre, $coincidencias)) {
-                $medidas = $coincidencias[1];
-            }
-
-            // 2) Número al principio y sin marca ("6.5 PARLANTE 2 VIAS"), solo
-            //    en productos que se miden en pulgadas.
-            if (preg_match('/^\s*([0-9]+(?:[.,][0-9]+)?)\s/u', $nombre, $inicio)
-                && preg_match(self::PALABRAS_MEDIDA, $nombre)) {
-                $medidas[] = $inicio[1];
-            }
-
-            foreach (array_unique($medidas) as $medida) {
-                $medida = str_replace(',', '.', $medida);
-                // "5.20" y "5.2" son la misma medida.
-                if (str_contains($medida, '.')) {
-                    $medida = rtrim(rtrim($medida, '0'), '.');
-                }
-                if ($medida === '') {
-                    continue;
-                }
+            foreach (MedidaDeCategoria::leerDe($tipo, $nombre) as $medida) {
                 $conteo[$medida] = ($conteo[$medida] ?? 0) + 1;
             }
         }
 
-        // De menor a mayor, que es como se leen en una lista de tallas.
+        // De menor a mayor, que es como se leen estas listas.
         uksort($conteo, fn ($a, $b) => (float) $a <=> (float) $b);
 
-        $tamanos = [];
+        $opciones = [];
         foreach ($conteo as $medida => $total) {
-            $tamanos[] = [
-                'valor' => $medida,
-                'etiqueta' => $medida . '"',
+            $opciones[] = [
+                'valor' => (string) $medida,
+                'etiqueta' => MedidaDeCategoria::etiqueta($tipo, (string) $medida),
                 'productos_count' => $total,
             ];
         }
 
-        return response()->json($tamanos);
+        return response()->json([
+            'tipo' => $tipo,
+            'titulo' => MedidaDeCategoria::titulo($tipo),
+            'opciones' => $opciones,
+        ]);
     }
 
     // ✅ NUEVO MÉTODO PARA OBTENER CATEGORÍAS PARA EL SIDEBAR
