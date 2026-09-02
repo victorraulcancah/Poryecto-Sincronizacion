@@ -243,6 +243,27 @@ class CotizacionesController extends Controller
                 }
             }
 
+            /*
+             * Stock, contra Novik en el momento.
+             *
+             * Este flujo no comprobaba stock en ningun punto: se podia llegar
+             * hasta el final y generar la cotizacion de algo agotado. Se valida
+             * aca, que es la ultima puerta; el checkout ademas avisa antes con
+             * verificarStock(), pero entre ese aviso y el envio pueden pasar
+             * minutos y el ERP haber despachado la ultima unidad.
+             */
+            $faltantes = $this->faltantesDeStock($request->productos);
+
+            if (! empty($faltantes)) {
+                DB::rollBack();
+
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Algunos productos ya no tienen stock suficiente',
+                    'faltantes' => $faltantes,
+                ], 422);
+            }
+
             // Calcular totales
             $subtotal = 0;
             $igv = 0;
@@ -1410,5 +1431,77 @@ class CotizacionesController extends Controller
                 'message' => 'Error al generar PDF: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Lineas del carrito que ya no tienen stock suficiente en Novik.
+     *
+     * Devuelve una lista vacia cuando todo alcanza. Si Novik no responde,
+     * StockEnVivo devuelve vacio y se cae al stock copiado en la tienda: es
+     * preferible vender con un dato de hace un minuto a bloquear la compra
+     * porque el ERP esta caido.
+     *
+     * @param  array  $productos  [['producto_id' => int, 'cantidad' => int], ...]
+     */
+    private function faltantesDeStock(array $productos): array
+    {
+        $ids = array_column($productos, 'producto_id');
+        $stockReal = \App\Support\StockEnVivo::de($ids);
+
+        $faltantes = [];
+
+        foreach ($productos as $linea) {
+            $producto = Producto::find($linea['producto_id']);
+
+            if (! $producto) {
+                continue;
+            }
+
+            $disponible = $stockReal[$producto->id] ?? (int) $producto->stock;
+            $pedida = (int) $linea['cantidad'];
+
+            if ($disponible < $pedida) {
+                $faltantes[] = [
+                    'producto_id' => $producto->id,
+                    'nombre' => $producto->nombre,
+                    'codigo_producto' => $producto->codigo_producto,
+                    'solicitado' => $pedida,
+                    'disponible' => max(0, $disponible),
+                ];
+            }
+        }
+
+        return $faltantes;
+    }
+
+    /**
+     * Pre-consulta del carrito contra el stock real de Novik.
+     *
+     * La usa el checkout antes de dejar avanzar al paso de entrega, para que el
+     * cliente se entere ahi y no despues de llenar todos los datos.
+     */
+    public function verificarStock(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'productos' => 'required|array|min:1',
+            'productos.*.producto_id' => 'required|exists:productos,id',
+            'productos.*.cantidad' => 'required|numeric|min:1',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Datos de validacion incorrectos',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $faltantes = $this->faltantesDeStock($request->productos);
+
+        return response()->json([
+            'status' => 'success',
+            'hay_stock' => empty($faltantes),
+            'faltantes' => $faltantes,
+        ]);
     }
 }

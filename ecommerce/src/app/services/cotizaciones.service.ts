@@ -483,4 +483,30 @@ export class CotizacionesService {
       }
     });
   }
+
+  /**
+   * Pre-consulta del carrito contra el stock real de Novik.
+   *
+   * El checkout la usa antes de dejar pasar al paso de pago: asi el cliente se
+   * entera de que algo se agoto ahi y no despues de llenar todos los datos.
+   */
+  verificarStock(productos: { producto_id: number; cantidad: number }[]): Observable<{
+    status: string;
+    hay_stock: boolean;
+    faltantes: FaltanteDeStock[];
+  }> {
+    return this.http.post<{ status: string; hay_stock: boolean; faltantes: FaltanteDeStock[] }>(
+      `${this.apiUrl}/cotizaciones/verificar-stock`,
+      { productos }
+    );
+  }
+}
+
+/** Linea del carrito que ya no alcanza; `disponible` es lo que queda en Novik. */
+export interface FaltanteDeStock {
+  producto_id: number;
+  nombre: string;
+  codigo_producto: string;
+  solicitado: number;
+  disponible: number;
 }

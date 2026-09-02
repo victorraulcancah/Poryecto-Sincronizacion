@@ -70,6 +70,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // ============================================
     Route::prefix('cotizaciones')->group(function () {
         Route::post('/ecommerce', [CotizacionesController::class, 'crearCotizacionEcommerce']);
+        // Pre-consulta del carrito contra el stock real de Novik, antes de que
+        // el cliente llene los datos de entrega.
+        Route::post('/verificar-stock', [CotizacionesController::class, 'verificarStock']);
         Route::put('/{id}/ecommerce', [CotizacionesController::class, 'actualizarCotizacionEcommerce']);
         Route::get('/mis-cotizaciones', [CotizacionesController::class, 'misCotizaciones']);
         Route::get('/{id}/pdf', [CotizacionesController::class, 'generarPDF']);

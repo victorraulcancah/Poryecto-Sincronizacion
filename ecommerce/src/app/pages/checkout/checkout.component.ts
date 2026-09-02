@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { combineLatest, firstValueFrom } from 'rxjs';
+import { combineLatest, firstValueFrom, forkJoin } from 'rxjs';
 import { BreadcrumbComponent } from '../../component/breadcrumb/breadcrumb.component';
 import { ShippingComponent } from '../../component/shipping/shipping.component';
 import { CheckoutStepsComponent } from '../../component/checkout-steps/checkout-steps.component';
@@ -10,7 +10,7 @@ import { ModalDireccionComponent } from '../../component/modal-direccion/modal-d
 import { CartService, CartItem, CartSummary } from '../../services/cart.service';
 import { AuthService } from '../../services/auth.service';
 import { UbigeoService, Departamento, Provincia, Distrito } from '../../services/ubigeo.service';
-import { CotizacionesService, CrearCotizacionRequest } from '../../services/cotizaciones.service';
+import { CotizacionesService, CrearCotizacionRequest, type FaltanteDeStock } from '../../services/cotizaciones.service';
 import { DireccionesService, Direccion } from '../../services/direcciones.service';
 import { ReniecService } from '../../services/reniec.service';
 import { ClienteService } from '../../services/cliente.service';
@@ -733,10 +733,126 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Antes de pasar al pago se comprueba el stock real en Novik. El carrito
+    // pudo armarse hace rato y en el ERP haberse vendido lo que quedaba: sin
+    // esto el cliente llenaba todos los datos y recién al final se enteraba.
+    this.verificandoStock = true;
+
+    this.cotizacionesService
+      .verificarStock(
+        this.cartItems
+          .filter((item) => !item.guardado_para_despues)
+          .map((item) => ({ producto_id: item.producto_id, cantidad: item.cantidad }))
+      )
+      .subscribe({
+        next: (respuesta) => {
+          this.verificandoStock = false;
+
+          if (respuesta.hay_stock) {
+            this.pasarAPago();
+            return;
+          }
+
+          this.avisarFaltantes(respuesta.faltantes);
+        },
+        error: (error) => {
+          // Si la comprobación falla (Novik caído, sin red), no se bloquea la
+          // compra: el backend vuelve a validar al crear la cotización.
+          console.error('No se pudo comprobar el stock:', error);
+          this.verificandoStock = false;
+          this.pasarAPago();
+        },
+      });
+  }
+
+  /** Se está consultando el stock en Novik; deshabilita el botón de continuar. */
+  verificandoStock = false;
+
+  private pasarAPago(): void {
     this.pasoActual = 3;
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  }
+
+  /**
+   * Avisa qué productos se quedaron sin stock y deja que el cliente decida.
+   *
+   * No se toca el carrito por cuenta propia: el cliente puso esos productos y
+   * es él quien elige si quita solo los que faltan o vacía todo. Sin elegir
+   * nada, se queda en el paso de entrega con el carrito intacto.
+   */
+  private avisarFaltantes(faltantes: FaltanteDeStock[]): void {
+    const detalle = faltantes
+      .map(
+        (f) => `
+        <div class="d-flex justify-content-between border-bottom py-2">
+          <span class="text-start">${f.nombre}</span>
+          <strong>${f.disponible === 0 ? 'Sin stock' : `Solo quedan ${f.disponible}`}</strong>
+        </div>`
+      )
+      .join('');
+
+    Swal.fire({
+      title: 'Productos sin stock',
+      html: `
+        <div class="text-center">
+          <p class="text-muted">
+            Estos productos ya no tienen stock suficiente. ¿Qué quieres hacer?
+          </p>
+          <div class="text-start mt-3">${detalle}</div>
+        </div>`,
+      icon: 'warning',
+      showCancelButton: true,
+      showDenyButton: true,
+      confirmButtonText: 'Quitar solo estos',
+      denyButtonText: 'Vaciar carrito',
+      cancelButtonText: 'Revisar carrito',
+      confirmButtonColor: '#dc3545',
+      denyButtonColor: '#6c757d',
+      reverseButtons: true,
+    }).then((resultado) => {
+      if (resultado.isConfirmed) this.quitarSinStock(faltantes);
+      else if (resultado.isDenied) this.vaciarCarrito();
+      // "Revisar carrito": no se toca nada, se queda donde está.
+    });
+  }
+
+  /**
+   * Deja el carrito con lo que sí hay: quita lo agotado y baja la cantidad de
+   * lo que quedó con menos unidades de las pedidas.
+   */
+  private quitarSinStock(faltantes: FaltanteDeStock[]): void {
+    const cambios = faltantes
+      .map((f) => {
+        const item = this.cartItems.find((i) => i.producto_id === f.producto_id);
+        if (!item) return null;
+
+        return f.disponible === 0
+          ? this.cartService.removeFromCart(item)
+          : this.cartService.updateQuantity(item, f.disponible);
+      })
+      .filter((peticion) => peticion !== null);
+
+    if (!cambios.length) return;
+
+    forkJoin(cambios).subscribe({
+      next: () => this.loadCartData(),
+      error: (error) => {
+        console.error('No se pudo ajustar el carrito:', error);
+        this.loadCartData();
+      },
+    });
+  }
+
+  private vaciarCarrito(): void {
+    this.cartService.clearCart().subscribe({
+      next: () => this.router.navigate(['/cart']),
+      error: (error) => {
+        console.error('No se pudo vaciar el carrito:', error);
+        this.loadCartData();
+      },
+    });
   }
 
   volverAEntrega(): void {

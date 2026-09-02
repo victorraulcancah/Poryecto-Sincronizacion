@@ -324,13 +324,17 @@
 
                 <!-- Botón para avanzar al paso de Pago -->
                 <div class="d-flex justify-content-end">
+                  <!-- Se bloquea mientras se comprueba el stock en Novik, para
+                       que no se pueda pasar de paso con dos clics seguidos. -->
                   <button
                     type="button"
                     class="btn btn-main py-12 px-32 rounded-8"
+                    [disabled]="verificandoStock"
                     (click)="continuarAPago()"
                   >
-                    Continuar
-                    <i class="ph ph-arrow-right ms-8"></i>
+                    <span *ngIf="verificandoStock" class="spinner-border spinner-border-sm me-8"></span>
+                    {{ verificandoStock ? 'Comprobando stock...' : 'Continuar' }}
+                    <i class="ph ph-arrow-right ms-8" *ngIf="!verificandoStock"></i>
                   </button>
                 </div>
                 </ng-container>
