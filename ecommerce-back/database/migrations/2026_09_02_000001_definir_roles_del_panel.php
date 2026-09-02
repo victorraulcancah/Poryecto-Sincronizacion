@@ -74,9 +74,13 @@ return new class extends Migration
             // Cotizaciones y, además, vincular clientes con el ERP.
             'jefe comercial' => array_merge(self::SOLO_COTIZACIONES, self::VINCULAR_CLIENTES),
 
-            // Solo pedidos, y únicamente los de su cartera: eso lo resuelve
+            // Pedidos y cotizaciones, y solo los de su cartera: eso lo resuelve
             // CarteraDelVendedor a partir de su vinculación con Novik.
-            'vendedor' => ['pedidos.ver', 'pedidos.show'],
+            //
+            // Las cotizaciones van incluidas porque CotizacionesController filtra
+            // por cartera para este rol: ese código solo tiene sentido si el
+            // vendedor entra a esa pantalla.
+            'vendedor' => ['pedidos.ver', 'pedidos.show', 'cotizaciones.ver', 'cotizaciones.show'],
         ];
     }
 
