@@ -243,9 +243,11 @@
 
            <!-- Loading -->
     <div *ngIf="isLoading" class="text-center py-5 w-100">
-        <div class="spinner-border" role="status">
-            <span class="visually-hidden">Cargando...</span>
+        <div class="spinner-border text-main-600" role="status">
+            <!-- Para lectores de pantalla; el texto visible va debajo. -->
+            <span class="visually-hidden">Cargando productos...</span>
         </div>
+        <p class="text-gray-500 mt-12 mb-0">Cargando productos...</p>
     </div>
 
     <!-- Mensaje si no hay productos -->
