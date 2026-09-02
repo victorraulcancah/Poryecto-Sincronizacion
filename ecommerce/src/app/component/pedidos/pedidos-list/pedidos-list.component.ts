@@ -85,6 +85,28 @@ export class PedidosListComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarPedidos();
+    this.cargarCatalogoDeEstados();
+  }
+
+  /**
+   * Todos los estados que existen, para el desplegable del filtro.
+   *
+   * No se pueden sacar de los pedidos cargados: la pantalla arranca como
+   * bandeja (solo "En espera" y lo atendido hoy), asi que el filtro solo
+   * ofrecia ese estado y no habia forma de buscar los demas.
+   */
+  estadosDelCatalogo: string[] = [];
+
+  private cargarCatalogoDeEstados(): void {
+    this.pedidosService.getEstados().subscribe({
+      next: (respuesta: any) => {
+        const estados = respuesta?.estados || respuesta?.data || [];
+        this.estadosDelCatalogo = estados
+          .map((e: any) => e.nombre_estado || e.nombre || '')
+          .filter((n: string) => !!n);
+      },
+      error: (error) => console.error('Error cargando los estados de pedido:', error),
+    });
   }
 
   /**
@@ -144,8 +166,12 @@ export class PedidosListComponent implements OnInit {
    */
   verHistorial = false;
 
+  /** El historial lo pidió el usuario con el botón, no un filtro. */
+  private historialManual = false;
+
   alternarHistorial(): void {
     this.verHistorial = !this.verHistorial;
+    this.historialManual = this.verHistorial;
     this.cargarPedidos();
   }
 
@@ -216,7 +242,33 @@ export class PedidosListComponent implements OnInit {
     this.verDetalle(pedido);
   }
 
+  /**
+   * Filtrar busca en todo el historial; sin filtros se vuelve a la bandeja.
+   *
+   * Los filtros trabajan sobre los pedidos ya cargados, y por defecto solo
+   * estan los de la bandeja ("En espera" y lo atendido hoy). Sin esto, buscar
+   * por "Entregado" o por una fecha vieja devolvia cero resultados aunque esos
+   * pedidos existieran.
+   */
+  private sincronizarAlcanceConFiltros(): void {
+    // Con filtros puestos hay que traer todo.
+    if (this.hayFiltrosActivos && !this.verHistorial) {
+      this.verHistorial = true;
+      this.cargarPedidos();
+      return;
+    }
+
+    // Sin filtros se vuelve a la bandeja, salvo que el historial lo haya
+    // pedido el usuario con el botón: ahí manda él.
+    if (!this.hayFiltrosActivos && this.verHistorial && !this.historialManual) {
+      this.verHistorial = false;
+      this.cargarPedidos();
+    }
+  }
+
   aplicarFiltros(): void {
+    this.sincronizarAlcanceConFiltros();
+
     let resultado = [...this.pedidos];
 
     if (this.terminoBusqueda) {
@@ -302,7 +354,10 @@ export class PedidosListComponent implements OnInit {
   }
 
   get estadosParaFiltro(): string[] {
-    return this.opcionesDe(p => p.estado_pedido?.nombre_estado || '');
+    // Del catálogo completo; si aún no llegó, al menos los de la tabla.
+    return this.estadosDelCatalogo.length
+      ? this.estadosDelCatalogo
+      : this.opcionesDe(p => p.estado_pedido?.nombre_estado || '');
   }
 
   get hayFiltrosActivos(): boolean {
