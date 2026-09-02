@@ -41,7 +41,15 @@ export class ShopComponent implements OnInit, OnDestroy {
   categorias: CategoriaParaSidebar[] = [];
   marcas: MarcaProducto[] = []; // ✅ NUEVO: Marcas desde el backend
   bannerSidebar: Banner | null = null; // ✅ NUEVO: Banner sidebar
-  isLoading = false;
+  /**
+   * Arranca en true a propósito.
+   *
+   * Los productos no se piden en el ngOnInit: primero hay que resolver el slug
+   * de la marca o categoría de la URL, y eso espera a que carguen las marcas.
+   * Con `false`, en ese hueco se pintaba "No se encontraron productos" y recién
+   * después aparecía el cargando.
+   */
+  isLoading = true;
   searchTerm: string = '';
 
   // ------------------------------------------------------------ filtros
