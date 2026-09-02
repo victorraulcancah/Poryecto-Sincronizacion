@@ -36,17 +36,14 @@ class PedidosController extends Controller
                 'tracking.usuario:id,name',
             ]);
 
-            // Un Vendedor solo ve los pedidos de los clientes de su cartera en
-            // Novik; el resto de roles ve todos.
-            $usuario = $request->user();
-            if ($usuario instanceof \App\Models\User && \App\Support\CarteraDelVendedor::aplica($usuario)) {
-                $codigos = \App\Support\CarteraDelVendedor::codigosDeCliente($usuario);
-
-                $query->whereHas('userCliente', function ($q) use ($codigos) {
-                    // Sin cartera no ve ninguno, no todos.
-                    $q->whereIn('codigo_erp', $codigos ?: ['__sin_cartera__']);
-                });
-            }
+            // Los pedidos los ven todos los roles, el Vendedor incluido.
+            //
+            // Antes se le recortaba a su cartera de Novik (los clientes que lo
+            // tienen como ejecutivo comercial), pero eso dependia de una cadena
+            // larga -codigo_erp del panel, users.codigo del ERP, clients con ese
+            // ejecutivo, codigo_erp de la cuenta que compro- y bastaba con que
+            // un eslabon no calzara para que el vendedor no viera nada.
+            // En Cotizaciones ese filtro sigue puesto.
 
             // Por defecto la pantalla es una bandeja de trabajo: solo lo que
             // espera una acción, más lo que se atendió hoy (a medianoche sale).
