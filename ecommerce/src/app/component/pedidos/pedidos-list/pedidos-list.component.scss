@@ -1042,3 +1042,38 @@ app-rango-fechas {
     padding-left: 16px !important;
   }
 }
+
+/* Filtros del listado en mayúsculas.
+   Solo presentación: los valores que se comparan al filtrar siguen siendo los
+   originales de la base, así que un cambio de mayúsculas acá no rompe nada. */
+.filtros-pedidos {
+  label,
+  .form-select,
+  .form-select option,
+  .btn-limpiar-filtros {
+    text-transform: uppercase;
+  }
+}
+
+/* Anchos fijos de la tabla de pedidos.
+   Sin `table-layout: fixed` el navegador reparte las columnas según lo que
+   contenga cada página: al pasar de página cambiaban de ancho porque los
+   nombres de cliente o los montos eran más largos o más cortos. */
+.modern-data-table__container .table {
+  table-layout: fixed;
+  width: 100%;
+
+  th,
+  td {
+    /* Con anchos fijos, el texto largo se corta en vez de ensanchar la columna. */
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  th:nth-child(1) { width: 140px; }  /* CÓDIGO */
+  th:nth-child(2) { width: auto; }   /* CLIENTE: se queda con el sobrante */
+  th:nth-child(3) { width: 130px; }  /* FECHA */
+  th:nth-child(4) { width: 150px; }  /* TOTAL */
+  th:nth-child(5) { width: 140px; }  /* ESTADO */
+  th:nth-child(6) { width: 110px; }  /* ACCIONES */
+}
