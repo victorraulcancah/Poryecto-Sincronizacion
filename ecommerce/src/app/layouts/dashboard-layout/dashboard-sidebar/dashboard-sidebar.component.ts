@@ -142,10 +142,13 @@ export class DashboardSidebarComponent implements OnInit, AfterViewInit, OnDestr
     this.empresaInfoSub?.unsubscribe();
   }
 
+  /** Almacén y E-commerce: se muestran si el rol puede ver algo de adentro. */
+  puedeVerAlmacen = false;
+  puedeVerEcommerce = false;
+  puedeVerCaptcha = false;
+
   private checkPermissions(): void {
-    // Obtener usuario actual para verificar si es admin
     const currentUser = this.authService.getCurrentUser();
-    const isAdmin = currentUser?.tipo_usuario === 'admin';
 
     // Todas las asignaciones de permisos en un solo lugar
     this.puedeVerUsuarios = this.permissionsService.hasPermission('usuarios.ver');
@@ -167,18 +170,28 @@ export class DashboardSidebarComponent implements OnInit, AfterViewInit, OnDestr
     this.puedeVerRecompensas = this.permissionsService.hasPermission('recompensas.ver'); // ✅ NUEVO
     this.puedeVerConfiguracion = this.permissionsService.hasPermission('configuracion.ver'); // ✅ NUEVO
     
-    // ✅ FACTURACIÓN: Permitir acceso a admins o usuarios con permiso específico
-    this.puedeVerFacturacion = isAdmin || this.permissionsService.hasPermission('facturacion.ver');
-    
-    // ✅ CONTABILIDAD: Permitir acceso a admins o usuarios con permiso específico
-    this.puedeVerContabilidad = isAdmin || this.permissionsService.hasPermission('contabilidad.ver');
-    
-    console.log('🔍 Permisos de Facturación:', {
-      isAdmin,
-      hasPermission: this.permissionsService.hasPermission('facturacion.ver'),
-      puedeVerFacturacion: this.puedeVerFacturacion,
-      userType: currentUser?.tipo_usuario
-    });
+    // Facturación y Contabilidad se decidían con `tipo_usuario === 'admin'`
+    // además del permiso. Eso dejaba entrar a cualquier usuario del panel sin
+    // importar su rol: contabilidad, marketing o un vendedor las veían igual.
+    // Ahora mandan los permisos, como en el resto del menú.
+    this.puedeVerFacturacion = this.permissionsService.hasPermission('facturacion.ver');
+    this.puedeVerContabilidad = this.permissionsService.hasPermission('contabilidad.ver');
+
+    this.puedeVerCaptcha = this.permissionsService.hasPermission('configuracion.ver');
+
+    // Los grupos se muestran solo si hay algo adentro que el rol pueda abrir:
+    // un grupo vacío que no lleva a ningún lado confunde más que ayudar.
+    this.puedeVerAlmacen = this.permissionsService.hasAnyPermission([
+      'productos.ver', 'categorias.ver', 'marcas.ver', 'contabilidad.ver',
+    ]);
+
+    this.puedeVerEcommerce =
+      this.puedeVerBanners ||
+      this.puedeVerBanners_promocionales ||
+      this.puedeVerBanners_ofertas ||
+      this.puedeVerBanners_flash_sales ||
+      this.puedeVerOfertas ||
+      this.puedeVerCupones;
   }
 
   ngAfterViewInit(): void {

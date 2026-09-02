@@ -221,7 +221,7 @@
         </ul>
       </li> -->
       <!-- ✅ NUEVO: Módulo Almacén -->
-      <li class="mb-8">
+      <li *ngIf="puedeVerAlmacen" class="mb-8">
         <a (click)="toggleAlmacen()"
           class="nav-link flex-align gap-12 px-16 py-12 text-white text-decoration-none rounded-8 transition-2 hover-bg-main-500 cursor-pointer">
           <i class="ph ph-package text-xl flex-shrink-0"></i>
@@ -394,7 +394,7 @@
       </li>
 
       <!-- ✅ NUEVO: Módulo E-commerce -->
-      <li class="mb-8">
+      <li *ngIf="puedeVerEcommerce" class="mb-8">
         <a (click)="toggleEcommerce()"
           class="nav-link flex-align gap-12 px-16 py-12 text-white text-decoration-none rounded-8 transition-2 hover-bg-main-500 cursor-pointer">
           <i class="ph ph-storefront text-xl flex-shrink-0"></i>
@@ -513,7 +513,7 @@
       </li>
 
       <!-- Configuración -->
-      <li class="mb-8">
+      <li *ngIf="puedeVerConfiguracion" class="mb-8">
         <a routerLink="/dashboard/configuracion" routerLinkActive="active"
           class="nav-link flex-align gap-12 px-16 py-12 text-white text-decoration-none rounded-8 transition-2 hover-bg-main-500">
           <i class="ph ph-gear text-xl flex-shrink-0"></i>
@@ -522,7 +522,7 @@
       </li>
 
       <!-- Captcha del registro -->
-      <li class="mb-8">
+      <li *ngIf="puedeVerCaptcha" class="mb-8">
         <a routerLink="/dashboard/captcha" routerLinkActive="active"
           class="nav-link flex-align gap-12 px-16 py-12 text-white text-decoration-none rounded-8 transition-2 hover-bg-main-500">
           <i class="ph ph-puzzle-piece text-xl flex-shrink-0"></i>
