@@ -717,6 +717,13 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
   // MÉTODOS PARA DROPDOWN DE FAVORITOS
   // ============================================
 
+  /**
+   * El menú de la cuenta, que vive en el componente hijo. Se necesita para
+   * cerrarlo al abrir Favoritos: los dos desplegables se solapan y el de
+   * Favoritos queda encima tapando al otro.
+   */
+  @ViewChild(UserProfileComponent) private perfil?: UserProfileComponent;
+
   toggleFavoritosDropdown(event?: Event): void {
     if (event) {
       event.preventDefault();
@@ -726,6 +733,7 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // Cargar favoritos cuando se abre el dropdown
     if (this.showFavoritosDropdown) {
+      this.perfil?.cerrarMenus();
       this.cargarFavoritosHeader();
     }
   }

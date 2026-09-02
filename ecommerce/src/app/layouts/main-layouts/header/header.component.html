@@ -305,7 +305,9 @@
           </button>
 
           <!-- Usuario Profile Component - Sin texto adicional -->
-          <app-user-profile></app-user-profile>
+          <!-- Al abrir el menú de la cuenta se cierra el de Favoritos, que si no
+               queda encima tapándolo. -->
+          <app-user-profile (menuAbierto)="showFavoritosDropdown = false"></app-user-profile>
 
           <!-- ✅ NUEVO: Dropdown de Favoritos estilo Mercado Libre -->
           <div class="favoritos-dropdown-wrapper position-relative">

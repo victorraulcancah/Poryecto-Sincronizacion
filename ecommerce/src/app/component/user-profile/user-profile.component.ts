@@ -5,6 +5,8 @@ import {
   HostListener,
   Inject,
   PLATFORM_ID,
+  Output,
+  EventEmitter,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -148,10 +150,24 @@ export class UserProfileComponent implements OnInit {
     });
   }
 
+  /**
+   * Avisa al header que se abrió uno de estos menús, para que cierre el
+   * desplegable de Favoritos: si no, los dos quedan abiertos a la vez y el de
+   * Favoritos tapa este.
+   */
+  @Output() menuAbierto = new EventEmitter<void>();
+
+  /** La cierra el header cuando se abre Favoritos. */
+  cerrarMenus(): void {
+    this.showUserDropdown = false;
+    this.showAuthDropdown = false;
+  }
+
   toggleAuthDropdown(event: Event): void {
     event.stopPropagation();
     this.showAuthDropdown = !this.showAuthDropdown;
     this.showUserDropdown = false; // Cerrar el otro dropdown
+    if (this.showAuthDropdown) this.menuAbierto.emit();
   }
 
   closeAuthDropdown(): void {
@@ -162,6 +178,7 @@ export class UserProfileComponent implements OnInit {
     event.stopPropagation();
     this.showUserDropdown = !this.showUserDropdown;
     this.showAuthDropdown = false; // Cerrar el otro dropdown
+    if (this.showUserDropdown) this.menuAbierto.emit();
   }
 
   closeUserDropdown(): void {
