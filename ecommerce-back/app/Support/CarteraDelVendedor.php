@@ -20,10 +20,18 @@ class CarteraDelVendedor
     /** La tienda corresponde a la empresa 1 del ERP. */
     private const COMPANY_ID = 1;
 
-    /** Solo se filtra a los Vendedores; el resto de roles ve todo. */
+    /**
+     * Solo se filtra a los Vendedores; el resto de roles ve todo.
+     *
+     * Lo que decide es el rol, no la vinculación. Antes un Vendedor sin
+     * `codigo_erp` devolvía false y el controlador no filtraba nada, o sea que
+     * quedaba viendo TODOS los pedidos y cotizaciones de la empresa. Sin
+     * vinculación no hay cartera: `codigosDeCliente` devuelve vacío y quien
+     * llama lo trata como "no ve ninguno".
+     */
     public static function aplica(?User $usuario): bool
     {
-        if (! $usuario || ! $usuario->codigo_erp) return false;
+        if (! $usuario) return false;
 
         return $usuario->roles->contains(
             fn ($rol) => mb_strtolower($rol->name) === ReglasDeRoles::VENDEDOR

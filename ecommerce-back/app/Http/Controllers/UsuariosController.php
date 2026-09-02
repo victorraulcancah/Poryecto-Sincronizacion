@@ -56,14 +56,14 @@ class UsuariosController extends Controller
                 ], 403);
             }
 
-            // Un Vendedor no puede quedar sin vinculación: de ella depende qué
-            // cotizaciones ve.
-            if (ReglasDeRoles::esNombreDeVendedor($rolPedido) && ! $objetivo->codigo_erp) {
-                return response()->json([
-                    'error' => 'Un Vendedor debe estar vinculado a un usuario de Novik. '
-                        . 'Vincúlalo en la pestaña Avanzado antes de asignarle este rol.',
-                ], 422);
-            }
+            // Acá se exigía que un Vendedor estuviera vinculado a un usuario de
+            // Novik antes de asignarle el rol. Se quitó: obligaba a hacer la
+            // vinculación primero y bloqueaba cualquier otra edición del
+            // usuario mientras tanto.
+            //
+            // Sin vinculación, el vendedor no tiene cartera y por eso no ve
+            // ningún pedido ni cotización (ver CarteraDelVendedor): queda con el
+            // rol pero sin datos, hasta que se lo vincule.
 
             \Log::info('=== DEBUG UPDATE USUARIO ===');
             \Log::info('Usuario ID: ' . $id);
