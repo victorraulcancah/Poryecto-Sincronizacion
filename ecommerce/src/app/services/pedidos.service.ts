@@ -168,12 +168,19 @@ export class PedidosService {
   }
 
   /**
-   * Obtener estados disponibles para un pedido específico
+   * Estados de pedido.
+   *
+   * Con `pedidoId` devuelve a cuáles puede pasar ese pedido. Con `soloEnUso`,
+   * únicamente los tres por los que pasa el flujo actual (En espera, En
+   * preparación, Cancelado): el resto de la tabla es de un flujo anterior y
+   * solo aparece en pedidos viejos.
    */
-  getEstados(pedidoId?: number): Observable<any> {
-    const url = pedidoId 
-      ? `${environment.apiUrl}/pedidos/estados?pedido_id=${pedidoId}`
-      : `${environment.apiUrl}/pedidos/estados`;
+  getEstados(pedidoId?: number, soloEnUso = false): Observable<any> {
+    let url = `${environment.apiUrl}/pedidos/estados`;
+
+    if (pedidoId) url += `?pedido_id=${pedidoId}`;
+    else if (soloEnUso) url += '?en_uso=1';
+
     return this.http.get(url);
   }
 

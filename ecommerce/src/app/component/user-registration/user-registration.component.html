@@ -410,22 +410,11 @@
                 
                 <div class="card-body">
                   <div class="row g-3">
-                    <div class="col-md-6">
-                      <label class="form-label">
-                        Etiqueta <span class="text-danger">*</span>
-                      </label>
-                      <div class="input-group">
-                        <span class="input-group-text">
-                          <i class="fas fa-tag"></i>
-                        </span>
-                        <input 
-                          type="text" 
-                          class="form-control"
-                          [class.is-invalid]="isAddressFieldInvalid(i, 'label')"
-                          formControlName="label"
-                          placeholder="Ej: Casa, Oficina">
-                      </div>
-                    </div>
+                    <!-- Etiqueta, Código Postal y País se quitaron del
+                         formulario: la tienda vende solo en Perú y esos datos no
+                         se usan. Los controles siguen en el FormGroup con un
+                         valor fijo (ver createAddressGroup), porque el backend
+                         los espera al dar de alta la dirección. -->
 
                     <div class="col-12">
                       <label class="form-label">
@@ -496,35 +485,6 @@
 
                     <div class="invalid-feedback" *ngIf="isAddressFieldInvalid(i, 'district')">
                       {{ getAddressFieldError(i, 'district') }}
-                    </div>
-                    
-                    <div class="col-md-6">
-                      <label class="form-label">Código Postal</label>
-                      <div class="input-group">
-                        <span class="input-group-text">
-                          <i class="fas fa-mail-bulk"></i>
-                        </span>
-                        <input 
-                          type="text" 
-                          class="form-control"
-                          formControlName="postal_code"
-                          placeholder="15001">
-                      </div>
-                    </div>
-                    
-                    <div class="col-md-6">
-                      <label class="form-label">
-                        País <span class="text-danger">*</span>
-                      </label>
-                      <select 
-                        class="form-select"
-                        [class.is-invalid]="isAddressFieldInvalid(i, 'country')"
-                        formControlName="country">
-                        <option value="">Seleccione país</option>
-                        <option *ngFor="let country of countries" [value]="country.id">
-                          {{ country.name }}
-                        </option>
-                      </select>
                     </div>
                     
                     <div class="col-12">

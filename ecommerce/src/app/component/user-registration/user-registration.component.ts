@@ -181,6 +181,9 @@ userForm!: FormGroup;
 
   departments: UbigeoItem[] = [];
 
+  /** Único país con el que trabaja la tienda; ver createAddressGroup(). */
+  private readonly PERU = 1;
+
   countries = [
     { id: 1, name: 'Perú' },
     { id: 2, name: 'Colombia' },
@@ -250,15 +253,23 @@ ngOnInit(): void {
     return password === confirmPassword ? null : { passwordMismatch: true };
   }
 
+  /**
+   * Etiqueta, código postal y país ya no se piden en el formulario: la tienda
+   * vende solo en Perú y esos tres datos no se usan en ningún lado.
+   *
+   * Los controles se conservan con un valor fijo, no se borran: el backend los
+   * sigue esperando en el alta de la dirección, y quitarlos haría fallar el
+   * registro con un error de validación.
+   */
   createAddressGroup(): FormGroup {
     return this.fb.group({
-      label: ['Casa', [Validators.required]],
+      label: ['Casa'],
       detalle_direccion: ['', [Validators.required]],
       district: ['', [Validators.required]], 
       province: ['', [Validators.required]],
       department: ['', [Validators.required]],
-      postal_code: ['', [Validators.required]],
-      country: ['', [Validators.required]],
+      postal_code: [''],
+      country: [this.PERU],
       is_default: [false]
     });
   }

@@ -711,6 +711,17 @@ class PedidosController extends Controller
                 // Si se proporciona un pedido_id, devolver estados específicos para ese pedido
                 $pedido = Pedido::findOrFail($pedidoId);
                 $estados = $pedido->getEstadosDisponibles();
+            } elseif (filter_var($request->query('en_uso', false), FILTER_VALIDATE_BOOLEAN)) {
+                // Solo los estados por los que pasa el flujo actual. La tabla
+                // guarda diez, pero siete son de un flujo anterior y solo
+                // aparecen en pedidos viejos: ofrecerlos todos en el filtro del
+                // listado no ayuda a nadie. La fuente son las constantes del
+                // modelo, así que si el flujo cambia el filtro lo sigue solo.
+                $estados = EstadoPedido::whereIn('id', [
+                    Pedido::ESTADO_EN_ESPERA,
+                    Pedido::ESTADO_EN_PREPARACION,
+                    Pedido::ESTADO_CANCELADO,
+                ])->orderBy('orden')->get();
             } else {
                 // Devolver todos los estados
                 $estados = EstadoPedido::orderBy('orden')->get();

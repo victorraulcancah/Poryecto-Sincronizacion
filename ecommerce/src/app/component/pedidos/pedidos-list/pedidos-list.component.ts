@@ -89,16 +89,17 @@ export class PedidosListComponent implements OnInit {
   }
 
   /**
-   * Todos los estados que existen, para el desplegable del filtro.
+   * Estados que ofrece el filtro: los tres del flujo actual.
    *
-   * No se pueden sacar de los pedidos cargados: la pantalla arranca como
-   * bandeja (solo "En espera" y lo atendido hoy), asi que el filtro solo
-   * ofrecia ese estado y no habia forma de buscar los demas.
+   * No se pueden sacar de los pedidos cargados, que es como estaba: la pantalla
+   * arranca como bandeja (solo "En espera" y lo atendido hoy), así que el filtro
+   * ofrecía únicamente ese estado. Tampoco sirve la tabla completa: guarda diez,
+   * y siete son de un flujo anterior.
    */
   estadosDelCatalogo: string[] = [];
 
   private cargarCatalogoDeEstados(): void {
-    this.pedidosService.getEstados().subscribe({
+    this.pedidosService.getEstados(undefined, true).subscribe({
       next: (respuesta: any) => {
         const estados = respuesta?.estados || respuesta?.data || [];
         this.estadosDelCatalogo = estados
