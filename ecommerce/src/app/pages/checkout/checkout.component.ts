@@ -278,7 +278,8 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       typeof window === 'undefined' ||
       !this.cartLoaded ||
       this.cartItems.length > 0 ||
-      this.cotizacionGenerada
+      this.cotizacionGenerada ||
+      this.saliendoDelCheckout
     ) {
       return;
     }
@@ -814,7 +815,9 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     }).then((resultado) => {
       if (resultado.isConfirmed) this.quitarSinStock(faltantes);
       else if (resultado.isDenied) this.vaciarCarrito();
-      // "Revisar carrito": no se toca nada, se queda donde está.
+      // "Revisar carrito": el carrito queda intacto y se va a verlo, que es
+      // donde puede ajustar cantidades o sacar productos por su cuenta.
+      else this.router.navigate(['/cart']);
     });
   }
 
@@ -836,14 +839,53 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
     if (!cambios.length) return;
 
+    // Si lo único que pedía era ese producto agotado, el carrito queda en cero
+    // y no tiene sentido dejarlo en el checkout: se le avisa y se va a la
+    // portada. Se calcula antes de las peticiones porque después el carrito ya
+    // está vacío y no se sabría si fue por esto.
+    const quitados = faltantes.filter((f) => f.disponible === 0).map((f) => f.producto_id);
+    const quedaAlgo = this.cartItems.some(
+      (i) => !i.guardado_para_despues && !quitados.includes(i.producto_id)
+    );
+    // Los "guardados para después" no entran en el pedido, pero son cosas que
+    // el cliente dejó apartadas: si tiene alguno se lo manda al carrito, donde
+    // puede recuperarlo, en vez de a la portada.
+    const hayGuardados = this.cartItems.some((i) => i.guardado_para_despues);
+
     forkJoin(cambios).subscribe({
-      next: () => this.loadCartData(),
+      next: () => (quedaAlgo ? this.loadCartData() : this.salirPorCarritoVacio(hayGuardados)),
       error: (error) => {
         console.error('No se pudo ajustar el carrito:', error);
         this.loadCartData();
       },
     });
   }
+
+  /**
+   * El pedido quedó sin productos: se avisa y se sale del checkout.
+   *
+   * Con productos guardados para después se va al carrito, que es donde están
+   * y desde donde puede devolverlos al pedido. Sin nada, a la portada.
+   *
+   * `saliendoDelCheckout` evita que salte además el aviso genérico de "Carrito
+   * vacío" que manda a /shop: serían dos mensajes seguidos diciendo lo mismo.
+   */
+  private salirPorCarritoVacio(hayGuardados: boolean): void {
+    this.saliendoDelCheckout = true;
+
+    Swal.fire({
+      title: 'Tu carrito quedó vacío',
+      text: hayGuardados
+        ? 'El único producto que pediste ya no tiene stock. Tienes productos guardados para después que puedes volver a agregar.'
+        : 'El único producto que pediste ya no tiene stock. Puedes seguir viendo el catálogo.',
+      icon: 'info',
+      confirmButtonColor: '#dc3545',
+      confirmButtonText: hayGuardados ? 'Ir al carrito' : 'Ir al inicio',
+    }).then(() => this.router.navigate([hayGuardados ? '/cart' : '/']));
+  }
+
+  /** Ya se está saliendo por otra vía; no mostrar el aviso genérico. */
+  private saliendoDelCheckout = false;
 
   private vaciarCarrito(): void {
     this.cartService.clearCart().subscribe({
