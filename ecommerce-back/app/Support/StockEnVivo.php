@@ -77,4 +77,33 @@ class StockEnVivo
     {
         return self::de([$productoId])[$productoId] ?? null;
     }
+
+    /**
+     * Lee el stock en Novik y lo deja guardado en la tienda.
+     *
+     * La ficha del producto ya leia el stock en vivo, pero solo para mostrarlo:
+     * la columna `productos.stock` seguia con el valor de la ultima
+     * sincronizacion, asi que el catalogo y el buscador mostraban otra cosa
+     * hasta que corriera el cron. Al abrir una ficha se aprovecha para dejar ese
+     * producto al dia.
+     *
+     * Solo escribe si el valor cambio, para no tocar `updated_at` en cada visita.
+     *
+     * @return int|null  el stock real, o null si no se pudo averiguar
+     */
+    public static function sincronizar(int $productoId): ?int
+    {
+        $stock = self::deProducto($productoId);
+
+        if ($stock === null) {
+            return null;
+        }
+
+        DB::table('productos')
+            ->where('id', $productoId)
+            ->where('stock', '<>', $stock)
+            ->update(['stock' => $stock, 'updated_at' => now()]);
+
+        return $stock;
+    }
 }

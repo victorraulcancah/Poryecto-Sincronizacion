@@ -108,9 +108,29 @@ if ($authenticatedUser instanceof \App\Models\User) {
 
         $producto = Producto::find($request->producto_id);
 
+        /*
+         * Stock contra Novik, no contra la copia de la tienda.
+         *
+         * La copia se refresca con el cron y puede ir atrasada: la tienda decia
+         * 94 cuando en Novik ya quedaban 90, y se dejaba agregar de mas.
+         * `sincronizar` lee el ERP en el momento y ademas guarda ese valor en
+         * `productos.stock`, asi que el catalogo y el buscador quedan al dia sin
+         * esperar al cron. Si Novik no responde devuelve null y se sigue con la
+         * copia: es preferible vender con un dato de hace un minuto a bloquear
+         * la tienda porque el ERP esta caido.
+         */
+        $stockReal = \App\Support\StockEnVivo::sincronizar($producto->id);
+        if ($stockReal !== null) {
+            $producto->stock = $stockReal;
+        }
+
         // Verificar stock
         if ($producto->stock < $request->cantidad) {
-            return response()->json(['message' => 'Stock insuficiente.'], 409);
+            return response()->json([
+                'message' => 'Stock insuficiente.',
+                // Lo que hay de verdad, para que el front corrija lo que muestra.
+                'stock_disponible' => (int) $producto->stock,
+            ], 409);
         }
 
         $query = CartItem::where('producto_id', $request->producto_id);
@@ -127,7 +147,10 @@ if ($authenticatedUser instanceof \App\Models\User) {
             // Si el item ya existe, actualizar la cantidad
             $nuevaCantidad = $cartItem->cantidad + $request->cantidad;
             if ($producto->stock < $nuevaCantidad) {
-                return response()->json(['message' => 'Stock insuficiente para la cantidad total.'], 409);
+                return response()->json([
+                    'message' => 'Stock insuficiente para la cantidad total.',
+                    'stock_disponible' => (int) $producto->stock,
+                ], 409);
             }
             $cartItem->cantidad = $nuevaCantidad;
             $cartItem->save();

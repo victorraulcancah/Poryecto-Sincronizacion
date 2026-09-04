@@ -936,7 +936,9 @@ class ProductosController extends Controller
         // copia de `productos.stock` (leer en vivo un listado de 40 productos
         // haría una consulta cruzada por página, y ahí el dato de la última
         // sincronización alcanza). Si Novik no responde, queda la copia.
-        $stockEnVivo = \App\Support\StockEnVivo::deProducto($producto->id);
+        // `sincronizar` ademas lo guarda en `productos.stock`: asi el catalogo,
+        // el buscador y el carrito quedan con el mismo dato sin esperar al cron.
+        $stockEnVivo = \App\Support\StockEnVivo::sincronizar($producto->id);
         if ($stockEnVivo !== null) {
             $producto->stock = $stockEnVivo;
         }
