@@ -107,7 +107,7 @@
              [href]="menu.url"
              [target]="menu.target"
              class="nav-menu__link"
-             [ngClass]="menu.url === '/arma-tu-pc' ? 'text-main-600' : 'text-gray-700'">
+             [ngClass]="menu.url === '/arma-tu-pc' ? 'text-main-600 fw-semibold' : 'text-heading fw-semibold'">
             {{ menu.nombre }}
           </a>
           <!-- URL interna: routerLink (SPA) -->
@@ -115,7 +115,7 @@
              [routerLink]="menu.url"
              [target]="menu.target"
              class="nav-menu__link"
-             [ngClass]="menu.url === '/arma-tu-pc' ? 'text-main-600' : 'text-gray-700'">
+             [ngClass]="menu.url === '/arma-tu-pc' ? 'text-main-600 fw-semibold' : 'text-heading fw-semibold'">
             {{ menu.nombre }}
           </a>
 
@@ -615,7 +615,7 @@
                  [href]="menu.url"
                  [target]="menu.target"
                  class="nav-menu__link"
-                 [ngClass]="menu.url === '/arma-tu-pc' ? 'text-main-600 fw-semibold' : 'text-gray-700'">
+                 [ngClass]="menu.url === '/arma-tu-pc' ? 'text-main-600 fw-semibold' : 'text-heading fw-semibold'">
                 {{ menu.nombre }}
               </a>
               <a *ngIf="!isExternalUrl(menu.url) && menu.url !== 'javascript:void(0)'"
@@ -623,7 +623,7 @@
                  [queryParams]="getMenuQueryParams(menu.url)"
                  [target]="menu.target"
                  class="nav-menu__link"
-                 [ngClass]="menu.url === '/arma-tu-pc' ? 'text-main-600 fw-semibold' : 'text-gray-700'">
+                 [ngClass]="menu.url === '/arma-tu-pc' ? 'text-main-600 fw-semibold' : 'text-heading fw-semibold'">
                 {{ menu.nombre }}
               </a>
 
@@ -661,7 +661,7 @@
             >
               <a
                 href="javascript:void(0)"
-                class="nav-menu__link text-gray-700 d-flex align-items-center gap-4"
+                class="nav-menu__link text-heading fw-semibold d-flex align-items-center gap-4"
               >
                 Más
                 <i class="ph ph-caret-down text-sm"></i>
