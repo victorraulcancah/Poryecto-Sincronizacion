@@ -24,7 +24,10 @@
       </div>
     </div>
 
-    <form [formGroup]="claimbookForm" (ngSubmit)="onSubmit()">
+    <!-- autocomplete="off": el navegador rellenaba solo los datos personales
+         con los que tiene guardados del visitante. Acá los datos los pone la
+         persona, o los adelanta la app desde su cuenta avisando que lo hizo. -->
+    <form [formGroup]="claimbookForm" (ngSubmit)="onSubmit()" autocomplete="off">
       <div class="row g-24">
         <!-- ══════════ Columna del formulario ══════════ -->
         <div class="col-lg-8">
@@ -43,7 +46,7 @@
             <div class="row g-16">
               <div class="col-md-6">
                 <label class="libro__label">Nombres y apellidos <span>*</span></label>
-                <input type="text" class="libro__input" formControlName="consumidor_nombre"
+                <input type="text" class="libro__input" formControlName="consumidor_nombre" autocomplete="off"
                   [class.libro__input--error]="isFieldInvalid('consumidor_nombre')"
                   placeholder="Ej.: Juan Carlos Pérez López" />
                 <p class="libro__ayuda libro__ayuda--error" *ngIf="isFieldInvalid('consumidor_nombre')">
@@ -58,7 +61,7 @@
               </div>
               <div class="col-md-6">
                 <label class="libro__label">Número de documento <span>*</span></label>
-                <input type="text" class="libro__input" formControlName="consumidor_dni"
+                <input type="text" class="libro__input" formControlName="consumidor_dni" autocomplete="off"
                   [class.libro__input--error]="isFieldInvalid('consumidor_dni')"
                   [maxlength]="reglaDocumento.maxlength"
                   [placeholder]="'Ej.: ' + (claimbookForm.get('tipo_documento')?.value === 'RUC' ? '20123456789' : '12345678')" />
@@ -71,7 +74,7 @@
               <div class="col-md-6">
                 <label class="libro__label">Teléfono <span>*</span></label>
                 <div class="libro__input-icono">
-                  <input type="text" class="libro__input" formControlName="consumidor_telefono"
+                  <input type="text" class="libro__input" formControlName="consumidor_telefono" autocomplete="off"
                     [class.libro__input--error]="isFieldInvalid('consumidor_telefono')"
                     maxlength="9" placeholder="Ej.: 987654321" />
                   <i class="ph ph-whatsapp-logo"></i>
@@ -84,7 +87,7 @@
               </div>
               <div class="col-12">
                 <label class="libro__label">Correo electrónico <span>*</span></label>
-                <input type="email" class="libro__input" formControlName="consumidor_email"
+                <input type="email" class="libro__input" formControlName="consumidor_email" autocomplete="off"
                   [class.libro__input--error]="isFieldInvalid('consumidor_email')"
                   placeholder="Ej.: correo@ejemplo.com" />
                 <p class="libro__ayuda libro__ayuda--error" *ngIf="isFieldInvalid('consumidor_email')">
@@ -93,7 +96,7 @@
               </div>
               <div class="col-12">
                 <label class="libro__label">Dirección <span>*</span></label>
-                <input type="text" class="libro__input" formControlName="consumidor_direccion"
+                <input type="text" class="libro__input" formControlName="consumidor_direccion" autocomplete="off"
                   [class.libro__input--error]="isFieldInvalid('consumidor_direccion')"
                   placeholder="Ej.: Av. Los Próceres 123, Surco, Lima" />
                 <p class="libro__ayuda libro__ayuda--error" *ngIf="isFieldInvalid('consumidor_direccion')">
@@ -113,23 +116,23 @@
             <div class="row g-16 mt-4" *ngIf="claimbookForm.get('es_menor_edad')?.value">
               <div class="col-md-6">
                 <label class="libro__label">Nombre del apoderado <span>*</span></label>
-                <input type="text" class="libro__input" formControlName="apoderado_nombre" />
+                <input type="text" class="libro__input" formControlName="apoderado_nombre" autocomplete="off" />
               </div>
               <div class="col-md-6">
                 <label class="libro__label">DNI del apoderado <span>*</span></label>
-                <input type="text" class="libro__input" formControlName="apoderado_dni" />
+                <input type="text" class="libro__input" formControlName="apoderado_dni" autocomplete="off" />
               </div>
               <div class="col-md-6">
                 <label class="libro__label">Teléfono del apoderado <span>*</span></label>
-                <input type="text" class="libro__input" formControlName="apoderado_telefono" />
+                <input type="text" class="libro__input" formControlName="apoderado_telefono" autocomplete="off" />
               </div>
               <div class="col-md-6">
                 <label class="libro__label">Correo del apoderado <span>*</span></label>
-                <input type="email" class="libro__input" formControlName="apoderado_email" />
+                <input type="email" class="libro__input" formControlName="apoderado_email" autocomplete="off" />
               </div>
               <div class="col-12">
                 <label class="libro__label">Dirección del apoderado <span>*</span></label>
-                <input type="text" class="libro__input" formControlName="apoderado_direccion" />
+                <input type="text" class="libro__input" formControlName="apoderado_direccion" autocomplete="off" />
               </div>
             </div>
           </div>
@@ -156,7 +159,10 @@
               </div>
               <div class="col-md-4">
                 <label class="libro__label">Fecha de compra</label>
+                <!-- `max` deja el calendario sin fechas futuras; la validación
+                     del formulario cubre el caso de escribirla a mano. -->
                 <input type="date" class="libro__input" formControlName="fecha_compra"
+                  [max]="hoyISO"
                   [class.libro__input--error]="isFieldInvalid('fecha_compra')" />
                 <p class="libro__ayuda libro__ayuda--error" *ngIf="isFieldInvalid('fecha_compra')">
                   {{ getFieldError('fecha_compra') }}

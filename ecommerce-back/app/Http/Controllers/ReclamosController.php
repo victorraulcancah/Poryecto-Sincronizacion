@@ -166,7 +166,10 @@ class ReclamosController extends Controller
                 'tipo_documento' => 'nullable|string|max:20',
                 'tipo_comprobante' => 'nullable|string|max:30',
                 'numero_comprobante' => 'nullable|string|max:50',
-                'fecha_compra' => 'nullable|date',
+                // No se reclama por una compra que todavía no ocurrió. El
+                // formulario ya lo impide, pero eso se salta llamando la API
+                // directo.
+                'fecha_compra' => 'nullable|date|before_or_equal:today',
                 'codigo_pedido' => 'nullable|string|max:50',
                 'codigo_producto' => 'nullable|string|max:50',
                 'nombre_producto' => 'nullable|string|max:255',
@@ -201,6 +204,7 @@ class ReclamosController extends Controller
                 'descripcion_bien.min' => 'La descripción debe tener al menos 10 caracteres',
                 'detalle_reclamo.min' => 'El detalle del reclamo debe tener al menos 20 caracteres',
                 'pedido_consumidor.min' => 'El pedido del consumidor debe tener al menos 10 caracteres',
+                'fecha_compra.before_or_equal' => 'La fecha de compra no puede ser futura',
 
                 // "failed to upload" es lo que responde PHP cuando el archivo
                 // pasa de upload_max_filesize/post_max_size y lo descarta.

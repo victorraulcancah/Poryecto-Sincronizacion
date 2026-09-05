@@ -33,6 +33,20 @@ export class ClaimbookComponent implements OnInit, OnDestroy {
   /** Se avisa en pantalla cuando los datos vienen de la cuenta. */
   datosPrecargados = false;
 
+  /**
+   * Hoy como "YYYY-MM-DD", en hora local.
+   *
+   * Sirve para el `max` del calendario y para la validación de la fecha de
+   * compra. No se usa `toISOString()` porque devuelve UTC y en Perú adelanta un
+   * día durante la tarde.
+   */
+  get hoyISO(): string {
+    const hoy = new Date();
+    const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoy.getDate()).padStart(2, '0');
+    return `${hoy.getFullYear()}-${mes}-${dia}`;
+  }
+
   constructor(
     private fb: FormBuilder,
     private reclamosService: ReclamosService,
@@ -167,15 +181,19 @@ export class ClaimbookComponent implements OnInit, OnDestroy {
       conformeContenido: [false, Validators.requiredTrue]
     });
 
-    // No se puede reclamar por una compra que todavía no ocurrió.
-    this.claimbookForm.get('fecha_compra')?.setValidators([
-      (control) => {
-        if (!control.value) return null;
-        const hoy = new Date();
-        hoy.setHours(23, 59, 59, 999);
-        return new Date(control.value) > hoy ? { fechaFutura: true } : null;
-      },
+    /*
+     * No se puede reclamar por una compra que todavía no ocurrió.
+     *
+     * Se comparan las fechas como texto "YYYY-MM-DD", que es lo que entrega un
+     * <input type="date">. Con `new Date(valor)` el string se lee como UTC y en
+     * Perú (UTC-5) eso corría la comparación un día: mañana pasaba como válida.
+     */
+    const fechaCompra = this.claimbookForm.get('fecha_compra');
+    fechaCompra?.setValidators([
+      (control) =>
+        control.value && control.value > this.hoyISO ? { fechaFutura: true } : null,
     ]);
+    fechaCompra?.updateValueAndValidity({ emitEvent: false });
 
     // Si elige "Otro" como solución esperada, tiene que decir cuál.
     this.claimbookForm.get('solucion_esperada')?.valueChanges.subscribe(valor => {
@@ -402,57 +420,12 @@ export class ClaimbookComponent implements OnInit, OnDestroy {
         }
       });
     } else {
-      // El botón ya no se deshabilita: se marca todo, se muestran los errores
-      // bajo cada campo y se lleva al primero que falta. Antes el usuario veía
-      // un botón apagado y no había forma de saber qué le faltaba.
+      // Sin ventana de aviso: se marca todo para que salgan los mensajes en
+      // rojo bajo cada campo y se lleva al primero que falta, que ya dice qué
+      // corregir sin interrumpir con un modal.
       this.markFormGroupTouched();
-
-      const faltantes = this.camposFaltantes();
-      Swal.fire({
-        title: 'Faltan datos',
-        html: faltantes.length
-          ? `Revisa estos campos:<ul class="text-start mt-2 mb-0">${faltantes
-              .map(c => `<li>${c}</li>`)
-              .join('')}</ul>`
-          : 'Revisa los campos marcados en rojo.',
-        icon: 'warning',
-        confirmButtonColor: '#d32027'
-      });
-
       this.enfocarPrimerCampoInvalido();
     }
-  }
-
-  /** Nombres legibles de cada control, para el aviso de "faltan datos". */
-  private static readonly ETIQUETAS: Record<string, string> = {
-    consumidor_nombre: 'Nombres y apellidos',
-    tipo_documento: 'Tipo de documento',
-    consumidor_dni: 'Número de documento',
-    consumidor_telefono: 'Teléfono',
-    consumidor_email: 'Correo electrónico',
-    consumidor_direccion: 'Dirección',
-    apoderado_nombre: 'Nombre del apoderado',
-    apoderado_dni: 'DNI del apoderado',
-    apoderado_telefono: 'Teléfono del apoderado',
-    apoderado_email: 'Correo del apoderado',
-    apoderado_direccion: 'Dirección del apoderado',
-    tipo_bien: 'Tipo de bien',
-    monto_reclamado: 'Monto reclamado',
-    descripcion_bien: 'Descripción del producto o servicio',
-    tipo_solicitud: 'Tipo de registro',
-    detalle_reclamo: 'Detalle del reclamo o queja',
-    pedido_consumidor: 'Pedido concreto del consumidor',
-    fecha_compra: 'Fecha de compra',
-    otra_solucion: 'Otra solución (especifique)',
-    acceptTerms: 'Declarar que la información es verdadera',
-    aceptaDatos: 'Aceptar el tratamiento de datos personales',
-    conformeContenido: 'Confirmar conformidad con el contenido',
-  };
-
-  private camposFaltantes(): string[] {
-    return Object.keys(this.claimbookForm.controls)
-      .filter(campo => this.claimbookForm.get(campo)?.invalid)
-      .map(campo => ClaimbookComponent.ETIQUETAS[campo] ?? campo);
   }
 
   private enfocarPrimerCampoInvalido(): void {
