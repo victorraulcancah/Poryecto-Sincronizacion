@@ -45,11 +45,13 @@ export class UserRegistrationComponent {
   @Output() usuarioCreado = new EventEmitter<void>();
 
   /** El formulario está partido en pestañas para no ser un scroll eterno. */
-  tab: TabRegistro = 'cuenta';
+  tab: TabRegistro = 'perfil';
 
   readonly pestanas: { id: TabRegistro; label: string; icono: string }[] = [
-    { id: 'cuenta', label: 'Cuenta', icono: 'fas fa-lock' },
+    // Perfil va primero: se arranca por quién es la persona (el documento trae
+    // sus datos de RENIEC) y recién después se le arma la cuenta.
     { id: 'perfil', label: 'Perfil', icono: 'fas fa-id-card' },
+    { id: 'cuenta', label: 'Cuenta', icono: 'fas fa-lock' },
     { id: 'direcciones', label: 'Direcciones', icono: 'fas fa-map-marker-alt' },
     { id: 'avanzado', label: 'Avanzado', icono: 'fas fa-link' },
   ];
