@@ -560,6 +560,17 @@ ngOnInit(): void {
     return rol === 'vendedor' && !this.usuarioErpSeleccionado;
   }
 
+  /**
+   * Los tipos de documento del selector, sin RUC.
+   *
+   * Acá se registra a una persona y el RUC identifica a una empresa; además el
+   * buscador de al lado consulta RENIEC por DNI. El catálogo completo se sigue
+   * usando tal cual donde sí corresponde, como en el modal de clientes.
+   */
+  get tiposDeDocumentoPersona(): DocumentType[] {
+    return this.documentTypes.filter(t => !/ruc/i.test(t.nombre ?? ''));
+  }
+
   private loadDocumentTypes(): void {
     this.registrationService.getDocumentTypes().subscribe({
       next: (documentTypes: DocumentType[]) => {

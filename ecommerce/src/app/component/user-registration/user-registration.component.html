@@ -34,7 +34,11 @@
           </button>
         </div>
 
+        <!-- autocomplete="off" + "new-password" en las dos claves: sin eso el
+             navegador lee esto como un formulario de login y rellena solo el
+             usuario y la contraseña guardados de quien está conectado. -->
         <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="card-body"
+          autocomplete="off"
           [class.registro-modal__body]="modoModal">
 
           <!-- Solo esto hace scroll; los botones quedan fijos abajo -->
@@ -67,8 +71,9 @@
                   type="text" 
                   class="form-control"
                   [class.is-invalid]="isFieldInvalid('name')"
-                  id="name" 
+                  id="name"
                   formControlName="name"
+                  autocomplete="off"
                   placeholder="Ingrese nombre de usuario">
               </div>
               <div class="invalid-feedback" *ngIf="isFieldInvalid('name')">
@@ -88,8 +93,9 @@
                   type="email" 
                   class="form-control"
                   [class.is-invalid]="isFieldInvalid('email')"
-                  id="email" 
+                  id="email"
                   formControlName="email"
+                  autocomplete="off"
                   placeholder="correo@ejemplo.com">
               </div>
               <div class="invalid-feedback" *ngIf="isFieldInvalid('email')">
@@ -109,8 +115,9 @@
                   type="password" 
                   class="form-control"
                   [class.is-invalid]="isFieldInvalid('password')"
-                  id="password" 
+                  id="password"
                   formControlName="password"
+                  autocomplete="new-password"
                   placeholder="Mínimo 8 caracteres">
               </div>
               <div class="invalid-feedback" *ngIf="isFieldInvalid('password')">
@@ -130,8 +137,9 @@
                   type="password" 
                   class="form-control"
                   [class.is-invalid]="isFieldInvalid('confirmPassword')"
-                  id="confirmPassword" 
+                  id="confirmPassword"
                   formControlName="confirmPassword"
+                  autocomplete="new-password"
                   placeholder="Repita la contraseña">
               </div>
               <div class="invalid-feedback" *ngIf="isFieldInvalid('confirmPassword')">
@@ -179,55 +187,57 @@
           
           <div class="row g-3 mb-4">
 
+            <!-- Primero el tipo y después el número: se elige qué documento es
+                 y recién entonces se escribe. -->
             <div class="col-md-6">
-            <label for="document_number" class="form-label">
-              Número de Documento <span class="text-danger">*</span>
-            </label>
-            <div class="input-group">
-              <span class="input-group-text">
-                <i class="fas fa-id-card"></i>
-              </span>
-              <input 
-                type="text" 
-                class="form-control"
-                [class.is-invalid]="isFieldInvalid('document_number')"
-                id="document_number" 
-                formControlName="document_number"
-                placeholder="12345678">
-              <button 
-                type="button" 
-                class="btn btn-outline-primary"
-                [disabled]="isSearchingReniec || !userForm.get('document_number')?.value"
-                (click)="buscarEnReniec()"
-                title="Buscar en RENIEC">
-                <i 
-                  class="fas fa-search" 
-                  [class.fa-spin]="isSearchingReniec"
-                  style="color: #007bff;" 
-                ></i>
-              </button>
-            </div>
-            <div class="invalid-feedback" *ngIf="isFieldInvalid('document_number')">
-              {{ getFieldError('document_number') }}
-            </div>
-          </div>
-
-          <div class="col-md-6">
               <label for="document_type" class="form-label">
                 Tipo de Documento <span class="text-danger">*</span>
               </label>
-              <select 
+              <select
                 class="form-select"
                 [class.is-invalid]="isFieldInvalid('document_type')"
-                id="document_type" 
+                id="document_type"
                 formControlName="document_type">
                 <option value="">Seleccione tipo</option>
-                <option *ngFor="let docType of documentTypes" [value]="docType.id">
+                <option *ngFor="let docType of tiposDeDocumentoPersona" [value]="docType.id">
                   {{ docType.nombre }}
                 </option>
               </select>
               <div class="invalid-feedback" *ngIf="isFieldInvalid('document_type')">
                 {{ getFieldError('document_type') }}
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="document_number" class="form-label">
+                Número de Documento <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-id-card"></i>
+                </span>
+                <input
+                  type="text"
+                  class="form-control"
+                  [class.is-invalid]="isFieldInvalid('document_number')"
+                  id="document_number"
+                  formControlName="document_number"
+                  placeholder="12345678">
+                <button
+                  type="button"
+                  class="btn btn-outline-primary"
+                  [disabled]="isSearchingReniec || !userForm.get('document_number')?.value"
+                  (click)="buscarEnReniec()"
+                  title="Buscar en RENIEC">
+                  <i
+                    class="fas fa-search"
+                    [class.fa-spin]="isSearchingReniec"
+                    style="color: #007bff;"
+                  ></i>
+                </button>
+              </div>
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('document_number')">
+                {{ getFieldError('document_number') }}
               </div>
             </div>
 
