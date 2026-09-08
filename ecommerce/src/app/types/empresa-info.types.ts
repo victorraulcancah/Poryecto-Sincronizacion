@@ -44,6 +44,7 @@ export interface EmpresaInfoCreate {
   email?: string;
   website?: string;
   logo?: File;
+  eliminar_logo?: boolean;
   color_navbar?: string;
   color_sidebar?: string;
   splash_texto?: string;

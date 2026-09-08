@@ -482,8 +482,16 @@
       <li *ngIf="puedeVerReclamos" class="mb-8">
         <a routerLink="/dashboard/reclamos" routerLinkActive="active"
           class="nav-link flex-align gap-12 px-16 py-12 text-white text-decoration-none rounded-8 transition-2 hover-bg-main-500">
-          <i class="ph ph-user-circle text-xl flex-shrink-0"></i>
+          <span class="menu-icono">
+            <i class="ph ph-user-circle text-xl flex-shrink-0"></i>
+            <!-- Con el menú plegado el número no cabe al lado: se muestra
+                 como un punto sobre el ícono. -->
+            <span class="menu-punto" *ngIf="isCollapsed && (reclamosNoLeidos$ | async)"></span>
+          </span>
           <span *ngIf="!isCollapsed" class="fw-medium">Reclamos</span>
+          <span class="menu-badge" *ngIf="!isCollapsed && (reclamosNoLeidos$ | async) as pendientes">
+            {{ pendientes > 99 ? '99+' : pendientes }}
+          </span>
         </a>
       </li>
 

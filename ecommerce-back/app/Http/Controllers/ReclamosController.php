@@ -11,6 +11,18 @@ use Carbon\Carbon;
 class ReclamosController extends Controller
 {
     /**
+     * Reclamos pendientes de atender, para el badge del menú lateral. Igual
+     * que ContactoController::noLeidos, pero "sin leer" acá es "pendiente":
+     * un reclamo nuevo entra con ese estado hasta que alguien lo atiende.
+     */
+    public function noLeidos()
+    {
+        return response()->json([
+            'no_leidos' => Reclamo::where('estado', 'pendiente')->count(),
+        ]);
+    }
+
+    /**
      * Obtener todos los reclamos (para admin)
      */
     public function index(Request $request)

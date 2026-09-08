@@ -157,6 +157,12 @@ class EmpresaInfoController extends Controller
 
                 $logoPath = $request->file('logo')->store('empresa/logos', 'public');
                 $data['logo'] = $logoPath;
+            } elseif ($request->boolean('eliminar_logo')) {
+                // La X del panel: quita el logo actual sin subir uno nuevo.
+                if ($empresaInfo->logo && Storage::disk('public')->exists($empresaInfo->logo)) {
+                    Storage::disk('public')->delete($empresaInfo->logo);
+                }
+                $data['logo'] = null;
             }
 
             if ($request->hasFile('imagen_descripcion')) {

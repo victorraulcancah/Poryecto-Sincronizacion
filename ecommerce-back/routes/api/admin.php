@@ -249,6 +249,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // ============================================
     Route::get('/reclamos', [ReclamosController::class, 'index']);
     Route::get('/reclamos/estadisticas', [ReclamosController::class, 'estadisticas']);
+    Route::get('/reclamos/no-leidos', [ReclamosController::class, 'noLeidos']);
     Route::get('/reclamos/mis-reclamos', [ReclamosController::class, 'misReclamos']);
     Route::get('/reclamos/{id}', [ReclamosController::class, 'show']);
     Route::patch('/reclamos/{id}/respuesta', [ReclamosController::class, 'actualizarRespuesta']);

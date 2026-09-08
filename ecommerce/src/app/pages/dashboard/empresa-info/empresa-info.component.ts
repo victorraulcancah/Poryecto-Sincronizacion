@@ -377,12 +377,25 @@ import Swal from 'sweetalert2';
                 </div>
 
                 <div *ngIf="logoPreview" class="text-center">
-                  <img
-                    [src]="logoPreview"
-                    alt="Logo Preview"
-                    class="img-fluid rounded-6 mb-12"
-                    style="max-height: 150px;"
-                  />
+                  <div class="position-relative d-inline-block mb-12">
+                    <img
+                      [src]="logoPreview"
+                      alt="Logo Preview"
+                      class="img-fluid rounded-6"
+                      style="max-height: 150px;"
+                    />
+                    <!-- Fuera del <label> de "Cambiar logo": si quedara adentro,
+                         el click abriría el selector de archivo en vez de quitar
+                         el logo. No borra nada hasta que se guarde el formulario. -->
+                    <button
+                      type="button"
+                      class="btn-close-logo position-absolute d-flex align-items-center justify-content-center"
+                      title="Quitar logo"
+                      (click)="quitarLogo($event)"
+                    >
+                      <i class="ph ph-x"></i>
+                    </button>
+                  </div>
                   <br />
                   <label
                     class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm"
@@ -587,6 +600,23 @@ import Swal from 'sweetalert2';
       .nav-tabs .nav-link:hover {
         background-color: var(--bs-gray-50);
       }
+      .btn-close-logo {
+        top: -8px;
+        right: -8px;
+        width: 24px;
+        height: 24px;
+        border: none;
+        border-radius: 50%;
+        background-color: var(--bs-danger, #dc3545);
+        color: #fff;
+        font-size: 12px;
+        line-height: 1;
+        padding: 0;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      }
+      .btn-close-logo:hover {
+        background-color: #b02a37;
+      }
     `,
   ],
 })
@@ -605,6 +635,8 @@ export class EmpresaInfoComponent implements OnInit {
   empresaInfo: EmpresaInfo | null = null;
   selectedLogo: File | null = null;
   logoPreview: string | null = null;
+  /** Se marca al tocar la "X": se manda recién al guardar, como el resto del form. */
+  eliminarLogo = false;
   isLoading = true;
   isSubmitting = false;
   hasError = false;
@@ -670,6 +702,8 @@ export class EmpresaInfoComponent implements OnInit {
           splash_color_fondo: empresaInfo.splash_color_fondo || this.SPLASH_COLOR_DEFAULT,
         });
         this.logoPreview = empresaInfo.logo_url || null;
+        this.selectedLogo = null;
+        this.eliminarLogo = false;
         this.isLoading = false;
       },
       error: (error) => {
@@ -701,6 +735,8 @@ export class EmpresaInfoComponent implements OnInit {
     const file = event.target.files[0];
     if (file) {
       this.selectedLogo = file;
+      // Elegir un archivo nuevo cancela cualquier "quitar logo" pendiente.
+      this.eliminarLogo = false;
 
       const reader = new FileReader();
       reader.onload = (e: any) => {
@@ -710,6 +746,15 @@ export class EmpresaInfoComponent implements OnInit {
     }
   }
 
+  /** Quita el logo actual. No borra nada hasta que se guarde el formulario. */
+  quitarLogo(event: MouseEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.selectedLogo = null;
+    this.logoPreview = null;
+    this.eliminarLogo = true;
+  }
+
   onSubmit(): void {
     if (this.empresaForm.valid && this.permissionsService.canEditEmpresaInfo()) {
       this.isSubmitting = true;
@@ -717,6 +762,7 @@ export class EmpresaInfoComponent implements OnInit {
       const formValue: EmpresaInfoCreate = {
         ...this.empresaForm.value,
         logo: this.selectedLogo,
+        eliminar_logo: this.eliminarLogo,
       };
 
       const request = this.empresaInfo
@@ -760,6 +806,7 @@ export class EmpresaInfoComponent implements OnInit {
       this.empresaForm.reset();
       this.logoPreview = null;
       this.selectedLogo = null;
+      this.eliminarLogo = false;
     }
   }
 

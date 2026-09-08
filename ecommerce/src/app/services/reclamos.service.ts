@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export interface Reclamo {
@@ -103,7 +103,23 @@ export interface ReclamoResponse {
 export class ReclamosService {
   private apiUrl = `${environment.apiUrl}/reclamos`;
 
+  /**
+   * Reclamos pendientes de atender, para el badge del menú lateral. Igual que
+   * `ContactoService.noLeidos$`: un BehaviorSubject para que al cambiar el
+   * estado de un reclamo el número pueda bajar al instante, sin esperar a que
+   * el menú vuelva a consultar.
+   */
+  private noLeidosSubject = new BehaviorSubject<number>(0);
+  readonly noLeidos$ = this.noLeidosSubject.asObservable();
+
   constructor(private http: HttpClient) { }
+
+  /** Pide el conteo al servidor y actualiza el badge. */
+  refrescarNoLeidos(): Observable<{ no_leidos: number }> {
+    return this.http
+      .get<{ no_leidos: number }>(`${this.apiUrl}/no-leidos`)
+      .pipe(tap(res => this.noLeidosSubject.next(res.no_leidos ?? 0)));
+  }
 
   // Crear un nuevo reclamo (público, no requiere autenticación)
   crearReclamo(reclamo: Reclamo): Observable<ReclamoResponse> {
