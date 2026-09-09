@@ -378,8 +378,8 @@ export class ClaimbookComponent implements OnInit, OnDestroy {
                   <p><strong>Número de reclamo:</strong> ${response.reclamo.numero_reclamo}</p>
                   <p><strong>Fecha:</strong> ${this.currentDate}</p>
                   <p class="text-sm text-gray-600 mt-3">
-                    Su reclamo ha sido registrado correctamente. Recibirá una respuesta 
-                    en un plazo no mayor a 30 días calendario.
+                    Su reclamo ha sido registrado correctamente. Recibirá una respuesta
+                    en un plazo no mayor a 15 días hábiles.
                   </p>
                   <div class="mt-3 p-3 bg-info-50 rounded">
                     <p class="text-sm mb-0">
