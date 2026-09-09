@@ -116,10 +116,25 @@ class ReclamosController extends Controller
         return $limites ? (int) min($limites) : 20480;
     }
 
-    /** Máximo que se le permite al video: el menor entre 20 MB y el del servidor. */
+    /**
+     * Máximo que se le permite al video: el menor entre 20 MB y lo que
+     * quede del tope del servidor después de la foto y la factura.
+     *
+     * `post_max_size` es el límite de TODO el POST junto, no por archivo: si
+     * el video solo se limitaba contra el tope entero, un reclamo con foto
+     * (5 MB) + factura (5 MB) + un video cerca del tope pasaba ese límite
+     * igual y PHP lo tiraba entero con "The POST data is too large" — un
+     * error crudo, antes de que la validación de Laravel llegue a correr y
+     * pueda avisar con un mensaje que se entienda.
+     */
     private function maxVideoKb(): int
     {
-        return (int) min(20480, $this->topeDeSubidaKb());
+        $margenOtrosAdjuntos = 5120 + 5120; // foto + factura, mismo tope que sus reglas
+        $margenSeguridad = 512; // campos de texto + overhead del multipart
+
+        $disponible = $this->topeDeSubidaKb() - $margenOtrosAdjuntos - $margenSeguridad;
+
+        return (int) max(1024, min(20480, $disponible));
     }
 
     /**
