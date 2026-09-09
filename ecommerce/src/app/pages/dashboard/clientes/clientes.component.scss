@@ -11,3 +11,17 @@
 // .modern-data-table {
 //   // overrides específicos aquí
 // }
+
+// Ancho de columna fijo (ver los `style="width: ...%"` en el <thead>): sin
+// esto el navegador recalcula el ancho de cada columna según el contenido de
+// la página actual, y al cambiar de página de la tabla (nombres más largos o
+// más cortos) las columnas se corrían de tamaño en vez de quedarse quietas.
+.clientes-tabla {
+  table-layout: fixed;
+
+  th,
+  td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
