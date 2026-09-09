@@ -16,6 +16,10 @@ import Swal from 'sweetalert2';
 
 type SubTab = 'banner' | 'intro' | 'valores' | 'historia' | 'premios';
 
+/** Mismos formatos que aceptan los controllers de Empresa* en el backend. */
+const FORMATOS_IMAGEN_ACEPTADOS = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+const FORMATOS_IMAGEN_TEXTO = 'JPG, PNG, GIF o WEBP';
+
 @Component({
   selector: 'app-sobre-nosotros-admin',
   standalone: true,
@@ -191,9 +195,40 @@ export class SobreNosotrosAdminComponent implements OnInit {
     this.bannerEditando = null;
   }
 
+  /**
+   * Valida formato y peso antes de mostrar el preview, con el mismo tope
+   * que exige el backend (ver validación en cada controller de Empresa*):
+   * así el usuario se entera al elegir el archivo, no recién al guardar.
+   */
+  private validarImagen(file: File, maxMB: number, event: any): boolean {
+    if (!FORMATOS_IMAGEN_ACEPTADOS.includes(file.type)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Formato no permitido',
+        text: `Solo se aceptan imágenes ${FORMATOS_IMAGEN_TEXTO}.`,
+      });
+      event.target.value = '';
+      return false;
+    }
+
+    const maxBytes = maxMB * 1024 * 1024;
+    if (file.size > maxBytes) {
+      const pesoMB = (file.size / (1024 * 1024)).toFixed(1);
+      Swal.fire({
+        icon: 'error',
+        title: 'Imagen muy pesada',
+        text: `El máximo permitido es ${maxMB}MB y esta imagen pesa ${pesoMB}MB. Comprímela o elige otra.`,
+      });
+      event.target.value = '';
+      return false;
+    }
+
+    return true;
+  }
+
   onBannerImagenSeleccionada(event: any): void {
     const file = event.target.files[0];
-    if (file) {
+    if (file && this.validarImagen(file, 4, event)) {
       this.bannerImagenSeleccionada = file;
       const reader = new FileReader();
       reader.onload = (e: any) => (this.bannerImagenPreview = e.target.result);
@@ -335,7 +370,7 @@ export class SobreNosotrosAdminComponent implements OnInit {
 
   onIntroImagenSeleccionada(event: any): void {
     const file = event.target.files[0];
-    if (file) {
+    if (file && this.validarImagen(file, 4, event)) {
       this.introImagenSeleccionada = file;
       this.introImagenEliminada = false;
       const reader = new FileReader();
@@ -395,7 +430,7 @@ export class SobreNosotrosAdminComponent implements OnInit {
   // ==================================================
   onDescripcionImagenSeleccionada(event: any): void {
     const file = event.target.files[0];
-    if (file) {
+    if (file && this.validarImagen(file, 4, event)) {
       this.descripcionImagenSeleccionada = file;
       this.descripcionImagenEliminada = false;
       const reader = new FileReader();
@@ -494,7 +529,7 @@ export class SobreNosotrosAdminComponent implements OnInit {
 
   onValorImagenSeleccionada(event: any): void {
     const file = event.target.files[0];
-    if (file) {
+    if (file && this.validarImagen(file, 2, event)) {
       this.valorImagenSeleccionada = file;
       const reader = new FileReader();
       reader.onload = (e: any) => (this.valorImagenPreview = e.target.result);
@@ -602,7 +637,7 @@ export class SobreNosotrosAdminComponent implements OnInit {
 
   onHitoImagenSeleccionada(event: any): void {
     const file = event.target.files[0];
-    if (file) {
+    if (file && this.validarImagen(file, 2, event)) {
       this.hitoImagenSeleccionada = file;
       const reader = new FileReader();
       reader.onload = (e: any) => (this.hitoImagenPreview = e.target.result);
@@ -710,7 +745,7 @@ export class SobreNosotrosAdminComponent implements OnInit {
 
   onPremioImagenSeleccionada(event: any): void {
     const file = event.target.files[0];
-    if (file) {
+    if (file && this.validarImagen(file, 2, event)) {
       this.premioImagenSeleccionada = file;
       const reader = new FileReader();
       reader.onload = (e: any) => (this.premioImagenPreview = e.target.result);

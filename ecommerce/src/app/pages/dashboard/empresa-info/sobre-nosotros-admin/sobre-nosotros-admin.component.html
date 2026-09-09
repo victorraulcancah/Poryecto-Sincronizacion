@@ -123,17 +123,19 @@
             >
               <div *ngIf="!bannerImagenPreview">
                 <i class="ph ph-image text-gray-400 text-3xl mb-8"></i>
-                <p class="text-gray-500 text-xs mb-8">Recomendado: imagen ancha (ej. 1900x500px)</p>
+                <p class="text-gray-500 text-xs mb-4">Recomendado: imagen ancha (ej. 1900x500px)</p>
+                <p class="text-gray-500 text-xs mb-8">Formatos: JPG, PNG, GIF o WEBP · Máximo 4MB</p>
                 <label class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm d-block">
                   Subir
-                  <input type="file" class="d-none" accept="image/*" (change)="onBannerImagenSeleccionada($event)" />
+                  <input type="file" class="d-none" accept="image/jpeg,image/png,image/gif,image/webp" (change)="onBannerImagenSeleccionada($event)" />
                 </label>
               </div>
               <div *ngIf="bannerImagenPreview">
                 <img [src]="bannerImagenPreview" class="img-fluid rounded-6 mb-8" style="max-height: 120px;" />
+                <p class="text-gray-500 text-xs mb-4">Formatos: JPG, PNG, GIF o WEBP · Máximo 4MB</p>
                 <label class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm d-block">
                   Cambiar
-                  <input type="file" class="d-none" accept="image/*" (change)="onBannerImagenSeleccionada($event)" />
+                  <input type="file" class="d-none" accept="image/jpeg,image/png,image/gif,image/webp" (change)="onBannerImagenSeleccionada($event)" />
                 </label>
               </div>
             </div>
@@ -266,17 +268,19 @@
             >
               <div *ngIf="!introImagenPreview">
                 <i class="ph ph-image text-gray-400 text-4xl mb-12"></i>
+                <p class="text-gray-500 text-xs mb-8">Formatos: JPG, PNG, GIF o WEBP · Máximo 4MB</p>
                 <label class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm d-block">
                   Subir imagen
-                  <input type="file" class="d-none" accept="image/*" (change)="onIntroImagenSeleccionada($event)" />
+                  <input type="file" class="d-none" accept="image/jpeg,image/png,image/gif,image/webp" (change)="onIntroImagenSeleccionada($event)" />
                 </label>
               </div>
               <div *ngIf="introImagenPreview">
                 <img [src]="introImagenPreview" class="img-fluid rounded-6 mb-12" style="max-height: 150px;" />
+                <p class="text-gray-500 text-xs mb-8">Formatos: JPG, PNG, GIF o WEBP · Máximo 4MB</p>
                 <div class="d-flex gap-8 justify-content-center">
                   <label class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm">
                     Cambiar
-                    <input type="file" class="d-none" accept="image/*" (change)="onIntroImagenSeleccionada($event)" />
+                    <input type="file" class="d-none" accept="image/jpeg,image/png,image/gif,image/webp" (change)="onIntroImagenSeleccionada($event)" />
                   </label>
                   <button type="button" class="btn bg-danger-50 text-danger px-12 py-6 rounded-6 text-sm" (click)="eliminarIntroImagen()">
                     Quitar
@@ -326,17 +330,19 @@
             >
               <div *ngIf="!descripcionImagenPreview">
                 <i class="ph ph-image text-gray-400 text-4xl mb-12"></i>
+                <p class="text-gray-500 text-xs mb-8">Formatos: JPG, PNG, GIF o WEBP · Máximo 4MB</p>
                 <label class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm d-block">
                   Subir imagen
-                  <input type="file" class="d-none" accept="image/*" (change)="onDescripcionImagenSeleccionada($event)" />
+                  <input type="file" class="d-none" accept="image/jpeg,image/png,image/gif,image/webp" (change)="onDescripcionImagenSeleccionada($event)" />
                 </label>
               </div>
               <div *ngIf="descripcionImagenPreview">
                 <img [src]="descripcionImagenPreview" class="img-fluid rounded-6 mb-12" style="max-height: 150px;" />
+                <p class="text-gray-500 text-xs mb-8">Formatos: JPG, PNG, GIF o WEBP · Máximo 4MB</p>
                 <div class="d-flex gap-8 justify-content-center">
                   <label class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm">
                     Cambiar
-                    <input type="file" class="d-none" accept="image/*" (change)="onDescripcionImagenSeleccionada($event)" />
+                    <input type="file" class="d-none" accept="image/jpeg,image/png,image/gif,image/webp" (change)="onDescripcionImagenSeleccionada($event)" />
                   </label>
                   <button type="button" class="btn bg-danger-50 text-danger px-12 py-6 rounded-6 text-sm" (click)="eliminarDescripcionImagen()">
                     Quitar
@@ -444,16 +450,18 @@
             >
               <div *ngIf="!valorImagenPreview">
                 <i class="ph ph-image text-gray-400 text-3xl mb-8"></i>
+                <p class="text-gray-500 text-xs mb-8">JPG, PNG, GIF o WEBP · Máximo 2MB</p>
                 <label class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm d-block">
                   Subir
-                  <input type="file" class="d-none" accept="image/*" (change)="onValorImagenSeleccionada($event)" />
+                  <input type="file" class="d-none" accept="image/jpeg,image/png,image/gif,image/webp" (change)="onValorImagenSeleccionada($event)" />
                 </label>
               </div>
               <div *ngIf="valorImagenPreview">
                 <img [src]="valorImagenPreview" class="img-fluid rounded-6 mb-8" style="max-height: 100px;" />
+                <p class="text-gray-500 text-xs mb-8">JPG, PNG, GIF o WEBP · Máximo 2MB</p>
                 <label class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm d-block">
                   Cambiar
-                  <input type="file" class="d-none" accept="image/*" (change)="onValorImagenSeleccionada($event)" />
+                  <input type="file" class="d-none" accept="image/jpeg,image/png,image/gif,image/webp" (change)="onValorImagenSeleccionada($event)" />
                 </label>
               </div>
             </div>
@@ -581,16 +589,18 @@
             >
               <div *ngIf="!hitoImagenPreview">
                 <i class="ph ph-image text-gray-400 text-3xl mb-8"></i>
+                <p class="text-gray-500 text-xs mb-8">JPG, PNG, GIF o WEBP · Máximo 2MB</p>
                 <label class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm d-block">
                   Subir
-                  <input type="file" class="d-none" accept="image/*" (change)="onHitoImagenSeleccionada($event)" />
+                  <input type="file" class="d-none" accept="image/jpeg,image/png,image/gif,image/webp" (change)="onHitoImagenSeleccionada($event)" />
                 </label>
               </div>
               <div *ngIf="hitoImagenPreview">
                 <img [src]="hitoImagenPreview" class="img-fluid rounded-6 mb-8" style="max-height: 100px;" />
+                <p class="text-gray-500 text-xs mb-8">JPG, PNG, GIF o WEBP · Máximo 2MB</p>
                 <label class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm d-block">
                   Cambiar
-                  <input type="file" class="d-none" accept="image/*" (change)="onHitoImagenSeleccionada($event)" />
+                  <input type="file" class="d-none" accept="image/jpeg,image/png,image/gif,image/webp" (change)="onHitoImagenSeleccionada($event)" />
                 </label>
               </div>
             </div>
@@ -718,16 +728,18 @@
             >
               <div *ngIf="!premioImagenPreview">
                 <i class="ph ph-image text-gray-400 text-3xl mb-8"></i>
+                <p class="text-gray-500 text-xs mb-8">JPG, PNG, GIF o WEBP · Máximo 2MB</p>
                 <label class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm d-block">
                   Subir
-                  <input type="file" class="d-none" accept="image/*" (change)="onPremioImagenSeleccionada($event)" />
+                  <input type="file" class="d-none" accept="image/jpeg,image/png,image/gif,image/webp" (change)="onPremioImagenSeleccionada($event)" />
                 </label>
               </div>
               <div *ngIf="premioImagenPreview">
                 <img [src]="premioImagenPreview" class="img-fluid rounded-6 mb-8" style="max-height: 100px;" />
+                <p class="text-gray-500 text-xs mb-8">JPG, PNG, GIF o WEBP · Máximo 2MB</p>
                 <label class="btn bg-main-50 text-main-600 px-12 py-6 rounded-6 cursor-pointer text-sm d-block">
                   Cambiar
-                  <input type="file" class="d-none" accept="image/*" (change)="onPremioImagenSeleccionada($event)" />
+                  <input type="file" class="d-none" accept="image/jpeg,image/png,image/gif,image/webp" (change)="onPremioImagenSeleccionada($event)" />
                 </label>
               </div>
             </div>
