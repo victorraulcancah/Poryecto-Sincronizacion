@@ -255,16 +255,16 @@
         </div>
         <nav>
           <ul class="pagination-controls">
-            <li [class.disabled]="currentPage === 1">
-              <button (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
+            <li *ngIf="currentPage > 1">
+              <button (click)="goToPage(currentPage - 1)">
                 <i class="ph ph-caret-left"></i>
               </button>
             </li>
             <li *ngFor="let page of getPageNumbers()" [class.active]="page === currentPage">
               <button (click)="goToPage(page)">{{ page }}</button>
             </li>
-            <li [class.disabled]="currentPage === getTotalPages()">
-              <button (click)="goToPage(currentPage + 1)" [disabled]="currentPage === getTotalPages()">
+            <li *ngIf="currentPage < getTotalPages()">
+              <button (click)="goToPage(currentPage + 1)">
                 <i class="ph ph-caret-right"></i>
               </button>
             </li>
