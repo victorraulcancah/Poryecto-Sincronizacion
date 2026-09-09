@@ -26,11 +26,9 @@
         <div class="registro-tabs">
           <button *ngFor="let p of pestanas" type="button" class="registro-tabs__item"
             [class.registro-tabs__item--activo]="tab === p.id"
-            [class.registro-tabs__item--error]="pestanaConErrores(p.id)"
             (click)="tab = p.id">
             <i [class]="p.icono"></i>
             {{ p.label }}
-            <span class="registro-tabs__punto" *ngIf="pestanaConErrores(p.id)"></span>
           </button>
         </div>
 

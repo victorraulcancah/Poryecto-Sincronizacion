@@ -189,19 +189,6 @@
       color: #d32027;
       border-bottom-color: #d32027;
     }
-
-    // Con campos obligatorios sin llenar se avisa aunque no sea la activa.
-    // Se distingue de la activa por el punto, no por el color.
-    &--error {
-      color: #b91c1c;
-    }
-  }
-
-  &__punto {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: #dc3545;
   }
 }
 
