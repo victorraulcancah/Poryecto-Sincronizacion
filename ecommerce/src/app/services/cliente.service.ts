@@ -28,6 +28,9 @@ export class ClienteService {
     if (filtros.tipo_login) params = params.set('tipo_login', filtros.tipo_login);
     if (filtros.fecha_desde) params = params.set('fecha_desde', filtros.fecha_desde);
     if (filtros.fecha_hasta) params = params.set('fecha_hasta', filtros.fecha_hasta);
+    if (filtros.vinculado !== undefined && filtros.vinculado !== '') {
+      params = params.set('vinculado', filtros.vinculado.toString());
+    }
 
     return this.http.get<ClientesResponse>(this.apiUrl, { params });
   }

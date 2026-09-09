@@ -54,6 +54,15 @@
               </select>
             </div>
 
+            <div class="position-relative">
+              <i class="ph ph-link position-absolute start-0 top-50 translate-middle-y ms-8 text-gray-400 text-xs"></i>
+              <select [(ngModel)]="filtros.vinculado" (change)="buscar()" class="form-select form-select-sm ps-28 pe-8" style="min-width: 130px; font-size: 0.75rem;">
+                <option value="">Vinculación</option>
+                <option value="true">Vinculados</option>
+                <option value="false">No vinculados</option>
+              </select>
+            </div>
+
             <button (click)="limpiarFiltros()" class="btn btn-outline-gray-300 btn-sm px-8 py-4 d-flex align-items-center" title="Limpiar filtros">
               <i class="ph ph-x text-xs"></i>
             </button>
@@ -112,6 +121,7 @@
             <th class="d-none d-md-table-cell">DOCUMENTO</th>
             <th class="d-none d-lg-table-cell">CONTACTO</th>
             <th class="d-none d-xl-table-cell">TIPO</th>
+            <th class="d-none d-lg-table-cell">VINCULACIÓN</th>
             <th>ESTADO</th>
             <th class="d-none d-lg-table-cell">REGISTRO</th>
             <th class="text-end">ACCIONES</th>
@@ -175,6 +185,15 @@
               <span class="type-badge type-badge--{{ cliente.tipo_login || 'default' }}">
                 <i [class]="getTipoLoginIcon(cliente.tipo_login)"></i>
                 {{ getTipoLoginText(cliente.tipo_login) }}
+              </span>
+            </td>
+
+            <!-- Vinculación -->
+            <td class="d-none d-lg-table-cell">
+              <span class="status-badge" [ngClass]="estaVinculado(cliente) ? 'status-badge--active' : 'status-badge--inactive'"
+                    [title]="estaVinculado(cliente) ? ('Código ERP: ' + cliente.codigo_erp) : ''">
+                <i class="ph" [class]="estaVinculado(cliente) ? 'ph-link' : 'ph-link-break'"></i>
+                {{ estaVinculado(cliente) ? 'Vinculado' : 'No vinculado' }}
               </span>
             </td>
 

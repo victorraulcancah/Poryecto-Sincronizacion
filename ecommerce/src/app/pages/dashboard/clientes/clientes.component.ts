@@ -51,6 +51,7 @@ export class ClientesComponent implements OnInit, OnDestroy {
     search: '',
     estado: '',
     tipo_login: '',
+    vinculado: '',
   };
 
   paginacion = {
@@ -150,8 +151,14 @@ export class ClientesComponent implements OnInit, OnDestroy {
       search: '',
       estado: '',
       tipo_login: '',
+      vinculado: '',
     };
     this.cargarClientes();
+  }
+
+  /** Para la columna y el badge: si tiene código de cliente del ERP 7Power. */
+  estaVinculado(cliente: Cliente): boolean {
+    return !!cliente.codigo_erp;
   }
 
 

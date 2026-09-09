@@ -45,6 +45,17 @@ class ClientesController extends Controller
                 $query->whereDate('created_at', '<=', $request->fecha_hasta);
             }
 
+            // Vinculado = tiene código de cliente del ERP 7Power asignado.
+            if ($request->filled('vinculado')) {
+                if ($request->boolean('vinculado')) {
+                    $query->whereNotNull('codigo_erp')->where('codigo_erp', '!=', '');
+                } else {
+                    $query->where(function ($q) {
+                        $q->whereNull('codigo_erp')->orWhere('codigo_erp', '');
+                    });
+                }
+            }
+
             $clientes = $query->orderBy('created_at', 'desc')->get();
 
             // Transformar los datos

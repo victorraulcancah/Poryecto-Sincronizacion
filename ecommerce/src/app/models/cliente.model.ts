@@ -92,6 +92,8 @@ export interface ClientesFiltros {
   tipo_login?: string;
   fecha_desde?: string;
   fecha_hasta?: string;
+  /** '' = todos, 'true' = solo vinculados a Novik, 'false' = solo no vinculados. */
+  vinculado?: boolean | string;
   per_page?: number;
   page?: number;
 }
