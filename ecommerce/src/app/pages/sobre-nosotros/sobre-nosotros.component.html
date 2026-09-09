@@ -12,7 +12,6 @@
     <ngx-slick-carousel class="hero-nosotros__slider" [config]="bannerConfig">
       <div ngxSlickItem *ngFor="let banner of banners" class="hero-nosotros__slide">
         <div class="hero-nosotros__imagen" [style.background-image]="'url(' + banner.imagen_url + ')'"></div>
-        <div class="hero-nosotros__overlay"></div>
         <div class="hero-nosotros__contenido">
           <h1>{{ banner.titulo || nombreEmpresa || 'Sobre Nosotros' }}</h1>
           <p *ngIf="banner.subtitulo">{{ banner.subtitulo }}</p>
