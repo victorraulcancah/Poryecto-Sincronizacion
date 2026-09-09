@@ -212,6 +212,10 @@ export class ReclamosComponent implements OnInit, OnDestroy {
                 reclamo.estado = nuevoEstado as any;
                 this.mostrarExito('Estado actualizado correctamente');
                 this.cargarEstadisticas();
+                // El badge del sidebar cuenta los "pendiente": al salir de ese
+                // estado tiene que bajar ya, no recién cuando se navegue fuera
+                // de esta página.
+                this.reclamosService.refrescarNoLeidos().subscribe({ error: () => {} });
               }
               this.isUpdatingReclamo = false;
             },
@@ -245,6 +249,9 @@ export class ReclamosComponent implements OnInit, OnDestroy {
                 this.reclamos = this.reclamos.filter(r => r.id !== reclamo.id);
                 this.mostrarExito('Reclamo eliminado correctamente');
                 this.cargarEstadisticas();
+                if (reclamo.estado === 'pendiente') {
+                  this.reclamosService.refrescarNoLeidos().subscribe({ error: () => {} });
+                }
               }
             },
             error: (error) => {
