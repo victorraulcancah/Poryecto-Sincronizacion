@@ -154,12 +154,6 @@
                         *ngIf="permissionsService.canEditMarcas()">
                   <i class="ph ph-pencil"></i>
                 </button>
-                <button class="action-buttons__btn action-buttons__btn--delete"
-                        (click)="eliminarMarca(marca)"
-                        title="Eliminar marca"
-                        *ngIf="permissionsService.canDeleteMarcas()">
-                  <i class="ph ph-trash"></i>
-                </button>
               </div>
             </td>
           </tr>

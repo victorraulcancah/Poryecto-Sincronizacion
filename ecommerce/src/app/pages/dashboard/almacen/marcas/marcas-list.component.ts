@@ -195,55 +195,6 @@ cargarMarcas(): void {
     }
   }
 
-  eliminarMarca(marca: MarcaProducto): void {
-    Swal.fire({
-      title: "¿Eliminar marca?",
-      html: `Estás a punto de eliminar la marca <strong>"${marca.nombre}"</strong>.<br>Esta acción no se puede deshacer.`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#dc3545",
-      cancelButtonColor: "#6c757d",
-      confirmButtonText: "Sí, eliminar",
-      cancelButtonText: "Cancelar",
-      customClass: {
-        popup: "rounded-12",
-        confirmButton: "rounded-8",
-        cancelButton: "rounded-8",
-      },
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.almacenService.eliminarMarca(marca.id).subscribe({
-          next: () => {
-            Swal.fire({
-              title: "¡Eliminada!",
-              text: "La marca ha sido eliminada exitosamente.",
-              icon: "success",
-              confirmButtonColor: "#198754",
-              customClass: {
-                popup: "rounded-12",
-                confirmButton: "rounded-8",
-              },
-            })
-            this.cargarMarcas()
-          },
-          error: (error) => {
-            Swal.fire({
-              title: "Error",
-              text: "No se pudo eliminar la marca. Inténtalo de nuevo.",
-              icon: "error",
-              confirmButtonColor: "#dc3545",
-              customClass: {
-                popup: "rounded-12",
-                confirmButton: "rounded-8",
-              },
-            })
-            console.error("Error al eliminar marca:", error)
-          },
-        })
-      }
-    })
-  }
-
   toggleEstado(marca: MarcaProducto): void {
     this.almacenService
       .toggleEstadoMarca(marca.id, !marca.activo)

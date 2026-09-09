@@ -800,16 +800,20 @@ export class IndexComponent implements OnInit, OnDestroy, AfterViewInit {
     this.isLoadingMarcas = true;
     this.almacenService.obtenerMarcasPublicas().subscribe({
       next: (marcas) => {
-        this.brandSlides[0].slides = marcas.map((marca, index) => ({
-          class: 'brand-item',
-          dataAos: 'zoom-in',
-          dataAosDuration: 200 + index * 200,
-          imgSrc: marca.imagen_url || 'assets/images/thumbs/brand-default.png',
-          imgAlt: marca.nombre,
-          marcaId: marca.id,
-          marcaSlug: marca.slug,
-          marcaNombre: marca.nombre,
-        }));
+        // Sin logo no hay nada que mostrar acá (igual que en /marcas): antes
+        // se rellenaba con una imagen genérica y la marca aparecía igual.
+        this.brandSlides[0].slides = marcas
+          .filter((marca) => !!marca.imagen_url)
+          .map((marca, index) => ({
+            class: 'brand-item',
+            dataAos: 'zoom-in',
+            dataAosDuration: 200 + index * 200,
+            imgSrc: marca.imagen_url as string,
+            imgAlt: marca.nombre,
+            marcaId: marca.id,
+            marcaSlug: marca.slug,
+            marcaNombre: marca.nombre,
+          }));
 
         // ✅ Forzar detección de cambios
         this.cdr.detectChanges();
