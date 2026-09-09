@@ -699,6 +699,18 @@ class PedidosController extends Controller
         }
     }
 
+    /**
+     * Pedidos en espera, para el badge del menú lateral. Mismo criterio que
+     * la bandeja de trabajo (`Pedido::scopePendientesDeAccion`), pero solo
+     * "En espera": lo ya atendido hoy no necesita que nadie vuelva a mirarlo.
+     */
+    public function noLeidos()
+    {
+        return response()->json([
+            'no_leidos' => Pedido::where('estado_pedido_id', Pedido::ESTADO_EN_ESPERA)->count(),
+        ]);
+    }
+
     public function getEstados(Request $request)
     {
         try {

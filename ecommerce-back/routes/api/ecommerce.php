@@ -51,6 +51,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/estados', [PedidosController::class, 'getEstados']);
         Route::get('/metodos-pago', [PedidosController::class, 'getMetodosPago']);
         Route::get('/estadisticas', [PedidosController::class, 'estadisticas']);
+        Route::get('/no-leidos', [PedidosController::class, 'noLeidos']);
         Route::get('/mis-pedidos', [PedidosController::class, 'misPedidos']);
         Route::get('/{id}', [PedidosController::class, 'show']);
         Route::get('/{id}/tracking', [PedidosController::class, 'getTrackingPedido']);

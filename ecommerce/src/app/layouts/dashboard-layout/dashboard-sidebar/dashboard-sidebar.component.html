@@ -464,8 +464,16 @@
       <li *ngIf="puedeVerPedidos" class="mb-8">
         <a routerLink="/dashboard/pedidos" routerLinkActive="active"
           class="nav-link flex-align gap-12 px-16 py-12 text-white text-decoration-none rounded-8 transition-2 hover-bg-main-500">
-          <i class="ph ph-receipt text-xl flex-shrink-0"></i>
+          <span class="menu-icono">
+            <i class="ph ph-receipt text-xl flex-shrink-0"></i>
+            <!-- Con el menú plegado el número no cabe al lado: se muestra
+                 como un punto sobre el ícono. -->
+            <span class="menu-punto" *ngIf="isCollapsed && (pedidosNoLeidos$ | async)"></span>
+          </span>
           <span *ngIf="!isCollapsed" class="fw-medium">Pedidos</span>
+          <span class="menu-badge" *ngIf="!isCollapsed && (pedidosNoLeidos$ | async) as pendientes">
+            {{ pendientes > 99 ? '99+' : pendientes }}
+          </span>
         </a>
       </li>
 

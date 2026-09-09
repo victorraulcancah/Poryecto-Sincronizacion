@@ -17,6 +17,7 @@ import { PermissionsService } from '../../../services/permissions.service';
 import { EmpresaInfoService } from '../../../services/empresa-info.service';
 import { ContactoService } from '../../../services/contacto.service';
 import { ReclamosService } from '../../../services/reclamos.service';
+import { PedidosService } from '../../../services/pedidos.service';
 import { Subscription } from 'rxjs';
 import { NavigationEnd } from '@angular/router';
 
@@ -88,12 +89,16 @@ export class DashboardSidebarComponent implements OnInit, AfterViewInit, OnDestr
   /** Reclamos pendientes de atender, para el badge de "Reclamos". */
   readonly reclamosNoLeidos$ = inject(ReclamosService).noLeidos$;
 
+  /** Pedidos "En espera", para el badge de "Pedidos". */
+  readonly pedidosNoLeidos$ = inject(PedidosService).noLeidos$;
+
   constructor(
     private authService: AuthService,
     public permissionsService: PermissionsService,   // <- Cambiar private por public
     private empresaInfoService: EmpresaInfoService,
     private contactoService: ContactoService,
-    private reclamosService: ReclamosService
+    private reclamosService: ReclamosService,
+    private pedidosService: PedidosService
   ) {}
 
 
@@ -116,6 +121,9 @@ export class DashboardSidebarComponent implements OnInit, AfterViewInit, OnDestr
     // Contador de reclamos pendientes, para el badge de "Reclamos".
     this.reclamosService.refrescarNoLeidos().subscribe({ error: () => {} });
 
+    // Contador de pedidos "En espera", para el badge de "Pedidos".
+    this.pedidosService.refrescarNoLeidos().subscribe({ error: () => {} });
+
     // Mantener abierto el dropdown de Recompensas según la ruta activa
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
@@ -131,6 +139,12 @@ export class DashboardSidebarComponent implements OnInit, AfterViewInit, OnDestr
         // atendido alguno.
         if (!event.urlAfterRedirects.includes('/dashboard/reclamos')) {
           this.reclamosService.refrescarNoLeidos().subscribe({ error: () => {} });
+        }
+
+        // Igual con pedidos: al salir de la sección puede que se haya
+        // atendido alguno.
+        if (!event.urlAfterRedirects.includes('/dashboard/pedidos')) {
+          this.pedidosService.refrescarNoLeidos().subscribe({ error: () => {} });
         }
       }
     });

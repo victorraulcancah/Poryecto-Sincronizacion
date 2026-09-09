@@ -760,6 +760,11 @@ export class PedidosListComponent implements OnInit {
           this.aplicarFiltros();
         }
 
+        // El badge del sidebar cuenta los "En espera": al salir de ese
+        // estado tiene que bajar ya, no recién cuando se navegue fuera de
+        // esta página.
+        this.pedidosService.refrescarNoLeidos().subscribe({ error: () => {} });
+
         // El cambio se puede hacer desde el modal aparte o desde la pestaña
         // del detalle: se cierra el que esté abierto.
         ['cambiarEstadoModal', 'detallePedidoModal'].forEach(id => {
