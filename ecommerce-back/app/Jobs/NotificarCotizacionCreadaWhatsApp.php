@@ -30,6 +30,7 @@ class NotificarCotizacionCreadaWhatsApp implements ShouldQueue
 
     public function __construct(
         public int $cotizacionId,
+        public int $pedidoId,
         public string $codigoPedido,
     ) {
     }
@@ -61,8 +62,9 @@ class NotificarCotizacionCreadaWhatsApp implements ShouldQueue
             'codigo_cotizacion' => $cotizacion->codigo_cotizacion,
             'codigo_pedido' => $this->codigoPedido,
             'total' => $simbolo.' '.number_format((float) $cotizacion->total, 2),
-            // Fijo, no editable desde la plantilla — ver config/whatsapp.php.
-            'link' => config('whatsapp.link_ecommerce'),
+            // Fijo, no editable desde la plantilla: el PDF del pedido creado
+            // junto con esta cotización (ver PedidosController::descargarPdfPublico).
+            'link' => route('pedidos.pdf-publico', ['id' => $this->pedidoId, 'codigoPedido' => $this->codigoPedido]),
         ];
 
         $notificaciones->enviarConPlantilla(

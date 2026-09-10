@@ -175,3 +175,9 @@ Route::get('/nota-debito/cdr/{notaId}/{numeroCompleto}', [\App\Http\Controllers\
 Route::get('/guia-remision/pdf/{guiaId}/{numeroCompleto}', [\App\Http\Controllers\Facturacion\GuiasRemisionController::class, 'descargarPdfPublico'])->where('numeroCompleto', '.*');
 Route::get('/guia-remision/xml/{guiaId}/{numeroCompleto}', [\App\Http\Controllers\Facturacion\GuiasRemisionController::class, 'descargarXmlPublico'])->where('numeroCompleto', '.*');
 Route::get('/guia-remision/cdr/{guiaId}/{numeroCompleto}', [\App\Http\Controllers\Facturacion\GuiasRemisionController::class, 'descargarCdrPublico'])->where('numeroCompleto', '.*');
+
+// PEDIDO PÚBLICO (para el link del WhatsApp automático de cotización/pedido)
+// ============================================
+Route::get('/pedidos/{id}/pdf-publico/{codigoPedido}', [\App\Http\Controllers\PedidosController::class, 'descargarPdfPublico'])
+    ->where('codigoPedido', '.*')
+    ->name('pedidos.pdf-publico');

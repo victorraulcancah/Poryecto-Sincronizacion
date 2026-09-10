@@ -40,7 +40,7 @@ export class WhatsappComponent implements OnInit, OnDestroy {
     codigo_cotizacion: 'COT-000123',
     codigo_pedido: 'PED-000123',
     total: 'S/ 149.90',
-    link: 'https://tuecommerce.com',
+    link: 'https://api.7power.pe/api/pedidos/123/pdf-publico/PED-000123',
   };
 
   constructor(private whatsappService: WhatsAppTemplateService) {}

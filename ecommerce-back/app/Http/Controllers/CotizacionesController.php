@@ -476,6 +476,7 @@ class CotizacionesController extends Controller
                 $creadas[] = [
                     'cotizacion' => $cotizacion->load(['detalles', 'estadoCotizacion', 'metodosPago']),
                     'codigo_cotizacion' => $cotizacion->codigo_cotizacion,
+                    'pedido_id' => $pedido->id,
                     'pedido_codigo' => $pedido->codigo_pedido,
                     'moneda' => $monedaCot,
                     'total' => round($totalCot, 2),
@@ -490,6 +491,7 @@ class CotizacionesController extends Controller
             foreach ($creadas as $creada) {
                 NotificarCotizacionCreadaWhatsApp::dispatch(
                     $creada['cotizacion']->id,
+                    $creada['pedido_id'],
                     $creada['pedido_codigo']
                 );
             }

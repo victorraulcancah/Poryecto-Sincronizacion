@@ -56,7 +56,7 @@ class NotificarPedidoCreadoWhatsApp implements ShouldQueue
             'codigo_cotizacion' => '',
             'codigo_pedido' => $pedido->codigo_pedido,
             'total' => $simbolo.' '.number_format((float) $pedido->total, 2),
-            'link' => config('whatsapp.link_ecommerce'),
+            'link' => route('pedidos.pdf-publico', ['id' => $pedido->id, 'codigoPedido' => $pedido->codigo_pedido]),
         ];
 
         $notificaciones->enviarConPlantilla(

@@ -889,6 +889,49 @@ class PedidosController extends Controller
                 'estadoPedido'
             ])->findOrFail($id);
 
+            return $this->construirPdfPedido($pedido);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error al generar PDF: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Mismo PDF, sin exigir sesión — es el link que manda el WhatsApp
+     * automático de cotización/pedido. Como no hay login, la seguridad es
+     * que además del id coincida el código exacto del pedido (mismo patrón
+     * que VentasController::descargarPdfPublico para comprobantes).
+     */
+    public function descargarPdfPublico($id, $codigoPedido)
+    {
+        try {
+            $pedido = Pedido::with([
+                'cliente',
+                'userCliente',
+                'detalles.producto',
+                'estadoPedido'
+            ])->findOrFail($id);
+
+            if ($pedido->codigo_pedido !== $codigoPedido) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Código de pedido no válido',
+                ], 403);
+            }
+
+            return $this->construirPdfPedido($pedido);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error al generar PDF: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    private function construirPdfPedido(Pedido $pedido)
+    {
             // Obtener datos de la empresa
             $empresa = EmpresaInfo::first();
             if (!$empresa) {
@@ -947,12 +990,5 @@ class PedidosController extends Controller
             $pdf->setPaper('A4', 'portrait');
 
             return $pdf->download("Pedido_{$pedido->codigo_pedido}.pdf");
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Error al generar PDF: ' . $e->getMessage()
-            ], 500);
-        }
     }
 }
