@@ -10,6 +10,7 @@ use App\Models\UserCliente;
 use App\Models\Producto;
 use App\Models\TipoPrecio;
 use App\Models\EmpresaInfo;
+use App\Jobs\NotificarPedidoCreadoWhatsApp;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -467,6 +468,8 @@ class PedidosController extends Controller
             }
 
             DB::commit();
+
+            NotificarPedidoCreadoWhatsApp::dispatch($pedido->id);
 
             return response()->json([
                 'message' => 'Pedido creado exitosamente',

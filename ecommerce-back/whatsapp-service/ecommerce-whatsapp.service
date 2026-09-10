@@ -1,0 +1,31 @@
+; Daemon del servicio de WhatsApp.
+;
+; Instalación en el servidor (como root):
+;   cp whatsapp-service/ecommerce-whatsapp.service /etc/systemd/system/
+;   systemctl daemon-reload
+;   systemctl enable --now ecommerce-whatsapp
+;
+; Ajusta WorkingDirectory y User/Group si la ruta o el usuario del proyecto
+; son distintos (revisa con qué usuario corre PHP-FPM en este servidor).
+
+[Unit]
+Description=Servicio WhatsApp (Baileys) - Ecommerce 7Power
+After=network.target
+
+[Service]
+Type=simple
+User=apache
+Group=apache
+WorkingDirectory=/var/www/html/ecommerce-back/whatsapp-service
+ExecStart=/usr/bin/node index.js
+Restart=always
+RestartSec=10
+
+; Solo escucha en localhost; Laravel es el único que le habla.
+Environment=NODE_ENV=production
+
+StandardOutput=append:/var/log/ecommerce-whatsapp.log
+StandardError=append:/var/log/ecommerce-whatsapp.log
+
+[Install]
+WantedBy=multi-user.target

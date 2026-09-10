@@ -349,16 +349,30 @@ class ComprobantesController extends Controller
             }
 
             // Verificar si WhatsApp está habilitado
-            if (! WhatsAppService::estaHabilitado()) {
+            if (! config('whatsapp.habilitado')) {
                 return response()->json([
                     'success' => false,
                     'message' => 'El servicio de WhatsApp no está habilitado',
                 ], 503);
             }
 
-            // Enviar comprobante por WhatsApp
+            // Enviar comprobante por WhatsApp: un link al PDF, no el archivo
+            // adjunto — el microservicio de WhatsApp solo manda texto.
+            $tipoDoc = $comprobante->tipo_comprobante === '01' ? 'Factura' : 'Boleta';
+            $numero = $comprobante->serie.'-'.str_pad($comprobante->correlativo, 8, '0', STR_PAD_LEFT);
+            $ventaId = $comprobante->venta?->id;
+            $pdfUrl = $ventaId ? url("/api/venta/comprobante/pdf/{$ventaId}/{$numero}") : null;
+
+            $mensaje = $request->mensaje ?: (
+                "✅ *{$tipoDoc} Electrónica*\n\n".
+                "📄 Número: *{$numero}*\n".
+                "💰 Total: S/ ".number_format($comprobante->importe_total, 2)."\n".
+                ($pdfUrl ? "\n📥 Descárgala aquí:\n{$pdfUrl}\n" : '').
+                "\nGracias por su preferencia."
+            );
+
             $whatsappService = new WhatsAppService;
-            $whatsappService->enviarComprobante($comprobante, $request->telefono);
+            $whatsappService->enviar($request->telefono, $mensaje);
 
             Log::info('Comprobante enviado por WhatsApp', [
                 'comprobante_id' => $comprobante->id,

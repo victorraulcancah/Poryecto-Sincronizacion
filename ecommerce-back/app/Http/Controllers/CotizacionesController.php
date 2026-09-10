@@ -14,6 +14,7 @@ use App\Models\Pedido;
 use App\Models\PedidoDetalle;
 use App\Models\PedidoTracking;
 use App\Models\EmpresaInfo;
+use App\Jobs\NotificarCotizacionCreadaWhatsApp;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -482,6 +483,16 @@ class CotizacionesController extends Controller
             }
 
             DB::commit();
+
+            // Aviso de WhatsApp al cliente. Después del commit y en un Job:
+            // si el checkout falla la cotización no debe quedar a medias, y
+            // si el aviso falla no debe tumbar una cotización ya guardada.
+            foreach ($creadas as $creada) {
+                NotificarCotizacionCreadaWhatsApp::dispatch(
+                    $creada['cotizacion']->id,
+                    $creada['pedido_codigo']
+                );
+            }
 
             return response()->json([
                 'status' => 'success',

@@ -1,0 +1,118 @@
+<!-- Mensaje automático de WhatsApp al crear cotización/pedido -->
+<div class="whatsapp">
+
+  <div class="whatsapp__cabecera">
+    <div>
+      <h4>
+        <i class="ph ph-whatsapp-logo"></i>
+        WhatsApp automático
+      </h4>
+      <p>
+        Mensaje que recibe el cliente por WhatsApp apenas crea una cotización o
+        pedido desde el ecommerce. El texto es editable; el link va siempre
+        incluido automáticamente.
+      </p>
+    </div>
+  </div>
+
+  <div class="aviso-alerta" *ngIf="!isLoading && !habilitado">
+    <i class="ph ph-warning-circle"></i>
+    <div>
+      <strong>El envío automático está deshabilitado en el servidor.</strong>
+      El mensaje se puede editar igual, pero no se enviará hasta que se active
+      <code>WHATSAPP_HABILITADO</code> en la configuración del servidor.
+    </div>
+  </div>
+
+  <!-- Cargando -->
+  <div class="cargando" *ngIf="isLoading">
+    <span class="spinner-border"></span>
+    <span>Cargando configuración...</span>
+  </div>
+
+  <div class="whatsapp__grid" *ngIf="!isLoading">
+
+    <!-- ── Columna: mensaje ───────────────────────────────────── -->
+    <section class="tarjeta">
+      <h5><i class="ph ph-chat-text"></i> Mensaje</h5>
+
+      <label class="interruptor" title="Si está apagado, no se envía ningún WhatsApp">
+        <input type="checkbox" [(ngModel)]="activo">
+        <span class="interruptor__pista"></span>
+        <span class="interruptor__texto">{{ activo ? 'Envío activado' : 'Envío desactivado' }}</span>
+      </label>
+
+      <label class="etiqueta mt-3">Texto del mensaje</label>
+      <textarea class="form-control" rows="8" [(ngModel)]="contenido"
+        maxlength="2000" placeholder="Escribe el mensaje..."></textarea>
+      <p class="ayuda">{{ contenido.length }}/2000</p>
+
+      <label class="etiqueta">Variables disponibles</label>
+      <div class="variables">
+        <button type="button" class="chip" *ngFor="let v of variables" (click)="insertarVariable(v)">
+          {{ '{' + v + '}' }}
+        </button>
+      </div>
+      <p class="ayuda">
+        Haz clic en una variable para agregarla al mensaje. El link del
+        ecommerce (<code>{{ '{link}' }}</code>) apunta siempre a
+        <strong>{{ linkEcommerce }}</strong> y no se puede cambiar acá.
+      </p>
+
+      <div class="whatsapp__pie">
+        <button type="button" class="btn btn-guardar" (click)="guardar()" [disabled]="guardando">
+          <span *ngIf="guardando" class="spinner-border spinner-border-sm me-2"></span>
+          {{ guardando ? 'Guardando...' : 'Guardar mensaje' }}
+        </button>
+      </div>
+    </section>
+
+    <!-- ── Columna: vista previa + conexión ──────────────────── -->
+    <div class="whatsapp__columna">
+      <section class="tarjeta">
+        <h5><i class="ph ph-eye"></i> Vista previa</h5>
+        <div class="burbuja">
+          <p>{{ vistaPrevia }}</p>
+        </div>
+        <p class="ayuda">Con datos de ejemplo, para ver cómo se vería.</p>
+      </section>
+
+      <section class="tarjeta">
+        <h5><i class="ph ph-plug"></i> Número vinculado</h5>
+
+        <div class="estado" [ngClass]="'estado--' + (conexion?.estado || 'error')">
+          <span class="estado__punto"></span>
+          <span>{{ estadoTexto }}</span>
+        </div>
+
+        <p class="ayuda" *ngIf="conexion?.estado === 'error' && conexion?.error">
+          {{ conexion?.error }}
+        </p>
+
+        <!-- QR para vincular -->
+        <div class="qr" *ngIf="conexion?.estado === 'esperando-qr'">
+          <img *ngIf="qrImagen" [src]="qrImagen" alt="Código QR para vincular WhatsApp">
+          <p class="ayuda">
+            Abre WhatsApp en el celular que vas a usar → Dispositivos vinculados
+            → Vincular un dispositivo, y escanea este código.
+          </p>
+        </div>
+
+        <p class="ayuda" *ngIf="conexion?.estado === 'conectado'">
+          El número ya está vinculado y enviando mensajes.
+        </p>
+
+        <button type="button" class="btn btn-desvincular" (click)="desvincular()"
+          [disabled]="desvinculando" *ngIf="conexion?.estado === 'conectado'">
+          <span *ngIf="desvinculando" class="spinner-border spinner-border-sm me-2"></span>
+          {{ desvinculando ? 'Desvinculando...' : 'Vincular otro número' }}
+        </button>
+
+        <button type="button" class="btn btn-actualizar" (click)="cargar()">
+          <i class="ph ph-arrows-clockwise"></i>
+          Actualizar estado
+        </button>
+      </section>
+    </div>
+  </div>
+</div>

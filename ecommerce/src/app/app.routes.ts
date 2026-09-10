@@ -1021,6 +1021,17 @@ export const routes: Routes = [
         canActivate: [permissionGuard],
         data: { permission: 'configuracion.ver' },
       },
+      {
+        // Mensaje automático de WhatsApp al crear cotización/pedido.
+        path: 'whatsapp',
+        loadComponent: () =>
+          import('./pages/dashboard/whatsapp/whatsapp.component').then(
+            (m) => m.WhatsappComponent
+          ),
+        title: 'WhatsApp automático',
+        canActivate: [permissionGuard],
+        data: { permission: 'configuracion.ver' },
+      },
       // ✅ RUTAS DE FACTURACIÓN ELECTRÓNICA
       // La ruta POS ahora está en /dashboard/ventas/nueva
       {

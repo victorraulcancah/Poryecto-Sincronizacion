@@ -98,27 +98,20 @@ class NotificacionService
     }
 
     /**
-     * Enviar WhatsApp (usando API de WhatsApp Business)
+     * Enviar WhatsApp, vía el microservicio propio (Baileys) en
+     * WhatsAppService — no una API paga de terceros.
      */
     private function enviarWhatsApp($notificacion)
     {
-        // Configurar según tu proveedor de WhatsApp API
-        // Ejemplo con Twilio, Meta WhatsApp Business API, etc.
-        
-        $apiUrl = env('WHATSAPP_API_URL');
-        $apiToken = env('WHATSAPP_API_TOKEN');
-
-        if (!$apiUrl || !$apiToken) {
-            throw new \Exception('WhatsApp API no configurada');
+        if (!$notificacion->telefono) {
+            throw new \Exception('El destinatario no tiene teléfono registrado');
         }
 
-        $response = Http::withToken($apiToken)->post($apiUrl, [
-            'to' => $notificacion->telefono,
-            'message' => $notificacion->mensaje
-        ]);
+        $enviado = app(\App\Services\WhatsAppService::class)
+            ->enviar($notificacion->telefono, $notificacion->mensaje);
 
-        if (!$response->successful()) {
-            throw new \Exception('Error al enviar WhatsApp: ' . $response->body());
+        if (!$enviado) {
+            throw new \Exception('No se pudo enviar el WhatsApp (revisa que el microservicio esté conectado)');
         }
     }
 

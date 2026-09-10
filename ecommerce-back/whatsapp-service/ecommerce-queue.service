@@ -1,0 +1,34 @@
+; Worker de colas de Laravel. Sin esto los Jobs de WhatsApp (y cualquier
+; otro ShouldQueue) se quedan encolados y nunca se procesan.
+;
+; OJO: si este servidor YA tiene un worker de colas corriendo para
+; ecommerce-back (por supervisor, cron, u otro systemd service), NO
+; instales este archivo — instalar dos workers duplicaría el procesamiento.
+; Revisa primero con: systemctl list-units | grep -i queue
+;
+; Instalación en el servidor (como root):
+;   cp whatsapp-service/ecommerce-queue.service /etc/systemd/system/
+;   systemctl daemon-reload
+;   systemctl enable --now ecommerce-queue
+;
+; Ajusta WorkingDirectory y User/Group si la ruta o el usuario del proyecto
+; son distintos.
+
+[Unit]
+Description=Worker de colas Laravel - Ecommerce 7Power
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=apache
+Group=apache
+WorkingDirectory=/var/www/html/ecommerce-back
+ExecStart=/usr/bin/php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+Restart=always
+RestartSec=10
+
+StandardOutput=append:/var/log/ecommerce-queue.log
+StandardError=append:/var/log/ecommerce-queue.log
+
+[Install]
+WantedBy=multi-user.target

@@ -174,6 +174,7 @@ export class DashboardSidebarComponent implements OnInit, AfterViewInit, OnDestr
   puedeVerAlmacen = false;
   puedeVerEcommerce = false;
   puedeVerCaptcha = false;
+  puedeVerWhatsapp = false;
 
   private checkPermissions(): void {
     const currentUser = this.authService.getCurrentUser();
@@ -206,6 +207,7 @@ export class DashboardSidebarComponent implements OnInit, AfterViewInit, OnDestr
     this.puedeVerContabilidad = this.permissionsService.hasPermission('contabilidad.ver');
 
     this.puedeVerCaptcha = this.permissionsService.hasPermission('configuracion.ver');
+    this.puedeVerWhatsapp = this.permissionsService.hasPermission('configuracion.ver');
 
     // Los grupos se muestran solo si hay algo adentro que el rol pueda abrir:
     // un grupo vacío que no lleva a ningún lado confunde más que ayudar.

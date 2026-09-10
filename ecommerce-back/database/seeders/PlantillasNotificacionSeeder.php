@@ -104,6 +104,21 @@ class PlantillasNotificacionSeeder extends Seeder
                 'contenido' => "✅ *Pago Verificado*\n\nHola {nombre}!\n\nTu pago ha sido confirmado:\n\n💵 Monto: {monto}\n🔢 Op: {numero_operacion}\n📅 {fecha}\n\nGracias! 🎉",
                 'variables' => ['nombre', 'numero_operacion', 'monto', 'fecha'],
                 'activo' => true
+            ],
+
+            // WHATSAPP - Cotización/pedido creado desde el checkout del ecommerce.
+            // Editable desde el panel (Configuración > Plantillas); {link} lo
+            // completa siempre el sistema con la URL del ecommerce, no es
+            // editable por texto — ver WhatsAppTemplateController.
+            [
+                'codigo' => 'COTIZACION_CREADA_WHATSAPP',
+                'nombre' => 'Cotización/Pedido Creado - WhatsApp',
+                'tipo' => 'COTIZACION_CREADA',
+                'canal' => 'WHATSAPP',
+                'asunto' => null,
+                'contenido' => "🛒 *¡Gracias por tu compra!*\n\nHola {nombre}!\n\nRegistramos tu pedido #{codigo_pedido} por {total}.\n\nSigue tu pedido o vuelve a comprar aquí:\n{link}\n\nGracias por tu preferencia! 🎉",
+                'variables' => ['nombre', 'codigo_cotizacion', 'codigo_pedido', 'total', 'link'],
+                'activo' => true
             ]
         ];
 

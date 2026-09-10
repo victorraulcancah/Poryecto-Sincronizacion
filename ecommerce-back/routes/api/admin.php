@@ -171,6 +171,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/admin/pasos-envio/{id}', [\App\Http\Controllers\PasoEnvioController::class, 'destroy']);
         Route::delete('/admin/pasos-envio/{id}/imagen', [\App\Http\Controllers\PasoEnvioController::class, 'deleteImage']);
     });
+    // ============================================
+    // WHATSAPP: plantilla del mensaje de cotización/pedido y vinculación
+    // ============================================
+    Route::middleware('permission:configuracion.ver')->group(function () {
+        Route::get('/whatsapp/plantilla', [\App\Http\Controllers\WhatsAppTemplateController::class, 'show']);
+    });
+    Route::middleware('permission:configuracion.edit')->group(function () {
+        Route::put('/whatsapp/plantilla', [\App\Http\Controllers\WhatsAppTemplateController::class, 'update']);
+        Route::post('/whatsapp/desvincular', [\App\Http\Controllers\WhatsAppTemplateController::class, 'desvincular']);
+    });
+
       // Rutas de Tipos de Pago protegidas con permisos
     Route::middleware('permission:configuracion.ver')->group(function () {
         Route::get('/tipos-pago', [TipoPagoController::class, 'index']);
