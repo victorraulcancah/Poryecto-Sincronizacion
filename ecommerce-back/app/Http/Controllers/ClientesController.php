@@ -16,6 +16,16 @@ class ClientesController extends Controller
         try {
             $query = UserCliente::with(['tipoDocumento', 'direccionPredeterminada']);
 
+            // Un Vendedor solo ve los clientes de su cartera en Novik (los que
+            // tiene asignados como ejecutivo comercial); el resto de roles ve
+            // todos. Mismo mecanismo que ya usa CotizacionesController.
+            $usuario = $request->user();
+            if ($usuario instanceof \App\Models\User && \App\Support\CarteraDelVendedor::aplica($usuario)) {
+                $codigos = \App\Support\CarteraDelVendedor::codigosDeCliente($usuario);
+                // Sin cartera no ve ninguno, no todos.
+                $query->whereIn('codigo_erp', $codigos ?: ['__sin_cartera__']);
+            }
+
             // Filtros
             if ($request->filled('search')) {
                 $search = $request->search;
