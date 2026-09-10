@@ -22,7 +22,7 @@ After=network.target mysql.service
 Type=simple
 User=apache
 Group=apache
-WorkingDirectory=/var/www/html/ecommerce-back
+WorkingDirectory=/var/www/html/Poryecto-Sincronizacion/ecommerce-back
 ExecStart=/usr/bin/php artisan queue:work --sleep=3 --tries=3 --max-time=3600
 Restart=always
 RestartSec=10
