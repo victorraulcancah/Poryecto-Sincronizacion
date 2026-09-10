@@ -102,13 +102,13 @@
           El número ya está vinculado y enviando mensajes.
         </p>
 
-        <button type="button" class="btn btn-desvincular" (click)="desvincular()"
+        <button type="button" class="btn-desvincular" (click)="desvincular()"
           [disabled]="desvinculando" *ngIf="conexion?.estado === 'conectado'">
           <span *ngIf="desvinculando" class="spinner-border spinner-border-sm me-2"></span>
           {{ desvinculando ? 'Desvinculando...' : 'Vincular otro número' }}
         </button>
 
-        <button type="button" class="btn btn-actualizar" (click)="actualizarEstado()">
+        <button type="button" class="btn-actualizar" (click)="actualizarEstado()">
           <i class="ph ph-arrows-clockwise"></i>
           Actualizar estado
         </button>

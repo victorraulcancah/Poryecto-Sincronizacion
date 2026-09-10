@@ -270,23 +270,24 @@ $tenue: #6b7280;
   font-size: 0.86rem;
   font-weight: 600;
   margin-top: 8px;
+  cursor: pointer;
 }
 
 .btn-desvincular {
-  background: #fff;
-  border: 1px solid $rojo;
-  color: $rojo;
+  background: #fff !important;
+  border: 1px solid $rojo !important;
+  color: $rojo !important;
 
-  &:hover:not(:disabled) { background: #fdecec; }
-  &:disabled { opacity: 0.6; }
+  &:hover:not(:disabled) { background: #fdecec !important; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
 }
 
 .btn-actualizar {
-  background: #f3f4f6;
-  border: 1px solid $borde;
-  color: $texto;
+  background: #f3f4f6 !important;
+  border: 1px solid $borde !important;
+  color: $texto !important;
 
-  &:hover { background: #e5e7eb; }
+  &:hover { background: #e5e7eb !important; }
 }
 
 .cargando {
