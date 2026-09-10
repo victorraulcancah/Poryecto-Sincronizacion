@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, interval, takeUntil } from 'rxjs';
 import Swal from 'sweetalert2';
 import * as QRCode from 'qrcode';
 import { WhatsAppTemplateService, WhatsAppPlantilla } from '../../../services/whatsapp-template.service';
@@ -47,6 +47,13 @@ export class WhatsappComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.cargar();
+
+    // Refresca solo el estado de conexión (no el mensaje) mientras la
+    // página está abierta, para que el QR y el "Conectado" se vean sin
+    // tener que recargar a mano.
+    interval(5000)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.actualizarEstado());
   }
 
   ngOnDestroy(): void {
@@ -75,6 +82,21 @@ export class WhatsappComponent implements OnInit, OnDestroy {
           this.isLoading = false;
           Swal.fire('Error', 'No se pudo cargar la configuración de WhatsApp', 'error');
         },
+      });
+  }
+
+  /** Igual que `cargar()` pero sin tocar el mensaje/textarea — para el polling y el botón "Actualizar estado". */
+  actualizarEstado(): void {
+    this.whatsappService
+      .obtener()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: res => {
+          this.habilitado = res.habilitado;
+          this.conexion = res.conexion;
+          this.generarQr();
+        },
+        error: error => console.error('Error al actualizar el estado de WhatsApp:', error),
       });
   }
 
@@ -173,7 +195,7 @@ export class WhatsappComponent implements OnInit, OnDestroy {
         .subscribe({
           next: () => {
             this.desvinculando = false;
-            this.cargar();
+            this.actualizarEstado();
           },
           error: error => {
             this.desvinculando = false;
