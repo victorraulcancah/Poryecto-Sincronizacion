@@ -10,6 +10,40 @@ use App\Models\DocumentType;
 
 class UserAccountController extends Controller
 {
+    /**
+     * Perfil del panel admin (/dashboard/perfil). La tabla `users` solo
+     * tiene `name` y `email` — a diferencia de UserCliente, no maneja
+     * teléfono/dirección/foto acá.
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+
+        $validator = Validator::make($request->all(), [
+            'name' => ['required', 'string', 'min:3', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Errores de validación',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Perfil actualizado correctamente',
+            'user' => $user->fresh(),
+        ]);
+    }
+
     public function changePassword(Request $request)
     {
         $validator = Validator::make($request->all(), [

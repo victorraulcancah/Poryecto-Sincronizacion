@@ -23,10 +23,6 @@ export class PerfilComponent implements OnInit {
   showPasswordModal = false;
   currentUser: any = null;
 
-  // Preview de imagen
-  imagePreview: string | null = null;
-  selectedFile: File | null = null;
-
   constructor(private fb: FormBuilder, private authService: AuthService) {
     this.initForms();
   }
@@ -40,8 +36,6 @@ export class PerfilComponent implements OnInit {
     this.perfilForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
-      telefono: ['', [Validators.pattern('^[9][0-9]{8}$')]],
-      direccion: [''],
     });
 
     // Formulario de cambio de contraseña
@@ -72,18 +66,7 @@ export class PerfilComponent implements OnInit {
           this.perfilForm.patchValue({
             name: user.name,
             email: user.email,
-            telefono: user.telefono || '',
-            direccion: user.direccion || '',
           });
-
-          // Cargar imagen de perfil si existe
-          if (user.avatar) {
-            // Si la URL ya es completa (empieza con http), usarla directamente
-            // Si no, es una ruta relativa y necesita el prefijo del backend
-            this.imagePreview = user.avatar.startsWith('http') 
-              ? user.avatar 
-              : user.avatar;
-          }
         }
         this.isLoading = false;
       },
@@ -92,20 +75,6 @@ export class PerfilComponent implements OnInit {
         this.isLoading = false;
       },
     });
-  }
-
-  onFileSelected(event: any): void {
-    const file = event.target.files[0];
-    if (file) {
-      this.selectedFile = file;
-
-      // Crear preview
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.imagePreview = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
   }
 
   onSubmitPerfil(): void {
@@ -124,15 +93,9 @@ export class PerfilComponent implements OnInit {
       formData.append(key, this.perfilForm.value[key]);
     });
 
-    // Agregar imagen si se seleccionó
-    if (this.selectedFile) {
-      formData.append('avatar', this.selectedFile);
-    }
-
     this.authService.updateProfile(formData).subscribe({
       next: (response: any) => {
         Swal.fire('¡Éxito!', 'Perfil actualizado correctamente', 'success');
-        this.selectedFile = null;
         this.loadUserData();
         this.isLoading = false;
       },

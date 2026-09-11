@@ -51,6 +51,7 @@ Route::middleware(['auth:sanctum'])->prefix('user')->group(function () {
     Route::get('/permissions', [\App\Http\Controllers\UserPermissionsController::class, 'index']);
     Route::post('/permissions/check', [\App\Http\Controllers\UserPermissionsController::class, 'check']);
     Route::get('/permissions/available', [\App\Http\Controllers\UserPermissionsController::class, 'available']);
+    Route::post('/update-profile', [\App\Http\Controllers\UserAccountController::class, 'updateProfile']);
     Route::post('/change-password', [\App\Http\Controllers\UserAccountController::class, 'changePassword']);
     Route::patch('/telefono', [\App\Http\Controllers\UserAccountController::class, 'actualizarTelefono']);
     Route::post('/facturacion', [\App\Http\Controllers\UserAccountController::class, 'actualizarFacturacion']);
