@@ -160,6 +160,50 @@
                   </div>
                 </div>
 
+                <!-- Teléfono -->
+                <div class="col-md-6">
+                  <label
+                    class="form-label fw-semibold text-sm text-heading mb-8"
+                  >
+                    Teléfono
+                  </label>
+                  <input
+                    type="text"
+                    class="form-control radius-8 border-gray-200"
+                    formControlName="telefono"
+                    placeholder="999999999"
+                    maxlength="9"
+                    [class.is-invalid]="
+                      perfilForm.get('telefono')?.invalid &&
+                      perfilForm.get('telefono')?.touched
+                    "
+                  />
+                  <div
+                    *ngIf="
+                      perfilForm.get('telefono')?.invalid &&
+                      perfilForm.get('telefono')?.touched
+                    "
+                    class="text-danger-600 text-xs mt-4"
+                  >
+                    Ingresa un número de celular válido (9 dígitos)
+                  </div>
+                </div>
+
+                <!-- Dirección -->
+                <div class="col-12">
+                  <label
+                    class="form-label fw-semibold text-sm text-heading mb-8"
+                  >
+                    Dirección
+                  </label>
+                  <textarea
+                    class="form-control radius-8 border-gray-200"
+                    formControlName="direccion"
+                    rows="3"
+                    placeholder="Ingresa tu dirección completa"
+                  ></textarea>
+                </div>
+
                 <!-- Fecha de registro (solo lectura) -->
                 <div class="col-md-6">
                   <label

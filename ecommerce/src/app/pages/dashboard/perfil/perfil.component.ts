@@ -36,6 +36,8 @@ export class PerfilComponent implements OnInit {
     this.perfilForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
+      telefono: ['', [Validators.pattern('^[9][0-9]{8}$')]],
+      direccion: [''],
     });
 
     // Formulario de cambio de contraseña
@@ -66,6 +68,8 @@ export class PerfilComponent implements OnInit {
           this.perfilForm.patchValue({
             name: user.name,
             email: user.email,
+            telefono: user.telefono || '',
+            direccion: user.direccion || '',
           });
         }
         this.isLoading = false;

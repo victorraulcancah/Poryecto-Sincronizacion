@@ -11,9 +11,8 @@ use App\Models\DocumentType;
 class UserAccountController extends Controller
 {
     /**
-     * Perfil del panel admin (/dashboard/perfil). La tabla `users` solo
-     * tiene `name` y `email` — a diferencia de UserCliente, no maneja
-     * teléfono/dirección/foto acá.
+     * Perfil del panel admin (/dashboard/perfil). No maneja foto acá (no hay
+     * dónde guardarla todavía en `users`).
      */
     public function updateProfile(Request $request)
     {
@@ -22,6 +21,8 @@ class UserAccountController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => ['required', 'string', 'min:3', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'telefono' => ['nullable', 'string', 'max:20'],
+            'direccion' => ['nullable', 'string'],
         ]);
 
         if ($validator->fails()) {
@@ -35,6 +36,8 @@ class UserAccountController extends Controller
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
+            'telefono' => $request->telefono,
+            'direccion' => $request->direccion,
         ]);
 
         return response()->json([
