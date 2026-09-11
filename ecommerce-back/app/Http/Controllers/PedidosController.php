@@ -717,10 +717,23 @@ class PedidosController extends Controller
      * la bandeja de trabajo (`Pedido::scopePendientesDeAccion`), pero solo
      * "En espera": lo ya atendido hoy no necesita que nadie vuelva a mirarlo.
      */
-    public function noLeidos()
+    public function noLeidos(Request $request)
     {
+        $query = Pedido::where('estado_pedido_id', Pedido::ESTADO_EN_ESPERA);
+
+        // Mismo filtro de cartera que index(): un Vendedor solo cuenta lo
+        // suyo, no el total de la empresa.
+        $usuario = $request->user();
+        if ($usuario instanceof \App\Models\User && \App\Support\CarteraDelVendedor::aplica($usuario)) {
+            $codigos = \App\Support\CarteraDelVendedor::codigosDeCliente($usuario);
+
+            $query->whereHas('userCliente', function ($q) use ($codigos) {
+                $q->whereIn('codigo_erp', $codigos ?: ['__sin_cartera__']);
+            });
+        }
+
         return response()->json([
-            'no_leidos' => Pedido::where('estado_pedido_id', Pedido::ESTADO_EN_ESPERA)->count(),
+            'no_leidos' => $query->count(),
         ]);
     }
 
