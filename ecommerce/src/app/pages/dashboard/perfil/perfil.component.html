@@ -159,6 +159,24 @@
                     Ingresa un correo electrónico válido
                   </div>
                 </div>
+
+                <!-- Fecha de registro (solo lectura) -->
+                <div class="col-md-6">
+                  <label
+                    class="form-label fw-semibold text-sm text-heading mb-8"
+                  >
+                    Miembro desde
+                  </label>
+                  <input
+                    type="text"
+                    class="form-control radius-8 border-gray-200 bg-gray-50"
+                    [value]="
+                      currentUser?.created_at
+                        | date : 'dd/MM/yyyy' : '' : 'es-PE'
+                    "
+                    disabled
+                  />
+                </div>
               </div>
 
               <!-- Botones -->
