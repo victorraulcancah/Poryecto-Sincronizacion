@@ -1590,8 +1590,8 @@ export class IndexComponent implements OnInit, OnDestroy, AfterViewInit {
     slidesToShow: 8,
     slidesToScroll: 1,
     autoplay: true,
-    autoplaySpeed: 2000,
-    speed: 1500,
+    autoplaySpeed: 1000,
+    speed: 500,
     dots: false,
     pauseOnHover: true,
     arrows: false, // Sin flechas porque se mueve solo con autoplay
