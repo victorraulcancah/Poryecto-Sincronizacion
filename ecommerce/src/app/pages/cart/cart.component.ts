@@ -297,10 +297,13 @@ export class CartComponent implements OnInit, OnDestroy {
     });
   }
 
-  proceedToCheckout(): void {
+  // Pagar y Cotizar comparten esta validación. Los dos botones se muestran
+  // también al invitado: al pulsarlos se le pide iniciar sesión, así el flujo
+  // de compra se ve aunque todavía no tenga cuenta.
+  private puedeComprar(): boolean {
     if (this.productosEnCarrito.length === 0) {
       Swal.fire('Carrito vacío', 'Agrega productos al carrito antes de continuar', 'warning');
-      return;
+      return false;
     }
     if (!this.isLoggedIn) {
       Swal.fire({ 
@@ -315,9 +318,29 @@ export class CartComponent implements OnInit, OnDestroy {
           this.router.navigate(['/account']); 
         } 
       });
-      return;
+      return false;
     }
-    this.router.navigate(['/checkout']);
+    return true;
+  }
+
+  cotizar(): void {
+    if (this.puedeComprar()) this.router.navigate(['/checkout']);
+  }
+
+  // El pago en línea con tarjeta (pasarela Culqi) todavía no está integrado:
+  // se avisa con claridad en vez de dejar un botón que no hace nada.
+  pagar(): void {
+    if (!this.puedeComprar()) return;
+    Swal.fire({
+      title: 'Pago en línea próximamente',
+      text: 'Estamos habilitando el pago con tarjeta. Mientras tanto puedes solicitar tu cotización y nuestro equipo coordinará el pago contigo.',
+      icon: 'info',
+      showCancelButton: true,
+      confirmButtonText: 'Solicitar cotización',
+      cancelButtonText: 'Cerrar'
+    }).then(result => {
+      if (result.isConfirmed) this.router.navigate(['/checkout']);
+    });
   }
 
   continueShopping(): void { 

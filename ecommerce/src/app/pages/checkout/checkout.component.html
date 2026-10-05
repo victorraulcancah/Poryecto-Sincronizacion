@@ -751,19 +751,17 @@
                     id="aceptaTerminos" />
                   <label class="form-check-label text-sm" for="aceptaTerminos">
                     He leído y acepto los
-                    <!-- Botones y no enlaces: antes eran href="#" y el clic
-                         sacaba al cliente del checkout. -->
-                    <button type="button"
-                      class="btn btn-link p-0 align-baseline text-main-600 text-decoration-underline text-sm"
-                      (click)="abrirLegal('terminos')">
+                    <!-- Los PDFs se abren en otra pestaña: el cliente no sale del
+                         checkout ni pierde lo que ya llenó. -->
+                    <a href="/assets/legal/terminos-y-condiciones-de-compra.pdf" target="_blank" rel="noopener"
+                      class="text-main-600 text-decoration-underline text-sm">
                       términos y condiciones
-                    </button>
-                    y las
-                    <button type="button"
-                      class="btn btn-link p-0 align-baseline text-main-600 text-decoration-underline text-sm"
-                      (click)="abrirLegal('privacidad')">
-                      políticas de privacidad
-                    </button>
+                    </a>
+                    y la
+                    <a href="/assets/legal/politica-de-privacidad-y-proteccion-de-datos-personales.pdf" target="_blank" rel="noopener"
+                      class="text-main-600 text-decoration-underline text-sm">
+                      política de privacidad
+                    </a>
                   </label>
                 </div>
                 <div class="text-danger text-sm mt-4" *ngIf="
@@ -906,35 +904,6 @@
   (direccionGuardada)="onNuevaDireccionGuardada()"
   (cerrar)="cerrarModalNuevaDireccion()"
 ></app-modal-direccion>
-
-<!-- ====================== Modal: términos y políticas ====================== -->
-<div
-  *ngIf="modalLegal"
-  class="modal d-block"
-  style="background-color: rgba(0,0,0,0.5);"
-  (click)="cerrarLegal()"
->
-  <div class="modal-dialog modal-dialog-centered modal-lg" (click)="$event.stopPropagation()">
-    <div class="modal-content">
-      <div class="modal-header border-bottom border-gray-100">
-        <h5 class="modal-title fw-semibold text-heading">
-          {{ modalLegal === 'terminos' ? 'Términos y condiciones' : 'Políticas de privacidad' }}
-        </h5>
-        <button type="button" class="btn-close" (click)="cerrarLegal()" aria-label="Cerrar"></button>
-      </div>
-
-      <div class="modal-body p-24" style="max-height: 60vh; overflow-y: auto;">
-        <p class="text-sm text-gray-600" *ngFor="let parrafo of textoLegal">{{ parrafo }}</p>
-      </div>
-
-      <div class="modal-footer border-top border-gray-100">
-        <button type="button" class="btn btn-main rounded-8 px-24" (click)="cerrarLegal()">
-          Entendido
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- ========================== Shipping Section Start ============================ -->
 <app-shipping></app-shipping>

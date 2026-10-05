@@ -27,6 +27,9 @@
                     <p class="text-white mb-8" *ngIf="empresaInfo.celular">
                         Celular: {{ empresaInfo.celular }}
                     </p>
+                    <p class="text-white mb-8" *ngIf="empresaInfo.direccion">
+                        Dirección: {{ empresaInfo.direccion }}
+                    </p>
                     <p class="text-white mb-16" *ngIf="empresaInfo.horario_atencion">
                         {{ empresaInfo.horario_atencion }}
                     </p>
@@ -65,10 +68,19 @@
                         <h6 class="footer-item__title text-gray-900 fw-semibold mb-20 text-uppercase">{{ section.title }}</h6>
                         <ul class="footer-menu list-unstyled">
                             <li *ngFor="let link of section.links" class="mb-8">
-                                <a [routerLink]="link.route" 
+                                <a *ngIf="link.href; else enlaceInterno"
+                                   [href]="link.href"
+                                   target="_blank"
+                                   rel="noopener"
                                    class="text-white hover-text-gray-800 text-sm transition-all text-decoration-none">
                                     {{ link.label }}
                                 </a>
+                                <ng-template #enlaceInterno>
+                                    <a [routerLink]="link.route"
+                                       class="text-white hover-text-gray-800 text-sm transition-all text-decoration-none">
+                                        {{ link.label }}
+                                    </a>
+                                </ng-template>
                             </li>
                         </ul>
                     </div>

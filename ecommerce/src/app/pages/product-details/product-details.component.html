@@ -390,6 +390,14 @@
                                         <i class="ph ph-shopping-cart"></i>
                                         {{ producto.stock <= 0 ? 'Sin Stock' : 'Agregar al Carrito' }}
                                     </button>
+                                    <button
+                                        type="button"
+                                        (click)="comprarAhora()"
+                                        class="btn btn-main rounded-pill flex-align d-inline-flex gap-8 px-48"
+                                        [disabled]="producto.stock <= 0">
+                                        <i class="ph ph-credit-card"></i>
+                                        Comprar ahora
+                                    </button>
                                 </div>
 
                                 <div class="flex-align gap-12 position-relative">

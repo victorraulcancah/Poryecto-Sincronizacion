@@ -390,13 +390,21 @@
               <div class="mb-24"></div>
             </ng-container>
 
-            <!-- Botón de checkout (solo cliente logueado) -->
-            <button *ngIf="isLoggedIn"
-              class="btn btn-main w-100 py-16 rounded-8 mb-16"
-              (click)="proceedToCheckout()">
-              <i class="ph ph-credit-card me-8"></i>
-              Proceder al pago
-            </button>
+            <!-- Botón de compra: Pagar y Cotizar, visibles también para el invitado -->
+            <div class="d-grid gap-12 mb-16">
+              <button type="button"
+                class="btn btn-main py-16 rounded-8"
+                (click)="pagar()">
+                <i class="ph ph-credit-card me-8"></i>
+                Pagar
+              </button>
+              <button type="button"
+                class="btn bg-gray-900 hover-bg-gray-800 text-white py-16 rounded-8"
+                (click)="cotizar()">
+                <i class="ph ph-file-text me-8"></i>
+                Cotizar
+              </button>
+            </div>
 
             <!-- Información adicional (oculto con *ngIf="false" — no se borra por si se necesita revertir) -->
             <div *ngIf="false" class="cart-info bg-gray-50 rounded-8 p-16">

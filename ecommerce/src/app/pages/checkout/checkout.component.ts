@@ -443,44 +443,6 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       });
   }
 
-  // ------------------------------------------------ términos y privacidad
-
-  /**
-   * Texto legal que se muestra en el modal.
-   *
-   * Provisorio: la empresa todavía no entregó la redacción definitiva, y no
-   * hay tabla ni endpoint donde guardarla. Cuando la entreguen, esto se
-   * reemplaza por páginas propias como la de política de cookies.
-   */
-  private readonly TEXTOS_LEGALES: Record<'terminos' | 'privacidad', string[]> = {
-    terminos: [
-      'Al enviar esta cotización aceptas que los precios, el stock y los plazos de entrega quedan sujetos a confirmación por parte de nuestro equipo comercial.',
-      'La cotización tiene una validez de 30 días calendario. Los precios incluyen IGV salvo que se indique lo contrario, y pueden variar si cambia el tipo de cambio en compras en dólares.',
-      'La entrega se coordina una vez confirmado el pago. Los tiempos de despacho a provincia dependen del operador logístico.',
-      'Para consultas sobre esta compra puedes escribirnos por los canales de atención publicados en la tienda.'
-    ],
-    privacidad: [
-      'Los datos que registras en el checkout —nombre, documento, teléfono, correo y dirección— se usan únicamente para emitir tu comprobante, coordinar la entrega y darte soporte sobre tu compra.',
-      'No compartimos tu información con terceros ajenos a la operación. Los datos de despacho se entregan al operador logístico solo para completar el envío.',
-      'Puedes solicitar la corrección o eliminación de tus datos escribiéndonos por los canales de atención de la tienda.'
-    ]
-  };
-
-  /** Qué texto legal está abierto, o null si el modal está cerrado. */
-  modalLegal: 'terminos' | 'privacidad' | null = null;
-
-  get textoLegal(): string[] {
-    return this.modalLegal ? this.TEXTOS_LEGALES[this.modalLegal] : [];
-  }
-
-  abrirLegal(cual: 'terminos' | 'privacidad'): void {
-    this.modalLegal = cual;
-  }
-
-  cerrarLegal(): void {
-    this.modalLegal = null;
-  }
-
   /** El método de pago a crédito, reconocido por su código en la BD. */
   esMetodoCredito(tipo: TipoPago): boolean {
     return (tipo?.codigo || '').toLowerCase() === this.CODIGO_CREDITO;

@@ -685,7 +685,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   aumentarCantidad(): void { if (this.producto && this.cantidad < this.producto.stock) { this.cantidad++; } }
   disminuirCantidad(): void { if (this.cantidad > 1) { this.cantidad--; } }
 
-  agregarAlCarrito(): void {
+  agregarAlCarrito(irAlCarrito = false): void {
     if (!this.producto) return;
     if (this.producto.stock <= 0) {
       Swal.fire({ title: "Sin stock", text: "Este producto no tiene stock disponible", icon: "warning", confirmButtonColor: "#dc3545" });
@@ -715,6 +715,9 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
           this.producto.moneda,
           this.producto.id
         );
+        // "Comprar ahora": solo pasa al carrito si el producto se agregó. Antes
+        // navegaba igual aunque el alta fallara (p. ej. cantidad sobre el stock).
+        if (irAlCarrito) setTimeout(() => { this.router.navigate(["/cart"]); }, 1000);
       },
       error: (err) => {
         Swal.fire({ title: "Error", text: err.message || "No se pudo agregar el producto al carrito", icon: "error", confirmButtonColor: "#dc3545" });
@@ -723,8 +726,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   }
 
   comprarAhora(): void {
-    this.agregarAlCarrito();
-    setTimeout(() => { this.router.navigate(["/cart"]); }, 1000);
+    this.agregarAlCarrito(true);
   }
 
   agregarProductoRelacionado(producto: any): void {

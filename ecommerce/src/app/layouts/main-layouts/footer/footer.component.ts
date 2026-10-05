@@ -37,7 +37,11 @@ export class FooterComponent implements OnInit, OnDestroy {
   // ✅ Redes sociales dinámicas (se actualizan con los datos de la API)
   socialLinks: any[] = [];
 
-  footerSections = [
+  // `href` abre un archivo (PDF) en otra pestaña; `route` navega dentro de la app.
+  footerSections: {
+    title: string;
+    links: { label: string; route?: string[]; href?: string }[];
+  }[] = [
     {
       title: 'Contáctanos',
       links: [
@@ -56,10 +60,12 @@ export class FooterComponent implements OnInit, OnDestroy {
     {
       title: 'Área legal',
       links: [
-        { label: 'Política de Privacidad', route: ['/privacy-policy'] },
-        { label: 'Términos y condiciones', route: ['terms'] },
-        { label: 'Política de devoluciones y rembolsos', route: ['returns'] },
-        { label: 'Preguntas frecuentes', route: ['faq'] }
+        { label: 'Información legal', href: '/assets/legal/informacion-legal.pdf' },
+        { label: 'Términos y condiciones', href: '/assets/legal/terminos-y-condiciones-de-compra.pdf' },
+        // Los cambios y devoluciones son las secciones 11 y 12 de los términos
+        // (página 3 del PDF): no hay un documento aparte.
+        { label: 'Política de cambios y devoluciones', href: '/assets/legal/terminos-y-condiciones-de-compra.pdf#page=3' },
+        { label: 'Política de privacidad', href: '/assets/legal/politica-de-privacidad-y-proteccion-de-datos-personales.pdf' }
       ]
     }
   ];
