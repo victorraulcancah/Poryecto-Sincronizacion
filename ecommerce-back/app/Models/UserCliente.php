@@ -105,17 +105,6 @@ class UserCliente extends Authenticatable
         return $this->hasMany(Pedido::class, 'user_cliente_id');
     }
 
-    // Relaciones del módulo de recompensas
-    public function recompensasHistorial()
-    {
-        return $this->hasMany(RecompensaHistorial::class, 'cliente_id');
-    }
-
-    public function recompensasClientes()
-    {
-        return $this->hasMany(RecompensaCliente::class, 'cliente_id');
-    }
-
     // Scopes
     public function scopeActivos($query)
     {
@@ -162,20 +151,6 @@ class UserCliente extends Authenticatable
     public function puedeFacturar()
     {
         return $this->cliente_facturacion_id !== null;
-    }
-
-    // Métodos del módulo de recompensas
-    public function getTotalPuntosGanados()
-    {
-        return $this->recompensasHistorial()->sum('puntos_otorgados') ?? 0;
-    }
-
-    public function getRecompensasDelMes()
-    {
-        return $this->recompensasHistorial()
-            ->whereMonth('fecha_aplicacion', now()->month)
-            ->whereYear('fecha_aplicacion', now()->year)
-            ->count();
     }
 
     public function esClienteNuevo()

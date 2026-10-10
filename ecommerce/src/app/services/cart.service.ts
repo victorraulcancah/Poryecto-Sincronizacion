@@ -175,7 +175,6 @@ export class CartService {
     }
 
     console.log('Sincronizando carrito local:', localCart);
-    console.log('Token de autenticación:', this.authService.getToken());
 
     return this.http.post(`${environment.apiUrl}/cart/sync`, { items: localCart }).pipe(
       tap(response => {

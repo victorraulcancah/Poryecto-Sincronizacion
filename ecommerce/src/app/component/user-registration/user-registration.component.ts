@@ -352,7 +352,9 @@ ngOnInit(): void {
   if (this.userForm.valid) {
     const formData = this.userForm.value;
 
-    console.log('Datos del formulario:', formData);
+    // (las contraseñas no se imprimen en consola)
+    const { password: _password, confirmPassword: _confirmPassword, ...datosSinPassword } = formData;
+    console.log('Datos del formulario:', datosSinPassword);
     console.log('Archivo seleccionado:', this.selectedFile);
     
     this.submitUserData(formData);

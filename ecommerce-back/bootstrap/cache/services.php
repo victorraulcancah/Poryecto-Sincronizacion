@@ -34,8 +34,7 @@
     30 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
     31 => 'Termwind\\Laravel\\TermwindServiceProvider',
     32 => 'Spatie\\Permission\\PermissionServiceProvider',
-    33 => 'Tymon\\JWTAuth\\Providers\\LaravelServiceProvider',
-    34 => 'App\\Providers\\AppServiceProvider',
+    33 => 'App\\Providers\\AppServiceProvider',
   ),
   'eager' => 
   array (
@@ -56,8 +55,7 @@
     14 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
     15 => 'Termwind\\Laravel\\TermwindServiceProvider',
     16 => 'Spatie\\Permission\\PermissionServiceProvider',
-    17 => 'Tymon\\JWTAuth\\Providers\\LaravelServiceProvider',
-    18 => 'App\\Providers\\AppServiceProvider',
+    17 => 'App\\Providers\\AppServiceProvider',
   ),
   'deferred' => 
   array (

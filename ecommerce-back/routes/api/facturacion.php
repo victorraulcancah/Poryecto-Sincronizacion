@@ -215,7 +215,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [GuiasRemisionController::class, 'store'])->middleware('permission:facturacion.guias_remision.create');
         Route::post('/remitente', [GuiasRemisionController::class, 'storeRemitente'])->middleware('permission:facturacion.guias_remision.create');
         Route::post('/transportista', [GuiasRemisionController::class, 'storeTransportista'])->middleware('permission:facturacion.guias_remision.create');
-        Route::post('/traslado-interno', [GuiasRemisionController::class, 'storeInterno'])->middleware('permission:facturacion.guias_remision.create');
 
         // Actualizar y operaciones SUNAT
         Route::put('/{id}', [GuiasRemisionController::class, 'update'])->middleware('permission:facturacion.guias_remision.edit');

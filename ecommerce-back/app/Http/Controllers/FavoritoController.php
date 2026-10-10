@@ -29,7 +29,7 @@ class FavoritoController extends Controller
                 ], 401);
             }
 
-            Log::info('Obteniendo favoritos para user_cliente_id: ' . $user->id);
+            Log::debug('Obteniendo favoritos para user_cliente_id: ' . $user->id);
 
             $favoritos = Favorito::where('user_cliente_id', $user->id)
                 ->with(['producto' => function($query) {
@@ -39,7 +39,7 @@ class FavoritoController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->get();
 
-            Log::info('Favoritos encontrados: ' . $favoritos->count());
+            Log::debug('Favoritos encontrados: ' . $favoritos->count());
 
             // Precio e imagen, con el mismo criterio que el catálogo público.
             $listas = $this->listasPrecioAplicables();

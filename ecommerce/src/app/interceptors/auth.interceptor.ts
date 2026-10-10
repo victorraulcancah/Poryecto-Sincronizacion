@@ -16,17 +16,8 @@ export const authInterceptor: HttpInterceptorFn = (
   // Obtener el token
   const token = authService.getToken();
 
-  // Endpoints que NO deben enviar token de autenticación
-  // Según especificaciones del backend, el endpoint de popups con user_cliente_id NO debe enviar token
-  const urlsWithoutToken = [
-    '/cliente/recompensas/popups-activos',
-    '/publico/recompensas/popups-activos'
-  ];
-
-  const shouldSkipToken = urlsWithoutToken.some(url => req.url.includes(url));
-
-  // Si hay token Y la URL NO está en la lista de exclusión, añadirlo a los headers
-  if (token && !shouldSkipToken) {
+  // Si hay token, añadirlo a los headers
+  if (token) {
     req = req.clone({
       setHeaders: {
         Authorization: `Bearer ${token}`

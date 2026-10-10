@@ -16,7 +16,6 @@ use Illuminate\Support\Facades\Route;
 | - facturacion.php: Facturación electrónica y SUNAT
 | - contabilidad.php: Módulo contable
 | - productos.php: Gestión de inventario
-| - recompensas.php: Sistema de gamificación
 | - ecommerce.php: Pedidos y carrito
 | - marketing.php: Banners y promociones
 |
@@ -33,7 +32,6 @@ require __DIR__.'/api/facturacion.php';
 require __DIR__.'/api/contabilidad.php';
 require __DIR__.'/api/productos.php';
 require __DIR__.'/api/servicios.php';
-require __DIR__.'/api/recompensas.php';
 require __DIR__.'/api/ecommerce.php';
 require __DIR__.'/api/marketing.php';
 

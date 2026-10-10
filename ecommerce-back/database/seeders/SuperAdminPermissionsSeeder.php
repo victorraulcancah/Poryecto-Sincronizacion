@@ -62,7 +62,6 @@ class SuperAdminPermissionsSeeder extends Seeder
         $this->command->info('   ✓ Usuarios, Productos, Categorías, Marcas');
         $this->command->info('   ✓ Banners, Clientes, Pedidos, Ventas');
         $this->command->info('   ✓ Ofertas, Cupones, Cotizaciones, Compras');
-        $this->command->info('   ✓ Recompensas (todos los submódulos)');
         $this->command->info('   ✓ Facturación (comprobantes, series, notas)');
         $this->command->info('   ✓ Contabilidad (cajas, kardex, cxc, cxp, reportes)');
         $this->command->info('');

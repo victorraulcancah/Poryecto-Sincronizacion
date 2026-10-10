@@ -1,8 +1,8 @@
 
 
 // src\app\pages\product-details\product-details.component.ts
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Pipe, PipeTransform } from "@angular/core"
-import { CommonModule } from "@angular/common"
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Pipe, PipeTransform, Inject, PLATFORM_ID } from "@angular/core"
+import { CommonModule, isPlatformBrowser } from "@angular/common"
 import { RouterLink, ActivatedRoute, Router } from "@angular/router"
 import { FormsModule } from "@angular/forms"
 import { SlickCarouselModule } from "ngx-slick-carousel"
@@ -101,6 +101,8 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   productImageSlider = { slidesToShow: 4, slidesToScroll: 1, asNavFor: ".product-details__thumb-slider", dots: false, arrows: false, focusOnSelect: true, responsive: [{ breakpoint: 768, settings: { slidesToShow: 3 } }, { breakpoint: 576, settings: { slidesToShow: 2 } }] };
   arrivalSlider = { slidesToShow: 6, slidesToScroll: 1, autoplay: false, autoplaySpeed: 2000, speed: 1500, dots: false, pauseOnHover: true, arrows: true, draggable: true, infinite: true, nextArrow: "#new-arrival-next", prevArrow: "#new-arrival-prev", responsive: [{ breakpoint: 1599, settings: { slidesToShow: 6, arrows: false } }, { breakpoint: 1399, settings: { slidesToShow: 4, arrows: false } }, { breakpoint: 992, settings: { slidesToShow: 3, arrows: false } }, { breakpoint: 575, settings: { slidesToShow: 2, arrows: false } }, { breakpoint: 424, settings: { slidesToShow: 1, arrows: false } }] };
 
+  private isBrowser: boolean
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -111,14 +113,19 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private sanitizer: DomSanitizer,
     private titleService: Title,
-    private seoService: SeoService
+    private seoService: SeoService,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {
-    this.isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    this.isBrowser = isPlatformBrowser(this.platformId)
+    // En SSR no existe `navigator`
+    this.isMobileDevice = this.isBrowser && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
   }
 
   ngOnInit(): void {
-    // Scroll to top when component loads
-    window.scrollTo(0, 0);
+    // Scroll to top when component loads (solo en el navegador; en SSR no existe window)
+    if (this.isBrowser) {
+      window.scrollTo(0, 0);
+    }
 
     // Cargar información de la empresa
     this.cargarInfoEmpresa();
@@ -400,6 +407,10 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
 
   // ✅ Helper: Limpiar HTML para meta description
   private stripHtml(html: string): string {
+    if (!this.isBrowser) {
+      // En SSR no hay `document` global: se quitan las etiquetas con una regex
+      return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    }
     const tmp = document.createElement('DIV');
     tmp.innerHTML = html;
     return tmp.textContent || tmp.innerText || '';

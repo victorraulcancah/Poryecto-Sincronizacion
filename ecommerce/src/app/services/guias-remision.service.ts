@@ -193,28 +193,6 @@ export interface GuiaTransportistaPayload {
   observaciones?: string;
 }
 
-export interface GuiaInternoPayload {
-  motivo_traslado: string;
-  fecha_inicio_traslado: string;
-  punto_partida_ubigeo: string;
-  punto_partida_direccion: string;
-  punto_llegada_ubigeo: string;
-  punto_llegada_direccion: string;
-  productos: Array<{
-    producto_id: number;
-    cantidad: number;
-    peso_unitario: number;
-    observaciones?: string;
-  }>;
-  numero_bultos?: number;
-  observaciones?: string;
-  destinatario_tipo_documento?: string;
-  destinatario_numero_documento?: string;
-  destinatario_razon_social?: string;
-  destinatario_direccion?: string;
-  destinatario_ubigeo?: string;
-}
-
 export interface EstadisticasGuias {
   total_guias: number;
   guias_pendientes: number;
@@ -288,13 +266,6 @@ export class GuiasRemisionService {
    */
   crearGuiaTransportista(datos: GuiaTransportistaPayload): Observable<{ success: boolean; message: string; data: GuiaRemision }> {
     return this.http.post<{ success: boolean; message: string; data: GuiaRemision }>(`${this.apiUrl}/transportista`, datos);
-  }
-
-  /**
-   * Crear Traslado Interno
-   */
-  crearTrasladoInterno(datos: GuiaInternoPayload): Observable<{ success: boolean; message: string; data: GuiaRemision }> {
-    return this.http.post<{ success: boolean; message: string; data: GuiaRemision }>(`${this.apiUrl}/traslado-interno`, datos);
   }
 
   /**
@@ -431,7 +402,7 @@ export class GuiasRemisionService {
   /**
    * Actualizar guía (solo PENDIENTE y sin XML)
    */
-  actualizarGuia(id: number, datos: Partial<GuiaRemitentePayload | GuiaInternoPayload>): Observable<{ success: boolean; message: string; data: GuiaRemision }> {
+  actualizarGuia(id: number, datos: Partial<GuiaRemitentePayload>): Observable<{ success: boolean; message: string; data: GuiaRemision }> {
     return this.http.put<{ success: boolean; message: string; data: GuiaRemision }>(`${this.apiUrl}/${id}`, datos);
   }
 

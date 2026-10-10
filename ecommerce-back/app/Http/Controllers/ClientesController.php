@@ -769,7 +769,7 @@ public function misDirecciones(Request $request)
 {
     try {
         $cliente = $request->user();
-        \Log::info('Cliente autenticado:', ['id' => $cliente->id, 'email' => $cliente->email]);
+        \Log::debug('Cliente autenticado:', ['id' => $cliente->id, 'email' => $cliente->email]);
         
         $direcciones = $cliente->direcciones()
             ->with(['ubigeo'])
@@ -777,7 +777,7 @@ public function misDirecciones(Request $request)
             ->orderBy('created_at', 'desc')
             ->get();
         
-        \Log::info('Direcciones encontradas:', ['count' => $direcciones->count()]);
+        \Log::debug('Direcciones encontradas:', ['count' => $direcciones->count()]);
         
         // Transformar los datos del ubigeo para mostrar nombres en lugar de códigos
         $direcciones->transform(function ($direccion) {
@@ -804,7 +804,7 @@ public function misDirecciones(Request $request)
         
         // Log de cada dirección para debuggear
         foreach ($direcciones as $index => $direccion) {
-            \Log::info("Dirección {$index}:", [
+            \Log::debug("Dirección {$index}:", [
                 'id' => $direccion->id,
                 'nombre_destinatario' => $direccion->nombre_destinatario,
                 'id_ubigeo' => $direccion->id_ubigeo,

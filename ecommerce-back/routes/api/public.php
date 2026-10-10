@@ -15,7 +15,6 @@ use App\Http\Controllers\MarcaProductoController;
 use App\Http\Controllers\OfertasController;
 use App\Http\Controllers\ProductosController;
 use App\Http\Controllers\ReclamosController;
-use App\Http\Controllers\Recompensas\RecompensaNotificacionController;
 use App\Http\Controllers\ReniecController;
 use App\Http\Controllers\TipoPagoController;
 use App\Http\Controllers\UbigeoController;
@@ -99,7 +98,6 @@ Route::get('/banners-ofertas/activo-semana', [BannerOfertaController::class, 'ge
 // OFERTAS PÚBLICAS
 // ============================================
 Route::get('/ofertas/publicas', [OfertasController::class, 'ofertasPublicas']);
-Route::get('/ofertas/flash-sales', [OfertasController::class, 'flashSales']);
 Route::get('/ofertas/productos', [OfertasController::class, 'productosEnOferta']);
 Route::get('/ofertas/principal-del-dia', [OfertasController::class, 'ofertaPrincipalDelDia']);
 Route::get('/ofertas/semana-activa', [OfertasController::class, 'ofertaSemanaActiva']);
@@ -139,11 +137,6 @@ Route::get('/pasarela/configuracion', [\App\Http\Controllers\PagoEnLineaControll
 // PASOS DE ENVÍO
 // ============================================
 Route::get('/pasos-envio', [\App\Http\Controllers\PasoEnvioController::class, 'index']);
-
-// ============================================
-// RECOMPENSAS PÚBLICAS
-// ============================================
-Route::get('/publico/recompensas/popups-activos', [RecompensaNotificacionController::class, 'popupsActivosPublico']);
 
 // ============================================
 // RECLAMOS

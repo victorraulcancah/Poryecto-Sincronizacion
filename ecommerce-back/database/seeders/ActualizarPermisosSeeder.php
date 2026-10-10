@@ -31,7 +31,7 @@ class ActualizarPermisosSeeder extends Seeder
             }
         }
 
-        // 3. Crear permisos nuevos estandarizados (excluye módulo Recompensas: centralizado en RecompensasPermisosSeeder)
+        // 3. Crear permisos nuevos estandarizados
         $permisosNuevos = [
             // Usuarios
             'usuarios.ver',

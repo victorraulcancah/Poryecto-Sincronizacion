@@ -6,17 +6,12 @@
 // @import 'assets/css/aos.css'; // Ya en angular.json
 // @import 'assets/css/animate.css'; // Ya en angular.json
 
-// Estos sí se importan porque no están duplicados
-@import 'assets/css/slick.css';
-@import 'assets/css/select2.min.css';
-@import 'assets/css/jquery-ui.css';
+// slick.css ya se carga desde node_modules en angular.json (es idéntico);
+// select2.min.css y jquery-ui.css ya no se cargan: ningún componente usa los
+// plugins select2 / jQuery UI.
 @import 'assets/sass/shared/common-components';
 @import 'assets/sass/main.scss';
 @import 'assets/css/main.css';
-
-// Estilos globales de recompensas (movidos desde componentes para evitar límite de líneas)
-@import 'assets/sass/components/recompensas';
-@import 'assets/sass/components/recompensas-popups';
 
 // Estilos para Guías de Remisión Electrónica
 @import 'assets/sass/components/guias-remision';

@@ -347,9 +347,12 @@ export class MotorizadosFormComponent implements OnInit {
     const formData = this.prepareFormData();
 
     // Debug: verificar qué se está enviando
-    console.log('Form values:', this.motorizadoForm.value);
+    // (la contraseña no se imprime en consola)
+    const { password: _password, ...valoresSinPassword } = this.motorizadoForm.value;
+    console.log('Form values:', valoresSinPassword);
     console.log('FormData entries:');
     for (let pair of formData.entries()) {
+      if (pair[0] === 'password') continue;
       console.log(pair[0] + ': ' + pair[1]);
     }
 
@@ -395,17 +398,6 @@ export class MotorizadosFormComponent implements OnInit {
     const formData = new FormData();
     const formValue = this.motorizadoForm.value;
     
-    console.log('Preparing FormData from:', formValue);
-
-    // Verificar específicamente la contraseña
-    const passwordValue = formValue['password'];
-    console.log('🔑 PASSWORD DEBUG:', {
-      passwordValue: passwordValue,
-      passwordLength: passwordValue ? passwordValue.length : 0,
-      passwordTrimmed: passwordValue ? passwordValue.trim() : '',
-      isEmpty: !passwordValue || passwordValue.trim() === ''
-    });
-
     // Append all form values except UI-only fields
     Object.keys(formValue).forEach(key => {
       // Skip departamento and provincia as they're only for UI, ubigeo contains the final value
@@ -415,9 +407,8 @@ export class MotorizadosFormComponent implements OnInit {
       }
 
       const value = formValue[key] || '';
-      if (key === 'password') {
-        console.log(`🔑 Adding password to FormData: "${value}" (length: ${value.length})`);
-      } else {
+      // No se imprime el valor de la contraseña en consola
+      if (key !== 'password') {
         console.log(`Adding ${key}: ${value}`);
       }
       formData.append(key, value);

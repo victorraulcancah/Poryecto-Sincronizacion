@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { TtlCache } from '../utils/ttl-cache';
 
 export interface CategoriaPublica {
   id: number;
@@ -30,7 +31,16 @@ export class CategoriasPublicasService {
   private apiUrlCategoriasPublicas = `${environment.apiUrl}/categorias/publicas`;
   private apiUrlMarcasPublicas = `${environment.apiUrl}/marcas/publicas`;
 
+  // Cache en memoria (60 s): el home, el header y el chatbot piden las mismas
+  // categorías y se resolvían con 4 peticiones idénticas.
+  private cacheCategorias = new TtlCache<any[]>(60_000);
+
   constructor(private http: HttpClient) {}
+
+  /** Descarta el cache de categorías (p. ej. tras crear/editar una categoría desde el admin). */
+  invalidarCacheCategorias(): void {
+    this.cacheCategorias.invalidar();
+  }
 
   // ✅ CORREGIDO: Usar endpoint público de Magus
   obtenerCategoriasPublicas(seccionId?: number): Observable<CategoriaPublica[]> {
@@ -40,7 +50,12 @@ export class CategoriasPublicasService {
     }
 
     // ✅ USAR ENDPOINT PÚBLICO DE MAGUS
-    return this.http.get<any[]>(this.apiUrlCategoriasPublicas, { params }).pipe(
+    // Se cachea la respuesta cruda y el mapeo se hace por suscriptor, así cada
+    // componente recibe sus propios objetos (sin mutaciones compartidas).
+    return this.cacheCategorias.obtener(
+      `categorias/publicas?${params.toString()}`,
+      () => this.http.get<any[]>(this.apiUrlCategoriasPublicas, { params })
+    ).pipe(
       map(categorias => categorias.map(cat => ({
         id: cat.id,
         nombre: cat.nombre,

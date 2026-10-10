@@ -61,7 +61,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('/', [PedidosController::class, 'store']);
         Route::post('/ecommerce', [PedidosController::class, 'crearPedidoEcommerce']);
-        Route::put('/{id}/estado', [PedidosController::class, 'updateEstado']);
+        Route::put('/{id}/estado', [PedidosController::class, 'actualizarEstado']);
         Route::patch('/{id}/estado', [PedidosController::class, 'actualizarEstado']);
         Route::post('/{id}/cambiar-estado', [PedidosController::class, 'cambiarEstado']);
         Route::delete('/{id}', [PedidosController::class, 'destroy']);

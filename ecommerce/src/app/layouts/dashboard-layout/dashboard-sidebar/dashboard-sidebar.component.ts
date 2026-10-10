@@ -49,10 +49,8 @@ export class DashboardSidebarComponent implements OnInit, AfterViewInit, OnDestr
   isOperacionesOpen = false;
   isAlmacenOpen = false;
   isConfiguracionOpen = false; // ✅ NUEVO
-  isRecompensasOpen = false; // ✅ NUEVO
   isContabilidadOpen = false; // ✅ NUEVO: Para Contabilidad
   esSuperadmin = false;
-  showRecompensasDropdown = true;
 
   // Permisos
   puedeVerUsuarios = false;
@@ -71,7 +69,6 @@ export class DashboardSidebarComponent implements OnInit, AfterViewInit, OnDestr
   puedeVerEmpresaInfo = false;
   puedeVerEmailTemplates = false;
   puedeConfigure = false; // ✅ NUEVO: Para Arma tu PC
-  puedeVerRecompensas = false; // ✅ NUEVO: Para Recompensas
   puedeVerConfiguracion = false; // ✅ NUEVO: Para Formas de Envío y Tipos de Pago
   puedeVerFacturacion = false; // ✅ NUEVO: Para Facturación
   puedeVerContabilidad = false; // ✅ NUEVO: Para Contabilidad
@@ -124,11 +121,9 @@ export class DashboardSidebarComponent implements OnInit, AfterViewInit, OnDestr
     // Contador de pedidos "En espera", para el badge de "Pedidos".
     this.pedidosService.refrescarNoLeidos().subscribe({ error: () => {} });
 
-    // Mantener abierto el dropdown de Recompensas según la ruta activa
+    // Al salir de la bandeja / reclamos / pedidos se vuelve a contar los badges.
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
-        this.syncRecompensasDropdownWithRoute(event.urlAfterRedirects);
-
         // Al salir de la bandeja se vuelve a contar: puede que se hayan leído
         // mensajes ahí dentro.
         if (!event.urlAfterRedirects.includes('/dashboard/mensajes-contacto')) {
@@ -148,9 +143,6 @@ export class DashboardSidebarComponent implements OnInit, AfterViewInit, OnDestr
         }
       }
     });
-
-    // Estado inicial basado en la URL actual
-    this.syncRecompensasDropdownWithRoute(this.router.url);
 
     this.empresaInfoSub = this.empresaInfoService.empresaInfoPublica$.subscribe((info) => {
       if (info !== null) {
@@ -196,7 +188,6 @@ export class DashboardSidebarComponent implements OnInit, AfterViewInit, OnDestr
     this.puedeVerEmpresaInfo = this.permissionsService.hasPermission('empresa_info.ver');
     this.puedeVerEmailTemplates = this.permissionsService.hasPermission('envio_correos.ver');
     this.puedeConfigure = this.permissionsService.hasPermission('categorias.edit'); // ✅ NUEVO
-    this.puedeVerRecompensas = this.permissionsService.hasPermission('recompensas.ver'); // ✅ NUEVO
     this.puedeVerConfiguracion = this.permissionsService.hasPermission('configuracion.ver'); // ✅ NUEVO
     
     // Facturación y Contabilidad se decidían con `tipo_usuario === 'admin'`
@@ -281,44 +272,7 @@ toggleConfiguracion(): void {
   this.isConfiguracionOpen = !this.isConfiguracionOpen;
 }
 
-toggleRecompensas(): void {
-  this.isRecompensasOpen = !this.isRecompensasOpen;
-}
-
 toggleContabilidad(): void {
   this.isContabilidadOpen = !this.isContabilidadOpen;
 }
-  toggleRecompensasDropdown(): void {
-    this.showRecompensasDropdown = !this.showRecompensasDropdown;
-  }
-
-  private syncRecompensasDropdownWithRoute(url: string): void {
-    const isRecompensas = url.startsWith('/dashboard/recompensas');
-    this.showRecompensasDropdown = isRecompensas;
-  }
-
-  navegarARecompensasSubmodulo(submodulo: string, event: Event): void {
-    // Prevenir el comportamiento por defecto del enlace
-    event.preventDefault();
-    
-    // Cerrar el dropdown
-    this.showRecompensasDropdown = false;
-    
-    // Navegar según el submódulo
-    if (submodulo === 'lista') {
-      // Navegar a la lista de recompensas
-      this.router.navigate(['/dashboard/recompensas/lista']);
-    } else {
-      // Por defecto, navegar a la lista
-      this.router.navigate(['/dashboard/recompensas']);
-    }
-  }
-
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: Event): void {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.recompensas-dropdown')) {
-      this.showRecompensasDropdown = false;
-    }
-  }
 }

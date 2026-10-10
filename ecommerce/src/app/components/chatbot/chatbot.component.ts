@@ -52,6 +52,9 @@ export class ChatbotComponent implements OnInit, OnDestroy {
   marcas: MarcaProducto[] = [];
   productosEnOferta: ProductoOferta[] = [];
   isLoadingData = false;
+  // Los datos (categorías, marcas, ofertas) se piden recién la primera vez que
+  // se abre el chat; con el chat cerrado no hace falta traerlos.
+  private datosCargados = false;
   private isBrowser: boolean;
   private destroy$ = new Subject<void>();
 
@@ -168,8 +171,8 @@ export class ChatbotComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.cargarDatosIniciales();
-    
+    // Los datos dinámicos se cargan al abrir el chat por primera vez (toggleChat)
+
     // Mostrar mensaje de bienvenida después de un delay
     setTimeout(() => {
       this.addBotMessage(this.botResponses.greeting);
@@ -216,6 +219,9 @@ export class ChatbotComponent implements OnInit, OnDestroy {
 
   // ✅ CARGAR DATOS DINÁMICOS
   private cargarDatosIniciales() {
+    // Solo se carga una vez; si una carga falla se permite reintentar al reabrir
+    if (this.datosCargados) return;
+    this.datosCargados = true;
     this.isLoadingData = true;
     
     // Cargar categorías
@@ -227,7 +233,10 @@ export class ChatbotComponent implements OnInit, OnDestroy {
           this.actualizarOpcionesCategorias();
           // console.log('Categorías cargadas:', categorias.length);
         },
-        error: (error) => console.error('Error al cargar categorías:', error)
+        error: (error) => {
+          console.error('Error al cargar categorías:', error);
+          this.datosCargados = false;
+        }
       });
 
     // Cargar marcas
@@ -239,7 +248,10 @@ export class ChatbotComponent implements OnInit, OnDestroy {
           this.actualizarOpcionesMarcas();
           // console.log('Marcas cargadas:', marcas.length);
         },
-        error: (error) => console.error('Error al cargar marcas:', error)
+        error: (error) => {
+          console.error('Error al cargar marcas:', error);
+          this.datosCargados = false;
+        }
       });
 
     // Cargar productos en oferta
@@ -254,6 +266,7 @@ export class ChatbotComponent implements OnInit, OnDestroy {
         error: (error) => {
           console.error('Error al cargar ofertas:', error);
           this.isLoadingData = false;
+          this.datosCargados = false;
         }
       });
   }
@@ -311,6 +324,8 @@ export class ChatbotComponent implements OnInit, OnDestroy {
     this.isOpen = !this.isOpen;
     this.isMinimized = false;
     if (this.isOpen) {
+      // Primera apertura: recién ahora se traen categorías, marcas y ofertas
+      this.cargarDatosIniciales();
       setTimeout(() => {
         this.focusInput();
       }, 300);

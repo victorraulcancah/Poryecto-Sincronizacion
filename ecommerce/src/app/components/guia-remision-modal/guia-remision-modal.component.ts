@@ -9,7 +9,7 @@ import { ClienteService } from '../../services/cliente.service';
 import { ReniecService } from '../../services/reniec.service';
 
 interface GuiaRemisionForm {
-  tipo_guia: 'REMITENTE' | 'TRANSPORTISTA' | 'INTERNO';
+  tipo_guia: 'REMITENTE' | 'TRANSPORTISTA';
 
   // Fecha
   fecha_inicio_traslado: string;
@@ -17,7 +17,7 @@ interface GuiaRemisionForm {
   // Cliente (solo para REMITENTE)
   cliente_id?: number;
 
-  // Destinatario (opcional para REMITENTE, opcional para INTERNO)
+  // Destinatario (opcional para REMITENTE)
   destinatario_tipo_documento?: string;
   destinatario_numero_documento?: string;
   destinatario_razon_social?: string;
@@ -137,13 +137,13 @@ interface GuiaRemisionForm {
       <!-- Navegación simplificada para tipo predefinido -->
       <div class="steps-container mb-4" *ngIf="tipoGuiaPredefinido">
         <div class="steps-wrapper">
-          <div class="step-item" *ngIf="form.tipo_guia !== 'INTERNO'" [class.active]="paso === 1" [class.completed]="paso > 1">
+          <div class="step-item" [class.active]="paso === 1" [class.completed]="paso > 1">
             <div class="step-circle">
               <i class="ph ph-user"></i>
             </div>
             <span class="step-label">Destinatario</span>
           </div>
-          <div class="step-divider" *ngIf="form.tipo_guia !== 'INTERNO'"></div>
+          <div class="step-divider"></div>
           <div class="step-item" [class.active]="paso === 2" [class.completed]="paso > 2">
             <div class="step-circle">
               <i class="ph ph-map-pin"></i>
@@ -208,16 +208,6 @@ interface GuiaRemisionForm {
         <!-- Alertas informativas -->
         <div class="row justify-content-center mt-4">
           <div class="col-md-8">
-            <div class="alert alert-info" *ngIf="form.tipo_guia === 'INTERNO'">
-              <div class="d-flex align-items-start">
-                <i class="ph ph-info me-3" style="font-size: 1.5rem;"></i>
-                <div>
-                  <strong>Traslado Interno:</strong> No requiere envío a SUNAT.
-                  Ideal para movimientos entre almacenes de la misma empresa.
-                </div>
-              </div>
-            </div>
-
             <div class="alert alert-success" *ngIf="form.tipo_guia === 'REMITENTE'">
               <div class="d-flex align-items-start">
                 <i class="ph ph-check-circle me-3" style="font-size: 1.5rem;"></i>
@@ -411,7 +401,7 @@ interface GuiaRemisionForm {
         </div>
       </div>
 
-      <!-- Paso 2: Datos de Traslado (REMITENTE e INTERNO) -->
+      <!-- Paso 2: Datos de Traslado (REMITENTE) -->
       <div *ngIf="paso === 2 && form.tipo_guia !== 'TRANSPORTISTA'" class="step-content">
         <div class="row g-3">
           <div class="col-md-6">
@@ -420,15 +410,6 @@ interface GuiaRemisionForm {
           </div>
 
           <div class="col-md-6" *ngIf="form.tipo_guia === 'REMITENTE'">
-            <label class="form-label">Motivo de Traslado *</label>
-            <select class="form-select" [(ngModel)]="form.motivo_traslado">
-              <option value="01">Venta</option>
-              <option value="02">Compra</option>
-              <option value="13">Otros</option>
-            </select>
-          </div>
-
-          <div class="col-md-6" *ngIf="form.tipo_guia === 'INTERNO'">
             <label class="form-label">Motivo de Traslado *</label>
             <select class="form-select" [(ngModel)]="form.motivo_traslado">
               <option value="01">Venta</option>
@@ -1599,7 +1580,7 @@ interface GuiaRemisionForm {
 export class GuiaRemisionModalComponent implements OnInit, OnChanges {
   @Input() isOpen = false;
   @Input() guiaId?: number;
-  @Input() tipoGuiaPredefinido?: 'REMITENTE' | 'TRANSPORTISTA' | 'INTERNO';
+  @Input() tipoGuiaPredefinido?: 'REMITENTE' | 'TRANSPORTISTA';
   @Output() onClose = new EventEmitter<void>();
   @Output() onSuccess = new EventEmitter<any>();
 
@@ -1697,8 +1678,8 @@ export class GuiaRemisionModalComponent implements OnInit, OnChanges {
     // Si hay tipo predefinido, configurar y saltar al paso correspondiente
     if (this.tipoGuiaPredefinido) {
       this.form.tipo_guia = this.tipoGuiaPredefinido;
-      // INTERNO empieza en paso 2 (sin destinatario), otros en paso 1
-      this.paso = this.tipoGuiaPredefinido === 'INTERNO' ? 2 : 1;
+      // Con tipo predefinido se empieza en el paso 1 (destinatario)
+      this.paso = 1;
       console.log('🔵 Tipo predefinido configurado - tipo_guia:', this.form.tipo_guia, 'paso:', this.paso);
     } else {
       this.paso = 0; // Empezar desde la selección de tipo
@@ -1751,8 +1732,6 @@ export class GuiaRemisionModalComponent implements OnInit, OnChanges {
       switch (this.tipoGuiaPredefinido) {
         case 'REMITENTE':
           return 'Nueva GRE Remitente';
-        case 'INTERNO':
-          return 'Nuevo Traslado Interno';
         default:
           return 'Nueva Guía de Remisión';
       }
@@ -1761,14 +1740,15 @@ export class GuiaRemisionModalComponent implements OnInit, OnChanges {
     return 'Nueva Guía de Remisión';
   }
 
-  seleccionarTipoGuia(tipo: 'REMITENTE' | 'INTERNO'): void {
+  seleccionarTipoGuia(tipo: 'REMITENTE' | 'TRANSPORTISTA'): void {
     this.form.tipo_guia = tipo;
   }
 
   cargarTiposGuia(): void {
     this.guiasService.getTiposGuia().subscribe({
       next: (res) => {
-        this.tiposGuia = res.data;
+        // El traslado interno ya no se ofrece desde el frontend
+        this.tiposGuia = (res.data || []).filter((t: any) => t.codigo !== 'INTERNO');
       },
       error: (err) => {
         console.error('Error al cargar tipos de guía:', err);
@@ -2029,50 +2009,12 @@ export class GuiaRemisionModalComponent implements OnInit, OnChanges {
       if (this.form.observaciones) {
         formData.observaciones = this.form.observaciones;
       }
-    } else {
-      // Estructura para Traslado Interno
-      formData.motivo_traslado = this.form.motivo_traslado;
-      formData.fecha_inicio_traslado = this.form.fecha_inicio_traslado;
-      formData.punto_partida_ubigeo = this.form.punto_partida_ubigeo;
-      formData.punto_partida_direccion = this.form.punto_partida_direccion;
-      formData.punto_llegada_ubigeo = this.form.punto_llegada_ubigeo;
-      formData.punto_llegada_direccion = this.form.punto_llegada_direccion;
-
-      // Productos
-      formData.productos = this.form.detalles.map(detalle => ({
-        producto_id: detalle.producto_id,
-        cantidad: detalle.cantidad,
-        peso_unitario: detalle.peso_unitario,
-        observaciones: detalle.observaciones
-      }));
-
-      // Opcionales
-      if (this.form.numero_bultos) {
-        formData.numero_bultos = this.form.numero_bultos;
-      }
-      if (this.form.observaciones) {
-        formData.observaciones = this.form.observaciones;
-      }
-
-      // Destinatario opcional para interno
-      if (this.form.destinatario_numero_documento) {
-        formData.destinatario_tipo_documento = this.form.destinatario_tipo_documento;
-        formData.destinatario_numero_documento = this.form.destinatario_numero_documento;
-        formData.destinatario_razon_social = this.form.destinatario_razon_social;
-        formData.destinatario_direccion = this.form.destinatario_direccion;
-        formData.destinatario_ubigeo = this.form.destinatario_ubigeo;
-      }
     }
 
     // Seleccionar el endpoint correcto según el tipo
-    let request;
-    if (this.form.tipo_guia === 'REMITENTE') {
-      request = this.guiasService.crearGuiaRemitente(formData);
-    } else if (this.form.tipo_guia === 'TRANSPORTISTA') {
-      request = this.guiasService.crearGuiaTransportista(formData);
-    } else {
-      request = this.guiasService.crearTrasladoInterno(formData);
-    }
+    const request = this.form.tipo_guia === 'REMITENTE'
+      ? this.guiasService.crearGuiaRemitente(formData)
+      : this.guiasService.crearGuiaTransportista(formData);
 
     request.subscribe({
       next: (res: any) => {
@@ -2134,7 +2076,6 @@ export class GuiaRemisionModalComponent implements OnInit, OnChanges {
   }
 
   getMaxPaso(): number {
-    // Para INTERNO: solo 2 pasos (Traslado, Productos) = paso 4
     // Para REMITENTE con modalidad 01: 3 pasos (Destinatario, Traslado, Productos) = paso 4
     // Para REMITENTE con modalidad 02: 4 pasos (Destinatario, Traslado, Transporte, Productos) = paso 4
     return 4;
@@ -2150,11 +2091,6 @@ export class GuiaRemisionModalComponent implements OnInit, OnChanges {
       return;
     }
 
-    // Saltar paso 3 si es INTERNO (no requiere transporte)
-    if (this.paso === 2 && this.form.tipo_guia === 'INTERNO') {
-      this.paso = 4; // Saltar al paso de productos
-      return;
-    }
     this.paso++;
   }
 
@@ -2212,7 +2148,7 @@ export class GuiaRemisionModalComponent implements OnInit, OnChanges {
         }
         return true;
 
-      case 2: // Traslado (REMITENTE/INTERNO) o Transportista+Conductor+Vehículo (TRANSPORTISTA)
+      case 2: // Traslado (REMITENTE) o Transportista+Conductor+Vehículo (TRANSPORTISTA)
         if (this.form.tipo_guia === 'TRANSPORTISTA') {
           // Validar datos del transportista
           if (!this.form.transportista_ruc || this.form.transportista_ruc.length !== 11) {
@@ -2259,7 +2195,7 @@ export class GuiaRemisionModalComponent implements OnInit, OnChanges {
           return true;
         }
 
-        // Para REMITENTE e INTERNO: validar datos de traslado
+        // Para REMITENTE: validar datos de traslado
         if (!this.form.fecha_inicio_traslado) {
           this.error = 'Ingresa la fecha de inicio del traslado';
           setTimeout(() => this.error = '', 3000);

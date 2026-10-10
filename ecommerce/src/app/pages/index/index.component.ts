@@ -397,17 +397,24 @@ export class IndexComponent implements OnInit, OnDestroy, AfterViewInit {
     this.cargarBannersPromocionales();
     this.cargarBannersHorizontales();
     this.cargarMarcasDinamicas();
-    this.cargarOfertasActivas();
-    this.cargarFlashSales();
-    this.cargarBannerOfertaActivo();
     this.cargarCuponesActivos();
-    this.cargarOfertaPrincipalDelDia();
     this.cargarCategoriasParaFiltro();
     this.cargarTodosLosProductos();
     this.cargarProductosDestacados();
     this.cargarProductosMasVendidos();
-    this.cargarOfertaSemanaActiva();
     this.inicializarFavoritosState();
+
+    // Ofertas deshabilitadas temporalmente: las secciones que muestran estos
+    // datos (ofertas especiales, flash sales, oferta principal/de la semana)
+    // están detrás de *ngIf="ofertasHabilitadas", así que no se piden al
+    // backend mientras el flag sea false. Si se activa, cargan como antes.
+    if (this.ofertasHabilitadas) {
+      this.cargarOfertasActivas();
+      this.cargarFlashSales();
+      this.cargarBannerOfertaActivo();
+      this.cargarOfertaPrincipalDelDia();
+      this.cargarOfertaSemanaActiva();
+    }
   }
 
   // ✅ MEJORADO: Inicializar countdowns después de que la vista se cargue

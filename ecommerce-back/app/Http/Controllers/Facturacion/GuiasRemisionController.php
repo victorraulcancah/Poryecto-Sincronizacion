@@ -110,14 +110,6 @@ class GuiasRemisionController extends Controller
     }
 
     /**
-     * Crear guía de remisión - Traslado Interno
-     */
-    public function storeInterno(Request $request): JsonResponse
-    {
-        return $this->storeGuia($request, 'INTERNO');
-    }
-
-    /**
      * Crear guía de remisión - GRE Transportista
      */
     public function storeTransportista(Request $request): JsonResponse
@@ -131,6 +123,16 @@ class GuiasRemisionController extends Controller
     public function store(Request $request): JsonResponse
     {
         $tipoGuia = $request->input('tipo_guia', 'REMITENTE');
+
+        // El traslado interno dejó de usarse: las guías que ya existen se siguen
+        // viendo, pero no se crean nuevas.
+        if ($tipoGuia === 'INTERNO') {
+            return response()->json([
+                'success' => false,
+                'message' => 'El traslado interno ya no está disponible.',
+            ], 422);
+        }
+
         return $this->storeGuia($request, $tipoGuia);
     }
 

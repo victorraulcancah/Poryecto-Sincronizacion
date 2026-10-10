@@ -7,11 +7,11 @@ export const serverRoutes: ServerRoute[] = [
   },
   {
     path: 'vendor',
-    renderMode: RenderMode.Prerender
+    renderMode: RenderMode.Client
   },
   {
     path: 'blog',
-    renderMode: RenderMode.Prerender
+    renderMode: RenderMode.Client
   },
   {
     path: 'pasos-envio',
@@ -35,16 +35,16 @@ export const serverRoutes: ServerRoute[] = [
   },
   {
     path: 'cart',
-    renderMode: RenderMode.Prerender
+    renderMode: RenderMode.Client
   },
 
   {
     path: 'checkout',
-    renderMode: RenderMode.Prerender
+    renderMode: RenderMode.Client
   },
   {
     path: 'become-seller',
-    renderMode: RenderMode.Prerender
+    renderMode: RenderMode.Client
   },
   {
     path: 'account',
@@ -68,31 +68,31 @@ export const serverRoutes: ServerRoute[] = [
   },
   {
     path: 'index-two',
-    renderMode: RenderMode.Prerender
+    renderMode: RenderMode.Client
   },
   {
     path: 'index-three',
-    renderMode: RenderMode.Prerender
+    renderMode: RenderMode.Client
   },
   {
     path: 'index-laptop',
-    renderMode: RenderMode.Prerender
+    renderMode: RenderMode.Client
   },
   {
     path: 'vendor-two',
-    renderMode: RenderMode.Prerender
+    renderMode: RenderMode.Client
   },
   {
     path: 'vendor-details',
-    renderMode: RenderMode.Prerender
+    renderMode: RenderMode.Client
   },
   {
     path: 'blog-details',
-    renderMode: RenderMode.Prerender
+    renderMode: RenderMode.Client
   },
   {
     path: 'vendor-two-details',
-    renderMode: RenderMode.Prerender
+    renderMode: RenderMode.Client
   },
   {
     path: 'product-details/:id',
@@ -104,15 +104,17 @@ export const serverRoutes: ServerRoute[] = [
   },
   {
     path: 'product-details-two',
-    renderMode: RenderMode.Prerender
+    renderMode: RenderMode.Client
   },
+  // Dashboard y app del motorizado: requieren sesión (token en localStorage),
+  // así que el SSR no aporta nada (en el servidor el guard siempre redirige).
   {
     path: 'dashboard',
-    renderMode: RenderMode.Server
+    renderMode: RenderMode.Client
   },
   {
     path: 'dashboard/**',
-    renderMode: RenderMode.Server
+    renderMode: RenderMode.Client
   },
   {
     path: 'verify-email',
@@ -124,7 +126,7 @@ export const serverRoutes: ServerRoute[] = [
   },
   {
     path: 'my-account',
-    renderMode: RenderMode.Prerender
+    renderMode: RenderMode.Client
   },
   {
     path: 'arma-tu-pc',
@@ -132,60 +134,40 @@ export const serverRoutes: ServerRoute[] = [
   },
   {
     path: 'my-account/datos-personales',
-    renderMode: RenderMode.Prerender
+    renderMode: RenderMode.Client
   },
   {
 
     path: 'my-account/direcciones',
-    renderMode: RenderMode.Prerender
+    renderMode: RenderMode.Client
   },
   {
     path: 'my-account/cotizaciones',
-    renderMode: RenderMode.Prerender
+    renderMode: RenderMode.Client
   },
   {
     path: 'my-account/compras',
-    renderMode: RenderMode.Prerender
+    renderMode: RenderMode.Client
   },
   {
     path: 'my-account/estado-cuenta',
-    renderMode: RenderMode.Prerender
+    renderMode: RenderMode.Client
   },
   {
     path: 'my-account/reclamos',
-    renderMode: RenderMode.Prerender
-  },
-  {
-    path: 'my-account/recompensas',
-    renderMode: RenderMode.Prerender
+    renderMode: RenderMode.Client
   },
   {
     path: 'dashboard/motorizados',
-    renderMode: RenderMode.Server
+    renderMode: RenderMode.Client
   },
   {
     path: 'motorizado',
-    renderMode: RenderMode.Server
+    renderMode: RenderMode.Client
   },
   {
-    path: 'motorizado/dashboard',
-    renderMode: RenderMode.Server
-  },
-  {
-    path: 'motorizado/pedidos',
-    renderMode: RenderMode.Server
-  },
-  {
-    path: 'motorizado/perfil',
-    renderMode: RenderMode.Server
-  },
-  {
-    path: 'motorizado/rutas',
-    renderMode: RenderMode.Server
-  },
-  {
-    path: 'motorizado/historial',
-    renderMode: RenderMode.Server
+    path: 'motorizado/**',
+    renderMode: RenderMode.Client
   },
   {
     path: 'politica-cookies',
@@ -197,15 +179,15 @@ export const serverRoutes: ServerRoute[] = [
   },
   {
     path: 'my-account/favoritos',
-    renderMode: RenderMode.Prerender
+    renderMode: RenderMode.Client
   },
   {
     path: 'my-account/cupones',
-    renderMode: RenderMode.Prerender
+    renderMode: RenderMode.Client
   },
   {
     path: 'my-account/configuracion',
-    renderMode: RenderMode.Prerender
+    renderMode: RenderMode.Client
   },
   {
     path: '**',

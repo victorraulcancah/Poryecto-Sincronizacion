@@ -18,29 +18,22 @@ class RefreshAllPermissionsSeeder extends Seeder
         $this->command->info('');
 
         // 1. Permisos básicos
-        $this->command->info('📦 [1/5] Ejecutando PermissionSeeder...');
+        $this->command->info('📦 [1/4] Ejecutando PermissionSeeder...');
         $this->call(PermissionSeeder::class);
         
         // 2. Permisos de Contabilidad
         $this->command->info('');
-        $this->command->info('📦 [2/5] Ejecutando ContabilidadPermissionsSeeder...');
+        $this->command->info('📦 [2/4] Ejecutando ContabilidadPermissionsSeeder...');
         $this->call(ContabilidadPermissionsSeeder::class);
         
         // 3. Permisos de Facturación
         $this->command->info('');
-        $this->command->info('📦 [3/5] Ejecutando FacturacionPermissionsSeeder...');
+        $this->command->info('📦 [3/4] Ejecutando FacturacionPermissionsSeeder...');
         $this->call(FacturacionPermissionsSeeder::class);
         
-        // 4. Permisos de Recompensas (si existe)
-        if (class_exists(\Database\Seeders\RecompensasPermisosSeeder::class)) {
-            $this->command->info('');
-            $this->command->info('📦 [4/5] Ejecutando RecompensasPermisosSeeder...');
-            $this->call(RecompensasPermisosSeeder::class);
-        }
-        
-        // 5. Asignar TODOS los permisos a SuperAdmin
+        // 4. Asignar TODOS los permisos a SuperAdmin
         $this->command->info('');
-        $this->command->info('📦 [5/5] Ejecutando SuperAdminPermissionsSeeder...');
+        $this->command->info('📦 [4/4] Ejecutando SuperAdminPermissionsSeeder...');
         $this->call(SuperAdminPermissionsSeeder::class);
 
         $this->command->info('');

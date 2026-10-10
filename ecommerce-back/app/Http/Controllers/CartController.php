@@ -52,7 +52,9 @@ class CartController extends Controller
             return response()->json(['message' => 'Tipo de usuario no válido.'], 401);
         }
 
-        $cartItems = $query->get();
+        // Un producto eliminado dejaba el item huérfano y el carrito entero daba
+        // 500 (`precioPara() on null`). Los huérfanos simplemente no se muestran.
+        $cartItems = $query->whereHas('producto')->get();
 
         $formattedItems = $cartItems->map(function ($item) use ($listas) {
             $pm = $this->precioYMonedaProducto($item->producto, $listas);

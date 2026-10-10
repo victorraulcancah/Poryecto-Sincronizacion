@@ -58,9 +58,6 @@ class DatabaseSeeder extends Seeder
             $this->command->warn('🚫 Los permisos estandarizados ya existen. Seeder "ActualizarPermisosSeeder" no se ejecutó.');
         }
 
-        // Permisos del módulo Recompensas centralizados en un único seeder
-        $this->call(RecompensasPermisosSeeder::class);
-
         $this->call(EliminarPermisosAntiguosSeeder::class);
 
         // Series base para facturación electrónica (Factura/Boleta)

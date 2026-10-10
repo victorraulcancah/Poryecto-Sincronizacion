@@ -127,7 +127,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // OFERTAS
     // ============================================
     Route::middleware('permission:ofertas.ver')->group(function () {
-        Route::resource('ofertas', OfertasController::class);
+        Route::apiResource('ofertas', OfertasController::class);
         Route::get('/tipos-ofertas', [OfertasController::class, 'tiposOfertas']);
         Route::get('/productos-disponibles', [OfertasController::class, 'productosDisponibles']);
         Route::get('/ofertas/{oferta}/productos', [OfertasController::class, 'productosOferta']);
@@ -142,7 +142,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // CUPONES
     // ============================================
     Route::middleware('permission:cupones.ver')->group(function () {
-        Route::resource('cupones', CuponesController::class);
+        Route::apiResource('cupones', CuponesController::class);
     });
 
     // ============================================

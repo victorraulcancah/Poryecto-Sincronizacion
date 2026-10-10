@@ -165,14 +165,6 @@ export const routes: Routes = [
             title: 'Mis Reclamos'
           },
           {
-            path: 'recompensas',
-            loadComponent: () =>
-              import('./pages/my-account/recompensas/recompensas.component').then(
-                (m) => m.RecompensasMiCuentaComponent
-              ),
-            title: 'Mis Recompensas'
-          },
-          {
             path: 'cupones',
             loadComponent: () =>
               import('./pages/my-account/cupones/cupones.component').then(
@@ -524,16 +516,6 @@ export const routes: Routes = [
         canActivate: [permissionGuard],
         data: { permission: 'usuarios.ver' },
       },
-      // ✅ MÓDULO DE RECOMPENSAS - NUEVO SISTEMA COMPLETO
-      {
-        path: 'recompensas',
-        loadChildren: () =>
-          import('./pages/dashboard/recompensas/recompensas.module').then(
-            (m) => m.RecompensasModule
-          ),
-        canActivate: [permissionGuard],
-        data: { permission: 'recompensas.ver' },
-      },
       // ✅ RUTAS DE ALMACÉN CORREGIDAS
       {
         path: 'almacen',
@@ -705,16 +687,6 @@ export const routes: Routes = [
             (m) => m.GuiasTransportistaListComponent
           ),
         title: 'GRE Transportista',
-        canActivate: [permissionGuard],
-        data: { permission: 'facturacion.guias_remision.ver' },
-      },
-      {
-        path: 'guias-remision/traslado-interno',
-        loadComponent: () =>
-          import('./pages/dashboard/guias-remision/traslado-interno/traslado-interno-list.component').then(
-            (m) => m.TrasladoInternoListComponent
-          ),
-        title: 'Traslado Interno',
         canActivate: [permissionGuard],
         data: { permission: 'facturacion.guias_remision.ver' },
       },

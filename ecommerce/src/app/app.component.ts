@@ -3,7 +3,8 @@ import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import * as AOS from 'aos';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, NavigationEnd, NavigationCancel, NavigationError } from '@angular/router';
+import { filter } from 'rxjs';
 import { AuthService } from './services/auth.service';
 import { CartNotificationService, CartNotificationData } from './services/cart-notification.service';
 import { CartNotificationComponent } from './components/cart-notification/cart-notification.component';
@@ -64,16 +65,44 @@ export class AppComponent implements OnInit {
           anchorPlacement: 'top-bottom'
         });
 
-        // ✅ NUEVO: Refrescar AOS periódicamente para elementos cargados dinámicamente
-        setInterval(() => {
-          AOS.refresh();
-        }, 3000);
+        // Refresco puntual de AOS al terminar cada navegación (antes era un
+        // setInterval permanente cada 3 s). El contenido que llega después por
+        // HTTP lo detecta el MutationObserver que AOS registra en init().
+        this.router.events
+          .pipe(filter((event) => event instanceof NavigationEnd))
+          .subscribe(() => {
+            setTimeout(() => AOS.refreshHard(), 300);
+          });
+
+        // Una vez que terminan de cargar las imágenes la página cambia de alto:
+        // se recalculan las posiciones de las animaciones.
+        if (document.readyState !== 'complete') {
+          window.addEventListener('load', () => AOS.refresh(), { once: true });
+        }
       }
+
+      // Avisa al splash inicial de index.html que la app ya cargó (terminó la
+      // primera navegación) para que se oculte de inmediato en vez de esperar
+      // un tiempo fijo.
+      let appListaAvisada = false;
+      const avisarAppLista = () => {
+        if (appListaAvisada) return;
+        appListaAvisada = true;
+        window.dispatchEvent(new Event('app-ready'));
+      };
+      this.router.events.subscribe((event) => {
+        if (appListaAvisada) return;
+        if (event instanceof NavigationEnd) {
+          avisarAppLista();
+        } else if (event instanceof NavigationCancel || event instanceof NavigationError) {
+          // Puede seguir una redirección (p. ej. el guard del dashboard envía a
+          // /account): se espera un momento a que termine la navegación nueva.
+          setTimeout(avisarAppLista, 1500);
+        }
+      });
 
       // Verificar si hay parámetros de autenticación de Google en la URL
       this.route.queryParams.subscribe(params => {
-        console.log('🔍 TODOS los parámetros:', params);
-        
         const token = params['token'];
         const userData = params['user'];
         const tipoUsuario = params['tipo_usuario'];
@@ -89,7 +118,6 @@ export class AppComponent implements OnInit {
         if (token && userData && tipoUsuario === 'cliente') {
           try {
             console.log('✅ Iniciando processGoogleAuth...');
-            console.log('🎯 Token a procesar:', token);
             console.log('👤 UserData sin decodificar:', userData);
             
             // Intentar decodificar userData antes de pasarlo

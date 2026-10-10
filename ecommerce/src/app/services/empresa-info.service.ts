@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, map, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { EmpresaInfo, EmpresaInfoCreate } from '../types/empresa-info.types';
+import { TtlCache } from '../utils/ttl-cache';
 
 @Injectable({
   providedIn: 'root',
@@ -20,6 +21,12 @@ export class EmpresaInfoService {
 
   private empresaInfoPublicaSubject = new BehaviorSubject<any>(null);
   public empresaInfoPublica$ = this.empresaInfoPublicaSubject.asObservable();
+
+  // Cache en memoria (60 s) de /empresa-info/publica: el header, el splash y la
+  // página de contacto piden lo mismo y se resolvía con 3 peticiones. Las
+  // ediciones del admin pasan por refreshPublicInfo(), que siempre pide datos
+  // frescos (y deja la respuesta nueva en este cache).
+  private cacheInfoPublica = new TtlCache<any>(60_000);
 
   constructor(private http: HttpClient, @Inject(PLATFORM_ID) platformId: Object) {
     this.isBrowser = isPlatformBrowser(platformId);
@@ -235,13 +242,23 @@ export class EmpresaInfoService {
     );
   }
 
-  obtenerEmpresaInfoPublica(): Observable<any> {
-    return this.http.get<{ success: boolean; data: any }>(`${this.apiUrl}/empresa-info/publica?_t=${Date.now()}`).pipe(
-      map((response) => response.data),
-      tap((data) => {
-        this.empresaInfoPublicaSubject.next(data);
-        this.guardarCache(data);
-      })
+  /**
+   * @param forzar true descarta el cache en memoria y vuelve a pedir al servidor.
+   */
+  obtenerEmpresaInfoPublica(forzar = false): Observable<any> {
+    const clave = 'empresa-info/publica';
+    if (forzar) {
+      this.cacheInfoPublica.invalidar(clave);
+    }
+
+    return this.cacheInfoPublica.obtener(clave, () =>
+      this.http.get<{ success: boolean; data: any }>(`${this.apiUrl}/empresa-info/publica?_t=${Date.now()}`).pipe(
+        map((response) => response.data),
+        tap((data) => {
+          this.empresaInfoPublicaSubject.next(data);
+          this.guardarCache(data);
+        })
+      )
     );
   }
 
@@ -250,6 +267,7 @@ export class EmpresaInfoService {
   }
 
   refreshPublicInfo(): void {
-    this.obtenerEmpresaInfoPublica().subscribe();
+    // Siempre fresco: lo llama el admin tras guardar cambios en la empresa
+    this.obtenerEmpresaInfoPublica(true).subscribe();
   }
 }

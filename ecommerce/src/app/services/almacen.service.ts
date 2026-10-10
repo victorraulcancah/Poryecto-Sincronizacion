@@ -1,8 +1,10 @@
 // src\app\services\almacen.service.ts
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, map, switchMap, catchError, of } from 'rxjs';
+import { Observable, map, switchMap, catchError, of, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { TtlCache } from '../utils/ttl-cache';
+import { CategoriasPublicasService } from './categorias-publicas.service';
 import {
   Categoria,
   CategoriaCreate,
@@ -28,7 +30,17 @@ export class AlmacenService {
   private apiUrl7Power = `${environment.apiUrl}`;
   private baseUrl7Power = environment.baseUrl;
 
+  // Cache en memoria (60 s) de /marcas/publicas: el home y el chatbot piden lo
+  // mismo. Se limpia al crear/editar/eliminar marcas o categorías desde el admin.
+  private cacheMarcasPublicas = new TtlCache<MarcaProducto[]>(60_000);
+  private categoriasPublicasService = inject(CategoriasPublicasService);
+
   constructor(private http: HttpClient) { }
+
+  private invalidarCachePublico(): void {
+    this.cacheMarcasPublicas.invalidar();
+    this.categoriasPublicasService.invalidarCacheCategorias();
+  }
 
   // ==================== MÉTODOS PARA CATEGORÍAS ====================
   obtenerCategorias(seccionId?: number | null): Observable<Categoria[]> {
@@ -73,7 +85,9 @@ export class AlmacenService {
       formData.append('imagen', categoria.imagen);
     }
 
-    return this.http.post<any>(`${this.apiUrl}/categorias`, formData);
+    return this.http.post<any>(`${this.apiUrl}/categorias`, formData).pipe(
+      tap(() => this.invalidarCachePublico())
+    );
   }
 
   actualizarCategoria(
@@ -96,18 +110,22 @@ export class AlmacenService {
     });
 
     formData.append('_method', 'PUT');
-    return this.http.post<any>(`${this.apiUrl}/categorias/${id}`, formData);
+    return this.http.post<any>(`${this.apiUrl}/categorias/${id}`, formData).pipe(
+      tap(() => this.invalidarCachePublico())
+    );
   }
 
   toggleEstadoCategoria(id: number, activo: boolean): Observable<any> {
     return this.http.patch<any>(
       `${this.apiUrl}/categorias/${id}/toggle-estado`,
       { activo }
-    );
+    ).pipe(tap(() => this.invalidarCachePublico()));
   }
 
   eliminarCategoria(id: number): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/categorias/${id}`);
+    return this.http.delete<any>(`${this.apiUrl}/categorias/${id}`).pipe(
+      tap(() => this.invalidarCachePublico())
+    );
   }
 
   obtenerCategoriasParaSidebar(): Observable<CategoriaParaSidebar[]> {
@@ -175,7 +193,9 @@ export class AlmacenService {
       formData.append('imagen', marca.imagen);
     }
 
-    return this.http.post<any>(`${this.apiUrl}/marcas`, formData);
+    return this.http.post<any>(`${this.apiUrl}/marcas`, formData).pipe(
+      tap(() => this.invalidarCachePublico())
+    );
   }
 
   actualizarMarca(
@@ -198,17 +218,21 @@ export class AlmacenService {
     });
 
     formData.append('_method', 'PUT');
-    return this.http.post<any>(`${this.apiUrl}/marcas/${id}`, formData);
+    return this.http.post<any>(`${this.apiUrl}/marcas/${id}`, formData).pipe(
+      tap(() => this.invalidarCachePublico())
+    );
   }
 
   toggleEstadoMarca(id: number, activo: boolean): Observable<any> {
     return this.http.patch<any>(`${this.apiUrl}/marcas/${id}/toggle-estado`, {
       activo,
-    });
+    }).pipe(tap(() => this.invalidarCachePublico()));
   }
 
   eliminarMarca(id: number): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/marcas/${id}`);
+    return this.http.delete<any>(`${this.apiUrl}/marcas/${id}`).pipe(
+      tap(() => this.invalidarCachePublico())
+    );
   }
 
   obtenerMarcasActivas(): Observable<MarcaProducto[]> {
@@ -439,7 +463,12 @@ export class AlmacenService {
     // ✅ USAR MAGUS para marcas públicas
     let params = new HttpParams();
     if (categoriaId) params = params.set('categoria_id', categoriaId.toString());
-    return this.http.get<MarcaProducto[]>(`${this.apiUrl}/marcas/publicas`, { params }).pipe(
+    // Se cachea la respuesta cruda y el mapeo se hace por suscriptor, así cada
+    // componente recibe sus propios objetos (sin mutaciones compartidas).
+    return this.cacheMarcasPublicas.obtener(
+      `marcas/publicas?${params.toString()}`,
+      () => this.http.get<MarcaProducto[]>(`${this.apiUrl}/marcas/publicas`, { params })
+    ).pipe(
       map(marcas => marcas.map(marca => ({
         ...marca,
         slug: marca.slug || marca.nombre.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
@@ -495,7 +524,7 @@ export class AlmacenService {
       {
         nueva_seccion_id: nuevaSeccionId,
       }
-    );
+    ).pipe(tap(() => this.invalidarCachePublico()));
   }
 
   validarCupon(codigo: string, total: number): Observable<any> {

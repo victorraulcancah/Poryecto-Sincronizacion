@@ -50,56 +50,15 @@
       property="twitter:image"
       content="https://7power.pe/assets/images/logo/logo.svg"
     />
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/@phosphor-icons/web@2.1.2/src/fill/style.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/@phosphor-icons/web@2.1.2/src/regular/style.css"
-    />
+    <!-- Los iconos Phosphor (regular, bold y fill) se cargan desde angular.json -->
 
-    <!-- =====================================================
-       GOOGLE ANALYTICS CON CONSENT MODE V2
-       ===================================================== -->
     <!--
-    IMPORTANTE: Reemplaza 'G-XXXXXXXXXX' con tu ID real de Google Analytics
-    Puedes obtenerlo desde: https://analytics.google.com/
-  -->
-    <script>
-      // Configurar el modo de consentimiento por defecto ANTES de cargar gtag
-      window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-
-      // Establecer el modo de consentimiento por defecto como 'denied'
-      // Esto cumple con GDPR, LGPD, y CCPA
-      gtag("consent", "default", {
-        ad_storage: "denied",
-        ad_user_data: "denied",
-        ad_personalization: "denied",
-        analytics_storage: "denied",
-        functionality_storage: "denied",
-        personalization_storage: "denied",
-        security_storage: "granted", // Siempre permitido para seguridad
-        wait_for_update: 500,
-      });
-
-      // Configuración adicional de Google Analytics
-      gtag("js", new Date());
-
-      // NOTA: El ID de medición se configura dinámicamente desde el backend
-      // Si necesitas configurarlo manualmente, descomenta la siguiente línea:
-      // gtag('config', 'G-XXXXXXXXXX', { 'anonymize_ip': true });
-    </script>
-
-    <!-- Cargar Google Analytics (gtag.js) -->
-    <!-- NOTA: Reemplaza 'G-XXXXXXXXXX' con tu ID real de Google Analytics -->
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"
-    ></script>
+      Google Analytics: se quitó el gtag.js que apuntaba al ID de ejemplo
+      G-XXXXXXXXXX (no medía nada y solo hacía una petición externa inútil).
+      Para activarlo, agregar el script de gtag.js con el ID real de Google
+      Analytics y la configuración de Consent Mode v2 (el servicio
+      cookie-consent.service.ts ya envía gtag('consent', 'update', ...)).
+    -->
 
     <!-- Estilos del loader de carga inicial -->
     <style>
@@ -114,7 +73,7 @@
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            transition: opacity 0.5s ease-out;
+            transition: opacity 0.2s ease-out;
             overflow: hidden;
           }
 
@@ -373,40 +332,23 @@
           xhr.send();
         } catch (e) {}
 
-        // Esperar a que Angular esté listo (mínimo 3s)
-        var angularReady = false;
-        var minimumTime = false;
+        // El splash se oculta apenas la app esté lista: AppComponent dispara el
+        // evento "app-ready" al terminar la primera navegación. Ya no hay un
+        // tiempo mínimo artificial; el fade es corto (200 ms).
+        var oculto = false;
 
-        function checkAndRemove() {
-          if (angularReady && minimumTime) {
-            loader.classList.add("fade-out");
-            setTimeout(removeLoader, 500);
-          }
+        function hideLoader() {
+          if (oculto || !loader) return;
+          oculto = true;
+          loader.classList.add("fade-out");
+          setTimeout(removeLoader, 200);
         }
 
-        setTimeout(function () {
-          minimumTime = true;
-          checkAndRemove();
-        }, 3000);
+        window.addEventListener("app-ready", hideLoader);
 
-        document.addEventListener("DOMContentLoaded", function () {
-          var interval = setInterval(function () {
-            var appRoot = document.querySelector("app-root");
-            if (appRoot && appRoot.children.length > 0) {
-              angularReady = true;
-              checkAndRemove();
-              clearInterval(interval);
-            }
-          }, 100);
-
-          setTimeout(function () {
-            angularReady = true;
-            minimumTime = true;
-            loader.classList.add("fade-out");
-            setTimeout(removeLoader, 500);
-            clearInterval(interval);
-          }, 15000);
-        });
+        // Respaldo: si por algún error la app nunca avisa, no dejar el splash
+        // tapando la página para siempre.
+        setTimeout(hideLoader, 15000);
       })();
     </script>
   </body>

@@ -48,9 +48,15 @@ class MarcaProducto extends Model
         return $query->where('activo', false);
     }
 
-    // Accessor para contar productos
+    // Accessor para contar productos.
+    // Si el listado ya trajo el conteo con withCount() se usa ese (respeta sus
+    // filtros y no hace una consulta por fila); solo cuenta aparte cuando no vino.
     public function getProductosCountAttribute()
     {
+        if (array_key_exists('productos_count', $this->attributes)) {
+            return (int) $this->attributes['productos_count'];
+        }
+
         return $this->productos()->count();
     }
 

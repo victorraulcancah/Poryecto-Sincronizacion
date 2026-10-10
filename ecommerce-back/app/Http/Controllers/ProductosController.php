@@ -575,6 +575,13 @@ class ProductosController extends Controller
         // ✅ Si no se especifica página, devolver todos los productos (para el index)
         // Si se especifica página, paginar normalmente (para la tienda)
         if (!$request->has('page')) {
+            // `per_page` sin `page` es una lista corta (la home pide 10 para
+            // destacados y más vendidos). Antes se ignoraba y cada llamada devolvía
+            // el catálogo completo (~300 KB). Sin `per_page` sigue devolviendo todo.
+            if ($request->filled('per_page')) {
+                $query->limit(max(1, min((int) $request->per_page, 1000)));
+            }
+
             $productos = $query->get();
 
             // Agregar campos calculados para el frontend

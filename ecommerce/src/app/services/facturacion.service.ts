@@ -619,13 +619,6 @@ export class FacturacionService {
     return this.http.get<ApiResponse<any>>(`${this.apiUrl}/facturacion/status`);
   }
 
-  /**
-   * Generar URL de destino por defecto
-   */
-  generarUrlDestinoDefault(recompensaId: number): string {
-    return `/recompensas/${recompensaId}`;
-  }
-
   // ============================================
   // MÉTODOS DE PRUEBA Y DIAGNÓSTICO
   // ============================================

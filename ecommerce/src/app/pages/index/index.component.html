@@ -335,7 +335,7 @@
               </span>
               <a href="javascript:void(0)" (click)="navegarAProducto(product, $event)"
                 class="product-card__thumb flex-center overflow-hidden" style="cursor: pointer">
-                <img [src]="product.imagen_principal" [alt]="product.nombre" (error)="onImageError($event)" />
+                <img [src]="product.imagen_principal" [alt]="product.nombre" (error)="onImageError($event)" loading="lazy" />
               </a>
               <div class="product-card__content p-sm-2 w-100">
                 <h6 class="title text-lg fw-semibold my-12">
@@ -714,7 +714,7 @@
             style="background-color: #f8f9fa; min-height: 320px">
             <img [src]="sale.imagen_url || 'assets/images/bg/flash-sale-bg1.png'" [alt]="sale.nombre"
               class="position-absolute inset-block-start-0 inset-inline-start-0 w-100 h-100 object-fit-cover z-n1 flash-sales-item__bg"
-              (error)="onImageError($event)" />
+              (error)="onImageError($event)" loading="lazy" />
 
             <div class="flash-sales-item__content">
               <!-- Badge con el nombre del banner (color dinámico) -->
@@ -934,7 +934,7 @@
                       <img [src]="
                           product.imagen_principal ||
                           'assets/images/thumbs/short-product-img1.png'
-                        " [alt]="product.nombre" (error)="onImageError($event)" style="
+                        " [alt]="product.nombre" (error)="onImageError($event)" loading="lazy" style="
                           width: 100%;
                           height: 100%;
                           object-fit: cover;
@@ -989,7 +989,7 @@
                       <img [src]="
                           product.imagen_principal ||
                           'assets/images/thumbs/short-product-img1.png'
-                        " [alt]="product.nombre" (error)="onImageError($event)" style="
+                        " [alt]="product.nombre" (error)="onImageError($event)" loading="lazy" style="
                           width: 100%;
                           height: 100%;
                           object-fit: cover;
@@ -1090,7 +1090,7 @@
                       <img [src]="
                           product.imagen_principal ||
                           'assets/images/thumbs/short-product-img1.png'
-                        " [alt]="product.nombre" (error)="onImageError($event)" style="
+                        " [alt]="product.nombre" (error)="onImageError($event)" loading="lazy" style="
                           width: 100%;
                           height: 100%;
                           object-fit: cover;
@@ -1145,7 +1145,7 @@
                       <img [src]="
                           product.imagen_principal ||
                           'assets/images/thumbs/short-product-img1.png'
-                        " [alt]="product.nombre" (error)="onImageError($event)" style="
+                        " [alt]="product.nombre" (error)="onImageError($event)" loading="lazy" style="
                           width: 100%;
                           height: 100%;
                           object-fit: cover;
@@ -1233,7 +1233,7 @@
                     <img [src]="
                         producto.imagen_principal ||
                         'assets/images/thumbs/short-product-img9.png'
-                      " [alt]="producto.nombre" (error)="onImageError($event)" style="
+                      " [alt]="producto.nombre" (error)="onImageError($event)" loading="lazy" style="
                         width: 100%;
                         height: 100%;
                         object-fit: cover;
