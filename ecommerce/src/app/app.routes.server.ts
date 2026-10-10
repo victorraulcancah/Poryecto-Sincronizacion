@@ -35,12 +35,16 @@ export const serverRoutes: ServerRoute[] = [
   },
   {
     path: 'cart',
-    renderMode: RenderMode.Client
+    renderMode: RenderMode.Prerender
+  },
+  {
+    path: 'pago',
+    renderMode: RenderMode.Prerender
   },
 
   {
     path: 'checkout',
-    renderMode: RenderMode.Client
+    renderMode: RenderMode.Prerender
   },
   {
     path: 'become-seller',
@@ -126,7 +130,7 @@ export const serverRoutes: ServerRoute[] = [
   },
   {
     path: 'my-account',
-    renderMode: RenderMode.Client
+    renderMode: RenderMode.Prerender
   },
   {
     path: 'arma-tu-pc',
@@ -134,28 +138,28 @@ export const serverRoutes: ServerRoute[] = [
   },
   {
     path: 'my-account/datos-personales',
-    renderMode: RenderMode.Client
+    renderMode: RenderMode.Prerender
   },
   {
 
     path: 'my-account/direcciones',
-    renderMode: RenderMode.Client
+    renderMode: RenderMode.Prerender
   },
   {
     path: 'my-account/cotizaciones',
-    renderMode: RenderMode.Client
+    renderMode: RenderMode.Prerender
   },
   {
     path: 'my-account/compras',
-    renderMode: RenderMode.Client
+    renderMode: RenderMode.Prerender
   },
   {
     path: 'my-account/estado-cuenta',
-    renderMode: RenderMode.Client
+    renderMode: RenderMode.Prerender
   },
   {
     path: 'my-account/reclamos',
-    renderMode: RenderMode.Client
+    renderMode: RenderMode.Prerender
   },
   {
     path: 'dashboard/motorizados',
@@ -179,15 +183,15 @@ export const serverRoutes: ServerRoute[] = [
   },
   {
     path: 'my-account/favoritos',
-    renderMode: RenderMode.Client
+    renderMode: RenderMode.Prerender
   },
   {
     path: 'my-account/cupones',
-    renderMode: RenderMode.Client
+    renderMode: RenderMode.Prerender
   },
   {
     path: 'my-account/configuracion',
-    renderMode: RenderMode.Client
+    renderMode: RenderMode.Prerender
   },
   {
     path: '**',
