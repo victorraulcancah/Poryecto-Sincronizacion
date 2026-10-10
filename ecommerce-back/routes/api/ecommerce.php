@@ -6,6 +6,7 @@ use App\Http\Controllers\ClientesController;
 use App\Http\Controllers\ComprasController;
 use App\Http\Controllers\CotizacionesController;
 use App\Http\Controllers\FavoritoController;
+use App\Http\Controllers\PagoEnLineaController;
 use App\Http\Controllers\PedidosController;
 use Illuminate\Support\Facades\Route;
 
@@ -64,6 +65,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/{id}/estado', [PedidosController::class, 'actualizarEstado']);
         Route::post('/{id}/cambiar-estado', [PedidosController::class, 'cambiarEstado']);
         Route::delete('/{id}', [PedidosController::class, 'destroy']);
+    });
+
+    // ============================================
+    // PAGO EN LÍNEA (pasarela)
+    // ============================================
+    // Aparte de pedidos y cotizaciones: cobra el carrito y registra la compra
+    // en `pagos_en_linea`. Hoy con la pasarela simulada, sin cobro real.
+    Route::prefix('pago-en-linea')->group(function () {
+        Route::post('/pagar', [PagoEnLineaController::class, 'pagar']);
+        Route::get('/{codigo}', [PagoEnLineaController::class, 'show']);
     });
 
     // ============================================

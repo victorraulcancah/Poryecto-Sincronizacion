@@ -297,6 +297,29 @@ export class CartComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * El precio de este producto se puede mostrar: el cliente inició sesión, o
+   * el producto tiene precio público (lista de visitantes), que es el único
+   * precio que le llega a un invitado.
+   */
+  verPrecio(item: CartItem): boolean {
+    return this.isLoggedIn || this.ensureNumber(item?.precio) > 0;
+  }
+
+  /** Invitado cuyo carrito tiene solo productos con precio público. */
+  get invitadoVePrecios(): boolean {
+    return (
+      !this.isLoggedIn &&
+      this.productosEnCarrito.length > 0 &&
+      this.productosEnCarrito.every(item => this.ensureNumber(item.precio) > 0)
+    );
+  }
+
+  /** Se muestran subtotal y total: cliente con sesión o invitado con precios públicos. */
+  get mostrarResumenConPrecios(): boolean {
+    return this.isLoggedIn || this.invitadoVePrecios;
+  }
+
   // Pagar y Cotizar comparten esta validación. Los dos botones se muestran
   // también al invitado: al pulsarlos se le pide iniciar sesión, así el flujo
   // de compra se ve aunque todavía no tenga cuenta.
@@ -327,20 +350,10 @@ export class CartComponent implements OnInit, OnDestroy {
     if (this.puedeComprar()) this.router.navigate(['/checkout']);
   }
 
-  // El pago en línea con tarjeta (pasarela Culqi) todavía no está integrado:
-  // se avisa con claridad en vez de dejar un botón que no hace nada.
+  // Pago en línea con tarjeta: flujo aparte del checkout de cotizaciones
+  // (Carro → Entrega → Pago). Hoy la pasarela es de prueba; ver PagoComponent.
   pagar(): void {
-    if (!this.puedeComprar()) return;
-    Swal.fire({
-      title: 'Pago en línea próximamente',
-      text: 'Estamos habilitando el pago con tarjeta. Mientras tanto puedes solicitar tu cotización y nuestro equipo coordinará el pago contigo.',
-      icon: 'info',
-      showCancelButton: true,
-      confirmButtonText: 'Solicitar cotización',
-      cancelButtonText: 'Cerrar'
-    }).then(result => {
-      if (result.isConfirmed) this.router.navigate(['/checkout']);
-    });
+    if (this.puedeComprar()) this.router.navigate(['/pago']);
   }
 
   continueShopping(): void { 

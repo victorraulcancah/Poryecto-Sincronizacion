@@ -71,6 +71,15 @@ export const routes: Routes = [
         title: 'Checkout',
       },
       {
+        // Compra por pasarela de pago (botón "Pagar" del carrito). Aparte del
+        // checkout de cotizaciones.
+        path: 'pago',
+        loadComponent: () =>
+          import('./pages/pago/pago.component').then((m) => m.PagoComponent),
+        title: 'Pago',
+        canActivate: [authGuard],
+      },
+      {
         path: 'become-seller',
         component: BecomeSellerComponent,
         title: 'Become Seller',

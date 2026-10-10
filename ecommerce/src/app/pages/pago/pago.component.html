@@ -1,0 +1,496 @@
+<!-- ========================= Breadcrumb Start =============================== -->
+<app-breadcrumb title="Pagar" subtitle="Pago en línea"></app-breadcrumb>
+<!-- ========================= Breadcrumb End =============================== -->
+
+<!-- ================================ Pago Section Start ================================ -->
+<section class="checkout py-80">
+  <div class="container container-lg">
+
+    <!-- Aviso de pasarela de prueba -->
+    <div *ngIf="modoPrueba" class="pago-prueba d-flex align-items-start gap-12 rounded-12 p-16 mb-24">
+      <i class="ph-fill ph-flask text-xl flex-shrink-0"></i>
+      <div class="text-sm">
+        <strong>Modo de prueba.</strong>
+        La pasarela de pago está en pruebas: <strong>no se hace ningún cobro real</strong>
+        y no debes ingresar tu tarjeta verdadera. Usa las tarjetas de prueba que se indican en el paso de pago.
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- FORMULARIO: Entrega y Pago -->
+    <!-- ============================================================ -->
+    <ng-container *ngIf="vista === 'formulario'">
+      <app-checkout-steps [pasoActual]="pasoActual"></app-checkout-steps>
+
+      <div class="row gy-4">
+        <div class="col-lg-8">
+
+          <!-- ======================= PASO 2: ENTREGA ======================= -->
+          <div class="card border-0 shadow-sm rounded-12" *ngIf="pasoActual === 2">
+            <div class="card-header bg-main-600 text-white py-16">
+              <h5 class="mb-0 fw-semibold text-white">
+                <i class="ph ph-truck me-8"></i>
+                Datos de Entrega
+              </h5>
+            </div>
+            <div class="card-body p-24">
+              <form [formGroup]="entregaForm" (ngSubmit)="continuarAPago()">
+
+                <!-- Solo delivery: no hay recojo en tienda -->
+                <div class="pago-entrega-info d-flex align-items-start gap-12 rounded-8 p-12 mb-24">
+                  <i class="ph-fill ph-truck text-main-600 text-xl flex-shrink-0"></i>
+                  <div class="text-sm text-gray-700">
+                    <strong class="text-heading">Entrega a domicilio (delivery).</strong>
+                    Enviamos tu compra a la dirección que elijas. El costo y la fecha del envío te los confirmamos
+                    por teléfono o WhatsApp.
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6 mb-20">
+                    <label class="form-label text-heading fw-medium">
+                      Nombre completo <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" class="form-control rounded-8" formControlName="cliente_nombre"
+                           placeholder="Nombre de quien recibe la compra"
+                           [class.is-invalid]="campoInvalido(entregaForm, 'cliente_nombre')" />
+                    <div class="invalid-feedback">Ingresa tu nombre completo.</div>
+                  </div>
+
+                  <div class="col-md-6 mb-20">
+                    <label class="form-label text-heading fw-medium">
+                      Correo electrónico <span class="text-danger">*</span>
+                    </label>
+                    <input type="email" class="form-control rounded-8" formControlName="cliente_email"
+                           placeholder="correo@ejemplo.com"
+                           [class.is-invalid]="campoInvalido(entregaForm, 'cliente_email')" />
+                    <div class="invalid-feedback">Ingresa un correo válido; ahí te llegará la confirmación.</div>
+                  </div>
+
+                  <div class="col-md-6 mb-20">
+                    <label class="form-label text-heading fw-medium">Documento (DNI / RUC)</label>
+                    <input type="text" class="form-control rounded-8" formControlName="numero_documento"
+                           maxlength="11" placeholder="Opcional" />
+                  </div>
+
+                  <div class="col-md-6 mb-20">
+                    <label class="form-label text-heading fw-medium">
+                      Teléfono de contacto <span class="text-danger">*</span>
+                    </label>
+                    <input type="tel" class="form-control rounded-8" formControlName="telefono_contacto"
+                           maxlength="15" placeholder="999 999 999"
+                           [class.is-invalid]="campoInvalido(entregaForm, 'telefono_contacto')" />
+                    <div class="invalid-feedback">Ingresa un teléfono de contacto válido.</div>
+                  </div>
+                </div>
+
+                <!-- Dirección de entrega -->
+                <div class="mb-20">
+                  <label class="form-label text-heading fw-medium">
+                    Dirección de entrega <span class="text-danger">*</span>
+                  </label>
+
+                  <div class="border border-main-600 bg-main-25 rounded-8 p-12" *ngIf="direccionSeleccionada">
+                    <div class="d-flex justify-content-between align-items-start gap-12">
+                      <p class="text-sm text-gray-600 mb-0 flex-grow-1">
+                        {{ direccionEnUnaLinea(direccionSeleccionada) }}
+                      </p>
+                      <button type="button" class="btn btn-sm bg-main-600 text-white rounded-6 flex-shrink-0"
+                              (click)="abrirModalDirecciones()">
+                        Cambiar dirección
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="border border-dashed border-gray-300 rounded-8 p-16 text-center"
+                       *ngIf="!direccionSeleccionada">
+                    <p class="text-sm text-gray-500 mb-12">No tienes una dirección seleccionada.</p>
+                    <button *ngIf="direccionesGuardadas.length > 0" type="button"
+                            class="btn btn-sm bg-main-600 text-white rounded-6" (click)="abrirModalDirecciones()">
+                      <i class="ph ph-map-pin me-4"></i>Elegir dirección guardada
+                    </button>
+                    <button *ngIf="direccionesGuardadas.length === 0" type="button"
+                            class="btn btn-sm bg-main-600 text-white rounded-6" (click)="abrirModalNuevaDireccion()">
+                      <i class="ph ph-plus me-4"></i>Agregar dirección
+                    </button>
+                  </div>
+                </div>
+
+                <div class="mb-20">
+                  <label class="form-label text-heading fw-medium">Observaciones</label>
+                  <textarea class="form-control rounded-8" rows="2" formControlName="observaciones"
+                            placeholder="Referencias para la entrega, horario, etc. (opcional)"></textarea>
+                </div>
+
+                <div class="form-check mb-24">
+                  <input class="form-check-input" type="checkbox" id="aceptaTerminos"
+                         formControlName="aceptaTerminos"
+                         [class.is-invalid]="campoInvalido(entregaForm, 'aceptaTerminos')" />
+                  <label class="form-check-label text-sm text-gray-700" for="aceptaTerminos">
+                    Acepto los
+                    <a [href]="TERMINOS_URL" target="_blank" rel="noopener" class="text-main-600 fw-medium">
+                      términos y condiciones
+                    </a>
+                    de compra.
+                  </label>
+                </div>
+
+                <div class="d-flex justify-content-between gap-12 flex-wrap">
+                  <a routerLink="/cart" class="btn bg-gray-100 hover-bg-gray-200 text-gray-700 rounded-8 px-24 py-12">
+                    <i class="ph ph-arrow-left me-8"></i>Volver al carrito
+                  </a>
+                  <button type="submit" class="btn btn-main rounded-8 px-32 py-12">
+                    Continuar al pago<i class="ph ph-arrow-right ms-8"></i>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- ======================= PASO 3: PAGO ======================= -->
+          <div class="card border-0 shadow-sm rounded-12" *ngIf="pasoActual === 3">
+            <div class="card-header bg-main-600 text-white py-16">
+              <h5 class="mb-0 fw-semibold text-white">
+                <i class="ph ph-credit-card me-8"></i>
+                Pago con tarjeta
+              </h5>
+            </div>
+            <div class="card-body p-24">
+
+              <!-- Entrega elegida -->
+              <div class="pago-entrega-info rounded-8 p-12 mb-24" *ngIf="direccionSeleccionada">
+                <div class="d-flex justify-content-between align-items-start gap-12">
+                  <div class="text-sm">
+                    <strong class="text-heading d-block mb-4">Entrega a domicilio</strong>
+                    <span class="text-gray-700 d-block">{{ entregaForm.value.cliente_nombre }} · {{ entregaForm.value.telefono_contacto }}</span>
+                    <span class="text-gray-600 d-block">{{ direccionEnUnaLinea(direccionSeleccionada) }}</span>
+                  </div>
+                  <button type="button" class="btn btn-sm bg-gray-100 hover-bg-gray-200 text-gray-700 rounded-6 flex-shrink-0"
+                          (click)="volverAEntrega()">
+                    Cambiar
+                  </button>
+                </div>
+              </div>
+
+              <!-- Tarjetas de prueba -->
+              <div class="pago-tarjetas-prueba rounded-8 p-16 mb-24" *ngIf="modoPrueba">
+                <p class="text-sm fw-semibold text-heading mb-8">
+                  <i class="ph ph-flask me-4"></i>Tarjetas de prueba
+                </p>
+                <p class="text-sm text-gray-600 mb-12">
+                  Solo se aceptan estas tarjetas. Cualquier fecha futura y cualquier CVV.
+                </p>
+                <div class="d-flex flex-wrap gap-8">
+                  <button type="button" class="btn btn-sm bg-white border border-gray-200 rounded-6"
+                          (click)="usarTarjetaPrueba('aprobada')">
+                    <i class="ph ph-check-circle text-success-600 me-4"></i>
+                    Aprobada · 4111 1111 1111 1111
+                  </button>
+                  <button type="button" class="btn btn-sm bg-white border border-gray-200 rounded-6"
+                          (click)="usarTarjetaPrueba('rechazada')">
+                    <i class="ph ph-x-circle text-danger-600 me-4"></i>
+                    Rechazada · 4000 0000 0000 0002
+                  </button>
+                </div>
+              </div>
+
+              <form [formGroup]="tarjetaForm" (ngSubmit)="pagar()" autocomplete="off">
+                <div class="mb-20">
+                  <label class="form-label text-heading fw-medium">
+                    Nombre del titular <span class="text-danger">*</span>
+                  </label>
+                  <input type="text" class="form-control rounded-8" formControlName="titular"
+                         placeholder="Como aparece en la tarjeta" autocomplete="off"
+                         [class.is-invalid]="tarjetaIntentada && tarjetaForm.get('titular')?.invalid" />
+                  <div class="invalid-feedback">Ingresa el nombre del titular.</div>
+                </div>
+
+                <div class="mb-20">
+                  <label class="form-label text-heading fw-medium">
+                    Número de tarjeta <span class="text-danger">*</span>
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="ph ph-credit-card"></i></span>
+                    <input type="text" inputmode="numeric" class="form-control rounded-end-8"
+                           formControlName="numero" placeholder="0000 0000 0000 0000"
+                           maxlength="19" autocomplete="off"
+                           (input)="formatearNumero($event)"
+                           [class.is-invalid]="tarjetaIntentada && (tarjetaForm.get('numero')?.invalid || numeroNoEsDePrueba)" />
+                  </div>
+                  <div class="text-danger text-sm mt-4" *ngIf="tarjetaIntentada && tarjetaForm.get('numero')?.invalid">
+                    Ingresa el número de la tarjeta.
+                  </div>
+                  <div class="text-danger text-sm mt-4" *ngIf="numeroNoEsDePrueba">
+                    <i class="ph ph-warning me-4"></i>
+                    Estamos en modo de prueba: solo se aceptan las tarjetas de prueba de arriba.
+                    No ingreses tu tarjeta real.
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-6 mb-20">
+                    <label class="form-label text-heading fw-medium">
+                      Vencimiento <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" inputmode="numeric" class="form-control rounded-8"
+                           formControlName="vencimiento" placeholder="MM/AA" maxlength="5" autocomplete="off"
+                           (input)="formatearVencimiento($event)"
+                           [class.is-invalid]="tarjetaIntentada && (tarjetaForm.get('vencimiento')?.invalid || (tarjetaForm.get('vencimiento')?.valid && !vencimientoValido))" />
+                    <div class="invalid-feedback">Usa el formato MM/AA con una fecha vigente.</div>
+                  </div>
+
+                  <div class="col-6 mb-20">
+                    <label class="form-label text-heading fw-medium">
+                      CVV <span class="text-danger">*</span>
+                    </label>
+                    <input type="password" inputmode="numeric" class="form-control rounded-8"
+                           formControlName="cvv" placeholder="123" maxlength="4" autocomplete="off"
+                           [class.is-invalid]="tarjetaIntentada && tarjetaForm.get('cvv')?.invalid" />
+                    <div class="invalid-feedback">Ingresa los 3 o 4 dígitos del CVV.</div>
+                  </div>
+                </div>
+
+                <div class="d-flex justify-content-between gap-12 flex-wrap mt-8">
+                  <button type="button" class="btn bg-gray-100 hover-bg-gray-200 text-gray-700 rounded-8 px-24 py-12"
+                          (click)="volverAEntrega()" [disabled]="procesando">
+                    <i class="ph ph-arrow-left me-8"></i>Volver a Entrega
+                  </button>
+                  <button type="submit" class="btn btn-main rounded-8 px-32 py-12" [disabled]="procesando">
+                    <ng-container *ngIf="!procesando">
+                      <i class="ph ph-lock-key me-8"></i>
+                      Pagar {{ monedaPago | moneda }} {{ formatPrice(totalAPagar) }}
+                    </ng-container>
+                    <ng-container *ngIf="procesando">
+                      <i class="ph ph-spinner ph-spin me-8"></i>Procesando pago...
+                    </ng-container>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- ======================= Resumen ======================= -->
+        <div class="col-lg-4">
+          <div class="checkout-sidebar position-sticky" style="top: 24px">
+            <div class="card border-0 shadow-sm rounded-12 mb-20">
+              <div class="card-header bg-gray-50 py-16">
+                <h6 class="mb-0 fw-semibold text-heading">
+                  Tu compra ({{ productosAPagar.length }})
+                </h6>
+              </div>
+              <div class="card-body p-20">
+
+                <!-- Carrito con soles y dólares: una pasarela cobra en una sola moneda -->
+                <div class="pago-moneda rounded-8 p-12 mb-16" *ngIf="monedasEnCarrito.length > 1">
+                  <p class="text-sm fw-semibold text-heading mb-8">Pagar ahora en:</p>
+                  <div class="form-check" *ngFor="let m of monedasEnCarrito">
+                    <input class="form-check-input" type="radio" name="monedaPago" [id]="'moneda-' + m"
+                           [value]="m" [(ngModel)]="monedaPago" [disabled]="procesando || pasoActual === 3" />
+                    <label class="form-check-label text-sm" [for]="'moneda-' + m">{{ nombreMoneda(m) }}</label>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-8 mb-0">
+                    Los productos de la otra moneda se quedan en tu carrito.
+                  </p>
+                </div>
+
+                <div class="pago-item d-flex gap-12 mb-12" *ngFor="let item of productosAPagar">
+                  <img [src]="item.imagen_url" [alt]="item.nombre" (error)="onImageError($event)" class="pago-item__img" />
+                  <div class="flex-grow-1 min-w-0">
+                    <p class="pago-item__nombre text-sm text-heading fw-medium mb-0" [title]="item.nombre">{{ item.nombre }}</p>
+                    <span class="text-xs text-gray-500">{{ item.cantidad }} × {{ item.moneda | moneda }} {{ formatPrice(item.precio) }}</span>
+                  </div>
+                  <span class="text-sm fw-semibold text-heading text-nowrap">
+                    {{ item.moneda | moneda }} {{ formatPrice(subtotalDe(item)) }}
+                  </span>
+                </div>
+
+                <hr class="border-gray-200 my-12" />
+
+                <div class="d-flex justify-content-between mb-8">
+                  <span class="text-gray-600">Subtotal</span>
+                  <span class="fw-medium">{{ monedaPago | moneda }} {{ formatPrice(subtotalAPagar) }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-8" *ngIf="descuentoCupon > 0">
+                  <span class="text-success-600"><i class="ph ph-ticket me-4"></i>Cupón ({{ cuponAplicado?.codigo }})</span>
+                  <span class="text-success-600 fw-medium">-{{ monedaPago | moneda }} {{ formatPrice(descuentoCupon) }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-8">
+                  <span class="text-gray-600">Envío</span>
+                  <span class="fw-medium">Por coordinar</span>
+                </div>
+
+                <hr class="border-gray-200 my-12" />
+
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="text-heading text-lg fw-bold">Total</span>
+                  <span class="text-heading text-lg fw-bold">{{ monedaPago | moneda }} {{ formatPrice(totalAPagar) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- ============================================================ -->
+    <!-- COMPRA APROBADA -->
+    <!-- ============================================================ -->
+    <ng-container *ngIf="vista === 'exito' && pago">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="card border-0 shadow-sm rounded-12">
+            <div class="card-body p-32 text-center">
+              <i class="ph-fill ph-check-circle text-success-600 pago-icono"></i>
+              <h3 class="text-heading fw-bold mt-12 mb-8">¡Compra realizada!</h3>
+              <p class="text-gray-600 mb-4">
+                Gracias, {{ pago.cliente_nombre }}. Recibimos tu pago.
+              </p>
+              <p class="text-gray-600 mb-24">
+                Te enviamos la confirmación a <strong>{{ pago.cliente_email }}</strong>.
+              </p>
+
+              <div class="pago-recibo rounded-12 p-20 text-start mb-24">
+                <div class="row gy-2 mb-16">
+                  <div class="col-sm-6">
+                    <span class="text-xs text-gray-500 d-block">N° de compra</span>
+                    <strong class="text-heading">{{ pago.codigo }}</strong>
+                  </div>
+                  <div class="col-sm-6">
+                    <span class="text-xs text-gray-500 d-block">N° de operación</span>
+                    <strong class="text-heading">{{ pago.referencia_pasarela }}</strong>
+                  </div>
+                  <div class="col-sm-6">
+                    <span class="text-xs text-gray-500 d-block">Método de pago</span>
+                    <strong class="text-heading">{{ pago.tarjeta_marca }} terminada en {{ pago.tarjeta_ultimos4 }}</strong>
+                  </div>
+                  <div class="col-sm-6">
+                    <span class="text-xs text-gray-500 d-block">Total pagado</span>
+                    <strong class="text-heading">{{ pago.moneda | moneda }} {{ formatPrice(pago.total) }}</strong>
+                  </div>
+                </div>
+
+                <div class="pago-item d-flex gap-12 mb-8" *ngFor="let item of pago.items">
+                  <img [src]="item.imagen_url || 'assets/images/placeholder.svg'" [alt]="item.nombre"
+                       (error)="onImageError($event)" class="pago-item__img" />
+                  <div class="flex-grow-1 min-w-0">
+                    <p class="pago-item__nombre text-sm text-heading fw-medium mb-0">{{ item.nombre }}</p>
+                    <span class="text-xs text-gray-500">{{ item.cantidad }} × {{ pago.moneda | moneda }} {{ formatPrice(item.precio_unitario) }}</span>
+                  </div>
+                  <span class="text-sm fw-semibold text-heading text-nowrap">
+                    {{ pago.moneda | moneda }} {{ formatPrice(item.subtotal) }}
+                  </span>
+                </div>
+
+                <hr class="border-gray-200 my-12" />
+
+                <p class="text-sm mb-4"><strong class="text-heading">Entrega a domicilio</strong></p>
+                <p class="text-sm text-gray-600 mb-0">
+                  {{ pago.direccion_envio }}<span *ngIf="ubicacionDePago()">, {{ ubicacionDePago() }}</span>
+                </p>
+                <p class="text-xs text-gray-500 mt-8 mb-0">
+                  El costo y la fecha del envío te los confirmaremos por teléfono o WhatsApp.
+                </p>
+              </div>
+
+              <div *ngIf="pago.simulado" class="pago-prueba rounded-8 p-12 text-sm mb-24">
+                <strong>Compra de prueba:</strong> se hizo con la pasarela en modo de prueba, sin cobro real.
+              </div>
+
+              <div class="d-flex justify-content-center gap-12 flex-wrap">
+                <a routerLink="/shop" class="btn btn-main rounded-8 px-32 py-12">Seguir comprando</a>
+                <a routerLink="/" class="btn bg-gray-100 hover-bg-gray-200 text-gray-700 rounded-8 px-32 py-12">Ir al inicio</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- ============================================================ -->
+    <!-- PAGO RECHAZADO -->
+    <!-- ============================================================ -->
+    <ng-container *ngIf="vista === 'rechazado'">
+      <div class="row justify-content-center">
+        <div class="col-lg-6">
+          <div class="card border-0 shadow-sm rounded-12">
+            <div class="card-body p-32 text-center">
+              <i class="ph-fill ph-x-circle text-danger-600 pago-icono"></i>
+              <h3 class="text-heading fw-bold mt-12 mb-8">No se pudo completar el pago</h3>
+              <p class="text-gray-600 mb-24">{{ mensajeRechazo }}</p>
+              <p class="text-sm text-gray-500 mb-24">
+                No se hizo ningún cargo y tu carrito sigue intacto.
+              </p>
+              <div class="d-flex justify-content-center gap-12 flex-wrap">
+                <button type="button" class="btn btn-main rounded-8 px-32 py-12" (click)="intentarDeNuevo()">
+                  Intentar con otra tarjeta
+                </button>
+                <a routerLink="/cart" class="btn bg-gray-100 hover-bg-gray-200 text-gray-700 rounded-8 px-32 py-12">
+                  Volver al carrito
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</section>
+<!-- ================================ Pago Section End ================================ -->
+
+<!-- ========================== Modal: Elegir dirección de entrega ============================ -->
+<div *ngIf="mostrarModalDirecciones" class="modal d-block" style="background-color: rgba(0,0,0,0.5);"
+     (click)="cerrarModalDirecciones()">
+  <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header border-bottom border-gray-100">
+        <h5 class="modal-title fw-semibold text-heading">
+          <i class="ph ph-map-pin me-8 text-main-600"></i>
+          Elegir dirección de entrega
+        </h5>
+        <button type="button" class="btn-close" (click)="cerrarModalDirecciones()"></button>
+      </div>
+
+      <div class="modal-body p-24" style="max-height: 60vh; overflow-y: auto;">
+        <div class="row g-2">
+          <div class="col-12" *ngFor="let direccion of direccionesGuardadas">
+            <div class="direccion-opcion"
+                 [class.direccion-opcion--activa]="direccionSeleccionada?.id === direccion.id"
+                 (click)="seleccionarDireccion(direccion)">
+              <input type="radio" name="direccionPago" [checked]="direccionSeleccionada?.id === direccion.id" />
+              <span class="direccion-opcion__texto">{{ direccionEnUnaLinea(direccion) }}</span>
+              <button type="button"
+                      class="btn btn-sm bg-gray-100 hover-bg-gray-200 text-gray-700 rounded-6 flex-shrink-0"
+                      (click)="abrirModalEditarDireccion(direccion); $event.stopPropagation()"
+                      title="Editar dirección">
+                <i class="ph ph-pencil-simple"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer border-top border-gray-100">
+        <button type="button" class="btn bg-gray-100 hover-bg-gray-200 text-gray-600 w-100 rounded-8"
+                (click)="abrirModalNuevaDireccion()">
+          <i class="ph ph-plus me-8"></i>
+          Agregar una dirección nueva
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================== Modal: Agregar/Editar dirección ============================ -->
+<app-modal-direccion
+  [show]="mostrarModalNuevaDireccion"
+  [mode]="modoModalDireccion"
+  [direccion]="direccionEnEdicion"
+  [departamentos]="departamentos"
+  (direccionGuardada)="onNuevaDireccionGuardada()"
+  (cerrar)="cerrarModalNuevaDireccion()"
+></app-modal-direccion>
+
+<!-- ========================== Shipping Section Start ============================ -->
+<app-shipping></app-shipping>
+<!-- ========================== Shipping Section End ============================ -->

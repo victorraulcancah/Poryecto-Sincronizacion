@@ -25,8 +25,23 @@
     <!-- Carrito con productos -->
     <div *ngIf="cartItems.length > 0" class="row gy-4">
 
+      <!-- Invitado con precios públicos: ve el total y solo falta iniciar sesión para pagar -->
+      <div *ngIf="!isLoggedIn && invitadoVePrecios" class="col-12">
+        <div class="d-flex align-items-center gap-12 p-16 rounded-12 mb-8"
+             style="background:#f5f8ff; border:1px solid #cfdcf7;">
+          <i class="ph-fill ph-user-circle" style="font-size:1.6rem; color:#2c5cc5;"></i>
+          <div class="flex-grow-1">
+            <strong class="d-block text-heading">Inicia sesión para finalizar tu compra</strong>
+            <span class="text-sm text-gray-600">Puedes revisar tu carrito; para pagar necesitas una cuenta de cliente.</span>
+          </div>
+          <a routerLink="/account" class="btn btn-main rounded-8 px-20 py-10 flex-shrink-0">
+            Iniciar sesión
+          </a>
+        </div>
+      </div>
+
       <!-- Aviso invitado: precios solo para clientes -->
-      <div *ngIf="!isLoggedIn" class="col-12">
+      <div *ngIf="!isLoggedIn && !invitadoVePrecios" class="col-12">
         <div class="d-flex align-items-center gap-12 p-16 rounded-12 mb-8"
              style="background:#fff4f4; border:1px solid #f3c2c4;">
           <i class="ph-fill ph-lock-key" style="font-size:1.6rem; color:#c22026;"></i>
@@ -133,7 +148,7 @@
 
                   <!-- Precio -->
                   <td class="px-12 py-12" style="vertical-align: middle;">
-                    <ng-container *ngIf="isLoggedIn">
+                    <ng-container *ngIf="verPrecio(item)">
                       <!-- Si tiene descuento, mostrar precio original tachado y precio con descuento -->
                       <div *ngIf="item.descuento_porcentaje && item.descuento_porcentaje > 0" class="d-flex flex-column gap-1">
                         <div class="d-flex align-items-center gap-2">
@@ -153,7 +168,7 @@
                         {{ item.moneda | moneda }} {{ formatPrice(item.precio) }}
                       </span>
                     </ng-container>
-                    <span *ngIf="!isLoggedIn" class="text-gray-400" style="font-size: 0.9rem;" title="Inicia sesión para ver el precio">
+                    <span *ngIf="!verPrecio(item)" class="text-gray-400" style="font-size: 0.9rem;" title="Inicia sesión para ver el precio">
                       <i class="ph ph-lock-key"></i> —
                     </span>
                   </td>
@@ -190,8 +205,8 @@
 
                   <!-- Subtotal -->
                   <td class="px-12 py-12" style="vertical-align: middle;">
-                    <span *ngIf="isLoggedIn" class="fw-bold" style="font-size: 0.95rem;">{{ item.moneda | moneda }} {{ formatPrice(getItemSubtotal(item)) }}</span>
-                    <span *ngIf="!isLoggedIn" class="text-gray-400 fw-bold" style="font-size: 0.95rem;">
+                    <span *ngIf="verPrecio(item)" class="fw-bold" style="font-size: 0.95rem;">{{ item.moneda | moneda }} {{ formatPrice(getItemSubtotal(item)) }}</span>
+                    <span *ngIf="!verPrecio(item)" class="text-gray-400 fw-bold" style="font-size: 0.95rem;">
                       <i class="ph ph-lock-key"></i> —
                     </span>
                   </td>
@@ -321,7 +336,7 @@
                 <img [src]="item.imagen_url" [alt]="item.nombre" (error)="onImageError($event)">
                 <h6 class="saved-carousel__title" [title]="item.nombre">{{ item.nombre }}</h6>
                 <p class="saved-carousel__subtitle">Código: {{ item.codigo_producto }}</p>
-                <p class="saved-carousel__price" *ngIf="isLoggedIn">{{ item.moneda | moneda }} {{ formatPrice(item.precio) }}</p>
+                <p class="saved-carousel__price" *ngIf="verPrecio(item)">{{ item.moneda | moneda }} {{ formatPrice(item.precio) }}</p>
                 <button type="button" class="btn btn-main btn-sm w-100 rounded-6" (click)="moverAlCarrito(item)">
                   Agregar
                 </button>
@@ -343,7 +358,7 @@
           <div class="cart-summary">
 
             <!-- Invitado: sin precios, login requerido -->
-            <div *ngIf="!isLoggedIn" class="text-center py-24 px-12 rounded-12 mb-24"
+            <div *ngIf="!mostrarResumenConPrecios" class="text-center py-24 px-12 rounded-12 mb-24"
                  style="background:#fff4f4; border:1px dashed #f3c2c4;">
               <i class="ph-fill ph-lock-key d-block mb-8" style="font-size:2rem; color:#c22026;"></i>
               <p class="fw-semibold text-heading mb-4">Precios solo para clientes</p>
@@ -353,7 +368,7 @@
               </a>
             </div>
 
-            <ng-container *ngIf="isLoggedIn">
+            <ng-container *ngIf="mostrarResumenConPrecios">
               <!-- Un subtotal por moneda: el carrito admite productos en soles
                    y en dólares a la vez, y los montos no se pueden sumar. -->
               <div *ngFor="let resumen of cartSummary.porMoneda" class="d-flex justify-content-between align-items-center mb-16">

@@ -131,6 +131,9 @@ Route::get('/menus/publicos', [\App\Http\Controllers\MenuController::class, 'obt
 // ============================================
 Route::get('/formas-envio/activas', [FormaEnvioController::class, 'activas']);
 Route::get('/tipos-pago/activos', [TipoPagoController::class, 'activos']);
+// Configuración de la pasarela de pago (si está en modo prueba), para la
+// pantalla de pago del carrito.
+Route::get('/pasarela/configuracion', [\App\Http\Controllers\PagoEnLineaController::class, 'configuracion']);
 
 // ============================================
 // PASOS DE ENVÍO
