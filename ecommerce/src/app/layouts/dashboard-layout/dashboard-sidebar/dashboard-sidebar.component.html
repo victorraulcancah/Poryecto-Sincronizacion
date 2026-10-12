@@ -416,6 +416,16 @@
         </a>
       </li> -->
 
+      <!-- Compras en línea: compras pagadas con la pasarela, que el personal
+           atiende a mano. Mismo permiso que Compras. -->
+      <li *ngIf="puedeVerCompras" class="mb-8">
+        <a routerLink="/dashboard/compras-en-linea" routerLinkActive="active"
+          class="nav-link flex-align gap-12 px-16 py-12 text-white text-decoration-none rounded-8 transition-2 hover-bg-main-500">
+          <i class="ph ph-shopping-bag text-xl flex-shrink-0"></i>
+          <span *ngIf="!isCollapsed" class="fw-medium">Compras en línea</span>
+        </a>
+      </li>
+
       <!-- Reclamos -->
       <li *ngIf="puedeVerReclamos" class="mb-8">
         <a routerLink="/dashboard/reclamos" routerLinkActive="active"

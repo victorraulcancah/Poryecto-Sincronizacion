@@ -848,6 +848,19 @@ export const routes: Routes = [
         data: { permission: 'compras.ver' },
       },
       {
+        // Compras pagadas con la pasarela: el personal las atiende a mano
+        // (factura en el ERP, envía el comprobante y coordina el delivery).
+        // Mismo permiso que el listado de Compras.
+        path: 'compras-en-linea',
+        loadComponent: () =>
+          import(
+            './pages/dashboard/compras-en-linea/compras-en-linea.component'
+          ).then((m) => m.ComprasEnLineaComponent),
+        title: 'Compras en línea',
+        canActivate: [authGuard, permissionGuard],
+        data: { permission: 'compras.ver' },
+      },
+      {
         path: 'reclamos',
         loadComponent: () =>
           import('./pages/dashboard/reclamos/reclamos.component').then(

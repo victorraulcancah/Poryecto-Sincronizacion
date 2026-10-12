@@ -1,0 +1,686 @@
+<div class="border border-gray-100 rounded-16 overflow-hidden bg-white">
+  <!-- Header -->
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <div class="flex-between align-items-center gap-16 flex-wrap">
+      <div>
+        <h4 class="mb-4 text-heading">Compras en línea</h4>
+        <p class="text-gray-500 mb-0 text-sm">
+          Compras pagadas con la pasarela de pago. Factura en el ERP, envía el comprobante al cliente y coordina el delivery.
+        </p>
+      </div>
+      <button type="button" class="btn-actualizar d-flex align-items-center gap-8"
+              [disabled]="loading" (click)="cargar()">
+        <i class="ph ph-arrow-clockwise"></i>Actualizar
+      </button>
+    </div>
+  </div>
+
+  <!-- Resumen por estado de seguimiento + filtros -->
+  <div class="p-24 p-md-32 border-bottom border-gray-100">
+    <!-- Cada chip filtra por su etapa; al pulsarlo otra vez se quita el filtro. -->
+    <div class="resumen-chips" role="group" aria-label="Resumen por estado de seguimiento">
+      <button type="button" class="resumen-chip" *ngFor="let etapa of etapasResumen"
+              [class.resumen-chip--activo]="filtroEtapa === etapa.valor"
+              [attr.aria-pressed]="filtroEtapa === etapa.valor"
+              (click)="alternarEtapa(etapa.valor)">
+        <span class="resumen-chip__icono" [ngClass]="etapa.clase"><i [class]="etapa.icono"></i></span>
+        <span class="resumen-chip__cantidad">{{ resumen[etapa.valor] }}</span>
+        <span class="resumen-chip__etiqueta">{{ etapa.plural }}</span>
+      </button>
+    </div>
+
+    <div class="row g-12 align-items-end mt-16">
+      <div class="col-12 col-lg-5">
+        <label class="text-xs text-gray-500 mb-4 d-block" for="busquedaCompras">Buscar</label>
+        <div class="position-relative">
+          <i class="ph ph-magnifying-glass position-absolute start-0 top-50 translate-middle-y ms-12 text-gray-400"></i>
+          <input id="busquedaCompras" type="text" class="form-control ps-40"
+                 placeholder="Código, cliente, correo, teléfono o documento..."
+                 [(ngModel)]="terminoBusqueda"
+                 (ngModelChange)="onBuscar()" />
+        </div>
+      </div>
+      <div class="col-6 col-lg">
+        <label class="text-xs text-gray-500 mb-4 d-block" for="filtroResultadoCompras">Compras</label>
+        <select id="filtroResultadoCompras" class="form-select"
+                [(ngModel)]="filtroEstado" (ngModelChange)="onCambiarEstado()">
+          <option value="pagado">Pagadas</option>
+          <option value="rechazado">Rechazadas</option>
+          <option value="todos">Todas</option>
+        </select>
+      </div>
+      <div class="col-6 col-lg">
+        <label class="text-xs text-gray-500 mb-4 d-block" for="filtroEtapaCompras">Seguimiento</label>
+        <select id="filtroEtapaCompras" class="form-select"
+                [(ngModel)]="filtroEtapa" (ngModelChange)="onCambiarEtapa()">
+          <option value="">Todos</option>
+          <option *ngFor="let etapa of etapas" [value]="etapa.valor">{{ etapa.etiqueta }}</option>
+        </select>
+      </div>
+      <div class="col-12 col-lg-auto">
+        <button type="button" class="btn-limpiar-filtros w-100 text-nowrap"
+                [disabled]="!hayFiltrosActivos" (click)="limpiarFiltros()">
+          <i class="ph ph-x me-4"></i>Limpiar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="modern-data-table mx-16 mb-24">
+    <!-- Header compacto -->
+    <div class="modern-data-table__header" *ngIf="!loading && !errorCarga && paginacion.total > 0">
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="table-info">
+          {{ paginacion.total }} {{ paginacion.total === 1 ? 'compra encontrada' : 'compras encontradas' }}
+        </span>
+        <div class="d-flex align-items-center gap-2">
+          <span style="font-size: var(--font-xs); color: var(--gray-500);">Filas:</span>
+          <select class="page-size-selector" [(ngModel)]="porPagina" (ngModelChange)="onCambiarPorPagina()">
+            <option [ngValue]="10">10</option>
+            <option [ngValue]="20">20</option>
+            <option [ngValue]="50">50</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cargando -->
+    <div *ngIf="loading" class="modern-data-table__loading">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="loading-text">Cargando compras en línea...</p>
+    </div>
+
+    <!-- Tabla -->
+    <div class="modern-data-table__container" *ngIf="!loading && !errorCarga && pagos.length > 0">
+      <table class="table table-borderless mb-0">
+        <thead>
+          <tr>
+            <th>CÓDIGO</th>
+            <th class="celda-cliente">CLIENTE</th>
+            <th class="d-none d-md-table-cell">TELÉFONO</th>
+            <th class="d-none d-lg-table-cell">FECHA</th>
+            <th>TOTAL</th>
+            <th>SEGUIMIENTO</th>
+            <th class="text-end">ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let pago of pagos; trackBy: trackByPagoId">
+            <!-- Código -->
+            <td>
+              <div class="client-info__name">{{ pago.codigo }}</div>
+              <span *ngIf="pago.simulado" class="badge-prueba"
+                    title="Compra hecha con la pasarela en modo de prueba: no hubo cobro real">PRUEBA</span>
+            </td>
+
+            <!-- Cliente -->
+            <td class="celda-cliente">
+              <div class="celda-cliente__bloque">
+                <div class="table-avatar__circle" style="background-color: var(--main-600);">
+                  {{ getInitials(pago.cliente_nombre) }}
+                </div>
+                <div class="celda-cliente__datos">
+                  <div class="client-info__name">
+                    {{ pago.cliente_nombre }}
+                    <span *ngIf="pago.codigo_erp"
+                          class="badge bg-main-50 text-main-600 rounded-pill ms-4" style="font-size: 10px;"
+                          title="Cuenta vinculada al ERP 7Power">
+                      <i class="ph ph-link me-2"></i>{{ pago.codigo_erp }}
+                    </span>
+                  </div>
+                  <div class="client-info__subtitle">
+                    <span *ngIf="pago.numero_documento">{{ pago.numero_documento }} · </span>{{ pago.cliente_email }}
+                  </div>
+                  <div class="client-info__subtitle d-md-none" *ngIf="pago.telefono_contacto">
+                    <i class="ph ph-phone me-2"></i>{{ pago.telefono_contacto }}
+                  </div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Teléfono -->
+            <td class="d-none d-md-table-cell">
+              <span class="text-sm text-gray-700">{{ pago.telefono_contacto || '—' }}</span>
+            </td>
+
+            <!-- Fecha -->
+            <td class="d-none d-lg-table-cell">
+              <div class="date-info__main">{{ pago.fecha | date:'dd/MM/yyyy' }}</div>
+              <div class="date-info__relative">{{ pago.fecha | date:'HH:mm' }}</div>
+            </td>
+
+            <!-- Total -->
+            <td>
+              <div class="total-amount">{{ pago.moneda | moneda }} {{ pago.total | number:'1.2-2' }}</div>
+            </td>
+
+            <!-- Seguimiento: las rechazadas no se atienden, solo se ven. -->
+            <td>
+              <span *ngIf="!esRechazada(pago)" class="status-badge badge-etapa" [ngClass]="claseEtapa(pago.estado_proceso)">
+                <i [class]="iconoEtapa(pago.estado_proceso)" class="me-4"></i>{{ etiquetaEtapa(pago.estado_proceso) }}
+              </span>
+              <span *ngIf="esRechazada(pago)" class="status-badge badge-etapa bg-danger-50 text-danger-600">
+                <i class="ph ph-x-circle me-4"></i>Rechazada
+              </span>
+            </td>
+
+            <!-- Acciones -->
+            <td class="text-end">
+              <div class="action-buttons">
+                <button type="button" class="action-buttons__btn action-buttons__btn--view"
+                        (click)="verDetalle(pago)" title="Ver detalle" aria-label="Ver detalle">
+                  <i class="ph ph-eye"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación -->
+    <div class="modern-data-table__pagination"
+         *ngIf="!loading && !errorCarga && pagos.length > 0 && paginacion.last_page > 1">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-8">
+        <div class="pagination-info">
+          Mostrando {{ desdeRegistro }} a {{ hastaRegistro }} de {{ paginacion.total }} registros
+        </div>
+        <nav>
+          <ul class="pagination-controls">
+            <li [class.disabled]="pagina === 1">
+              <button type="button" (click)="irAPagina(pagina - 1)" [disabled]="pagina === 1" aria-label="Página anterior">
+                <i class="ph ph-caret-left"></i>
+              </button>
+            </li>
+            <li *ngFor="let numero of numerosDePagina" [class.active]="numero === pagina">
+              <button type="button" (click)="irAPagina(numero)">{{ numero }}</button>
+            </li>
+            <li [class.disabled]="pagina === paginacion.last_page">
+              <button type="button" (click)="irAPagina(pagina + 1)" [disabled]="pagina === paginacion.last_page" aria-label="Página siguiente">
+                <i class="ph ph-caret-right"></i>
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Error al cargar -->
+    <div *ngIf="!loading && errorCarga" class="empty-state">
+      <div class="empty-state__icon"><i class="ph ph-warning-circle"></i></div>
+      <h5 class="empty-state__title">No se pudieron cargar las compras</h5>
+      <p class="empty-state__description">Revisa tu conexión e intenta nuevamente.</p>
+      <button type="button" class="btn btn-main rounded-pill px-24" (click)="cargar()">
+        <i class="ph ph-arrow-clockwise me-8"></i>Reintentar
+      </button>
+    </div>
+
+    <!-- Aún no hay compras -->
+    <div *ngIf="!loading && !errorCarga && pagos.length === 0 && !hayFiltrosActivos" class="empty-state">
+      <div class="empty-state__icon"><i class="ph ph-shopping-bag"></i></div>
+      <h5 class="empty-state__title">Aún no hay compras en línea</h5>
+      <p class="empty-state__description">
+        Cuando un cliente pague con la pasarela, su compra aparecerá aquí para que la factures y coordines la entrega.
+      </p>
+    </div>
+
+    <!-- Sin resultados con los filtros -->
+    <div *ngIf="!loading && !errorCarga && pagos.length === 0 && hayFiltrosActivos" class="empty-state">
+      <div class="empty-state__icon"><i class="ph ph-magnifying-glass"></i></div>
+      <h5 class="empty-state__title">No se encontraron resultados</h5>
+      <p class="empty-state__description">Intenta cambiar los filtros para encontrar las compras que buscas.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ Detalle de la compra ══════════════════════════ -->
+<div *ngIf="pagoSeleccionado as pago"
+     class="modal d-block detalle-modal" tabindex="-1" role="dialog" aria-modal="true"
+     aria-labelledby="detalleCompraTitulo"
+     (mousedown)="onMousedownFondo($event)"
+     (click)="onClickFondo($event)">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content border-0 shadow-lg">
+
+      <!-- Encabezado -->
+      <div class="modal-header bg-main-50 border-bottom-0">
+        <div class="d-flex align-items-center gap-16">
+          <div class="w-48 h-48 bg-main-600 text-white rounded-circle flex-center shadow-sm flex-shrink-0">
+            <i class="ph-bold ph-shopping-bag text-xl"></i>
+          </div>
+          <div>
+            <h5 id="detalleCompraTitulo" class="modal-title fw-bold text-heading d-flex align-items-center gap-8 flex-wrap">
+              Compra {{ pago.codigo }}
+              <span *ngIf="pago.simulado" class="badge-prueba badge-prueba--sola"
+                    title="Compra hecha con la pasarela en modo de prueba: no hubo cobro real">PRUEBA</span>
+              <span *ngIf="!esRechazada(pago)" class="status-badge badge-etapa" [ngClass]="claseEtapa(pago.estado_proceso)">
+                <i [class]="iconoEtapa(pago.estado_proceso)" class="me-4"></i>{{ etiquetaEtapa(pago.estado_proceso) }}
+              </span>
+              <span *ngIf="esRechazada(pago)" class="status-badge badge-etapa bg-danger-50 text-danger-600">
+                <i class="ph ph-x-circle me-4"></i>Rechazada
+              </span>
+            </h5>
+            <p class="text-gray-500 text-sm mb-0">Realizada el {{ pago.fecha | date:'dd/MM/yyyy HH:mm' }}</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close" aria-label="Cerrar" (click)="cerrarDetalle()"></button>
+      </div>
+
+      <div class="modal-body p-24">
+        <div class="row g-24">
+
+          <!-- ═════════ Columna izquierda: cliente, entrega y productos ═════════ -->
+          <div class="col-lg-7">
+
+            <!-- Cliente -->
+            <div class="detail-card mb-24">
+              <div class="detail-card__header d-flex align-items-center gap-12 flex-wrap">
+                <h6 class="mb-0 fw-bold"><i class="ph ph-user-circle me-8 text-main-600"></i>Cliente</h6>
+                <span *ngIf="pago.codigo_erp"
+                      class="badge bg-main-50 text-main-600 fw-medium rounded-pill px-10 py-4">
+                  <i class="ph ph-link me-4"></i>Cliente 7Power {{ pago.codigo_erp }}
+                </span>
+                <span *ngIf="!pago.codigo_erp"
+                      class="badge bg-gray-100 text-gray-600 fw-medium rounded-pill px-10 py-4">
+                  Cuenta no vinculada al ERP
+                </span>
+              </div>
+              <div class="detail-card__body">
+                <div class="row g-16">
+                  <div class="col-md-6">
+                    <div class="info-item">
+                      <span class="info-item__label">Nombre / Razón social</span>
+                      <div class="d-flex align-items-center gap-12 mt-4">
+                        <div class="w-40 h-40 bg-gray-100 rounded-circle flex-center text-gray-600 fw-bold flex-shrink-0">
+                          {{ getInitials(pago.cliente_nombre) }}
+                        </div>
+                        <span class="info-item__value fw-bold text-break">{{ pago.cliente_nombre }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="info-item">
+                      <span class="info-item__label">Documento de identidad</span>
+                      <span class="info-item__value mt-4 d-block">
+                        <i class="ph ph-identification-card me-6 text-gray-400"></i>{{ pago.numero_documento || 'No registrado' }}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="info-item">
+                      <span class="info-item__label">Correo electrónico</span>
+                      <span class="info-item__value mt-4 d-block text-break">
+                        <i class="ph ph-envelope me-6 text-gray-400"></i>{{ pago.cliente_email || 'No registrado' }}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="info-item">
+                      <span class="info-item__label">Teléfono de contacto</span>
+                      <span class="info-item__value mt-4 d-block">
+                        <i class="ph ph-phone me-6 text-gray-400"></i>{{ pago.telefono_contacto || 'No registrado' }}
+                      </span>
+                      <div class="d-flex gap-8 flex-wrap mt-8" *ngIf="pago.telefono_contacto">
+                        <button type="button" class="btn btn-sm btn-success px-12 py-4 rounded-pill"
+                                (click)="contactarWhatsApp(pago)">
+                          <i class="ph ph-whatsapp-logo me-4"></i>WhatsApp
+                        </button>
+                        <a class="btn btn-sm btn-outline-main px-12 py-4 rounded-pill"
+                           [href]="'tel:' + telefonoParaLlamar(pago)">
+                          <i class="ph ph-phone-call me-4"></i>Llamar
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Entrega -->
+            <div class="detail-card mb-24">
+              <div class="detail-card__header">
+                <h6 class="mb-0 fw-bold"><i class="ph ph-truck me-8 text-main-600"></i>Entrega a domicilio</h6>
+              </div>
+              <div class="detail-card__body">
+                <div class="info-item mb-16">
+                  <span class="info-item__label">Dirección de entrega</span>
+                  <span class="info-item__value mt-4 d-block bg-gray-50 p-12 rounded-8 border border-gray-100 text-dark">
+                    <i class="ph ph-map-pin me-6 text-danger-600"></i>{{ pago.direccion_envio || '—' }}
+                  </span>
+                </div>
+
+                <div class="p-12 rounded-12 border border-gray-100 bloque-ubigeo">
+                  <div class="row g-12">
+                    <div class="col-4">
+                      <span class="info-item__label ubigeo-label">Distrito</span>
+                      <span class="d-block fw-bold text-dark text-uppercase ubigeo-valor">{{ pago.distrito_nombre || '—' }}</span>
+                    </div>
+                    <div class="col-4 border-start">
+                      <span class="info-item__label ubigeo-label">Provincia</span>
+                      <span class="d-block fw-bold text-dark text-uppercase ubigeo-valor">{{ pago.provincia_nombre || '—' }}</span>
+                    </div>
+                    <div class="col-4 border-start">
+                      <span class="info-item__label ubigeo-label">Departamento</span>
+                      <span class="d-block fw-bold text-dark text-uppercase ubigeo-valor">{{ pago.departamento_nombre || '—' }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="info-item mt-16" *ngIf="pago.observaciones">
+                  <span class="info-item__label">Observaciones del cliente</span>
+                  <p class="text-sm text-gray-600 mb-0 mt-4 fst-italic">"{{ pago.observaciones }}"</p>
+                </div>
+
+                <p class="text-xs text-gray-500 mt-16 mb-0">
+                  <i class="ph ph-info me-4"></i>El costo y la fecha del envío se coordinan con el cliente por teléfono o WhatsApp.
+                </p>
+              </div>
+            </div>
+
+            <!-- Productos y totales -->
+            <div class="detail-card">
+              <div class="detail-card__header d-flex align-items-center gap-12">
+                <h6 class="mb-0 fw-bold"><i class="ph ph-shopping-cart me-8 text-main-600"></i>Productos</h6>
+                <span class="badge bg-main-600 text-white rounded-pill" style="font-size: 10px;">{{ pago.items.length }}</span>
+              </div>
+
+              <div class="table-responsive">
+                <table class="table modern-table mb-0">
+                  <thead>
+                    <tr>
+                      <th class="ps-20">PRODUCTO</th>
+                      <th class="text-center">CANT.</th>
+                      <th class="text-end">PRECIO</th>
+                      <th class="text-end pe-20">SUBTOTAL</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let item of pago.items" class="align-middle">
+                      <td class="ps-20">
+                        <div class="d-flex align-items-center gap-12">
+                          <div class="product-thumb flex-shrink-0">
+                            <img [src]="item.imagen_url || 'assets/images/placeholder.svg'"
+                                 [alt]="item.nombre"
+                                 (error)="onImagenProductoError($event)" />
+                          </div>
+                          <div class="min-w-0">
+                            <div class="product-name">{{ item.nombre }}</div>
+                            <div class="product-sku">Código: {{ item.codigo_producto || 'N/A' }}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="text-center"><span class="qty-badge">{{ item.cantidad }}</span></td>
+                      <td class="text-end text-muted text-nowrap">{{ pago.moneda | moneda }} {{ item.precio_unitario | number:'1.2-2' }}</td>
+                      <td class="text-end pe-20 fw-bold text-success-600 text-nowrap">{{ pago.moneda | moneda }} {{ item.subtotal | number:'1.2-2' }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Totales: el subtotal ya incluye IGV; el envío se coordina aparte. -->
+              <div class="detail-card__body border-top">
+                <div class="row justify-content-end">
+                  <div class="col-md-8 col-lg-7">
+                    <div class="summary-row">
+                      <span class="summary-label">Subtotal</span>
+                      <span class="summary-value">{{ pago.moneda | moneda }} {{ pago.subtotal | number:'1.2-2' }}</span>
+                    </div>
+                    <div class="summary-row" *ngIf="tieneDescuento(pago)">
+                      <span class="summary-label text-success-600">
+                        <i class="ph ph-ticket me-4"></i>Descuento<span *ngIf="pago.cupon_codigo"> (cupón {{ pago.cupon_codigo }})</span>
+                      </span>
+                      <span class="summary-value text-success-600">-{{ pago.moneda | moneda }} {{ pago.descuento | number:'1.2-2' }}</span>
+                    </div>
+                    <div class="summary-row">
+                      <span class="summary-label">Envío</span>
+                      <span class="summary-value">
+                        <ng-container *ngIf="tieneCostoEnvio(pago)">{{ pago.moneda | moneda }} {{ pago.costo_envio | number:'1.2-2' }}</ng-container>
+                        <ng-container *ngIf="!tieneCostoEnvio(pago)">Por coordinar</ng-container>
+                      </span>
+                    </div>
+                    <div class="summary-row total-row mt-12 pt-12">
+                      <span class="summary-label">Total</span>
+                      <span class="summary-value text-success-600">{{ pago.moneda | moneda }} {{ pago.total | number:'1.2-2' }}</span>
+                    </div>
+                    <p class="text-xs text-gray-500 text-end mb-0 mt-8" *ngIf="pago.igv > 0">
+                      Incluye IGV: {{ pago.moneda | moneda }} {{ pago.igv | number:'1.2-2' }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ═════════ Columna derecha: pago, comprobante y seguimiento ═════════ -->
+          <div class="col-lg-5">
+
+            <!-- Pago -->
+            <div class="detail-card mb-24">
+              <div class="detail-card__header">
+                <h6 class="mb-0 fw-bold"><i class="ph ph-credit-card me-8 text-main-600"></i>Pago</h6>
+              </div>
+              <div class="detail-card__body">
+                <div class="info-item mb-16">
+                  <span class="info-item__label">Resultado</span>
+                  <span class="mt-4 d-inline-block status-badge badge-etapa"
+                        [ngClass]="esRechazada(pago) ? 'bg-danger-50 text-danger-600' : 'bg-success-50 text-success-600'">
+                    <i class="me-4" [ngClass]="esRechazada(pago) ? 'ph ph-x-circle' : 'ph ph-check-circle'"></i>
+                    {{ esRechazada(pago) ? 'Pago rechazado' : 'Pago aprobado' }}
+                  </span>
+                </div>
+                <div class="info-item mb-16">
+                  <span class="info-item__label">Tarjeta</span>
+                  <span class="info-item__value mt-4 d-block">
+                    <i class="ph ph-credit-card me-6 text-gray-400"></i>
+                    <ng-container *ngIf="pago.tarjeta_ultimos4; else sinTarjeta">
+                      {{ pago.tarjeta_marca || 'Tarjeta' }} terminada en {{ pago.tarjeta_ultimos4 }}
+                    </ng-container>
+                    <ng-template #sinTarjeta>No registrada</ng-template>
+                  </span>
+                </div>
+                <div class="info-item mb-16">
+                  <span class="info-item__label">N° de operación</span>
+                  <span class="info-item__value mt-4 d-block font-monospace text-break">{{ pago.referencia_pasarela || '—' }}</span>
+                </div>
+                <div class="info-item mb-16" *ngIf="esRechazada(pago) && pago.mensaje_pasarela">
+                  <span class="info-item__label">Motivo informado por la pasarela</span>
+                  <span class="info-item__value mt-4 d-block">{{ pago.mensaje_pasarela }}</span>
+                </div>
+                <div class="info-item" *ngIf="!esRechazada(pago)">
+                  <span class="info-item__label">Correo de confirmación</span>
+                  <span class="info-item__value mt-4 d-block">
+                    <ng-container *ngIf="pago.email_enviado_at; else sinConfirmacion">
+                      <i class="ph ph-envelope-simple-open me-6 text-success-600"></i>Enviado el {{ pago.email_enviado_at | date:'dd/MM/yyyy HH:mm' }}
+                    </ng-container>
+                    <ng-template #sinConfirmacion>
+                      <i class="ph ph-envelope-simple me-6 text-gray-400"></i>Sin registro de envío
+                    </ng-template>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Compra rechazada: no se factura ni se entrega -->
+            <div class="detail-card mb-24 aviso-rechazada" *ngIf="esRechazada(pago)">
+              <div class="detail-card__body">
+                <h6 class="fw-bold mb-8"><i class="ph ph-info me-8"></i>Compra no completada</h6>
+                <p class="text-sm mb-0">
+                  La pasarela rechazó este pago, así que no hubo cobro y la compra no se factura ni se entrega.
+                  Quedó registrada solo como referencia.
+                </p>
+              </div>
+            </div>
+
+            <!-- Comprobante para el cliente (PDF emitido en el ERP) -->
+            <div class="detail-card mb-24" *ngIf="!esRechazada(pago)">
+              <div class="detail-card__header">
+                <h6 class="mb-0 fw-bold"><i class="ph ph-file-pdf me-8 text-main-600"></i>Comprobante para el cliente</h6>
+              </div>
+              <div class="detail-card__body">
+                <p class="text-sm text-gray-500 mb-16">
+                  Sube el PDF de la boleta o factura que emitiste en el ERP y se lo enviamos por correo a
+                  <strong class="text-gray-700 text-break">{{ pago.cliente_email }}</strong>.
+                </p>
+
+                <!-- Ya hay un comprobante guardado -->
+                <div class="comprobante-estado mb-16" *ngIf="pago.tiene_comprobante"
+                     [class.comprobante-estado--enviado]="!!pago.comprobante_enviado_at"
+                     [class.comprobante-estado--pendiente]="!pago.comprobante_enviado_at">
+                  <div class="d-flex align-items-start gap-12">
+                    <i class="ph-fill comprobante-estado__icono flex-shrink-0"
+                       [ngClass]="pago.comprobante_enviado_at ? 'ph-check-circle' : 'ph-warning-circle'"></i>
+                    <div class="min-w-0">
+                      <div class="fw-semibold text-sm">
+                        <ng-container *ngIf="pago.comprobante_enviado_at">
+                          Comprobante enviado el {{ pago.comprobante_enviado_at | date:'dd/MM/yyyy HH:mm' }}
+                        </ng-container>
+                        <ng-container *ngIf="!pago.comprobante_enviado_at">Guardado, falta enviar</ng-container>
+                      </div>
+                      <div class="text-xs text-gray-600 text-break">{{ pago.comprobante_nombre || 'comprobante.pdf' }}</div>
+                    </div>
+                  </div>
+                  <div class="d-flex gap-8 flex-wrap mt-12">
+                    <button type="button" class="btn btn-sm btn-outline-main rounded-pill px-16"
+                            [disabled]="abriendoComprobante" (click)="verComprobante()">
+                      <span *ngIf="abriendoComprobante" class="spinner-border spinner-border-sm me-6"></span>
+                      <i *ngIf="!abriendoComprobante" class="ph ph-eye me-6"></i>Ver / descargar
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-16"
+                            [disabled]="reenviandoComprobante" (click)="reenviarComprobante()">
+                      <span *ngIf="reenviandoComprobante" class="spinner-border spinner-border-sm me-6"></span>
+                      <i *ngIf="!reenviandoComprobante" class="ph ph-paper-plane-tilt me-6"></i>Reenviar al cliente
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Subir y enviar (uno nuevo reemplaza al guardado) -->
+                <div class="mb-16">
+                  <label class="form-label fw-semibold text-sm" for="archivoComprobante">
+                    {{ pago.tiene_comprobante ? 'Reemplazar con otro PDF' : 'PDF del comprobante' }}
+                    <span class="text-danger">*</span>
+                  </label>
+                  <div class="archivo-zona" [class.archivo-zona--error]="!!errorArchivoComprobante">
+                    <input #inputArchivoComprobante id="archivoComprobante" type="file"
+                           class="visually-hidden" accept="application/pdf,.pdf"
+                           (change)="onArchivoComprobante($event)" />
+                    <label for="archivoComprobante" class="archivo-zona__etiqueta">
+                      <i class="ph ph-upload-simple flex-shrink-0"></i>
+                      <span *ngIf="!archivoComprobante" class="text-gray-600">Elegir PDF (máx. {{ maxMbComprobante }} MB)</span>
+                      <span *ngIf="archivoComprobante" class="archivo-zona__nombre text-break">
+                        {{ archivoComprobante.name }}
+                        <small class="text-gray-500">({{ tamanoArchivo(archivoComprobante.size) }})</small>
+                      </span>
+                    </label>
+                    <button *ngIf="archivoComprobante" type="button" class="archivo-zona__quitar"
+                            title="Quitar archivo" aria-label="Quitar archivo" (click)="quitarArchivoComprobante()">
+                      <i class="ph ph-x"></i>
+                    </button>
+                  </div>
+                  <div class="text-danger text-sm mt-4" *ngIf="errorArchivoComprobante" role="alert">
+                    <i class="ph ph-warning me-4"></i>{{ errorArchivoComprobante }}
+                  </div>
+                </div>
+
+                <div class="mb-16">
+                  <label class="form-label fw-semibold text-sm" for="numeroComprobanteErp">
+                    N° de comprobante del ERP <span class="text-gray-400 fw-normal">(opcional)</span>
+                  </label>
+                  <input id="numeroComprobanteErp" type="text" class="form-control" maxlength="50"
+                         placeholder="Ej. B001-00001234" [(ngModel)]="numeroComprobante" />
+                  <div class="text-xs text-gray-500 mt-4">Se guarda también en el seguimiento de la compra.</div>
+                </div>
+
+                <div class="mb-16">
+                  <label class="form-label fw-semibold text-sm" for="mensajeComprobante">
+                    Mensaje para el cliente <span class="text-gray-400 fw-normal">(opcional)</span>
+                  </label>
+                  <textarea id="mensajeComprobante" class="form-control" rows="3" maxlength="500"
+                            placeholder="Ej. Gracias por tu compra. Adjuntamos tu boleta."
+                            [(ngModel)]="mensajeComprobante"></textarea>
+                  <div class="text-xs text-gray-400 text-end mt-4">{{ mensajeComprobante.length }}/500</div>
+                </div>
+
+                <button type="button" class="btn btn-main rounded-pill w-100 py-10"
+                        [disabled]="enviandoComprobante || !archivoComprobante" (click)="enviarComprobante()">
+                  <span *ngIf="enviandoComprobante" class="spinner-border spinner-border-sm me-8"></span>
+                  <i *ngIf="!enviandoComprobante" class="ph ph-paper-plane-tilt me-8"></i>
+                  {{ enviandoComprobante ? 'Enviando...' : 'Enviar al cliente' }}
+                </button>
+                <p class="text-xs text-gray-500 mt-8 mb-0" *ngIf="pago.estado_proceso === 'pendiente_facturar'">
+                  Al enviarlo, la compra pasa a «Facturado».
+                </p>
+              </div>
+            </div>
+
+            <!-- Seguimiento manual -->
+            <div class="detail-card" *ngIf="!esRechazada(pago)">
+              <div class="detail-card__header d-flex align-items-center justify-content-between gap-12 flex-wrap">
+                <h6 class="mb-0 fw-bold"><i class="ph ph-list-checks me-8 text-main-600"></i>Seguimiento</h6>
+                <span class="text-xs text-gray-500" *ngIf="pago.atendido_at">
+                  Última atención: {{ pago.atendido_at | date:'dd/MM/yyyy HH:mm' }}
+                </span>
+              </div>
+              <div class="detail-card__body">
+                <div class="mb-16">
+                  <label class="form-label fw-semibold text-sm" for="seguimientoEtapa">Estado de seguimiento</label>
+                  <select id="seguimientoEtapa" class="form-select" [(ngModel)]="seguimiento.estado_proceso">
+                    <option *ngFor="let etapa of etapas" [value]="etapa.valor">{{ etapa.etiqueta }}</option>
+                  </select>
+                </div>
+
+                <div class="mb-16">
+                  <label class="form-label fw-semibold text-sm" for="seguimientoComprobante">N° de comprobante del ERP</label>
+                  <input id="seguimientoComprobante" type="text" class="form-control" maxlength="50"
+                         placeholder="Ej. B001-00001234" [(ngModel)]="seguimiento.comprobante_erp" />
+                </div>
+
+                <div class="mb-16">
+                  <label class="form-label fw-semibold text-sm" for="seguimientoNotas">Notas internas</label>
+                  <textarea id="seguimientoNotas" class="form-control" rows="4" maxlength="1000"
+                            placeholder="Solo las ve el personal: coordinación de delivery, acuerdos con el cliente..."
+                            [(ngModel)]="seguimiento.notas_internas"></textarea>
+                  <div class="text-xs text-gray-400 text-end mt-4">{{ seguimiento.notas_internas.length }}/1000</div>
+                </div>
+
+                <button type="button" class="btn btn-main rounded-pill w-100 py-10"
+                        [disabled]="guardandoSeguimiento || !seguimientoModificado" (click)="guardarSeguimiento()">
+                  <span *ngIf="guardandoSeguimiento" class="spinner-border spinner-border-sm me-8"></span>
+                  <i *ngIf="!guardandoSeguimiento" class="ph ph-check-circle me-8"></i>
+                  {{ guardandoSeguimiento ? 'Guardando...' : 'Guardar seguimiento' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Acciones -->
+      <div class="modal-footer bg-gray-50 border-top-0 p-24">
+        <div class="d-flex gap-12 flex-wrap w-100 justify-content-end">
+          <ng-container *ngIf="!esRechazada(pago)">
+            <!-- Siempre se puede pulsar: sin código de cliente 7Power explica por qué no abre. -->
+            <button type="button" class="btn rounded-pill px-24 py-10"
+                    [ngClass]="puedeEnviarAErp(pago) ? 'btn-outline-success' : 'btn-outline-secondary'"
+                    [attr.aria-disabled]="!puedeEnviarAErp(pago)"
+                    [title]="puedeEnviarAErp(pago)
+                      ? 'Abre Nueva Venta en el ERP con el cliente y los productos de esta compra'
+                      : 'El cliente no está vinculado al ERP (sin código de cliente 7Power)'"
+                    (click)="enviarAErp(pago)">
+              <i class="ph ph-arrow-square-out me-8"></i>Enviar a ERP
+            </button>
+            <button type="button" class="btn btn-outline-main rounded-pill px-24 py-10"
+                    [disabled]="reenviando" (click)="reenviarCorreo()"
+                    title="Vuelve a enviar al cliente el correo de confirmación de su compra">
+              <span *ngIf="reenviando" class="spinner-border spinner-border-sm me-8"></span>
+              <i *ngIf="!reenviando" class="ph ph-envelope-simple me-8"></i>Reenviar confirmación
+            </button>
+          </ng-container>
+          <button type="button" class="btn btn-main rounded-pill px-32 py-10" (click)="cerrarDetalle()">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

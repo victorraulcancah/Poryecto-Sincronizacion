@@ -6,6 +6,7 @@ use App\Http\Controllers\ClientesController;
 use App\Http\Controllers\ComprasController;
 use App\Http\Controllers\CotizacionesController;
 use App\Http\Controllers\FavoritoController;
+use App\Http\Controllers\PagoEnLineaAdminController;
 use App\Http\Controllers\PagoEnLineaController;
 use App\Http\Controllers\PedidosController;
 use Illuminate\Support\Facades\Route;
@@ -75,6 +76,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('pago-en-linea')->group(function () {
         Route::post('/pagar', [PagoEnLineaController::class, 'pagar']);
         Route::get('/{codigo}', [PagoEnLineaController::class, 'show']);
+    });
+
+    // Panel del personal: las compras por pasarela se atienden a mano (facturar
+    // en el ERP, enviar el comprobante y coordinar el delivery).
+    Route::prefix('pagos-en-linea')->middleware('permission:compras.ver')->group(function () {
+        Route::get('/', [PagoEnLineaAdminController::class, 'index']);
+        Route::get('/{id}', [PagoEnLineaAdminController::class, 'show'])->whereNumber('id');
+        Route::patch('/{id}/seguimiento', [PagoEnLineaAdminController::class, 'seguimiento'])->whereNumber('id');
+        Route::post('/{id}/reenviar', [PagoEnLineaAdminController::class, 'reenviar'])->whereNumber('id');
+        // Comprobante (PDF del ERP): se sube, se envía al cliente y se puede
+        // volver a ver o reenviar.
+        Route::post('/{id}/comprobante', [PagoEnLineaAdminController::class, 'enviarComprobante'])->whereNumber('id');
+        Route::get('/{id}/comprobante', [PagoEnLineaAdminController::class, 'verComprobante'])->whereNumber('id');
+        Route::post('/{id}/comprobante/reenviar', [PagoEnLineaAdminController::class, 'reenviarComprobante'])->whereNumber('id');
     });
 
     // ============================================

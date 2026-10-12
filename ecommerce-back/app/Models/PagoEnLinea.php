@@ -16,10 +16,28 @@ class PagoEnLinea extends Model
     public const ESTADO_PAGADO = 'pagado';
     public const ESTADO_RECHAZADO = 'rechazado';
 
+    /** Etapas del seguimiento manual (facturación en el ERP y delivery). */
+    public const ESTADOS_PROCESO = [
+        'pendiente_facturar',
+        'facturado',
+        'en_delivery',
+        'entregado',
+        'cancelado',
+    ];
+
     protected $fillable = [
         'codigo',
         'user_cliente_id',
         'estado',
+        'estado_proceso',
+        'comprobante_erp',
+        'notas_internas',
+        'atendido_por',
+        'atendido_at',
+        'comprobante_archivo',
+        'comprobante_nombre',
+        'comprobante_enviado_at',
+        'comprobante_enviado_por',
         'simulado',
         'pasarela',
         'referencia_pasarela',
@@ -56,6 +74,8 @@ class PagoEnLinea extends Model
         'costo_envio' => 'float',
         'total' => 'float',
         'email_enviado_at' => 'datetime',
+        'atendido_at' => 'datetime',
+        'comprobante_enviado_at' => 'datetime',
     ];
 
     public function userCliente(): BelongsTo

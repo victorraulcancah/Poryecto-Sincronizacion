@@ -208,6 +208,8 @@ class PagoEnLineaController extends Controller
                 'codigo' => PagoEnLinea::generarCodigo(),
                 'user_cliente_id' => $cliente->id,
                 'estado' => $resultado['aprobado'] ? PagoEnLinea::ESTADO_PAGADO : PagoEnLinea::ESTADO_RECHAZADO,
+                // Seguimiento manual: toda compra pagada entra a la bandeja por facturar.
+                'estado_proceso' => 'pendiente_facturar',
                 'simulado' => true,
                 'pasarela' => 'simulada',
                 'referencia_pasarela' => $resultado['referencia'],
