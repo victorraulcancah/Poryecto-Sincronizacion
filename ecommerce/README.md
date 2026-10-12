@@ -1,3 +1,5 @@
+
+rm -rf dist-nuevo && npm run build -- --output-path=dist-nuevo
 # Marketpro
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.6.
