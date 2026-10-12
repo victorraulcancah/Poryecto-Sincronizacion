@@ -81,6 +81,8 @@ export class ComprasEnLineaComponent implements OnInit, OnDestroy {
 
   // ── Detalle ────────────────────────────────────────────────────────────
   pagoSeleccionado: PagoAdmin | null = null;
+  /** Pestaña abierta del detalle: siempre arranca en los datos del cliente. */
+  tabDetalle: 'cliente' | 'productos' | 'pago' | 'comprobante' | 'seguimiento' = 'cliente';
   reenviando = false;
 
   // ── Seguimiento (formulario del detalle) ───────────────────────────────
@@ -330,6 +332,7 @@ export class ComprasEnLineaComponent implements OnInit, OnDestroy {
 
   verDetalle(pago: PagoAdmin): void {
     this.pagoSeleccionado = pago;
+    this.tabDetalle = 'cliente';
     this.cargarFormularioSeguimiento(pago);
     this.reiniciarFormularioComprobante(pago);
     this.bloquearScroll(true);
