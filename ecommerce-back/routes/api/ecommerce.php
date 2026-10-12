@@ -74,6 +74,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Aparte de pedidos y cotizaciones: cobra el carrito y registra la compra
     // en `pagos_en_linea`. Hoy con la pasarela simulada, sin cobro real.
     Route::prefix('pago-en-linea')->group(function () {
+        Route::get('/', [PagoEnLineaController::class, 'index']);
         Route::post('/pagar', [PagoEnLineaController::class, 'pagar']);
         Route::get('/{codigo}', [PagoEnLineaController::class, 'show']);
     });

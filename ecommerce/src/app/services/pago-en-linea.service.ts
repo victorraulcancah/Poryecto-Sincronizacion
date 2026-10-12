@@ -14,16 +14,31 @@ export interface PagoEnLineaItem {
   imagen_url: string | null;
 }
 
+/** Etapas que marca el personal al atender la compra. */
+export type EstadoProcesoCompra =
+  | 'pendiente_facturar'
+  | 'facturado'
+  | 'en_delivery'
+  | 'entregado'
+  | 'cancelado';
+
 /** Compra registrada por la pasarela de pago. */
 export interface PagoEnLinea {
   codigo: string;
   estado: 'pagado' | 'rechazado';
+  /** Seguimiento manual de la compra (facturación y delivery). */
+  estado_proceso: EstadoProcesoCompra;
+  /** Número del comprobante emitido en el ERP, cuando ya se facturó. */
+  comprobante_erp: string | null;
+  comprobante_enviado_at: string | null;
   simulado: boolean;
   referencia_pasarela: string | null;
   mensaje_pasarela: string | null;
   moneda: string; // 's' soles, 'd' dólares
   subtotal: number;
   igv: number;
+  descuento: number;
+  cupon_codigo: string | null;
   costo_envio: number;
   total: number;
   items: PagoEnLineaItem[];
@@ -84,6 +99,11 @@ export class PagoEnLineaService {
   /** Cobra el carrito del cliente y registra la compra. */
   pagar(datos: PagarRequest): Observable<PagarResponse> {
     return this.http.post<PagarResponse>(`${environment.apiUrl}/pago-en-linea/pagar`, datos);
+  }
+
+  /** Compras pagadas del cliente con el estado que marca el personal. */
+  listarMias(): Observable<{ status: string; pagos: PagoEnLinea[] }> {
+    return this.http.get<{ status: string; pagos: PagoEnLinea[] }>(`${environment.apiUrl}/pago-en-linea`);
   }
 
   /** Una compra propia, para volver a ver su confirmación. */

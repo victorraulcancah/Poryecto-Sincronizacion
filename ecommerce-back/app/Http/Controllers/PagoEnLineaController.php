@@ -261,6 +261,31 @@ class PagoEnLineaController extends Controller
     }
 
     /**
+     * Compras pagadas del cliente con su seguimiento (lo que marca el personal:
+     * pendiente de facturar, facturado, en delivery, entregado o cancelado).
+     * Los pagos rechazados no son compras: no se listan.
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $cliente = $request->user();
+        if (! $cliente instanceof UserCliente) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
+        $pagos = PagoEnLinea::where('user_cliente_id', $cliente->id)
+            ->where('estado', PagoEnLinea::ESTADO_PAGADO)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->limit(100)
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'pagos' => $pagos->map(fn (PagoEnLinea $pago) => $this->transformar($pago))->values(),
+        ]);
+    }
+
+    /**
      * Una compra del cliente, para volver a ver su confirmación.
      */
     public function show(Request $request, string $codigo): JsonResponse
@@ -328,6 +353,10 @@ class PagoEnLineaController extends Controller
         return [
             'codigo' => $pago->codigo,
             'estado' => $pago->estado,
+            // Seguimiento manual: nunca se expone `notas_internas`.
+            'estado_proceso' => $pago->estado_proceso ?: 'pendiente_facturar',
+            'comprobante_erp' => $pago->comprobante_erp,
+            'comprobante_enviado_at' => $pago->comprobante_enviado_at?->toIso8601String(),
             'simulado' => $pago->simulado,
             'referencia_pasarela' => $pago->referencia_pasarela,
             'mensaje_pasarela' => $pago->mensaje_pasarela,
