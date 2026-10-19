@@ -24,6 +24,12 @@ Artisan::command('inspire', function () {
 |     son ~7,4 s, 613 consultas a Novik y 4.100 a la tienda: sobre 300 s eso es
 |     un 2,5% del tiempo. Antes iba dos veces al día, así que un precio nuevo o
 |     un producto recién creado podía tardar hasta 12 horas en aparecer.
+|   - Los precios además van aparte cada 30 segundos (`--only-precios`), por
+|     diferencias: lee todo de una vez y solo escribe lo que cambió, así que
+|     cuesta unas pocas consultas. Esa copia sirve para filtrar y ordenar por
+|     precio; el precio que se muestra y se cobra se lee de Novik en el momento
+|     (ver App\Support\PreciosEnVivo), por lo que un cambio en una lista de
+|     precios del ERP se ve en la tienda al recargar la página.
 |
 | Para que esto corra, el servidor necesita el cron de Laravel:
 |
@@ -51,3 +57,13 @@ Schedule::command('sync:7power')
     ->withoutOverlapping(5)
     ->runInBackground()
     ->appendOutputTo(storage_path('logs/sync-7power-completa.log'));
+
+// Los precios cambian cuando alguien edita una lista en el ERP. Los de un producto que la
+// tienda ya tiene se muestran al instante (precio en vivo); esto cubre lo demás: precios
+// nuevos o borrados y la copia con la que se filtra y ordena por precio. Sub-minuto: el cron
+// del servidor sigue siendo uno solo, `schedule:run` cada minuto.
+Schedule::command('sync:7power --only-precios')
+    ->everyThirtySeconds()
+    ->withoutOverlapping(2)
+    ->runInBackground()
+    ->appendOutputTo(storage_path('logs/sync-7power-precios.log'));

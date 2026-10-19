@@ -13,7 +13,7 @@ class SincronizarDesde7Power extends Command
      *
      * @var string
      */
-    protected $signature = 'sync:7power {--force : Forzar sincronización completa} {--update-stock : Actualizar stock de productos existentes} {--only-tipos-precio : Solo sincronizar tipos de precio (listas) y sus precios} {--company=1 : ID de la empresa en 7Power} {--warehouse=1 : ID del almacén en 7Power}';
+    protected $signature = 'sync:7power {--force : Forzar sincronización completa} {--update-stock : Actualizar stock de productos existentes} {--only-tipos-precio : Solo sincronizar tipos de precio (listas) y sus precios} {--only-precios : Solo refrescar los precios por producto (rápido, para correr cada 30 segundos)} {--company=1 : ID de la empresa en 7Power} {--warehouse=1 : ID del almacén en 7Power}';
 
     /**
      * The description of the console command.
@@ -27,6 +27,21 @@ class SincronizarDesde7Power extends Command
      */
     public function handle()
     {
+        // Solo precios: lo corre el scheduler cada 30 segundos, así que no escribe nada si no cambió ningún
+        // precio y deja una línea solo cuando hubo cambios o falló.
+        if ($this->option('only-precios')) {
+            try {
+                $this->sincronizarPreciosProductos(true);
+
+                return 0;
+            } catch (\Exception $e) {
+                $this->error(now()->format('H:i:s') . ' Error sincronizando precios: ' . $e->getMessage());
+                Log::error('Error sincronizando precios desde 7Power', ['error' => $e->getMessage()]);
+
+                return 1;
+            }
+        }
+
         $this->info(' Iniciando sincronización desde 7Power...');
 
         $companyId   = (int) $this->option('company');
@@ -621,10 +636,19 @@ class SincronizarDesde7Power extends Command
 
     /**
      * Sincronizar precios por producto (list_price_product) desde 7Power.
+     *
+     * Por diferencias: se lee de una vez lo que ya hay en la tienda y solo se escribe lo que cambió. Antes
+     * cada precio costaba dos consultas (buscarlo y reescribirlo, aunque no hubiera cambiado), y eso lo hacía
+     * demasiado pesado para correr seguido. Así cuesta unas pocas consultas y se puede refrescar cada 30
+     * segundos.
+     *
+     * @param  bool  $silencioso  Para el scheduler: sin mensajes salvo que haya cambios.
      */
-    private function sincronizarPreciosProductos()
+    private function sincronizarPreciosProductos(bool $silencioso = false)
     {
-        $this->info(' Sincronizando precios por producto...');
+        if (!$silencioso) {
+            $this->info(' Sincronizando precios por producto...');
+        }
 
         // Mapeos: producto_7power_id => producto_id (Magus)
         $mapeoProductos = DB::table('producto_mapeo_7power')
@@ -637,11 +661,20 @@ class SincronizarDesde7Power extends Command
 
         $precios7Power = DB::connection('mysql_7power')
             ->table('list_price_product')
-            ->get();
+            ->get(['product_id', 'list_price_id', 'precio']);
 
-        $insertados = 0;
+        // Lo que hay hoy en la tienda, en una sola consulta.
+        $locales = [];
+        foreach (DB::table('producto_precios')->get(['id', 'producto_id', 'tipo_precio_id', 'precio']) as $local) {
+            $locales[$local->producto_id . '-' . $local->tipo_precio_id] = $local;
+        }
+
         $actualizados = 0;
         $saltados = 0;
+
+        // Precios nuevos, por llave: si Novik repite un precio, queda el último (como antes, que lo
+        // insertaba y el repetido lo actualizaba).
+        $nuevos = [];
 
         // Precios que SÍ existen hoy en Novik, para poder borrar después los
         // que sobran. Sin esto, un precio borrado en Novik quedaba para
@@ -657,58 +690,56 @@ class SincronizarDesde7Power extends Command
                 continue;
             }
 
-            $vigentes[] = $productoId . '-' . $tipoPrecioId;
+            $llave = $productoId . '-' . $tipoPrecioId;
+            $vigentes[$llave] = true;
+            $precio = $fila->precio ?? 0;
+            $local = $locales[$llave] ?? null;
 
-            $existente = DB::table('producto_precios')
-                ->where('producto_id', $productoId)
-                ->where('tipo_precio_id', $tipoPrecioId)
-                ->first();
-
-            if (!$existente) {
-                DB::table('producto_precios')->insert([
+            if (!$local) {
+                $nuevos[$llave] = [
                     'producto_id'    => $productoId,
                     'tipo_precio_id' => $tipoPrecioId,
-                    'precio'         => $fila->precio ?? 0,
+                    'precio'         => $precio,
                     'created_at'     => now(),
                     'updated_at'     => now(),
-                ]);
-                $insertados++;
-            } else {
+                ];
+            } elseif ((float) $local->precio !== (float) $precio) {
                 DB::table('producto_precios')
-                    ->where('id', $existente->id)
+                    ->where('id', $local->id)
                     ->update([
-                        'precio'     => $fila->precio ?? 0,
+                        'precio'     => $precio,
                         'updated_at' => now(),
                     ]);
                 $actualizados++;
             }
         }
 
+        $insertados = count($nuevos);
+        foreach (array_chunk(array_values($nuevos), 500) as $lote) {
+            DB::table('producto_precios')->insert($lote);
+        }
+
         // Borrar de la tienda los precios que ya no existen en Novik. Solo se
         // tocan las listas que están mapeadas a Novik: si alguna lista se
         // administra únicamente en la tienda, no se le borra nada.
         $eliminados = 0;
-        $vigentes = array_flip($vigentes);
         $listasMapeadas = $mapeoTipos->values()->all();
 
         if (!empty($listasMapeadas)) {
-            DB::table('producto_precios')
-                ->whereIn('tipo_precio_id', $listasMapeadas)
-                ->select('id', 'producto_id', 'tipo_precio_id')
-                ->orderBy('id')
-                ->chunk(500, function ($filas) use ($vigentes, &$eliminados) {
-                    $sobran = [];
-                    foreach ($filas as $f) {
-                        if (!isset($vigentes[$f->producto_id . '-' . $f->tipo_precio_id])) {
-                            $sobran[] = $f->id;
-                        }
-                    }
-                    if (!empty($sobran)) {
-                        $eliminados += DB::table('producto_precios')->whereIn('id', $sobran)->delete();
-                    }
-                });
+            $sobran = [];
+            foreach ($locales as $llave => $local) {
+                if (in_array($local->tipo_precio_id, $listasMapeadas) && !isset($vigentes[$llave])) {
+                    $sobran[] = $local->id;
+                }
+            }
+
+            foreach (array_chunk($sobran, 500) as $lote) {
+                $eliminados += DB::table('producto_precios')->whereIn('id', $lote)->delete();
+            }
         }
 
-        $this->info(" Precios sincronizados: {$insertados} nuevos, {$actualizados} actualizados, {$eliminados} eliminados (ya no están en Novik), {$saltados} saltados (sin mapeo)");
+        if (!$silencioso || $insertados + $actualizados + $eliminados > 0) {
+            $this->info(($silencioso ? now()->format('H:i:s') : '') . " Precios sincronizados: {$insertados} nuevos, {$actualizados} actualizados, {$eliminados} eliminados (ya no están en Novik), {$saltados} saltados (sin mapeo)");
+        }
     }
 }

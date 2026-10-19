@@ -81,4 +81,11 @@ return [
         'url' => env('APISPERU_URL', 'https://dniruc.apisperu.com/api/v1'),
     ],
 
+    /*
+     * Precio en vivo desde Novik (ver App\Support\PreciosEnVivo): la tienda muestra y cobra el precio que tiene
+     * el ERP en ese momento en vez de esperar a la sincronización. Con PRECIOS_EN_VIVO=false se vuelve a la
+     * copia local, que se refresca cada 30 segundos.
+     */
+    'precios_en_vivo' => env('PRECIOS_EN_VIVO', true),
+
 ];

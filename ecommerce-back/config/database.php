@@ -75,6 +75,11 @@ return [
             'prefix' => '',
             'strict' => true,
             'engine' => 'InnoDB',
+            // Los precios y el stock en vivo preguntan a Novik en cada carga de la tienda: si no contesta
+            // no se espera el tiempo largo de siempre, se sigue con la copia local.
+            'options' => extension_loaded('pdo_mysql') ? [
+                \PDO::ATTR_TIMEOUT => (int) env('DB_7POWER_TIMEOUT', 3),
+            ] : [],
         ],
 
         'mariadb' => [
