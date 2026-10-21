@@ -109,7 +109,7 @@ Route::get('/auth/google/callback', function() {
 
         // Crear token para el cliente
         Log::info('Creando token de autenticación...');
-        $token = $userCliente->createToken('auth_token')->plainTextToken;
+        $token = \App\Support\SesionUnica::abrir($userCliente, 'auth_token');
 
         // Preparar datos de respuesta
         $userData = [

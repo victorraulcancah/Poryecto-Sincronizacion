@@ -28,12 +28,18 @@ export const authInterceptor: HttpInterceptorFn = (
   // Continuar con la petición y manejar errores
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      // Si el error es 401 (Unauthorized), limpiar la sesión y redirigir al login
-      if (error.status === 401) {
-        // Solo limpiar sesión si el usuario estaba logueado
-        if (authService.isLoggedIn()) {
-          authService.logout();
-        }
+      // Sanctum contesta 401 "Unauthenticated." cuando el token ya no existe: la cuenta se abrió en otro
+      // dispositivo (cada login revoca los tokens anteriores) o el token venció. Los demás 401 son respuestas de
+      // negocio ("Acceso no autorizado") y no cierran la sesión. Se compara con el token que llevaba ESTA petición
+      // para que una respuesta tardía no cierre una sesión nueva iniciada entre tanto.
+      const tokenRevocado =
+        error.status === 401 &&
+        !!token &&
+        error.error?.message === 'Unauthenticated.' &&
+        token === authService.getToken();
+
+      if (tokenRevocado) {
+        authService.cerrarSesionInvalida();
       }
       return throwError(() => error);
     })

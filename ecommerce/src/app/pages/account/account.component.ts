@@ -26,6 +26,7 @@ import { ActivatedRoute } from '@angular/router';
 export class AccountComponent implements OnInit {
   loginForm!: FormGroup;
   loginError: string = '';
+  avisoSesion: string = '';
   isLoading: boolean = false;
   showPassword: boolean = false;
   showSuccessMessage: boolean = false;
@@ -41,6 +42,7 @@ export class AccountComponent implements OnInit {
 
  ngOnInit(): void {
   this.initForms();
+  this.avisoSesion = this.authService.tomarAvisoDeSesion() ?? '';
        
   // Si el usuario ya está logueado, redirigir a la página principal
   if (this.authService.isLoggedIn()) {

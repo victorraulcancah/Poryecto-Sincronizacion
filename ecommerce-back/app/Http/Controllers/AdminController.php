@@ -7,6 +7,7 @@ use App\Models\EmailTemplate;
 use App\Models\User;
 use App\Models\UserCliente;
 use App\Models\UserMotorizado;
+use App\Support\SesionUnica;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -43,7 +44,7 @@ class AdminController extends Controller
                 ], 401);
             }
 
-            $token = $user->createToken('admin_token')->plainTextToken;
+            $token = SesionUnica::abrir($user, 'admin_token');
 
             return response()->json([
                 'status' => 'success',
@@ -72,7 +73,7 @@ class AdminController extends Controller
                 ], 401);
             }
 
-            $token = $cliente->createToken('cliente_token')->plainTextToken;
+            $token = SesionUnica::abrir($cliente, 'cliente_token');
 
             return response()->json([
                 'status' => 'success',
@@ -123,7 +124,7 @@ class AdminController extends Controller
             // Actualizar último login
             $userMotorizado->actualizarUltimoLogin();
 
-            $token = $userMotorizado->createToken('motorizado_token')->plainTextToken;
+            $token = SesionUnica::abrir($userMotorizado, 'motorizado_token');
 
             return response()->json([
                 'status' => 'success',

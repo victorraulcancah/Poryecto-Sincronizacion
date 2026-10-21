@@ -26,7 +26,9 @@ export class AuthService {
   private readonly tokenKey = 'auth_token';
   private readonly userKey = 'current_user';
   private readonly loginTimeKey = 'login_time';
+  private readonly avisoSesionKey = 'aviso_sesion';
   private readonly tokenExpirationHours = 12; // Duración del token en horas
+  private ultimaVerificacion = 0;
 
   constructor(
     private http: HttpClient,
@@ -51,6 +53,7 @@ export class AuthService {
       // Solo cargar el usuario si también existe el token
       const user = (storedUser && storedToken) ? JSON.parse(storedUser) : null;
       this.currentUserSubject = new BehaviorSubject<User | null>(user);
+      this.verificarSesionAlVolver();
 
       // console.log('🔧 AuthService inicializado con usuario:', user);
     } else {
@@ -159,7 +162,7 @@ export class AuthService {
     return of({ status: 'success' });
   }
 
-  private clearSession(): void {
+  private clearSession(redirigir = true): void {
     if (this.isBrowser) {
       localStorage.removeItem(this.tokenKey);
       localStorage.removeItem(this.userKey);
@@ -169,9 +172,61 @@ export class AuthService {
     this.currentUserSubject.next(null);
 
     // Redirigir según donde esté el usuario
-    if (this.router.url.includes('/admin') || this.router.url.includes('/account') || this.router.url.includes('/motorizado')) {
+    if (redirigir && (this.router.url.includes('/admin') || this.router.url.includes('/account') || this.router.url.includes('/motorizado'))) {
         this.router.navigate(['/account']);
     }
+  }
+
+  /**
+   * El servidor dejó de reconocer el token de esta sesión.
+   *
+   * Una cuenta solo puede estar abierta en un dispositivo: cada login revoca los tokens anteriores, así que el
+   * dispositivo que se quedó con el token viejo recibe 401 "Unauthenticated." en su siguiente petición. Aquí se
+   * cierra su sesión sin llamar a /logout (el token ya no sirve) y se le lleva al login con el aviso, que
+   * `AccountComponent` lee con `tomarAvisoDeSesion()`.
+   */
+  cerrarSesionInvalida(): void {
+    if (!this.isBrowser || !this.currentUserSubject.value) return;
+
+    const aviso = this.isTokenExpired()
+      ? 'Tu sesión expiró. Inicia sesión de nuevo para continuar.'
+      : 'Tu sesión se cerró porque entraste desde otro dispositivo.';
+
+    try {
+      sessionStorage.setItem(this.avisoSesionKey, aviso);
+    } catch { /* sin sessionStorage el aviso simplemente no se muestra */ }
+
+    this.clearSession(false);
+    this.router.navigate(['/account']);
+  }
+
+  /** Devuelve (y borra) el aviso que dejó `cerrarSesionInvalida()`, para mostrarlo una sola vez en el login. */
+  tomarAvisoDeSesion(): string | null {
+    if (!this.isBrowser) return null;
+    try {
+      const aviso = sessionStorage.getItem(this.avisoSesionKey);
+      sessionStorage.removeItem(this.avisoSesionKey);
+      return aviso;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Al volver a una pestaña que llevaba rato en segundo plano, comprueba contra el servidor que la sesión siga
+   * vigente. Sin esto, el dispositivo desplazado solo se enteraría al hacer su próxima acción; el 401 de esta
+   * llamada pasa por el interceptor y dispara `cerrarSesionInvalida()`. No toca los datos del usuario guardados.
+   */
+  private verificarSesionAlVolver(): void {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible' || !this.getToken() || !this.currentUserSubject.value) return;
+
+      const ahora = Date.now();
+      if (ahora - this.ultimaVerificacion < 60_000) return;
+      this.ultimaVerificacion = ahora;
+
+      this.getUserProfile().subscribe({ error: () => { /* lo resuelve el interceptor */ } });
+    });
   }
 
   // Método para redirigir después del login
