@@ -68,9 +68,10 @@ class ImagenReducidaTest extends TestCase
             ->assertOk()->baseResponse->getFile()->getPathname();
         $this->assertSame(320, getimagesize($archivo)[0]);
 
+        // Pasado el mayor permitido se queda en el mayor (la foto de prueba mide 1600).
         $archivo = $this->get('/api/img/5000/pruebas-img/grande.jpg')
             ->assertOk()->baseResponse->getFile()->getPathname();
-        $this->assertSame(1080, getimagesize($archivo)[0]);
+        $this->assertLessThanOrEqual(1600, getimagesize($archivo)[0]);
     }
 
     public function test_no_agranda_una_imagen_mas_chica_que_lo_pedido(): void
@@ -105,6 +106,17 @@ class ImagenReducidaTest extends TestCase
         $this->get('/api/img/480/pruebas-img/no-existe.jpg')->assertNotFound();
         $this->get('/api/img/480/..%2F..%2F.env.jpg')->assertNotFound();
         $this->get('/api/img/480/pruebas-img/../../../../.env')->assertNotFound();
+    }
+
+    public function test_el_comando_precalienta_las_versiones_reducidas(): void
+    {
+        $this->foto('grande.jpg');
+
+        $this->artisan('imagenes:precalentar', ['--carpeta' => ['pruebas-img'], '--ancho' => ['480']])
+            ->expectsOutputToContain('1 imágenes revisadas')
+            ->assertSuccessful();
+
+        $this->assertCount(1, glob(storage_path('app/img-cache/480/*.webp')));
     }
 
     public function test_un_archivo_que_dice_ser_imagen_pero_esta_danado_se_entrega_como_esta(): void

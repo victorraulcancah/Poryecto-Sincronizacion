@@ -11,6 +11,7 @@ import { CartNotificationComponent } from './components/cart-notification/cart-n
 import { CookieBannerComponent } from './components/cookie-banner/cookie-banner.component';
 import { CookieConsentService } from './services/cookie-consent.service';
 import { SplashLoaderComponent } from './components/splash-loader/splash-loader.component';
+import { respaldarImagenesReducidas } from './interceptors/imagenes.interceptor';
 
 @Component({
   selector: 'app-root',
@@ -56,6 +57,9 @@ export class AppComponent implements OnInit {
     });
 
     if (this.isBrowser) {
+      // Si una imagen reducida falla, se usa la original en vez de dejar un hueco.
+      respaldarImagenesReducidas(document);
+
       if (isPlatformBrowser(this.platformId)) {
         AOS.init({
           duration: 1000,

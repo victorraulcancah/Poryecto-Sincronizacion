@@ -14,7 +14,8 @@ import {
 } from '@angular/common/http';
 import { authInterceptor } from './interceptors/auth.interceptor';
 import { logInterceptor } from './interceptors/log.interceptor';
-import { originInterceptor } from './interceptors/origin.interceptor'; 
+import { originInterceptor } from './interceptors/origin.interceptor';
+import { imagenesInterceptor } from './interceptors/imagenes.interceptor';
 
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideToastr } from 'ngx-toastr';
@@ -37,7 +38,7 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(withEventReplay()),
     provideHttpClient(
       withFetch(),
-      withInterceptors([authInterceptor, logInterceptor, originInterceptor])
+      withInterceptors([authInterceptor, logInterceptor, originInterceptor, imagenesInterceptor])
     ),
     provideAnimations(),
     // ✅ Configuración de ngx-toastr
