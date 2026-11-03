@@ -11,6 +11,7 @@ use App\Http\Controllers\DocumentTypeController;
 use App\Http\Controllers\EmpresaInfoController;
 use App\Http\Controllers\FormaEnvioController;
 use App\Http\Controllers\HorariosController;
+use App\Http\Controllers\ImagenReducidaController;
 use App\Http\Controllers\MarcaProductoController;
 use App\Http\Controllers\OfertasController;
 use App\Http\Controllers\ProductosController;
@@ -54,6 +55,11 @@ Route::get('/departamentos', [UbigeoController::class, 'getDepartamentos']);
 Route::get('provincias/{departamentoId}', [UbigeoController::class, 'getProvincias']);
 Route::get('distritos/{departamentoId}/{provinciaId}', [UbigeoController::class, 'getDistritos']);
 Route::get('ubigeo-chain/{ubigeoId}', [UbigeoController::class, 'getUbigeoChain']);
+
+// Imágenes de /storage reducidas al ancho pedido (las usa el app móvil).
+Route::get('/img/{ancho}/{ruta}', [ImagenReducidaController::class, 'show'])
+    ->whereNumber('ancho')
+    ->where('ruta', '.+');
 
 // ============================================
 // CATEGORÍAS PÚBLICAS
