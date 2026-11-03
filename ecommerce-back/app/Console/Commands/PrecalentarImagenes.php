@@ -41,6 +41,7 @@ class PrecalentarImagenes extends Command
 
         $hechas = 0;
         $vistas = [];
+        $fallos = [];
         foreach ($bases as $base) {
             foreach ($carpetas as $carpeta) {
                 if (! is_dir("{$base}/{$carpeta}")) {
@@ -56,6 +57,10 @@ class PrecalentarImagenes extends Command
 
                     foreach ($anchos as $ancho) {
                         $imagenes->obtener($ruta, $imagenes->anchoPermitido($ancho));
+
+                        if ($imagenes->ultimoError !== null) {
+                            $fallos[$imagenes->ultimoError] = ($fallos[$imagenes->ultimoError] ?? 0) + 1;
+                        }
                     }
                     $hechas++;
                 }
@@ -64,6 +69,11 @@ class PrecalentarImagenes extends Command
         }
 
         $this->info("{$hechas} imágenes revisadas.");
+
+        // Los motivos por los que se quedó la original, con cuántas veces pasó.
+        foreach ($fallos as $motivo => $veces) {
+            $this->warn("{$veces} veces no se redujo: {$motivo}");
+        }
 
         return self::SUCCESS;
     }

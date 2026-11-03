@@ -21,6 +21,7 @@ class ImagenReducidaTest extends TestCase
     {
         File::deleteDirectory($this->carpeta);
         File::deleteDirectory(storage_path('app/img-cache'));
+        File::deleteDirectory(storage_path('app/public/_img'));
 
         parent::tearDown();
     }
@@ -116,7 +117,7 @@ class ImagenReducidaTest extends TestCase
             ->expectsOutputToContain('1 imágenes revisadas')
             ->assertSuccessful();
 
-        $this->assertCount(1, glob(storage_path('app/img-cache/480/*.webp')));
+        $this->assertCount(1, glob(storage_path('app/public/_img/480/*.webp')));
     }
 
     public function test_un_archivo_que_dice_ser_imagen_pero_esta_danado_se_entrega_como_esta(): void
