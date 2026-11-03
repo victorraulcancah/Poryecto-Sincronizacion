@@ -175,16 +175,27 @@ class ImagenReducidaService
             return 'GD no pudo abrir la imagen (formato no soportado o dañada)';
         }
 
-        // Nunca se agranda: una foto de 300 px se queda en 300.
+        imagepalettetotruecolor($imagen);
+
+        // Nunca se agranda: una foto de 300 px se queda en 300. Se reduce con
+        // imagecopyresampled (en algunos servidores imagescale falla).
         if ($anchoOriginal > $ancho) {
-            $reducida = imagescale($imagen, $ancho, -1, IMG_BICUBIC);
+            $altoNuevo = max(1, (int) round($altoOriginal * $ancho / $anchoOriginal));
+            $reducida = imagecreatetruecolor($ancho, $altoNuevo);
             if ($reducida === false) {
-                return 'GD no pudo reducir la imagen';
+                return "GD no pudo crear la imagen reducida (memory_limit=".ini_get('memory_limit').')';
+            }
+
+            // Se parte de un fondo transparente para no perder la transparencia.
+            imagealphablending($reducida, false);
+            imagesavealpha($reducida, true);
+            imagefill($reducida, 0, 0, imagecolorallocatealpha($reducida, 0, 0, 0, 127));
+
+            if (! imagecopyresampled($reducida, $imagen, 0, 0, 0, 0, $ancho, $altoNuevo, $anchoOriginal, $altoOriginal)) {
+                return 'GD no pudo reducir la imagen (imagecopyresampled)';
             }
             $imagen = $reducida;
         }
-
-        imagepalettetotruecolor($imagen);
 
         if ($extension === 'jpg') {
             // JPEG no tiene transparencia: se pone sobre blanco.
