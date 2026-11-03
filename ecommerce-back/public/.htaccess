@@ -27,3 +27,21 @@ php_value sys_temp_dir "C:/xampp/tmp"
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# Velocidad ---------------------------------------------------------------
+
+# Respuestas de texto comprimidas: el listado de productos (JSON) pesa unos
+# 300 KB sin comprimir y baja a una décima parte. El navegador y el app piden
+# la versión comprimida solos.
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE application/json application/javascript text/css text/html text/plain text/xml application/xml image/svg+xml
+</IfModule>
+
+# Las imágenes subidas llevan un nombre único (marca de tiempo + código): si la
+# imagen cambia, cambia la URL. Se pueden guardar un año en el navegador y en
+# el app, sin volver a descargarlas.
+<IfModule mod_headers.c>
+    <If "%{REQUEST_URI} =~ m#^/storage/.+\.(jpe?g|png|webp|gif|svg)$#i">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </If>
+</IfModule>
