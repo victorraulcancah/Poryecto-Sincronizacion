@@ -155,6 +155,9 @@ if ($authenticatedUser instanceof \App\Models\User) {
                 ], 409);
             }
             $cartItem->cantidad = $nuevaCantidad;
+            // Agregar algo que estaba "guardado para después" lo devuelve al
+            // carrito; si no, el cliente lo agrega y no lo ve en el pedido.
+            $cartItem->guardado_para_despues = false;
             $cartItem->save();
         } else {
             // Si es un item nuevo, crearlo

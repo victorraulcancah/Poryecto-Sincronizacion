@@ -11,6 +11,7 @@ use App\Models\CotizacionTracking;
 use App\Models\Producto;
 use App\Models\UserCliente;
 use App\Services\FacturacionComprasService;
+use App\Support\ProductosDeCompra;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -354,10 +355,27 @@ class ComprasController extends Controller
             return response()->json(['status' => 'success', 'vinculado' => false, 'compras' => []]);
         }
 
+        $compras = $servicio->comprasDeCliente($clienteErpId);
+
+        // El ERP no tiene fotos ni marcas: se completan con las del catálogo de
+        // la tienda, buscando cada producto por su código.
+        $catalogo = ProductosDeCompra::porCodigos(
+            collect($compras)->flatMap(fn ($c) => array_column($c['productos'], 'codigo'))->all(),
+        );
+        foreach ($compras as &$compra) {
+            foreach ($compra['productos'] as &$producto) {
+                $datos = $catalogo[trim((string) ($producto['codigo'] ?? ''))] ?? null;
+                $producto['imagen_url'] = $datos['imagen_url'] ?? null;
+                $producto['marca'] = $datos['marca'] ?? null;
+            }
+            unset($producto);
+        }
+        unset($compra);
+
         return response()->json([
             'status' => 'success',
             'vinculado' => true,
-            'compras' => $servicio->comprasDeCliente($clienteErpId),
+            'compras' => $compras,
         ]);
     }
 

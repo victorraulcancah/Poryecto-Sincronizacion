@@ -6,6 +6,8 @@ use App\Mail\CompraEnLineaMail;
 use App\Mail\ComprobanteEmitidoMail;
 use App\Models\PagoEnLinea;
 use App\Models\TipoPrecio;
+use App\Services\FcmService;
+use App\Support\NotificarCompra;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -132,6 +134,8 @@ class PagoEnLineaAdminController extends Controller
             ], 422);
         }
 
+        $etapaAnterior = $pago->estado_proceso;
+
         $pago->forceFill([
             'estado_proceso' => $request->estado_proceso,
             'comprobante_erp' => $request->filled('comprobante_erp') ? trim($request->comprobante_erp) : null,
@@ -139,6 +143,11 @@ class PagoEnLineaAdminController extends Controller
             'atendido_por' => $request->user()?->id,
             'atendido_at' => now(),
         ])->save();
+
+        // Si cambió de etapa, el cliente se entera en su teléfono (app móvil).
+        if ($etapaAnterior !== $pago->estado_proceso) {
+            NotificarCompra::estadoCambio($pago, app(FcmService::class));
+        }
 
         return response()->json([
             'status' => 'success',

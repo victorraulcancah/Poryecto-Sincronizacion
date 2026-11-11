@@ -427,8 +427,8 @@ class CotizacionesController extends Controller
                     'costo_envio' => $envioDeMoneda,
                     'moneda' => $monedaCot,
                     'departamento_id' => $request->departamento_id,
-                    'provincia_id' => $request->provincia_id,
-                    'distrito_id' => $request->distrito_id,
+                    'provincia_id' => self::codigoUbigeo($request->provincia_id, 2),
+                    'distrito_id' => self::codigoUbigeo($request->distrito_id, 4),
                     'departamento_nombre' => $request->departamento_nombre,
                     'provincia_nombre' => $request->provincia_nombre,
                     'distrito_nombre' => $request->distrito_nombre,
@@ -1192,6 +1192,24 @@ class CotizacionesController extends Controller
      * su cotización, hasta que un vendedor o administrador lo pase a
      * "En preparación" o lo cancele.
      */
+    /**
+     * Código de provincia o distrito de 2 dígitos, que es lo que guardan
+     * cotizaciones, pedidos y compras (la web manda "01"; la app móvil antigua
+     * mandaba el código encadenado: "1501" y "150122", y el pedido fallaba con
+     * "Data too long for column 'provincia_id'").
+     *
+     * @param int $desde posición donde empieza el código propio del nivel en la
+     *                   versión encadenada (2 para provincia, 4 para distrito)
+     */
+    private static function codigoUbigeo(?string $valor, int $desde): ?string
+    {
+        if ($valor === null || $valor === '') {
+            return $valor;
+        }
+
+        return strlen($valor) > 2 ? substr($valor, $desde, 2) : $valor;
+    }
+
     private function crearPedidoDesdeCotizacion(Cotizacion $cotizacion): Pedido
     {
         $cotizacion->load('detalles.producto', 'metodosPago');

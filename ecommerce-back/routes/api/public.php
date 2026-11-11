@@ -36,6 +36,11 @@ use Illuminate\Support\Facades\Route;
 Route::post('/login', [AdminController::class, 'login'])->name('login');
 Route::post('/register', [AdminController::class, 'register']);
 
+// "Continuar con Google" del app móvil: recibe el id_token que da Google en el
+// teléfono, lo valida y responde igual que /login.
+Route::post('/auth/google/token', [\App\Http\Controllers\GoogleMobileAuthController::class, 'login'])
+    ->middleware('throttle:10,1');
+
 // Rompecabezas del registro. El servidor arma el desafío y verifica el orden.
 Route::get('/captcha/desafio', [\App\Http\Controllers\CaptchaController::class, 'desafio']);
 Route::post('/captcha/verificar', [\App\Http\Controllers\CaptchaController::class, 'verificar']);

@@ -181,6 +181,9 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::prefix('cliente')->group(function () {
+        // Token de notificaciones push del teléfono (app móvil).
+        Route::post('/dispositivos', [\App\Http\Controllers\DispositivoClienteController::class, 'registrar']);
+        Route::delete('/dispositivos', [\App\Http\Controllers\DispositivoClienteController::class, 'quitar']);
         Route::post('/upload-foto', [ClientesController::class, 'uploadFoto']);
         Route::delete('/delete-foto', [ClientesController::class, 'deleteFoto']);
         // Crédito disponible del cliente vinculado al ERP (para el checkout).

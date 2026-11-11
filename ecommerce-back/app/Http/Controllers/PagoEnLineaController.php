@@ -9,6 +9,7 @@ use App\Models\EmpresaInfo;
 use App\Models\PagoEnLinea;
 use App\Models\UserCliente;
 use App\Services\Pasarela\PasarelaSimulada;
+use App\Support\ProductosDeCompra;
 use App\Support\StockEnVivo;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -256,7 +257,10 @@ class PagoEnLineaController extends Controller
             'status' => 'success',
             'aprobado' => $pago->estado === PagoEnLinea::ESTADO_PAGADO,
             'mensaje' => $resultado['mensaje'],
-            'pago' => $this->transformar($pago),
+            'pago' => $this->transformar(
+                $pago,
+                ProductosDeCompra::porIds(array_column($pago->items ?? [], 'producto_id')),
+            ),
         ]);
     }
 
@@ -279,9 +283,14 @@ class PagoEnLineaController extends Controller
             ->limit(100)
             ->get();
 
+        // Imagen y marca de todos los productos, en una sola consulta.
+        $productos = ProductosDeCompra::porIds(
+            $pagos->flatMap(fn (PagoEnLinea $p) => array_column($p->items ?? [], 'producto_id'))->all(),
+        );
+
         return response()->json([
             'status' => 'success',
-            'pagos' => $pagos->map(fn (PagoEnLinea $pago) => $this->transformar($pago))->values(),
+            'pagos' => $pagos->map(fn (PagoEnLinea $pago) => $this->transformar($pago, $productos))->values(),
         ]);
     }
 
@@ -305,7 +314,10 @@ class PagoEnLineaController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'pago' => $this->transformar($pago),
+            'pago' => $this->transformar(
+                $pago,
+                ProductosDeCompra::porIds(array_column($pago->items ?? [], 'producto_id')),
+            ),
         ]);
     }
 
@@ -348,7 +360,25 @@ class PagoEnLineaController extends Controller
         })->afterResponse();
     }
 
-    private function transformar(PagoEnLinea $pago): array
+    /**
+     * Completa cada producto de la compra con su marca y, si la compra no guardó
+     * la foto, la imagen actual del catálogo.
+     *
+     * @param  array<int, array{imagen_url: ?string, marca: ?string}>  $productos  por id de producto
+     */
+    private function itemsConDetalle(?array $items, array $productos): array
+    {
+        return array_map(function ($item) use ($productos) {
+            $catalogo = $productos[(int) ($item['producto_id'] ?? 0)] ?? null;
+
+            $item['marca'] = $catalogo['marca'] ?? null;
+            $item['imagen_url'] = ($item['imagen_url'] ?? null) ?: ($catalogo['imagen_url'] ?? null);
+
+            return $item;
+        }, $items ?? []);
+    }
+
+    private function transformar(PagoEnLinea $pago, array $productos = []): array
     {
         return [
             'codigo' => $pago->codigo,
@@ -367,7 +397,7 @@ class PagoEnLineaController extends Controller
             'descuento' => $pago->descuento,
             'costo_envio' => $pago->costo_envio,
             'total' => $pago->total,
-            'items' => $pago->items,
+            'items' => $this->itemsConDetalle($pago->items, $productos),
             'forma_envio' => $pago->forma_envio,
             'cliente_nombre' => $pago->cliente_nombre,
             'cliente_email' => $pago->cliente_email,

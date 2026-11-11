@@ -53,10 +53,22 @@ return [
         'department' => env('COMPANY_DEPARTMENT'),
         'ubigeo' => env('COMPANY_UBIGEO', '150301'),
     ],
+    // Notificaciones push del app móvil (Firebase Cloud Messaging). Ruta del JSON
+    // de la cuenta de servicio del proyecto de Firebase; sin él no se envía nada.
+    'fcm' => [
+        'credentials' => env('FCM_CREDENTIALS'),
+    ],
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'redirect' => env('GOOGLE_REDIRECT_URI'),
+        // Otros "ID de cliente" de Google aceptados al entrar desde el app móvil,
+        // separados por comas (el app usa el cliente web de arriba como
+        // `serverClientId`, así que normalmente no hace falta ninguno).
+        'mobile_client_ids' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('GOOGLE_MOBILE_CLIENT_IDS', ''))
+        ))),
     ],
 
     'apiperu' => [
