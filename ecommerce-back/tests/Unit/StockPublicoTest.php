@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Models\Producto;
 use App\Support\StockPublico;
+use App\Support\UnidadDeMedida;
 use PHPUnit\Framework\TestCase;
 
 class StockPublicoTest extends TestCase
@@ -17,8 +18,35 @@ class StockPublicoTest extends TestCase
         $this->assertSame('Quedan 4 unidades', StockPublico::mensaje(4));
         $this->assertSame('Quedan 7 unidades', StockPublico::mensaje(7));
         $this->assertSame('Quedan 9 unidades', StockPublico::mensaje(9));
-        $this->assertSame('Disponible', StockPublico::mensaje(10));
-        $this->assertSame('Disponible', StockPublico::mensaje(544));
+        $this->assertSame('Disponible: +10 unidades', StockPublico::mensaje(10));
+        $this->assertSame('Disponible: +10 unidades', StockPublico::mensaje(544));
+    }
+
+    public function test_los_mensajes_usan_la_unidad_de_medida_del_producto(): void
+    {
+        $this->assertSame('Quedan 7 sets', StockPublico::mensaje(7, 'set'));
+        $this->assertSame('Quedan 4 pares', StockPublico::mensaje(4, 'par'));
+        $this->assertSame('Disponible: +10 sets', StockPublico::mensaje(25, 'SET'));
+        $this->assertSame('Disponible: +10 unidades', StockPublico::mensaje(25, 'Unidad '));
+        $this->assertSame('Disponible: +10 cajas', StockPublico::mensaje(25, 'caja'));
+        // Género: unidad/caja son femeninas; set/par, masculinas.
+        $this->assertSame('¡Último set!', StockPublico::mensaje(1, 'set'));
+        $this->assertSame('¡Últimos 3 sets!', StockPublico::mensaje(3, 'set'));
+        $this->assertSame('¡Últimos 2 pares!', StockPublico::mensaje(2, 'par'));
+        $this->assertSame('¡Última caja!', StockPublico::mensaje(1, 'caja'));
+        // Sin unidad conocida se dice "unidades".
+        $this->assertSame('Quedan 5 unidades', StockPublico::mensaje(5, null));
+        $this->assertSame('Quedan 5 unidades', StockPublico::mensaje(5, '  '));
+    }
+
+    public function test_el_plural_de_la_unidad(): void
+    {
+        $this->assertSame('unidades', StockPublico::plural('unidad'));
+        $this->assertSame('sets', StockPublico::plural('set'));
+        $this->assertSame('pares', StockPublico::plural('par'));
+        $this->assertSame('juegos', StockPublico::plural('juego'));
+        $this->assertSame('kits', StockPublico::plural('kit'));
+        $this->assertSame('luces', StockPublico::plural('luz'));
     }
 
     public function test_los_niveles_para_el_color(): void
@@ -39,16 +67,23 @@ class StockPublicoTest extends TestCase
     public function test_los_campos_listos_para_una_respuesta(): void
     {
         $this->assertSame(
-            ['stock_mensaje' => 'Quedan 7 unidades', 'stock_nivel' => 'quedan'],
-            StockPublico::campos(7)
+            ['stock_mensaje' => 'Quedan 7 sets', 'stock_nivel' => 'quedan', 'unidad_medida' => 'set'],
+            StockPublico::campos(7, 'set')
         );
+        $this->assertSame('unidad', StockPublico::campos(7)['unidad_medida']);
+    }
+
+    public function test_la_unidad_se_limpia(): void
+    {
+        $this->assertSame('set', UnidadDeMedida::limpiar('  SET '));
+        $this->assertNull(UnidadDeMedida::limpiar('   '));
+        $this->assertNull(UnidadDeMedida::limpiar(null));
     }
 
     public function test_el_producto_expone_los_campos_solo_si_trae_el_stock(): void
     {
         $con = new Producto();
         $con->setRawAttributes(['stock' => 3]);
-        $this->assertSame('¡Últimas 3 unidades!', $con->stock_mensaje);
         $this->assertSame('ultimas', $con->stock_nivel);
 
         // Una consulta sin la columna `stock` no debe decir "Agotado".

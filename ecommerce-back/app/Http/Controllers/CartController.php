@@ -68,7 +68,7 @@ class CartController extends Controller
                 'moneda' => $pm['moneda'],
                 'cantidad' => (int) $item->cantidad,
                 'stock_disponible' => (int) $item->producto->stock,
-                ...\App\Support\StockPublico::campos((int) $item->producto->stock),
+                ...\App\Support\StockPublico::campos((int) $item->producto->stock, \App\Support\UnidadDeMedida::de($item->producto->id)),
                 'codigo_producto' => $item->producto->codigo_producto,
                 'mostrar_igv' => (bool) $item->producto->mostrar_igv,
                 'guardado_para_despues' => (bool) $item->guardado_para_despues,

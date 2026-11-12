@@ -42,7 +42,7 @@ class Producto extends Model
 
     protected $dates = ['deleted_at'];
 
-    protected $appends = ['imagen_url', 'manual_pdf_url', 'stock_mensaje', 'stock_nivel'];
+    protected $appends = ['imagen_url', 'manual_pdf_url', 'stock_mensaje', 'stock_nivel', 'unidad_medida'];
 
     // Relación con categoría
     public function categoria()
@@ -127,8 +127,15 @@ class Producto extends Model
     public function getStockMensajeAttribute()
     {
         return array_key_exists('stock', $this->attributes)
-            ? \App\Support\StockPublico::mensaje((int) $this->attributes['stock'])
+            ? \App\Support\StockPublico::mensaje((int) $this->attributes['stock'], $this->unidad_medida)
             : null;
+    }
+
+    /** Unidad de medida (la de Novik): "unidad", "set", "par"... ("unidad" si no se conoce). */
+    public function getUnidadMedidaAttribute()
+    {
+        return \App\Support\UnidadDeMedida::de($this->attributes['id'] ?? null)
+            ?? \App\Support\UnidadDeMedida::POR_DEFECTO;
     }
 
     /** Nivel de stock: agotado, ultimas, quedan o disponible (null sin `stock`). */
