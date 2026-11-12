@@ -769,6 +769,7 @@ class CotizacionesController extends Controller
                         'productos' => $cotizacion->detalles->map(function($detalle) use ($cotizacion) {
                             return [
                                 'producto_id' => $detalle->producto_id,
+                                'codigo' => $detalle->codigo_producto,
                                 'nombre' => $detalle->nombre_producto,
                                 'imagen' => $detalle->producto->imagen_url ?? null,
                                 'cantidad' => $detalle->cantidad,

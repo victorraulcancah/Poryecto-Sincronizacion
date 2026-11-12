@@ -505,6 +505,7 @@ class OfertasController extends Controller
                 'codigo' => $producto->codigo_producto, // Mapear para el frontend
                 'precio_venta' => $producto->precio_venta,
                 'stock' => $producto->stock,
+                ...\App\Support\StockPublico::campos((int) $producto->stock),
                 'imagen_url' => $producto->imagen_url, // Usar el accessor del modelo
                 'categoria' => $producto->categoria,
                 'marca' => $producto->marca,

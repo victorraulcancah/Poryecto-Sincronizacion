@@ -42,7 +42,7 @@ class Producto extends Model
 
     protected $dates = ['deleted_at'];
 
-    protected $appends = ['imagen_url', 'manual_pdf_url'];
+    protected $appends = ['imagen_url', 'manual_pdf_url', 'stock_mensaje', 'stock_nivel'];
 
     // Relación con categoría
     public function categoria()
@@ -117,6 +117,26 @@ class Producto extends Model
             return asset('storage/productos/' . $this->imagen);
         }
         return null;
+    }
+
+    /**
+     * Mensaje de stock para el cliente ("Agotado", "¡Últimas 3 unidades!",
+     * "Quedan 7 unidades", "Disponible"). Null si la consulta no trajo `stock`
+     * (un `select` sin esa columna): así no se afirma "Agotado" por error.
+     */
+    public function getStockMensajeAttribute()
+    {
+        return array_key_exists('stock', $this->attributes)
+            ? \App\Support\StockPublico::mensaje((int) $this->attributes['stock'])
+            : null;
+    }
+
+    /** Nivel de stock: agotado, ultimas, quedan o disponible (null sin `stock`). */
+    public function getStockNivelAttribute()
+    {
+        return array_key_exists('stock', $this->attributes)
+            ? \App\Support\StockPublico::nivel((int) $this->attributes['stock'])
+            : null;
     }
 
     // Accessor para la URL completa del manual en PDF

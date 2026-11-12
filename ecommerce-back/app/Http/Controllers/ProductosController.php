@@ -596,6 +596,7 @@ class ProductosController extends Controller
                     'moneda' => $pm['moneda'],
                     'precio_oferta' => null,
                     'stock' => $producto->stock,
+                    ...\App\Support\StockPublico::campos((int) $producto->stock),
                     'imagen_principal' => $producto->imagen ? asset('storage/productos/' . $producto->imagen) : '/placeholder-product.jpg',
                     'categoria' => $producto->categoria?->nombre,
                     'categoria_id' => $producto->categoria_id,
@@ -640,6 +641,7 @@ class ProductosController extends Controller
                 'moneda' => $pm['moneda'],
                 'precio_oferta' => null, // Por ahora null, luego puedes agregar este campo
                 'stock' => $producto->stock,
+                    ...\App\Support\StockPublico::campos((int) $producto->stock),
                 'imagen_principal' => $producto->imagen ? asset('storage/productos/' . $producto->imagen) : '/placeholder-product.jpg', // ✅ CORREGIR
                 'categoria' => $producto->categoria?->nombre,
                 'categoria_id' => $producto->categoria_id,
@@ -874,6 +876,7 @@ class ProductosController extends Controller
                         'marca' => $producto->marca?->nombre,
                         'codigo_producto' => $producto->codigo_producto,
                         'stock' => $producto->stock,
+                    ...\App\Support\StockPublico::campos((int) $producto->stock),
                         'imagen_url' => $producto->imagen ? asset('storage/productos/' . $producto->imagen) : null,
                         'url' => route('producto.detalle', $producto->id) // Asumiendo que tienes esta ruta
                     ];
