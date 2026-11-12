@@ -10,7 +10,7 @@ namespace App\Support;
  *   0        → "Agotado"
  *   1 a 3    → "¡Últimas 3 unidades!"  ("¡Última unidad!", "¡Últimos 3 sets!")
  *   4 a 9    → "Quedan 7 sets"
- *   10 o más → "Disponible: +10 sets"
+ *   10 o más → "Disponible" (sin cantidad ni unidad: la unidad va junto al precio)
  *
  * El número real sigue viajando en `stock` (el carrito lo necesita para tope
  * de cantidad); estos campos son lo que se dibuja.
@@ -25,11 +25,8 @@ class StockPublico
     /** Hasta cuántas unidades se avisa "¡Últimas N!". */
     public const MAX_ULTIMAS = 3;
 
-    /** Hasta cuántas unidades se avisa "Quedan N"; desde ahí, "Disponible: +10". */
+    /** Hasta cuántas unidades se avisa "Quedan N"; desde ahí, "Disponible". */
     public const MAX_QUEDAN = 9;
-
-    /** Desde cuántas unidades se dice "+10" en vez del número exacto. */
-    public const TOPE_DISPONIBLE = 10;
 
     public static function nivel(?int $stock): string
     {
@@ -60,7 +57,7 @@ class StockPublico
                 ? (self::esFemenina($unidad) ? "¡Última {$unidad}!" : "¡Último {$unidad}!")
                 : (self::esFemenina($unidad) ? "¡Últimas {$stock} {$plural}!" : "¡Últimos {$stock} {$plural}!"),
             self::NIVEL_QUEDAN => "Quedan {$stock} {$plural}",
-            default => 'Disponible: +' . self::TOPE_DISPONIBLE . " {$plural}",
+            default => 'Disponible',
         };
     }
 

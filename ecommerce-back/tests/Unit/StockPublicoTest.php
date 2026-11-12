@@ -18,17 +18,17 @@ class StockPublicoTest extends TestCase
         $this->assertSame('Quedan 4 unidades', StockPublico::mensaje(4));
         $this->assertSame('Quedan 7 unidades', StockPublico::mensaje(7));
         $this->assertSame('Quedan 9 unidades', StockPublico::mensaje(9));
-        $this->assertSame('Disponible: +10 unidades', StockPublico::mensaje(10));
-        $this->assertSame('Disponible: +10 unidades', StockPublico::mensaje(544));
+        $this->assertSame('Disponible', StockPublico::mensaje(10));
+        $this->assertSame('Disponible', StockPublico::mensaje(544));
     }
 
     public function test_los_mensajes_usan_la_unidad_de_medida_del_producto(): void
     {
         $this->assertSame('Quedan 7 sets', StockPublico::mensaje(7, 'set'));
         $this->assertSame('Quedan 4 pares', StockPublico::mensaje(4, 'par'));
-        $this->assertSame('Disponible: +10 sets', StockPublico::mensaje(25, 'SET'));
-        $this->assertSame('Disponible: +10 unidades', StockPublico::mensaje(25, 'Unidad '));
-        $this->assertSame('Disponible: +10 cajas', StockPublico::mensaje(25, 'caja'));
+        // Con 10 o más solo "Disponible": la unidad ya sale junto al precio.
+        $this->assertSame('Disponible', StockPublico::mensaje(25, 'SET'));
+        $this->assertSame('Disponible', StockPublico::mensaje(25, 'caja'));
         // Género: unidad/caja son femeninas; set/par, masculinas.
         $this->assertSame('¡Último set!', StockPublico::mensaje(1, 'set'));
         $this->assertSame('¡Últimos 3 sets!', StockPublico::mensaje(3, 'set'));
