@@ -58,17 +58,22 @@
     }
 }
 
+/* Una sola fila de miniaturas: si hay muchas, se desplaza con las flechas. */
 .product-details__thumbnails {
     display: flex;
     flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
+    flex-wrap: nowrap;
+    justify-content: safe center;
     gap: 12px;
+    position: relative;
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    padding: 4px;
+    scrollbar-width: none;
 
-    @media screen and (max-width: 768px) {
-        overflow-x: auto;
-        flex-wrap: nowrap;
-        padding-bottom: 8px;
+    &::-webkit-scrollbar {
+        display: none;
     }
 }
 
@@ -184,24 +189,96 @@
     img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-        transform-origin: center center;
-        will-change: transform;
+        // Se ve la imagen completa (sin recortarla ni agrandarla).
+        object-fit: contain;
     }
 }
 
-/* Estilos de zoom para el div interior que contiene la imagen */
-.zoom-active {
-    img {
-        transform: scale(2.5);
+.main-image-click {
+    width: 100%;
+    height: 100%;
+    cursor: zoom-in;
+}
+
+/* El aviso "Clic para ampliar" solo sale al pasar el mouse */
+.product-details__main-image-container:hover .zoom-indicator {
+    opacity: 1;
+}
+
+/* ===== Visor de imágenes ampliadas ===== */
+.image-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: rgba(0, 0, 0, 0.88);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 56px 72px;
+
+    @media screen and (max-width: 768px) {
+        padding: 56px 12px;
     }
 }
 
-.mobile-zoom {
-    img {
-        transform: scale(1.8);
+.image-lightbox__img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    background: #fff;
+    border-radius: 8px;
+    cursor: default;
+}
+
+.image-lightbox__close,
+.image-lightbox__nav {
+    position: absolute;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.16);
+    color: #fff;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.32);
     }
+}
+
+.image-lightbox__close {
+    top: 16px;
+    right: 16px;
+}
+
+.image-lightbox__nav {
+    top: 50%;
+    transform: translateY(-50%);
+
+    &--prev {
+        left: 16px;
+    }
+
+    &--next {
+        right: 16px;
+    }
+}
+
+.image-lightbox__counter {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #fff;
+    font-size: 14px;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 4px 12px;
+    border-radius: 12px;
 }
 
 // Estilos para el contenedor de video

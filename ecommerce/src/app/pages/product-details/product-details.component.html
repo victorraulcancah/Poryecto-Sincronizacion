@@ -44,30 +44,25 @@
 
                                         <!-- Mostrar imagen -->
                                         <div *ngIf="contenidoPrincipal.tipo === 'imagen'"
-                                             [class.zoom-active]="isZoomActive"
-                                             [class.mobile-zoom]="isMobileZoom"
-                                             (mouseenter)="onMouseEnterImage($event)"
-                                             (mouseleave)="onMouseLeaveImage($event)"
-                                             (mousemove)="onMouseMoveImage($event)"
-                                             (click)="toggleMobileZoom()"
-                                             #imageContainer>
+                                             class="main-image-click"
+                                             (click)="abrirLightbox()">
 
-                                            <!-- Indicador de zoom -->
-                                            <div class="zoom-indicator" [class.show]="isZoomActive || isMobileZoom">
-                                                {{ isMobileZoom ? 'Toca para alejar' : 'Zoom activo' }}
+                                            <!-- Aviso: al hacer clic se abre la imagen en grande -->
+                                            <div class="zoom-indicator">
+                                                <i class="ph ph-magnifying-glass-plus me-4"></i>Clic para ampliar
                                             </div>
 
                                             <!-- Botones de navegación -->
                                             <div *ngIf="obtenerTotalContenidos() > 1" class="navigation-buttons">
                                                 <button
                                                     class="nav-btn nav-btn-prev"
-                                                    (click)="anteriorContenido()"
+                                                    (click)="$event.stopPropagation(); anteriorContenido()"
                                                     title="Contenido anterior">
                                                     <i class="ph ph-caret-left"></i>
                                                 </button>
                                                 <button
                                                     class="nav-btn nav-btn-next"
-                                                    (click)="siguienteContenido()"
+                                                    (click)="$event.stopPropagation(); siguienteContenido()"
                                                     title="Siguiente contenido">
                                                     <i class="ph ph-caret-right"></i>
                                                 </button>
@@ -82,8 +77,7 @@
                                                 *ngIf="contenidoPrincipal.url; else noImage"
                                                 [src]="contenidoPrincipal.url"
                                                 [alt]="producto.nombre"
-                                                (error)="onImageError($event)"
-                                                #zoomImage>
+                                                (error)="onImageError($event)">
 
                                             <ng-template #noImage>
                                                 <div class="product-details__no-image">
@@ -119,7 +113,7 @@
                                         <i class="ph ph-caret-left"></i>
                                     </button>
 
-                                    <div class="product-details__thumbnails">
+                                    <div class="product-details__thumbnails" #tiraMiniaturas>
                                         <!-- Thumbnails de imágenes -->
                                         <div
                                             class="product-details__thumbnail"
@@ -901,6 +895,26 @@
 
     </div>
 </section>
+
+<!-- Visor de imágenes ampliadas -->
+<div *ngIf="lightboxAbierto" class="image-lightbox" (click)="cerrarLightbox()" role="dialog" aria-modal="true" aria-label="Imagen ampliada">
+    <button type="button" class="image-lightbox__close" (click)="cerrarLightbox()" title="Cerrar">
+        <i class="ph ph-x"></i>
+    </button>
+    <button *ngIf="imagenesProducto.length > 1" type="button" class="image-lightbox__nav image-lightbox__nav--prev"
+            (click)="$event.stopPropagation(); lightboxAnterior()" title="Anterior">
+        <i class="ph ph-caret-left"></i>
+    </button>
+    <img class="image-lightbox__img" [src]="imagenesProducto[lightboxIndice]" [alt]="producto?.nombre"
+         (click)="$event.stopPropagation()" (error)="onImageError($event)">
+    <button *ngIf="imagenesProducto.length > 1" type="button" class="image-lightbox__nav image-lightbox__nav--next"
+            (click)="$event.stopPropagation(); lightboxSiguiente()" title="Siguiente">
+        <i class="ph ph-caret-right"></i>
+    </button>
+    <div *ngIf="imagenesProducto.length > 1" class="image-lightbox__counter">
+        {{ lightboxIndice + 1 }} / {{ imagenesProducto.length }}
+    </div>
+</div>
 
 <!-- Modal de Video -->
 <div *ngIf="showVideoModal" class="video-modal-overlay" (click)="cerrarVideoModal()">

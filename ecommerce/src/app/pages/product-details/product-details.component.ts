@@ -1,7 +1,7 @@
 
 
 // src\app\pages\product-details\product-details.component.ts
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Pipe, PipeTransform, Inject, PLATFORM_ID } from "@angular/core"
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Pipe, PipeTransform, Inject, PLATFORM_ID, HostListener } from "@angular/core"
 import { CommonModule, isPlatformBrowser } from "@angular/common"
 import { RouterLink, ActivatedRoute, Router } from "@angular/router"
 import { FormsModule } from "@angular/forms"
@@ -39,8 +39,8 @@ export class TrustUrlPipe implements PipeTransform {
   styleUrl: "./product-details.component.scss",
 })
 export class ProductDetailsComponent implements OnInit, OnDestroy {
-  @ViewChild('zoomImage', { static: false }) zoomImage!: ElementRef<HTMLImageElement>
-  @ViewChild('imageContainer', { static: false }) imageContainer!: ElementRef<HTMLDivElement>
+  /** La fila de miniaturas: se desplaza para mantener a la vista la imagen activa. */
+  @ViewChild('tiraMiniaturas', { static: false }) tiraMiniaturas?: ElementRef<HTMLDivElement>
 
   producto: any = null
   detalles: any = null
@@ -52,8 +52,9 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   cantidad = 1
   imagenesProducto: string[] = []
   imagenPrincipal = ""
-  isZoomActive = false
-  isMobileZoom = false
+  /** Visor ampliado: se abre al hacer clic en la imagen principal. */
+  lightboxAbierto = false
+  lightboxIndice = 0
   videosProducto: string[] = []
   contenidoPrincipal: { tipo: 'imagen' | 'video', url: string } = { tipo: 'imagen', url: '' }
   showVideoModal = false
@@ -278,7 +279,7 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     // ✅ NUEVO: Limpiar meta tags al salir del componente
     this.seoService.clearMetaTags();
-    this.resetZoom()
+    this.bloquearScroll(false)
   }
 
   cargarProducto(id: number): void {
@@ -524,13 +525,13 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
   cambiarImagenPrincipal(nuevaImagen: string): void {
     this.imagenPrincipal = nuevaImagen
     this.contenidoPrincipal = { tipo: 'imagen', url: nuevaImagen }
-    this.resetZoom()
+    this.desplazarMiniatura()
   }
 
   mostrarVideo(videoUrl: string): void {
     // Mostrar video en el cuadro principal
     this.contenidoPrincipal = { tipo: 'video', url: videoUrl }
-    this.resetZoom()
+    this.desplazarMiniatura()
   }
 
   mostrarVideoEnModal(videoUrl: string): void {
@@ -615,20 +616,58 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
     return url;
   }
 
-  onMouseEnterImage(event: MouseEvent): void { if (!this.isMobileDevice) { this.isZoomActive = true; this.updateZoomPosition(event); } }
-  onMouseLeaveImage(event: MouseEvent): void { if (!this.isMobileDevice) { this.isZoomActive = false; this.resetZoom(); } }
-  onMouseMoveImage(event: MouseEvent): void { if (!this.isMobileDevice && this.isZoomActive) { this.updateZoomPosition(event); } }
-  toggleMobileZoom(): void { if (this.isMobileDevice) { this.isMobileZoom = !this.isMobileZoom; if (!this.isMobileZoom) { this.resetZoom(); } } }
+  // ===== Visor ampliado (clic en la imagen principal) =====
 
-  private updateZoomPosition(event: MouseEvent): void {
-    if (!this.imageContainer || !this.zoomImage) return
-    const containerRect = this.imageContainer.nativeElement.getBoundingClientRect()
-    const percentX = ((event.clientX - containerRect.left) / containerRect.width) * 100
-    const percentY = ((event.clientY - containerRect.top) / containerRect.height) * 100
-    this.zoomImage.nativeElement.style.transformOrigin = `${Math.max(0, Math.min(100, percentX))}% ${Math.max(0, Math.min(100, percentY))}%`
+  abrirLightbox(): void {
+    const indice = this.imagenesProducto.indexOf(this.contenidoPrincipal.url)
+    if (indice < 0) return
+    this.lightboxIndice = indice
+    this.lightboxAbierto = true
+    this.bloquearScroll(true)
   }
 
-  private resetZoom(): void { if (this.zoomImage) { this.zoomImage.nativeElement.style.transformOrigin = 'center center' } }
+  cerrarLightbox(): void {
+    if (!this.lightboxAbierto) return
+    this.lightboxAbierto = false
+    this.bloquearScroll(false)
+    // La galería queda en la imagen que se estaba viendo en el visor.
+    const imagen = this.imagenesProducto[this.lightboxIndice]
+    if (imagen && imagen !== this.contenidoPrincipal.url) this.cambiarImagenPrincipal(imagen)
+  }
+
+  lightboxSiguiente(): void {
+    const total = this.imagenesProducto.length
+    if (total > 1) this.lightboxIndice = (this.lightboxIndice + 1) % total
+  }
+
+  lightboxAnterior(): void {
+    const total = this.imagenesProducto.length
+    if (total > 1) this.lightboxIndice = (this.lightboxIndice - 1 + total) % total
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onTeclado(event: KeyboardEvent): void {
+    if (!this.lightboxAbierto) return
+    if (event.key === 'Escape') this.cerrarLightbox()
+    else if (event.key === 'ArrowRight') this.lightboxSiguiente()
+    else if (event.key === 'ArrowLeft') this.lightboxAnterior()
+  }
+
+  private bloquearScroll(bloquear: boolean): void {
+    if (this.isBrowser) document.body.style.overflow = bloquear ? 'hidden' : ''
+  }
+
+  /** Centra la miniatura activa en su fila, sin mover la página. */
+  private desplazarMiniatura(): void {
+    if (!this.isBrowser) return
+    setTimeout(() => {
+      const tira = this.tiraMiniaturas?.nativeElement
+      const activa = tira?.querySelector('.product-details__thumbnail.active') as HTMLElement | null
+      if (!tira || !activa) return
+      tira.scrollTo({ left: activa.offsetLeft - (tira.clientWidth - activa.offsetWidth) / 2, behavior: 'smooth' })
+    })
+  }
+
   trackByImageUrl(index: number, imagen: string): string { return imagen; }
 
   private procesarEspecificaciones(): void {
