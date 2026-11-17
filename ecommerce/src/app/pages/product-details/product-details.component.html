@@ -52,27 +52,6 @@
                                                 <i class="ph ph-magnifying-glass-plus me-4"></i>Clic para ampliar
                                             </div>
 
-                                            <!-- Botones de navegación -->
-                                            <div *ngIf="obtenerTotalContenidos() > 1" class="navigation-buttons">
-                                                <button
-                                                    class="nav-btn nav-btn-prev"
-                                                    (click)="$event.stopPropagation(); anteriorContenido()"
-                                                    title="Contenido anterior">
-                                                    <i class="ph ph-caret-left"></i>
-                                                </button>
-                                                <button
-                                                    class="nav-btn nav-btn-next"
-                                                    (click)="$event.stopPropagation(); siguienteContenido()"
-                                                    title="Siguiente contenido">
-                                                    <i class="ph ph-caret-right"></i>
-                                                </button>
-                                            </div>
-
-                                            <!-- Contador de contenido -->
-                                            <div *ngIf="obtenerTotalContenidos() > 1" class="content-counter">
-                                                {{ obtenerIndiceActual() }} / {{ obtenerTotalContenidos() }}
-                                            </div>
-
                                             <img
                                                 *ngIf="contenidoPrincipal.url; else noImage"
                                                 [src]="contenidoPrincipal.url"
