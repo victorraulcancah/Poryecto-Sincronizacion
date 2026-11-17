@@ -113,7 +113,7 @@
                                         <i class="ph ph-caret-left"></i>
                                     </button>
 
-                                    <div class="product-details__thumbnails" #tiraMiniaturas>
+                                    <div class="product-details__thumbnails" #tiraMiniaturas (scroll)="actualizarBordesMiniaturas()">
                                         <!-- Thumbnails de imágenes -->
                                         <div
                                             class="product-details__thumbnail"

@@ -655,8 +655,9 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
       this.almacenService
         .eliminarImagenDetalle(this.producto.id, index)
         .subscribe({
-          next: () => {
+          next: (respuesta) => {
             this.imagenesExistentes.splice(index, 1);
+            this.actualizarVistaPrincipal(respuesta?.imagen_url);
           },
           error: (error) => {
             console.error('Error al eliminar imagen:', error);
@@ -727,8 +728,9 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
 
     this.guardandoOrden = true;
     this.almacenService.ordenarImagenesDetalle(this.producto.id, orden).subscribe({
-      next: () => {
+      next: (respuesta) => {
         this.guardandoOrden = false;
+        this.actualizarVistaPrincipal(respuesta?.imagen_url);
       },
       error: (error) => {
         console.error('Error al ordenar imágenes:', error);
@@ -737,6 +739,17 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
         alert('No se pudo guardar el nuevo orden de las imágenes. Intenta de nuevo.');
       },
     });
+  }
+
+  /**
+   * La imagen principal es, por defecto, la primera de la galería: si el servidor
+   * la cambió, la vista previa de "Imagen Principal" se actualiza (salvo que se
+   * haya elegido una imagen nueva que aún no se guarda).
+   */
+  private actualizarVistaPrincipal(url?: string | null): void {
+    if (url && !this.selectedImage) {
+      this.imagePreview = url;
+    }
   }
 
   private mover<T>(lista: T[], origen: number, destino: number): void {

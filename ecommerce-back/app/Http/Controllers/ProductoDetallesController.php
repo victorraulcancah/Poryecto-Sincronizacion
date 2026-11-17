@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Producto;
 use App\Models\ProductoDetalle;
+use App\Support\ImagenPrincipal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -94,6 +95,7 @@ class ProductoDetallesController extends Controller
                     : $detallesExistentes->imagenes;
                 $imagenesFinales = is_array($imagenesExistentes) ? $imagenesExistentes : [];
             }
+            $primeraAntes = $imagenesFinales[0] ?? null;
 
             // Agregar nuevas imágenes a las existentes
             if ($request->hasFile('imagenes')) {
@@ -136,10 +138,13 @@ class ProductoDetallesController extends Controller
                 ]
             );
 
+            $imagenUrl = ImagenPrincipal::desdeGaleria((int) $id, $primeraAntes, $imagenesFinales);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Detalles guardados exitosamente',
-                'detalles' => $detalles
+                'detalles' => $detalles,
+                'imagen_url' => $imagenUrl
             ]);
 
         } catch (\Exception $e) {
@@ -186,9 +191,16 @@ class ProductoDetallesController extends Controller
             $todasLasImagenes = array_merge($imagenesExistentes, $imagenesNuevas);
             $detalles->update(['imagenes' => json_encode($todasLasImagenes)]);
 
+            $imagenUrl = ImagenPrincipal::desdeGaleria(
+                (int) $id,
+                $imagenesExistentes[0] ?? null,
+                $todasLasImagenes
+            );
+
             return response()->json([
                 'success' => true,
-                'message' => 'Imágenes agregadas exitosamente'
+                'message' => 'Imágenes agregadas exitosamente',
+                'imagen_url' => $imagenUrl
             ]);
 
         } catch (\Exception $e) {
@@ -215,7 +227,10 @@ class ProductoDetallesController extends Controller
 
             $imagenes = $detalles->imagenes ? json_decode($detalles->imagenes, true) : [];
             
+            $imagenUrl = null;
             if (isset($imagenes[$imagenIndex])) {
+                $primeraAntes = $imagenes[0] ?? null;
+
                 // Eliminar archivo físico
                 Storage::disk('public')->delete('productos/detalles/' . $imagenes[$imagenIndex]);
                 
@@ -224,11 +239,14 @@ class ProductoDetallesController extends Controller
                 $imagenes = array_values($imagenes); // Reindexar array
                 
                 $detalles->update(['imagenes' => json_encode($imagenes)]);
+
+                $imagenUrl = ImagenPrincipal::desdeGaleria((int) $id, $primeraAntes, $imagenes);
             }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Imagen eliminada exitosamente'
+                'message' => 'Imagen eliminada exitosamente',
+                'imagen_url' => $imagenUrl
             ]);
 
         } catch (\Exception $e) {
@@ -277,9 +295,12 @@ class ProductoDetallesController extends Controller
             $nuevas = array_map(fn ($posicion) => $imagenes[$posicion], $orden);
             $detalles->update(['imagenes' => json_encode($nuevas)]);
 
+            $imagenUrl = ImagenPrincipal::desdeGaleria((int) $id, $imagenes[0] ?? null, $nuevas);
+
             return response()->json([
                 'success' => true,
-                'message' => 'Orden de imágenes actualizado'
+                'message' => 'Orden de imágenes actualizado',
+                'imagen_url' => $imagenUrl
             ]);
 
         } catch (\Exception $e) {

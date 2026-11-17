@@ -75,6 +75,22 @@
     &::-webkit-scrollbar {
         display: none;
     }
+
+    /* Degradado blanco por el lado donde se esconden más imágenes */
+    &.fade-left {
+        -webkit-mask-image: linear-gradient(to right, transparent 0, #000 64px);
+        mask-image: linear-gradient(to right, transparent 0, #000 64px);
+    }
+
+    &.fade-right {
+        -webkit-mask-image: linear-gradient(to left, transparent 0, #000 64px);
+        mask-image: linear-gradient(to left, transparent 0, #000 64px);
+    }
+
+    &.fade-left.fade-right {
+        -webkit-mask-image: linear-gradient(to right, transparent 0, #000 64px, #000 calc(100% - 64px), transparent 100%);
+        mask-image: linear-gradient(to right, transparent 0, #000 64px, #000 calc(100% - 64px), transparent 100%);
+    }
 }
 
 .product-details__thumbnail {

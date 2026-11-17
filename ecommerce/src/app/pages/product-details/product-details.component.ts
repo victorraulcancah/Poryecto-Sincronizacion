@@ -1,7 +1,7 @@
 
 
 // src\app\pages\product-details\product-details.component.ts
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Pipe, PipeTransform, Inject, PLATFORM_ID, HostListener } from "@angular/core"
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Pipe, PipeTransform, Inject, PLATFORM_ID, HostListener, AfterViewChecked } from "@angular/core"
 import { CommonModule, isPlatformBrowser } from "@angular/common"
 import { RouterLink, ActivatedRoute, Router } from "@angular/router"
 import { FormsModule } from "@angular/forms"
@@ -38,7 +38,7 @@ export class TrustUrlPipe implements PipeTransform {
   templateUrl: "./product-details.component.html",
   styleUrl: "./product-details.component.scss",
 })
-export class ProductDetailsComponent implements OnInit, OnDestroy {
+export class ProductDetailsComponent implements OnInit, OnDestroy, AfterViewChecked {
   /** La fila de miniaturas: se desplaza para mantener a la vista la imagen activa. */
   @ViewChild('tiraMiniaturas', { static: false }) tiraMiniaturas?: ElementRef<HTMLDivElement>
 
@@ -655,6 +655,22 @@ export class ProductDetailsComponent implements OnInit, OnDestroy {
 
   private bloquearScroll(bloquear: boolean): void {
     if (this.isBrowser) document.body.style.overflow = bloquear ? 'hidden' : ''
+  }
+
+  ngAfterViewChecked(): void {
+    this.actualizarBordesMiniaturas()
+  }
+
+  /**
+   * Las miniaturas se desvanecen en blanco por el lado donde hay más imágenes
+   * escondidas (como en la tienda de referencia). Se marca con clases directo en
+   * el elemento para no tocar el estado del componente durante la detección de cambios.
+   */
+  actualizarBordesMiniaturas(): void {
+    const tira = this.tiraMiniaturas?.nativeElement
+    if (!tira) return
+    tira.classList.toggle('fade-left', tira.scrollLeft > 4)
+    tira.classList.toggle('fade-right', tira.scrollLeft + tira.clientWidth < tira.scrollWidth - 4)
   }
 
   /** Centra la miniatura activa en su fila, sin mover la página. */
