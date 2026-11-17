@@ -574,6 +574,14 @@ export class AlmacenService {
     );
   }
 
+  /** `orden`: posiciones actuales de las imágenes, en el orden nuevo. */
+  ordenarImagenesDetalle(productoId: number, orden: number[]): Observable<any> {
+    return this.http.put<any>(
+      `${this.apiUrl}/productos/${productoId}/detalles/imagenes/orden`,
+      { orden }
+    );
+  }
+
   toggleDestacadoProducto(id: number, destacado: boolean): Observable<any> {
     return this.http.patch<any>(
       `${this.apiUrl}/productos/${id}/toggle-destacado`,

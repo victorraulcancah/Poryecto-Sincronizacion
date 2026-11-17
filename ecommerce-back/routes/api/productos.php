@@ -44,6 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/productos/{id}/detalles', [ProductoDetallesController::class, 'store']);
         Route::post('/productos/{id}/detalles/imagenes', [ProductoDetallesController::class, 'agregarImagenes']);
         Route::delete('/productos/{id}/detalles/imagenes', [ProductoDetallesController::class, 'eliminarImagen']);
+        Route::put('/productos/{id}/detalles/imagenes/orden', [ProductoDetallesController::class, 'ordenarImagenes']);
     });
 
     Route::middleware('permission:productos.delete')->group(function () {

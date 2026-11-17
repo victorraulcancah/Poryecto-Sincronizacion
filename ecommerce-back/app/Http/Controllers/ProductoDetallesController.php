@@ -241,6 +241,57 @@ class ProductoDetallesController extends Controller
     }
 
     /**
+     * Cambia el orden de las imágenes de la galería.
+     *
+     * Recibe `orden`: la lista de posiciones actuales en el orden nuevo.
+     * Ej.: con 3 imágenes, [2, 0, 1] deja primero la que estaba en la posición 2.
+     */
+    public function ordenarImagenes(Request $request, $id)
+    {
+        try {
+            $detalles = ProductoDetalle::where('producto_id', $id)->first();
+            if (!$detalles) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se encontraron detalles del producto'
+                ], 404);
+            }
+
+            $imagenes = $detalles->imagenes ? json_decode($detalles->imagenes, true) : [];
+            $imagenes = is_array($imagenes) ? array_values($imagenes) : [];
+
+            $orden = $request->input('orden');
+            $orden = is_array($orden) ? array_map('intval', $orden) : [];
+
+            // Debe ser exactamente una vez cada posición actual.
+            $esperado = range(0, count($imagenes) - 1);
+            $recibido = $orden;
+            sort($recibido);
+            if (count($imagenes) === 0 || $recibido !== $esperado) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'El orden recibido no coincide con las imágenes del producto'
+                ], 422);
+            }
+
+            $nuevas = array_map(fn ($posicion) => $imagenes[$posicion], $orden);
+            $detalles->update(['imagenes' => json_encode($nuevas)]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Orden de imágenes actualizado'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al ordenar imágenes',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Procesa campos JSON desde string
      */
     private function processJsonField($jsonString)

@@ -665,6 +665,85 @@ export class ProductoModalComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
+  // ---- Orden de la galería (arrastrar y soltar) ----
+
+  /** La imagen que se está arrastrando y sobre cuál posición está. */
+  arrastrando: { lista: 'existentes' | 'nuevas'; indice: number } | null = null;
+  sobreIndice: number | null = null;
+  guardandoOrden = false;
+
+  iniciarArrastre(lista: 'existentes' | 'nuevas', indice: number, event: DragEvent): void {
+    if (this.guardandoOrden) {
+      event.preventDefault();
+      return;
+    }
+    this.arrastrando = { lista, indice };
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      // Firefox no arrastra si no hay datos.
+      event.dataTransfer.setData('text/plain', String(indice));
+    }
+  }
+
+  /** Permite soltar solo dentro de la misma lista (actuales con actuales). */
+  permitirSoltar(lista: 'existentes' | 'nuevas', indice: number, event: DragEvent): void {
+    if (this.arrastrando?.lista !== lista) return;
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+    this.sobreIndice = indice;
+  }
+
+  finArrastre(): void {
+    this.arrastrando = null;
+    this.sobreIndice = null;
+  }
+
+  soltarImagen(lista: 'existentes' | 'nuevas', destino: number, event: DragEvent): void {
+    event.preventDefault();
+    const origen = this.arrastrando?.lista === lista ? this.arrastrando.indice : null;
+    this.finArrastre();
+    if (origen === null || origen === destino) return;
+
+    if (lista === 'nuevas') {
+      // Todavía no se suben: basta con ordenarlas aquí; se suben en este orden.
+      this.mover(this.imagenesSeleccionadas, origen, destino);
+      this.mover(this.imagenesPreview, origen, destino);
+      return;
+    }
+
+    this.moverImagenExistente(origen, destino);
+  }
+
+  /** Mueve una imagen ya guardada a otra posición (con flechas o arrastrando). */
+  moverImagenExistente(origen: number, destino: number): void {
+    if (!this.producto || this.guardandoOrden) return;
+    if (destino < 0 || destino >= this.imagenesExistentes.length) return;
+
+    const anterior = [...this.imagenesExistentes];
+    // Posiciones actuales en el orden nuevo (lo que espera el servidor).
+    const orden = anterior.map((_, i) => i);
+    this.mover(orden, origen, destino);
+    this.mover(this.imagenesExistentes, origen, destino);
+
+    this.guardandoOrden = true;
+    this.almacenService.ordenarImagenesDetalle(this.producto.id, orden).subscribe({
+      next: () => {
+        this.guardandoOrden = false;
+      },
+      error: (error) => {
+        console.error('Error al ordenar imágenes:', error);
+        this.imagenesExistentes = anterior;
+        this.guardandoOrden = false;
+        alert('No se pudo guardar el nuevo orden de las imágenes. Intenta de nuevo.');
+      },
+    });
+  }
+
+  private mover<T>(lista: T[], origen: number, destino: number): void {
+    const [item] = lista.splice(origen, 1);
+    lista.splice(destino, 0, item);
+  }
+
   // ==================== GETTERS PARA FORM ARRAYS ====================
 
   get informacionAdicional() {
